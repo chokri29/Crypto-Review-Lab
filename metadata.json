@@ -1,0 +1,6 @@
+{
+  "name": "Crypto Review Lab",
+  "description": "An interactive full-stack learning and preview platform for cryptographic project reviews, powered by Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

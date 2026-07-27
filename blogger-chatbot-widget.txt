@@ -1,0 +1,170 @@
+<!-- 
+  ========================================================================
+  CRYPTO REVIEW LAB - STANDALONE AI CHATBOT WIDGET (10KB BACKUP)
+  ========================================================================
+  
+  HOW TO INSTALL ON YOUR EXISTING BLOGGER BLOG:
+  1. Go to your Blogger Dashboard -> Layout.
+  2. Scroll down to the Sidebar or Footer area and click "Add a Gadget".
+  3. Select "HTML/JavaScript" from the popup list.
+  4. Leave the Title blank (or name it "AI Lab Auditor").
+  5. Paste ALL the code below into the Content area.
+  6. Click "Save" and save your Layout.
+  
+  That's it! A beautiful floating cyber chatbot will appear on your blog.
+  ========================================================================
+-->
+
+<div id="crypto-chatbot-root"></div>
+
+<style>
+  #crypto-chatbot-root {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999999;
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  }
+  
+  #crypto-chatbot-iframe {
+    position: fixed;
+    bottom: 92px;
+    right: 24px;
+    width: 380px;
+    height: 580px;
+    max-height: calc(100vh - 130px);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 30px rgba(0, 229, 255, 0.05);
+    background: #0d1117;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    pointer-events: none;
+    z-index: 999999;
+  }
+  
+  #crypto-chatbot-iframe.widget-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  
+  #crypto-chatbot-launcher {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #00e5ff;
+    color: #080c10;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 229, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-top: 12px;
+    float: right;
+  }
+  
+  #crypto-chatbot-launcher svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+  }
+  
+  #crypto-chatbot-launcher:hover {
+    transform: scale(1.08) translateY(-2px);
+    background: #33ecff;
+    box-shadow: 0 12px 28px rgba(0, 229, 255, 0.45);
+  }
+  
+  #crypto-chatbot-launcher:active {
+    transform: scale(0.95);
+  }
+  
+  @media (max-width: 480px) {
+    #crypto-chatbot-root {
+      bottom: 0px !important;
+      right: 0px !important;
+      left: 0px !important;
+      width: 100% !important;
+      height: 100% !important;
+      pointer-events: none;
+    }
+    #crypto-chatbot-iframe {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100% !important;
+      border-radius: 0px !important;
+      border: none !important;
+      pointer-events: auto;
+      z-index: 999999;
+    }
+    #crypto-chatbot-launcher {
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+      pointer-events: auto;
+      z-index: 1000000;
+      width: 52px !important;
+      height: 52px !important;
+    }
+    #crypto-chatbot-launcher.launcher-open {
+      top: 20px !important;
+      bottom: auto !important;
+      right: 20px !important;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    var container = document.getElementById('crypto-chatbot-root');
+    if (!container) return;
+    
+    // Create the widget iframe
+    var iframe = document.createElement('iframe');
+    iframe.id = 'crypto-chatbot-iframe';
+    iframe.frameBorder = '0';
+    iframe.allowTransparency = 'true';
+    
+    // Explicitly target your dynamic deployment URL
+    var deploymentUrl = "https://ais-pre-pdkemchly6453zkdn6oggx-534731101661.europe-west1.run.app";
+    iframe.src = deploymentUrl + "/widget/chat";
+    container.appendChild(iframe);
+    
+    // Create floating launcher button
+    var launcher = document.createElement('button');
+    launcher.id = 'crypto-chatbot-launcher';
+    launcher.setAttribute('aria-label', 'Chat with Lab Auditor');
+    
+    // SVG Speech Bubble icon
+    launcher.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+    container.appendChild(launcher);
+    
+    var isOpen = false;
+    launcher.onclick = function() {
+      isOpen = !isOpen;
+      if (isOpen) {
+        iframe.classList.add('widget-visible');
+        launcher.classList.add('launcher-open');
+        // Set Close (X) icon
+        launcher.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        launcher.style.transform = "rotate(90deg)";
+      } else {
+        iframe.classList.remove('widget-visible');
+        launcher.classList.remove('launcher-open');
+        // Restore speech bubble icon
+        launcher.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+        launcher.style.transform = "rotate(0deg)";
+      }
+    };
+  })();
+</script>

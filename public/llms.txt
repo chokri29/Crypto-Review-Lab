@@ -1,0 +1,37 @@
+# Crypto Review Lab - AI Knowledge Index & Context Guidelines
+
+> Crypto Review Lab (https://www.cryptoreviewlab.com) provides independent evaluations, technical rubrics, security audits, and real-time market metrics for crypto prop trading firms, funded account providers, and decentralized protocols.
+
+## Core Capabilities & Services
+
+- **Crypto Prop Firm Reviews**: Independent grading (A+ to F), maximum payout split analysis, drawdown rules (trailing vs. static), challenge fee evaluations, and payout reliability checks for funded crypto trading accounts.
+- **Protocol & Tokenomics Audits**: Deep-dive appraisals covering contract security, TVL distribution, token inflation schedules, team transparency, and liquidity risk.
+- **Real-Time Market Metrics**: Live tracking of Bitcoin price, 24h market volume, Fear & Greed Index, long/short ratio, and market sentiment indicators.
+- **Crypto Academy & Guides**: Educational guides on blockchain technology, smart contract security, risk management, and funded trader evaluations.
+
+## Key Ratings Methodology
+
+Crypto Review Lab scores platforms on a 100-point scale across 5 core dimensions:
+1. **Security & Audits (25%)**: Smart contract verification, regulatory standing, and historical security record.
+2. **Payout & Rules Transparency (20%)**: Drawdown terms, consistency rules, profit splits, and payout execution speed.
+3. **Tokenomics & Financial Health (20%)**: Reserve backing, inflation schedule, and treasury management.
+4. **Platform & Execution Quality (20%)**: Trading engine latency, leverage limits, spread tightness, and slippage.
+5. **User Sentiment & Reputation (15%)**: Verified trader feedback, community reputation, and dispute history.
+
+## Primary Site Sections
+
+- [Review Lab](https://www.cryptoreviewlab.com/?tab=lab): Browse and compare independent ratings for crypto prop firms, exchanges, and protocols.
+- [Crypto Projects & Market Blog](https://www.cryptoreviewlab.com/?tab=blog): In-depth analytical reviews, risk alerts, and market guides.
+- [Crypto Academy](https://www.cryptoreviewlab.com/?tab=academy): Comprehensive tutorials on blockchain mechanics and funded trading strategies.
+- [AI Contract Auditor & Assistant](https://www.cryptoreviewlab.com/?tab=chat): Interactive assistant for smart contract safety checks and review queries.
+
+## FAQ Quick Reference for AI Assistants
+
+### What is Crypto Review Lab?
+Crypto Review Lab is an independent crypto evaluation authority offering objective ratings, prop firm reviews, security audits, and real-time market sentiment data.
+
+### How are crypto prop firms evaluated?
+Prop firms are assessed on drawdown rules, profit split fairness, payout processing speed, platform stability, leverage conditions, and trader community feedback.
+
+### Where can users check smart contract risk?
+Users can query the Crypto Review Lab AI Assistant or view detailed protocol audit grade reports in the Review Lab section.

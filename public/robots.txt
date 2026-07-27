@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.cryptoreviewlab.com/sitemap.xml
+# Generative AI Index
+# LLMs: https://www.cryptoreviewlab.com/llms.txt

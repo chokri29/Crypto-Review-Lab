@@ -1,0 +1,2701 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultmessages='true' b:layoutsVersion='3' b:responsive='true' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta charset='utf-8'/>
+  <meta content='width=device-width, initial-scale=1, shrink-to-fit=no' name='viewport'/>
+  <title><data:blog.pageTitle/></title>
+  
+  <b:skin><![CDATA[
+    /* =========================================================================
+       CRYPTO ACADEMY ONLINE - STANDALONE HIGH-FIDELITY CYBERNETIC THEME
+       ========================================================================= */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Share+Tech+Mono&amp;family=Outfit:wght@400;500;600;700;800;900&amp;display=swap');
+
+    :root {
+      --bg-main: #060a12;
+      --bg-card: #0b1524;
+      --text-main: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #00e5ff;
+      --accent-hover: #33ecff;
+      --border: rgba(0, 229, 255, 0.15);
+      --border-bright: rgba(0, 229, 255, 0.45);
+    }
+
+    /* Reset and Core Styling */
+    html, body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Branded Loading Screen */
+    #ca-page-loader {
+      position: fixed;
+      inset: 0;
+      background: #060a12;
+      z-index: 999999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #ca-page-loader.ca-loader-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .ca-loader-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.1rem;
+    }
+
+    .ca-loader-logo {
+      filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.6));
+      animation: caLoaderPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes caLoaderPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(0.9); }
+    }
+
+    .ca-loader-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .ca-loader-bar-track {
+      width: 160px;
+      height: 3px;
+      background: rgba(0, 229, 255, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .ca-loader-bar-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: caLoaderBar 1.2s ease-in-out infinite;
+    }
+
+    @keyframes caLoaderBar {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(340%); }
+    }
+
+    .ca-loader-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Glowing Glass Header Navigation */
+    .theme-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(6, 10, 18, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      color: var(--accent);
+      filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.6));
+      flex-shrink: 0;
+    }
+
+    .logo-text-wrap {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .logo-tagline {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.8;
+      margin-top: 2px;
+      text-align: left;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    .nav-hamburger-btn {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .theme-header {
+        backdrop-filter: none !important;
+        background: #060a12 !important;
+        padding: 1rem 1.25rem !important;
+      }
+
+      .logo-container {
+        position: relative;
+        z-index: 100001 !important;
+      }
+
+      .logo {
+        font-size: 1.05rem !important;
+        letter-spacing: 1px !important;
+        white-space: nowrap !important;
+      }
+
+      .logo-tagline {
+        font-size: 0.5rem !important;
+        letter-spacing: 1.5px !important;
+      }
+
+      @media (max-width: 480px) {
+        .logo-container {
+          gap: 0.5rem !important;
+        }
+        .logo {
+          font-size: 0.9rem !important;
+          letter-spacing: 0.5px !important;
+        }
+        .logo-tagline {
+          font-size: 0.45rem !important;
+          letter-spacing: 1px !important;
+        }
+        .logo-icon {
+          width: 24px !important;
+          height: 24px !important;
+        }
+      }
+
+      .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #060a12 !important;
+        background: #060a12 !important;
+        border-bottom: 2px solid rgba(0, 229, 255, 0.15);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 0;
+        padding: 0.5rem 1.25rem 1rem;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-8px);
+        transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+        z-index: 100000 !important;
+      }
+
+      body.ca-nav-open .nav-links {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .nav-links .nav-link {
+        font-size: 0.85rem;
+        padding: 0.65rem 0.5rem;
+        width: 100%;
+        border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+        color: var(--text-main);
+        text-align: left;
+      }
+
+      .nav-links .btn-subscribe {
+        margin-top: 0.85rem;
+        width: calc(100% - 1rem);
+        text-align: center;
+        padding: 0.6rem;
+        font-size: 0.72rem;
+      }
+
+      .nav-hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 0.4rem;
+        z-index: 100001 !important;
+        transition: color 0.2s, text-shadow 0.2s;
+        filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.4));
+      }
+
+      .nav-hamburger-btn:hover {
+        color: var(--accent-hover);
+      }
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+    }
+
+    .btn-subscribe {
+      background: var(--accent);
+      color: #060a12;
+      padding: 0.5rem 1.25rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+      transition: all 0.25s ease;
+    }
+
+    .btn-subscribe:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    /* Horizontal Market Ticker bar */
+    .market-ticker-wrap {
+      background: #02060c;
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 0;
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+    }
+
+    .market-ticker-container {
+      display: flex;
+      width: max-content;
+      gap: 1rem;
+      animation: ticker-scroll 30s linear infinite;
+    }
+
+    .market-ticker-container:hover {
+      animation-play-state: paused;
+    }
+
+    @keyframes ticker-scroll {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(-50%, 0, 0);
+      }
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 1rem;
+    }
+
+    .ticker-logo {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .ticker-symbol {
+      color: var(--accent);
+      font-weight: bold;
+      text-transform: uppercase;
+      text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+    }
+
+    .ticker-price {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .ticker-change {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .ticker-change.up {
+      color: #10b981;
+    }
+
+    .ticker-change.down {
+      color: #ef4444;
+    }
+
+    /* Hero Action Buttons styling */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.95rem 2rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #060a12;
+      border: 1px solid var(--accent);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(6, 10, 18, 0.4);
+      color: #ffffff;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      backdrop-filter: blur(5px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 229, 255, 0.08);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    /* Interactive Hero Section */
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4.5rem 2rem;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 3.5rem;
+      align-items: center;
+      position: relative;
+      z-index: 10;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        padding: 3rem 1.5rem;
+      }
+
+      .hero-title {
+        font-size: 2.25rem !important;
+        letter-spacing: -1px !important;
+      }
+
+      .emblem-container {
+        height: 280px !important;
+      }
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .hero-eyebrow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .eyebrow-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .eyebrow-item.green {
+      color: #10b981;
+    }
+
+    .hero-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.6rem;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      color: #ffffff;
+      margin: 0 0 1.25rem 0;
+      text-align: left;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, var(--accent), #e2e8f0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 25px rgba(0, 229, 255, 0.15);
+    }
+
+    .hero-desc {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      margin: 0 0 2rem 0;
+      max-width: 500px;
+      text-align: left;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    /* Market Pulse Card */
+    .market-pulse-card {
+      background: rgba(11, 21, 36, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .market-pulse-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent);
+    }
+
+    .ai-summary-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .ai-summary-icon {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #10b981;
+    }
+
+    .ai-summary-title {
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .ai-stat-card {
+      background: rgba(6, 10, 18, 0.6);
+      border: 1px solid rgba(0, 229, 255, 0.08);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      transition: all 0.25s ease;
+    }
+
+    .ai-stat-card:hover {
+      border-color: rgba(0, 229, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .ai-stat-label {
+      color: var(--text-muted);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .ai-stat-value {
+      color: #ffffff;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin: 0.35rem 0 0.15rem;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .ai-stat-value.big {
+      font-size: 1.65rem;
+    }
+
+    .ai-stat-sub {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+
+    .ai-stat-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+      .ai-stat-grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ai-mover-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .ai-mover-sym {
+      color: #ffffff;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .ai-mover-change {
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .ai-mover-change.up {
+      color: #10b981;
+    }
+
+    .ai-mover-change.down {
+      color: #ef4444;
+    }
+
+    /* Section Headers */
+    .section-header-wrap {
+      max-width: 1200px;
+      margin: 3.5rem auto 1.75rem;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .section-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .section-line {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(0, 229, 255, 0.25), transparent);
+      flex: 1;
+    }
+
+    .section-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* Featured Section layout */
+    .featured-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "left"
+        "header"
+        "right";
+      gap: 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .featured-section-header {
+      grid-area: header;
+      margin: 0;
+      padding: 0;
+      max-width: none;
+    }
+
+    .featured-section-left {
+      grid-area: left;
+    }
+
+    .featured-section-right {
+      grid-area: right;
+    }
+
+    @media (min-width: 769px) {
+      .featured-section {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "header header"
+          "left right";
+      }
+    }
+
+    .featured-card {
+      background: rgba(11, 21, 36, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .featured-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.25), transparent);
+    }
+
+    .emblem-container {
+      width: 100%;
+      height: 380px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .site-emblem-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: transparent;
+      display: block;
+    }
+
+    .featured-card-bordered {
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.12), 0 0 28px rgba(0, 229, 255, 0.12);
+    }
+
+    .rizon-image-wrap {
+      width: 100%;
+      padding: 1.1rem 1.1rem 0;
+      height: auto;
+      position: relative;
+      overflow: visible;
+      background: transparent;
+      box-sizing: border-box;
+    }
+
+    .rizon-image {
+      display: block;
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 10px;
+      transition: transform 0.5s ease;
+    }
+
+    .featured-card:hover .rizon-image {
+      transform: scale(1.03);
+    }
+
+    .rizon-site-link {
+      position: absolute;
+      right: 2.1rem;
+      bottom: -18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #0a4d5c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(0, 229, 255, 0.4);
+      border: 2px solid #0b1524;
+      color: #060a12;
+      text-decoration: none;
+      z-index: 5;
+    }
+
+    .rizon-site-link svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .rizon-content {
+      padding: 1.9rem 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .rizon-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .rizon-category-wrap {
+      margin-bottom: 0.75rem;
+    }
+
+    .rizon-category {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-top: 1px solid rgba(0, 229, 255, 0.2);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding: 0.25rem 1rem;
+      display: inline-block;
+    }
+
+    .rizon-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0 0 1.5rem 0;
+      max-width: 380px;
+    }
+
+    .btn-review-read {
+      width: 100%;
+      background: var(--accent);
+      color: #060a12;
+      padding: 0.85rem;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(0, 229, 255, 0.15);
+      transition: all 0.2s ease;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    .btn-review-read:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* Single Post Layout styling */
+    .single-post-container {
+      max-width: 850px;
+      margin: 2.5rem auto 5rem;
+      padding: 0 2rem;
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .single-post-header {
+      margin-bottom: 2rem;
+      text-align: left;
+    }
+
+    .single-post-meta-labels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+
+    .single-post-meta-labels .post-category-tag {
+      position: relative !important;
+      bottom: auto !important;
+      left: auto !important;
+      display: inline-flex !important;
+      align-items: center;
+      margin: 0;
+      z-index: 1;
+    }
+
+    .single-post-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 1rem;
+      font-family: 'Outfit', sans-serif;
+      text-shadow: 0 0 40px rgba(0, 229, 255, 0.1);
+    }
+
+    .single-post-meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+      padding-bottom: 1.25rem;
+    }
+
+    .single-post-featured-image-wrap {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .single-post-featured-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .single-post-body-content {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: #cbd5e1;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .single-post-body-content img {
+      max-width: 100% !important;
+      height: auto !important;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+    }
+
+    .single-post-body-content iframe,
+    .single-post-body-content video {
+      max-width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+    }
+
+    .single-post-body-content p {
+      margin-bottom: 1.5rem;
+    }
+
+    .single-post-body-content h1,
+    .single-post-body-content h2,
+    .single-post-body-content h3,
+    .single-post-body-content h4 {
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .single-post-body-content h2 {
+      font-size: 1.75rem;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+      padding-bottom: 0.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .single-post-container {
+        padding: 0 1rem;
+        margin-top: 1.5rem;
+      }
+      .single-post-title {
+        font-size: 1.8rem;
+      }
+    }
+
+    /* Blog Posts Grid Styling */
+    .blog-posts-wrap {
+      max-width: 1200px;
+      margin: 0 auto 5rem;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .blog-posts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    @media (max-width: 900px) {
+      .blog-posts {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .blog-posts {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .post-card {
+      background: rgba(11, 21, 36, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.3s ease;
+      position: relative;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.25), transparent);
+    }
+
+    .post-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .post-image-wrap {
+      width: 100%;
+      height: 185px;
+      position: relative;
+      background: #0d1622;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+    }
+
+    .post-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .post-card:hover .post-image {
+      transform: scale(1.05);
+    }
+
+    .post-image-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #091322 0%, #16243b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0, 229, 255, 0.18);
+    }
+
+    .post-category-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #060a12;
+      background: var(--accent);
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(0, 229, 255, 0.35);
+      z-index: 5;
+    }
+
+    .post-card-content {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .card-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: auto;
+      padding-top: 0.35rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: gap 0.2s ease, color 0.2s ease;
+    }
+
+    .card-read-more:hover {
+      color: var(--accent-hover);
+      gap: 0.55rem;
+    }
+
+    .card-read-more svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .post-date-header {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-align: left;
+    }
+
+    .post-card-title-link {
+      text-decoration: none;
+      display: block;
+    }
+
+    .post-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1.35;
+      color: #ffffff;
+      margin: 0;
+      transition: color 0.2s ease;
+      text-align: left;
+    }
+
+    .post-card-title-link:hover .post-card-title {
+      color: var(--accent);
+    }
+
+    .post-card-excerpt {
+      font-size: 0.8rem;
+      line-height: 1.55;
+      color: var(--text-muted);
+      margin: 0;
+      text-align: left;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Complete Two-Column Layout for More Articles */
+    .main-layout {
+      max-width: 1200px;
+      margin: 2rem auto 5rem;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: 2.4fr 1fr;
+      gap: 2.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    @media (max-width: 900px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+    }
+
+    .archive-posts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .archive-post-card {
+      background: rgba(11, 21, 36, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .archive-post-card:hover {
+      border-color: var(--border-bright);
+    }
+
+    .archive-post-img-wrap {
+      width: 56px;
+      height: 56px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 229, 255, 0.08);
+      background: #0d1622;
+    }
+
+    .archive-post-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .archive-post-card:hover .archive-post-img {
+      transform: scale(1.04);
+    }
+
+    .archive-post-content {
+      padding: 0.15rem 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: left;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .archive-post-category {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.2rem;
+    }
+
+    .post-labels,
+    .byline.post-labels {
+      display: none !important;
+    }
+
+    .archive-post-title-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .archive-post-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #ffffff;
+      margin: 0 0 0.25rem 0;
+      transition: color 0.2s ease;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .archive-post-title-link:hover .archive-post-title {
+      color: var(--accent);
+    }
+
+    .archive-post-excerpt {
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    @media (min-width: 900px) {
+      .archive-post-card {
+        gap: 1.25rem;
+        padding: 1rem;
+        border-radius: 12px;
+      }
+      .archive-post-img-wrap {
+        width: 100px;
+        height: 100px;
+        border-radius: 10px;
+      }
+      .archive-post-content {
+        padding: 1.25rem 1.5rem;
+      }
+      .archive-post-category {
+        font-size: 0.65rem;
+        margin-bottom: 0.35rem;
+      }
+      .archive-post-title {
+        font-size: 1.15rem;
+        line-height: 1.35;
+        margin: 0 0 0.5rem 0;
+        -webkit-line-clamp: unset;
+      }
+      .archive-post-excerpt {
+        font-size: 0.8rem;
+        line-height: 1.5;
+        -webkit-line-clamp: 2;
+      }
+    }
+
+    /* Cyber Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .sidebar-widget {
+      background: rgba(11, 21, 36, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+      text-align: left;
+    }
+
+    .sidebar-widget::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.2), transparent);
+    }
+
+    .widget-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 0 0 1rem 0;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+      padding-bottom: 0.5rem;
+    }
+
+    .widget-description {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin: 0 0 1rem 0;
+    }
+
+    .sidebar-newsletter-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .newsletter-input {
+      background: rgba(6, 10, 18, 0.7);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: 6px;
+      padding: 0.65rem;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .newsletter-input:focus {
+      border-color: var(--accent);
+    }
+
+    .newsletter-submit-btn {
+      background: var(--accent);
+      color: #060a12;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.65rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag-item {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      background: rgba(6, 10, 18, 0.4);
+      padding: 0.35rem 0.65rem;
+      border-radius: 4px;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .tag-item:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(0, 229, 255, 0.05);
+    }
+
+    .market-metrics-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .metric-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      padding-bottom: 0.5rem;
+    }
+
+    .metric-label {
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      color: #ffffff;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: bold;
+    }
+
+    .metric-value.highlight {
+      color: var(--accent);
+      text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+    }
+
+    .crl-promo-widget {
+      background: linear-gradient(160deg, rgba(11, 21, 36, 0.8), rgba(6, 10, 18, 0.9));
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      box-shadow: 0 0 26px rgba(0, 229, 255, 0.1), inset 0 0 22px rgba(0, 229, 255, 0.03);
+      overflow: hidden;
+    }
+
+    .crl-promo-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .crl-hex-icon {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+      color: var(--accent);
+      filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5));
+    }
+
+    .crl-hex-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .crl-promo-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .crl-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 20px;
+      padding: 0.4rem 0.75rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .crl-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.9);
+      animation: crl-pulse 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes crl-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .crl-promo-btn {
+      display: block;
+      background: linear-gradient(135deg, var(--accent), #0891b2);
+      color: #060a12;
+      text-align: center;
+      text-decoration: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.7rem;
+      border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(0, 229, 255, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    /* Complete Cyber Footer and Exchanges Section */
+    .affiliate-exchanges-section {
+      border-top: 1px solid var(--border);
+      background: rgba(11, 21, 36, 0.2);
+      padding: 2.5rem 2rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .affiliate-exchanges-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .exchanges-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .exchanges-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .exchanges-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .exchanges-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .exchanges-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .exchanges-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .exchange-card {
+      background: rgba(11, 21, 36, 0.6);
+      border: 1px solid rgba(0, 229, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .exchange-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .exchange-logo-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+    }
+
+    .exchange-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .exchange-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .theme-footer {
+      border-top: 1px solid var(--border);
+      background: #04080e;
+      padding: 3.5rem 2rem 2.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-columns {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, 1fr);
+      gap: 3rem;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+      padding-bottom: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .footer-columns {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+
+    .footer-brand-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      text-align: left;
+    }
+
+    .footer-brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .footer-logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+
+    .footer-desc {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin: 0;
+      max-width: 320px;
+    }
+
+    .footer-col {
+      text-align: left;
+    }
+
+    .footer-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 0 0 1.25rem 0;
+    }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .footer-link-item a {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-link-item a:hover {
+      color: var(--accent);
+    }
+
+    .footer-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .attribution-badges {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .badge-item {
+      background: rgba(0, 229, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .badge-text {
+      text-align: left;
+      line-height: 1.2;
+    }
+
+    .badge-sub {
+      font-size: 0.5rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .badge-title {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: #cbd5e1;
+    }
+
+    .copyright-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin: 0;
+    }
+  ]]></b:skin>
+</head>
+<body>
+  <!-- Branded Loading Screen -->
+  <div id='ca-page-loader'>
+    <div class='ca-loader-inner'>
+      <svg class='ca-loader-logo' fill='none' height='60' viewBox='0 0 40 40' width='60' xmlns='http://www.w3.org/2000/svg'>
+        <polygon fill='none' points='20,2 38,11 38,29 20,38 2,29 2,11' stroke='#00e5ff' stroke-width='1.5'/>
+        <polygon fill='none' opacity='0.3' points='20,8 32,14 32,26 20,32 8,26 8,14' stroke='#00e5ff' stroke-width='0.8'/>
+        <polygon fill='#00e5ff' points='20,13 29,17.5 20,22 11,17.5'/>
+        <path d='M14,19.5 L14,24 Q20,27 26,24 L26,19.5' fill='none' stroke='#00e5ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.4'/>
+        <line stroke='#00e5ff' stroke-linecap='round' stroke-width='1.4' x1='26' x2='27.6' y1='18' y2='24.2'/>
+        <circle cx='27.6' cy='25.6' fill='#00e5ff' r='1.3'/>
+      </svg>
+      <div class='ca-loader-title'>Crypto Academy Online</div>
+      <div class='ca-loader-bar-track'>
+        <div class='ca-loader-bar-fill'/>
+      </div>
+      <div class='ca-loader-status'>Initializing secure session&#8230;</div>
+    </div>
+  </div>
+  <script>
+  //<![CDATA[
+  (function(){
+    var MIN_DISPLAY_MS = 900;
+    var MAX_WAIT_MS = 6000;
+    var startTime = Date.now();
+    var loader = document.getElementById('ca-page-loader');
+    var hidden = false;
+    function hideLoader(){
+      if (hidden || !loader) return;
+      hidden = true;
+      var elapsed = Date.now() - startTime;
+      var remaining = MIN_DISPLAY_MS - elapsed;
+      setTimeout(function(){
+        loader.classList.add('ca-loader-hidden');
+        setTimeout(function(){
+          if (loader && loader.parentNode) { loader.parentNode.removeChild(loader); }
+        }, 600);
+      }, remaining > 0 ? remaining : 0);
+    }
+    if (document.readyState === 'complete') {
+      hideLoader();
+    } else {
+      window.addEventListener('load', hideLoader);
+    }
+    setTimeout(hideLoader, MAX_WAIT_MS);
+  })();
+  //]]>
+  </script>
+
+  <!-- Glowing Glass Header Navigation -->
+  <header class='theme-header'>
+    <div class='header-container'>
+      <a class='logo-container' href='/'>
+        <svg class='logo-icon' fill='none' height='32' viewBox='0 0 40 40' width='32' xmlns='http://www.w3.org/2000/svg'>
+          <polygon fill='none' points='20,2 38,11 38,29 20,38 2,29 2,11' stroke='#00e5ff' stroke-width='1.5'/>
+          <polygon fill='none' opacity='0.3' points='20,8 32,14 32,26 20,32 8,26 8,14' stroke='#00e5ff' stroke-width='0.8'/>
+          <polygon fill='#00e5ff' points='20,13 29,17.5 20,22 11,17.5'/>
+          <path d='M14,19.5 L14,24 Q20,27 26,24 L26,19.5' fill='none' stroke='#00e5ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.4'/>
+          <line stroke='#00e5ff' stroke-linecap='round' stroke-width='1.4' x1='26' x2='27.6' y1='18' y2='24.2'/>
+          <circle cx='27.6' cy='25.6' fill='#00e5ff' r='1.3'/>
+        </svg>
+        <div class='logo-text-wrap'>
+          <span class='logo'>Crypto Academy Online</span>
+          <span class='logo-tagline'>Knowledge is Power</span>
+        </div>
+      </a>
+      
+      <button aria-label='Toggle menu' class='nav-hamburger-btn' id='ca-nav-toggle' type='button'>
+        <svg class='icon-hamburger' fill='none' height='26' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' width='26' xmlns='http://www.w3.org/2000/svg'>
+          <path d='M3 6h18M3 12h18M3 18h18' stroke-linecap='round' stroke-linejoin='round'/>
+        </svg>
+      </button>
+
+      <nav class='nav-links' id='ca-nav-links'>
+        <a class='nav-link' href='/'>Home</a>
+        <a class='nav-link' href='/search/label/Learn'>Learn</a>
+        <a class='nav-link' href='/search/label/Reviews'>Reviews</a>
+        <a class='nav-link' href='/search/label/Markets'>Markets</a>
+        <a class='nav-link' href='/search/label/DeFi'>DeFi</a>
+        <a class='btn-subscribe' href='#crl-cookie-banner'>Subscribe</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Horizontal Market Ticker bar -->
+  <div class='market-ticker-wrap'>
+    <div class='market-ticker-container'>
+      <div class='ticker-item'>
+        <img alt='' class='ticker-logo' id='ca-tick-btc-logo' src=''/>
+        <span class='ticker-symbol'>BTC</span>
+        <span class='ticker-price' id='ca-tick-btc-price'>$---</span>
+        <span class='ticker-change' id='ca-tick-btc-change'>--%</span>
+      </div>
+      <div class='ticker-item'>
+        <img alt='' class='ticker-logo' id='ca-tick-eth-logo' src=''/>
+        <span class='ticker-symbol'>ETH</span>
+        <span class='ticker-price' id='ca-tick-eth-price'>$---</span>
+        <span class='ticker-change' id='ca-tick-eth-change'>--%</span>
+      </div>
+      <div class='ticker-item'>
+        <img alt='' class='ticker-logo' id='ca-tick-sol-logo' src=''/>
+        <span class='ticker-symbol'>SOL</span>
+        <span class='ticker-price' id='ca-tick-sol-price'>$---</span>
+        <span class='ticker-change' id='ca-tick-sol-change'>--%</span>
+      </div>
+      <div class='ticker-item'>
+        <img alt='' class='ticker-logo' id='ca-tick-kas-logo' src=''/>
+        <span class='ticker-symbol'>KAS</span>
+        <span class='ticker-price' id='ca-tick-kas-price'>$---</span>
+        <span class='ticker-change' id='ca-tick-kas-change'>--%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO & FEATURED SECTIONS: RENDER ONLY ON HOMEPAGE -->
+  <b:if cond='data:view.isHomepage'>
+    <!-- Hero Layout -->
+    <section class='hero'>
+      <div class='hero-content'>
+        <div class='hero-eyebrow-row'>
+          <div class='eyebrow-item green'>
+            <span>&#8212; Crypto is The Future</span>
+          </div>
+        </div>
+        <h1 class='hero-title'>Master the <span>Decentralized Economy</span></h1>
+        <p class='hero-desc'>Your source for crypto learning, project reviews, and market intelligence. Independent, educational, and built for the decentralized future.</p>
+        <div class='hero-actions'>
+          <a class='btn btn-primary' href='#latest-posts-section'>Explore Articles</a>
+          <a class='btn btn-secondary' href='/search/label/Reviews'>Latest Reviews</a>
+        </div>
+      </div>
+
+      <div class='featured-card' style='border: none; background: transparent; box-shadow: none;'>
+        <div class='emblem-container' style='height: 380px;'>
+          <iframe class='site-emblem-frame' id='caEmblemFrame' title='AI x Crypto Core Logo'/>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Section -->
+    <div class='featured-section'>
+      <div class='section-header-wrap featured-section-header'>
+        <div class='section-title-wrap'>
+          <h2 class='section-title'>Featured</h2>
+          <div class='section-line'/>
+        </div>
+        <div class='section-badge'>Pinned_Post</div>
+      </div>
+
+      <div class='featured-card featured-section-left' style='padding: 0;'>
+        <div class='market-pulse-card' style='height: 100%; display: flex; flex-direction: column; gap: 1.1rem; padding: 1.5rem;'>
+          <div class='ai-summary-header'>
+            <span class='ai-summary-icon'>
+              <svg fill='none' height='20' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'>
+                <path d='M12 2a4 4 0 00-4 4v1a3 3 0 00-2 2.8V13a3 3 0 001 2.24V17a4 4 0 004 4h2a4 4 0 004-4v-1.76A3 3 0 0018 13V9.8a3 3 0 00-2-2.8V6a4 4 0 00-4-4z'/>
+                <path d='M9 10h.01M15 10h.01M9 14h6'/>
+              </svg>
+            </span>
+            <h3 class='ai-summary-title'>AI Market Summary</h3>
+          </div>
+
+          <div class='ai-stat-card'>
+            <div class='ai-stat-label'>Global Market Cap</div>
+            <div class='ai-stat-value big' id='ai-sum-mcap'>$---</div>
+            <div class='ai-stat-sub'>
+              <span class='ai-mover-change' id='ai-sum-mcap-change'>--%</span> 24h &#183; total crypto market
+            </div>
+          </div>
+
+          <div class='ai-stat-grid-2'>
+            <div class='ai-stat-card'>
+              <div class='ai-stat-label'>24h Volume</div>
+              <div class='ai-stat-value' id='ai-sum-volume'>$---</div>
+              <div class='ai-stat-sub'>across all markets</div>
+            </div>
+            <div class='ai-stat-card'>
+              <div class='ai-stat-label'>BTC Dominance</div>
+              <div class='ai-stat-value' id='ai-sum-dominance'>--%</div>
+              <div class='ai-stat-sub'>share of total cap</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='featured-card featured-card-bordered featured-section-right'>
+        <div class='rizon-image-wrap'>
+          <img alt='Rizon Card spend stablecoins, globally' class='rizon-image' src='https://i.imgur.com/x8nuGLQ.jpeg'/>
+          <a aria-label='Visit Rizon' class='rizon-site-link' href='/2026/06/rizon-easiest-way-to-send-spend-and.html?m=1'>
+            <svg fill='none' stroke='currentColor' stroke-width='1.8' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+              <circle cx='12' cy='12' r='9'/>
+              <path d='M3 12h18M12 3a14 14 0 010 18a14 14 0 010-18z'/>
+            </svg>
+          </a>
+        </div>
+        <div class='rizon-content'>
+          <div>
+            <h3 class='rizon-title'>Rizon Card</h3>
+            <div class='rizon-category-wrap'>
+              <span class='rizon-category'>Stablecoin</span>
+            </div>
+            <p class='rizon-desc'>The Easiest Way to Send, Spend, and Save Stablecoins Globally.</p>
+          </div>
+          <a class='btn-review-read' href='/2026/06/rizon-easiest-way-to-send-spend-and.html?m=1'>Read Review</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest Posts Section Header -->
+    <div class='section-header-wrap' id='latest-posts-section'>
+      <div class='section-title-wrap'>
+        <h2 class='section-title'>Latest Posts</h2>
+        <div class='section-line'/>
+      </div>
+      <div class='section-badge'>Recent</div>
+    </div>
+  </b:if>
+
+  <!-- Blog Posts Section -->
+  <div class='blog-posts-wrap'>
+    <b:section class='main' id='main' showaddelement='yes'>
+      <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='showDateHeader'>false</b:widget-setting>
+          <b:widget-setting name='style.textcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showShareButtons'>false</b:widget-setting>
+          <b:widget-setting name='showCommentLink'>false</b:widget-setting>
+          <b:widget-setting name='style.urlcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showAuthor'>false</b:widget-setting>
+          <b:widget-setting name='style.linkcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
+          <b:widget-setting name='style.bgcolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='reactionsLabel'/>
+          <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
+          <b:widget-setting name='style.layout'>1x1</b:widget-setting>
+          <b:widget-setting name='showLabels'>true</b:widget-setting>
+          <b:widget-setting name='showLocation'>false</b:widget-setting>
+          <b:widget-setting name='showTimestamp'>false</b:widget-setting>
+          <b:widget-setting name='postsPerAd'>1</b:widget-setting>
+          <b:widget-setting name='showBacklinks'>false</b:widget-setting>
+          <b:widget-setting name='style.bordercolor'>#ffffff</b:widget-setting>
+          <b:widget-setting name='showInlineAds'>false</b:widget-setting>
+          <b:widget-setting name='showReactions'>false</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <b:if cond='data:view.isSingleItem or data:view.isPost or data:view.isPage or data:blog.pageType == "item"'>
+            <!-- Single Post View for Published Blogger Articles -->
+            <b:loop values='data:posts' var='post'>
+              <article class='single-post-container'>
+                <div class='single-post-header'>
+                  <b:if cond='data:post.labels and !data:post.labels.empty'>
+                    <div class='single-post-meta-labels'>
+                      <b:loop values='data:post.labels' var='label'>
+                        <span expr:class='&quot;post-category-tag &quot; + data:label.name.toLowerCase()'><data:label.name/></span>
+                      </b:loop>
+                    </div>
+                  </b:if>
+                  <h1 class='single-post-title'><data:post.title/></h1>
+                  <div class='single-post-meta'>
+                    <span class='post-date-header'><data:post.date/></span>
+                  </div>
+                </div>
+
+                <b:if cond='data:post.firstImageUrl'>
+                  <div class='single-post-featured-image-wrap'>
+                    <img class='single-post-featured-image' expr:alt='data:post.title' expr:src='data:post.firstImageUrl'/>
+                  </div>
+                </b:if>
+
+                <div class='single-post-body-content'>
+                  <data:post.body/>
+                </div>
+              </article>
+            </b:loop>
+          <b:else/>
+            <!-- Latest Posts Grid: Shows published Blogger posts + featured cards -->
+            <div class='blog-posts'>
+              <!-- Dynamic Published Blogger Posts (e.g. Kaspa) -->
+              <b:loop values='data:posts' var='post'>
+                <article class='post-card'>
+                  <div class='post-image-wrap'>
+                    <b:if cond='data:post.firstImageUrl'>
+                      <img class='post-image' expr:alt='data:post.title' expr:src='data:post.firstImageUrl'/>
+                    <b:else/>
+                      <div class='post-image-placeholder'>
+                        <svg fill='none' height='36' stroke='currentColor' stroke-width='1.5' viewBox='0 0 24 24' width='36' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </div>
+                    </b:if>
+                    <b:if cond='data:post.labels and !data:post.labels.empty'>
+                      <b:loop index='i' values='data:post.labels' var='label'>
+                        <b:if cond='data:i == 0'>
+                          <span expr:class='&quot;post-category-tag &quot; + data:label.name.toLowerCase()'>
+                            <data:label.name/>
+                          </span>
+                        </b:if>
+                      </b:loop>
+                    <b:else/>
+                      <span class='post-category-tag'>Review</span>
+                    </b:if>
+                  </div>
+                  <div class='post-card-content'>
+                    <div class='post-date-header'><data:post.date/></div>
+                    <a class='post-card-title-link' expr:href='data:post.url'>
+                      <h2 class='post-card-title'><data:post.title/></h2>
+                    </a>
+                    <p class='post-card-excerpt'>
+                      <b:if cond='data:post.snippet'>
+                        <data:post.snippet/>
+                      <b:else/>
+                        <data:post.body/>
+                      </b:if>
+                    </p>
+                    <a class='card-read-more' expr:href='data:post.url'>Read More
+                      <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                        <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                      </svg>
+                    </a>
+                  </div>
+                </article>
+              </b:loop>
+
+              <!-- Featured Article 1: Travala -->
+              <article class='post-card'>
+                <div class='post-image-wrap'>
+                  <img alt='Travala' class='post-image' src='https://i.imgur.com/46N3xeG.jpeg'/>
+                  <span class='post-category-tag travel'>Travel</span>
+                </div>
+                <div class='post-card-content'>
+                  <div class='post-date-header'>MAY 28, 2026</div>
+                  <a class='post-card-title-link' href='/2026/05/travala-worlds-leading-crypto-native.html?m=1'>
+                    <h2 class='post-card-title'>TRAVALA : World&#39;s Leading Crypto-native Travel Platform</h2>
+                  </a>
+                  <p class='post-card-excerpt'>
+                    Book millions of hotels, flights, and activities globally. Save up to 40% with smart loyalty programs and direct AVA token rewards.
+                  </p>
+                  <a class='card-read-more' href='/2026/05/travala-worlds-leading-crypto-native.html?m=1'>Read More
+                    <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                      <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                    </svg>
+                  </a>
+                </div>
+              </article>
+
+              <!-- Featured Article 2: Republic -->
+              <article class='post-card'>
+                <div class='post-image-wrap'>
+                  <img alt='Republic' class='post-image' src='https://i.imgur.com/yoEAn6h.jpeg'/>
+                  <span class='post-category-tag investing'>Investing</span>
+                </div>
+                <div class='post-card-content'>
+                  <div class='post-date-header'>JUNE 15, 2026</div>
+                  <a class='post-card-title-link' href='/2026/06/republic.html?m=1'>
+                    <h2 class='post-card-title'>Republic.com for Startups: Complete Investment Guide</h2>
+                  </a>
+                  <p class='post-card-excerpt'>
+                    Invest in highly vetted private startups, real estate, and crypto from just $10. Learn how Republic democratizes access to early-stage growth capital.
+                  </p>
+                  <a class='card-read-more' href='/2026/06/republic.html?m=1'>Read More
+                    <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                      <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                    </svg>
+                  </a>
+                </div>
+              </article>
+
+              <!-- Featured Article 3: Rizon -->
+              <article class='post-card'>
+                <div class='post-image-wrap'>
+                  <img alt='Rizon' class='post-image' src='https://i.imgur.com/x8nuGLQ.jpeg'/>
+                  <span class='post-category-tag fundraising'>Stablecoin</span>
+                </div>
+                <div class='post-card-content'>
+                  <div class='post-date-header'>JUNE 10, 2026</div>
+                  <a class='post-card-title-link' href='/2026/06/rizon-easiest-way-to-send-spend-and.html?m=1'>
+                    <h2 class='post-card-title'>Rizon Stablecoin Bank: Send, Spend, and Save Stablecoins</h2>
+                  </a>
+                  <p class='post-card-excerpt'>
+                    The easiest way to send, spend, and save stablecoins globally with secure decentralized yields, instant block settlement, and low-latency APIs.
+                  </p>
+                  <a class='card-read-more' href='/2026/06/rizon-easiest-way-to-send-spend-and.html?m=1'>Read More
+                    <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                      <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                    </svg>
+                  </a>
+                </div>
+              </article>
+            </div>
+
+            <!-- More Articles Two-Column Layout Section -->
+            <div class='section-header-wrap' style='margin-top: 5rem; padding: 0;'>
+              <div class='section-title-wrap'>
+                <h2 class='section-title'>More Articles</h2>
+                <div class='section-line'/>
+              </div>
+              <div class='section-badge'>Archive</div>
+            </div>
+
+            <div class='main-layout'>
+              <!-- Left Side: Archive Posts list -->
+              <div class='archive-posts-container'>
+                <!-- Archive Post 1: Ultahost -->
+                <article class='archive-post-card'>
+                  <div class='archive-post-img-wrap'>
+                    <img alt='Ultahost' class='archive-post-img' src='https://i.imgur.com/cTmQfmP.jpeg'/>
+                  </div>
+                  <div class='archive-post-content'>
+                    <div>
+                      <div class='archive-post-category'>WebHosting</div>
+                      <a class='archive-post-title-link' href='/2026/05/ultahost-best-web-hosting-secure-cheap.html?m=1'>
+                        <h3 class='archive-post-title'>ULTAHOST: Best Ultra-Secure and Cheap Web Hosting</h3>
+                      </a>
+                      <p class='archive-post-excerpt'>
+                        Best ultra-secure Web Hosting built for high speed, absolute security, and privacy-centric anonymous cryptocurrency checkout integrations.
+                      </p>
+                      <a class='card-read-more' href='/2026/05/ultahost-best-web-hosting-secure-cheap.html?m=1'>Read More
+                        <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Archive Post 2: Bitget -->
+                <article class='archive-post-card'>
+                  <div class='archive-post-img-wrap'>
+                    <img alt='Bitget' class='archive-post-img' src='https://i.imgur.com/6MuLW79.jpeg'/>
+                  </div>
+                  <div class='archive-post-content'>
+                    <div>
+                      <div class='archive-post-category'>Exchange</div>
+                      <a class='archive-post-title-link' href='/2026/06/bitget-worlds-largest-universal_01451551473.html?m=1'>
+                        <h3 class='archive-post-title'>Bitget Exchange: Complete 2026 Analysis &amp; Fee Breakdown</h3>
+                      </a>
+                      <p class='archive-post-excerpt'>
+                        An exhaustive review of Bitget Exchange, outlining user security features, copy trading platforms, spot/derivative liquidity, and native BGB token utility.
+                      </p>
+                      <a class='card-read-more' href='/2026/06/bitget-worlds-largest-universal_01451551473.html?m=1'>Read More
+                        <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Archive Post 3: Kaspa -->
+                <article class='archive-post-card'>
+                  <div class='archive-post-img-wrap'>
+                    <img alt='Kaspa' class='archive-post-img' src='https://i.imgur.com/lXxLAt4.jpeg'/>
+                  </div>
+                  <div class='archive-post-content'>
+                    <div>
+                      <div class='archive-post-category'>Blockchain</div>
+                      <a class='archive-post-title-link' href='/2026/05/kaspa-kas-fastest-proof-of-work_0577925051.html?m=1'>
+                        <h3 class='archive-post-title'>Kaspa (KAS): Fastest Proof-of-Work BlockDAG Technology</h3>
+                      </a>
+                      <p class='archive-post-excerpt'>
+                        Understanding the GHOSTDAG blockDAG consensus mechanism that enables Kaspa to achieve rapid 1 block-per-second mining speeds safely.
+                      </p>
+                      <a class='card-read-more' href='/2026/05/kaspa-kas-fastest-proof-of-work_0577925051.html?m=1'>Read More
+                        <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Archive Post 4: Toccata -->
+                <article class='archive-post-card'>
+                  <div class='archive-post-img-wrap'>
+                    <img alt='Kaspa Toccata' class='archive-post-img' src='https://i.imgur.com/r5WeMXg.jpeg'/>
+                  </div>
+                  <div class='archive-post-content'>
+                    <div>
+                      <div class='archive-post-category'>Blockchain</div>
+                      <a class='archive-post-title-link' href='/2026/05/kaspa-toccata-hard-fork-new-era-of.html?m=1'>
+                        <h3 class='archive-post-title'>Kaspa Toccata Hard Fork: A New Era of Programmability on High-Speed PoW</h3>
+                      </a>
+                      <p class='archive-post-excerpt'>
+                        The upgrade introduces practical new features for developers in a careful and efficient manner. Rather than overcomplicating the base layer, Toccata adds targeted tools that enable more advanced functionality.
+                      </p>
+                      <a class='card-read-more' href='/2026/05/kaspa-toccata-hard-fork-new-era-of.html?m=1'>Read More
+                        <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- Archive Post 5: Travala -->
+                <article class='archive-post-card'>
+                  <div class='archive-post-img-wrap'>
+                    <img alt='Travala' class='archive-post-img' src='https://i.imgur.com/Xa9IT5G.png'/>
+                  </div>
+                  <div class='archive-post-content'>
+                    <div>
+                      <div class='archive-post-category'>Travel</div>
+                      <a class='archive-post-title-link' href='/2026/05/travala-worlds-leading-crypto-native.html?m=1'>
+                        <h3 class='archive-post-title'>TRAVALA : World&#39;s Leading Crypto-native Travel Booking Platform</h3>
+                      </a>
+                      <p class='archive-post-excerpt'>
+                        For travelers who believe in crypto, value payment flexibility, or simply want to explore a next-generation booking platform, Travala.com offers a unique alternative to traditional travel agencies.
+                      </p>
+                      <a class='card-read-more' href='/2026/05/travala-worlds-leading-crypto-native.html?m=1'>Read More
+                        <svg fill='none' stroke='currentColor' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                          <path d='M5 12h14M13 6l6 6-6 6' stroke-linecap='round' stroke-linejoin='round'/>
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <!-- Right Side: Cyber Sidebar -->
+              <aside class='sidebar'>
+                <div class='sidebar-widget market-overview-widget'>
+                  <h3 class='widget-title'>Market Overview</h3>
+                  <div class='market-metrics-list'>
+                    <div class='metric-item'>
+                      <span class='metric-label'>BTC Dominance</span>
+                      <span class='metric-value'>56.4%</span>
+                    </div>
+                    <div class='metric-item'>
+                      <span class='metric-label'>Total Market Cap</span>
+                      <span class='metric-value'>$2.41T</span>
+                    </div>
+                    <div class='metric-item'>
+                      <span class='metric-label'>24h Volume</span>
+                      <span class='metric-value'>$85.4B</span>
+                    </div>
+                    <div class='metric-item fear-greed-gauge'>
+                      <span class='metric-label'>Fear &amp; Greed Gauge</span>
+                      <span class='metric-value highlight'>78 (Extreme Greed)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class='sidebar-widget tags-widget'>
+                  <h3 class='widget-title'>TOPICS</h3>
+                  <div class='tag-cloud'>
+                    <a class='tag-item' href='/search/label/Layer%201'>Layer 1</a>
+                    <a class='tag-item' href='/search/label/Smart%20Contracts'>Smart Contracts</a>
+                    <a class='tag-item' href='/search/label/Sound%20Money'>Blockchain</a>
+                    <a class='tag-item' href='/search/label/DeFi'>DeFi</a>
+                    <a class='tag-item' href='/search/label/Web3'>Web3</a>
+                    <a class='tag-item' href='/search/label/Memecoins'>Ethereum</a>
+                    <a class='tag-item' href='/search/label/Security'>Security</a>
+                  </div>
+                </div>
+
+                <div class='sidebar-widget newsletter-widget'>
+                  <h3 class='widget-title'>Newsletter</h3>
+                  <p class='widget-description'>Get the latest secure ratings and protocol audits delivered directly to your inbox.</p>
+                  <form action='https://follow.it/crypto-academy-online-1?pub' class='sidebar-newsletter-form' method='post' target='_blank'>
+                    <input class='newsletter-input' name='email' placeholder='your@email.com' required='required' type='email'/>
+                    <button class='newsletter-submit-btn' type='submit'>Subscribe</button>
+                  </form>
+                </div>
+
+                <div class='sidebar-widget crl-promo-widget'>
+                  <div class='crl-promo-header'>
+                    <div class='crl-hex-icon'>
+                      <svg fill='none' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'>
+                        <path d='M20 2L35 11V29L20 38L5 29V11L20 2Z' stroke='currentColor' stroke-width='2'/>
+                        <circle cx='18' cy='18' r='6.5' stroke='currentColor' stroke-width='2'/>
+                        <path d='M22.6 22.6L28 28' stroke='currentColor' stroke-linecap='round' stroke-width='2'/>
+                      </svg>
+                    </div>
+                    <div class='crl-promo-title'>Crypto Review Lab</div>
+                  </div>
+                  <div class='crl-status-badge'>
+                    <span class='crl-status-dot'/>
+                    Live Cyber Audit Stream Active
+                  </div>
+                  <a class='crl-promo-btn' href='https://cryptoreviewlab.com' rel='noopener' target='_blank'>Launch Review Lab</a>
+                </div>
+              </aside>
+            </div>
+          </b:if>
+        </b:includable>
+        <b:includable id='aboutPostAuthor'/>
+        <b:includable id='addComments'/>
+        <b:includable id='backlinkDeleteIcon' var='backlink'/>
+        <b:includable id='backlinks' var='post'/>
+        <b:includable id='blogThisShare'/>
+        <b:includable id='bylineByName' var='byline'/>
+        <b:includable id='bylineRegion' var='regionItems'/>
+        <b:includable id='comment-form' var='post'/>
+        <b:includable id='commentAuthorAvatar'/>
+        <b:includable id='commentDeleteIcon' var='comment'/>
+        <b:includable id='commentForm' var='post'/>
+        <b:includable id='commentFormIframeSrc' var='post'/>
+        <b:includable id='commentItem' var='comment'/>
+        <b:includable id='commentList' var='comments'/>
+        <b:includable id='commentPicker' var='post'/>
+        <b:includable id='comment_count_picker' var='post'/>
+        <b:includable id='comment_picker' var='post'/>
+        <b:includable id='comments' var='post'/>
+        <b:includable id='commentsLink'/>
+        <b:includable id='commentsLinkIframe'/>
+        <b:includable id='commentsTitle'/>
+        <b:includable id='defaultAdUnit'/>
+        <b:includable id='emailPostIcon'/>
+        <b:includable id='facebookShare'/>
+        <b:includable id='feedLinks' var='links'/>
+        <b:includable id='feedLinksBody' var='links'/>
+        <b:includable id='footerBylines'/>
+        <b:includable id='googlePlusShare'/>
+        <b:includable id='headerByline'/>
+        <b:includable id='homePageLink'/>
+        <b:includable id='iframeComments' var='post'/>
+        <b:includable id='iframe_comments' var='post'/>
+        <b:includable id='inlineAd' var='post'/>
+        <b:includable id='linkShare'/>
+        <b:includable id='mobile-index-post' var='post'/>
+        <b:includable id='mobile-post' var='post'/>
+        <b:includable id='nextPageLink'/>
+        <b:includable id='nextprev'/>
+        <b:includable id='otherSharingButton'/>
+        <b:includable id='platformShare'/>
+        <b:includable id='post' var='post'/>
+        <b:includable id='postAuthor'/>
+        <b:includable id='postBody' var='post'/>
+        <b:includable id='postBodySnippet' var='post'/>
+        <b:includable id='postCommentsAndAd' var='post'/>
+        <b:includable id='postCommentsLink'/>
+        <b:includable id='postFooter' var='post'/>
+        <b:includable id='postFooterAuthorProfile' var='post'/>
+        <b:includable id='postHeader' var='post'/>
+        <b:includable id='postJumpLink' var='post'/>
+        <b:includable id='postLabels'/>
+        <b:includable id='postLocation'/>
+        <b:includable id='postMeta' var='post'/>
+        <b:includable id='postMetadataJSONImage'/>
+        <b:includable id='postMetadataJSONPublisher'/>
+        <b:includable id='postPagination'/>
+        <b:includable id='postQuickEdit' var='post'/>
+        <b:includable id='postReactions'/>
+        <b:includable id='postShareButtons'/>
+        <b:includable id='postTimestamp'/>
+        <b:includable id='postTitle' var='post'/>
+        <b:includable id='previousPageLink'/>
+        <b:includable id='shareButtons' var='post'/>
+        <b:includable id='sharingButton'/>
+        <b:includable id='sharingButtonContent'/>
+        <b:includable id='sharingButtons'/>
+        <b:includable id='sharingButtonsMenu'/>
+        <b:includable id='sharingPlatformIcon'/>
+        <b:includable id='status-message'/>
+        <b:includable id='threaded-comment-form' var='post'/>
+        <b:includable id='threadedCommentForm' var='post'/>
+        <b:includable id='threadedCommentJs' var='post'/>
+        <b:includable id='threadedComments' var='post'/>
+        <b:includable id='threaded_comment_js' var='post'/>
+        <b:includable id='threaded_comments' var='post'/>
+        <b:includable id='tooltipCss'/>
+      </b:widget>
+    </b:section>
+  </div>
+
+  <!-- Top Crypto Exchanges Affiliate Row -->
+  <section class='affiliate-exchanges-section'>
+    <div class='affiliate-exchanges-inner'>
+      <div class='exchanges-title-row'>
+        <h4 class='exchanges-title'>Top Crypto Exchanges to Start you Trading Journey</h4>
+        <span class='exchanges-badge'>Affiliate Links</span>
+      </div>
+      <div class='exchanges-grid'>
+        <a class='exchange-card' href='https://www.binance.com/register?ref=10821519' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='Binance' class='exchange-logo' src='https://i.imgur.com/tg69xsU.jpeg'/>
+          </div>
+          <span class='exchange-name'>Binance</span>
+        </a>
+        <a class='exchange-card' href='https://www.bybit.com/invite?ref=LX1Z3J' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='Bybit' class='exchange-logo' src='https://i.imgur.com/RC14WTx.jpeg'/>
+          </div>
+          <span class='exchange-name'>Bybit</span>
+        </a>
+        <a class='exchange-card' href='https://bonus.bitget.com/D47VQF' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='Bitget' class='exchange-logo' src='https://i.imgur.com/G7Elaq9.jpeg'/>
+          </div>
+          <span class='exchange-name'>Bitget</span>
+        </a>
+        <a class='exchange-card' href='https://promote.mexc.com/r/mGGXb0LtyB' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='MEXC' class='exchange-logo' src='https://i.imgur.com/t3Pz2VN.jpeg'/>
+          </div>
+          <span class='exchange-name'>MEXC</span>
+        </a>
+        <a class='exchange-card' href='https://www.kucoin.com/r/rf/QBSD1L7J' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='KuCoin' class='exchange-logo' src='https://i.imgur.com/QHg5liM.jpeg'/>
+          </div>
+          <span class='exchange-name'>KuCoin</span>
+        </a>
+        <a class='exchange-card' href='https://www.bitrue.com/referral/landing?cn=600000&amp;inviteCode=EWWHGA' target='_blank'>
+          <div class='exchange-logo-wrap'>
+            <img alt='Bitrue' class='exchange-logo' src='https://i.imgur.com/8iKd9hL.jpeg'/>
+          </div>
+          <span class='exchange-name'>Bitrue</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Complete Cyber Footer -->
+  <footer class='theme-footer'>
+    <div class='footer-container'>
+      <div class='footer-columns'>
+        <div class='footer-brand-col'>
+          <div class='footer-brand-title'>
+            <svg class='logo-icon' fill='none' height='24' viewBox='0 0 40 40' width='24' xmlns='http://www.w3.org/2000/svg'>
+              <polygon fill='none' points='20,2 38,11 38,29 20,38 2,29 2,11' stroke='#00e5ff' stroke-width='1.5'/>
+              <polygon fill='none' opacity='0.3' points='20,8 32,14 32,26 20,32 8,26 8,14' stroke='#00e5ff' stroke-width='0.8'/>
+              <polygon fill='#00e5ff' points='20,13 29,17.5 20,22 11,17.5'/>
+              <path d='M14,19.5 L14,24 Q20,27 26,24 L26,19.5' fill='none' stroke='#00e5ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.4'/>
+              <line stroke='#00e5ff' stroke-linecap='round' stroke-width='1.4' x1='26' x2='27.6' y1='18' y2='24.2'/>
+              <circle cx='27.6' cy='25.6' fill='#00e5ff' r='1.3'/>
+            </svg>
+            <span class='footer-logo'>Crypto Academy Online</span>
+          </div>
+          <p class='footer-desc'>
+            Your source for crypto learning, project reviews, and market intelligence. Independent, educational, and built for the decentralized future.
+          </p>
+        </div>
+        
+        <div class='footer-col'>
+          <h5 class='footer-title'>Learn</h5>
+          <ul class='footer-links'>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='learn-btc' href='javascript:void(0)'>&#8250; Bitcoin Basics</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='learn-eth' href='javascript:void(0)'>&#8250; Ethereum Guide</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='learn-defi' href='javascript:void(0)'>&#8250; DeFi 101</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='learn-sec' href='javascript:void(0)'>&#8250; Wallet Security</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='resources' href='javascript:void(0)'>&#8250; Educational Resources</a></li>
+          </ul>
+        </div>
+        
+        <div class='footer-col'>
+          <h5 class='footer-title'>Reviews</h5>
+          <ul class='footer-links'>
+            <li class='footer-link-item'><a href='/'>&#8250; Exchanges</a></li>
+            <li class='footer-link-item'><a href='/'>&#8250; Wallets</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='disclaimer' href='javascript:void(0)'>&#8250; Casinos</a></li>
+            <li class='footer-link-item'><a href='/'>&#8250; DeFi Protocols</a></li>
+          </ul>
+        </div>
+        
+        <div class='footer-col'>
+          <h5 class='footer-title'>Site</h5>
+          <ul class='footer-links'>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='author' href='javascript:void(0)'>&#8250; About Author</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='contact' href='javascript:void(0)'>&#8250; Contact</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='privacy' href='javascript:void(0)'>&#8250; Privacy Policy</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='disclaimer' href='javascript:void(0)'>&#8250; Disclaimer</a></li>
+            <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='tos' href='javascript:void(0)'>&#8250; Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class='footer-bottom-row'>
+        <div class='attribution-badges'>
+          <a class='badge-item' href='https://blogger.com' target='_blank'>
+            <svg fill='#cbd5e1' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'>
+              <path d='M16.51 8H12.5V4h4.01c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1zm-4.01 4.5v-2H10c-.55 0-1-.45-1-1V5.5c0-.55.45-1 1-1h6.51c.55 0 1 .45 1 1v2.49c0 .55-.45 1-1 1H12.5v2.51h4.01c.55 0 1 .45 1 1V19c0 1.1-.9 2-2 2H8.5c-1.1 0-2-.9-2-2V9.5c0-.55.45-1 1-1h4.01v4zm4.01 3.5H12.5v2h4.01c.55 0 1 .45 1-1v-1c0-.55-.45-1-1-1zm-6.52 0H10v2h4.01V16H10z'/>
+            </svg>
+            <div class='badge-text'>
+              <div class='badge-sub'>Powered by</div>
+              <div class='badge-title'>Blogger Platform</div>
+            </div>
+          </a>
+          <a class='badge-item' href='https://ai.google.dev' target='_blank'>
+            <svg fill='#cbd5e1' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'>
+              <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z'/>
+            </svg>
+            <div class='badge-text'>
+              <div class='badge-sub'>Built with</div>
+              <div class='badge-title'>Gemini AI API</div>
+            </div>
+          </a>
+        </div>
+        <p class='copyright-text'>&#169; 2026 Crypto Academy Online. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating AI Chatbot Widget -->
+  <div id='crypto-chatbot-root'>
+    <iframe id='crypto-chatbot-iframe' src='' title='AI Auditor Chatbot'/>
+    <button aria-label='Chat with Lab Auditor' id='crypto-chatbot-launcher'>💬</button>
+  </div>
+
+  <!-- Privacy and Cryptographic Cookies Banner -->
+  <div id='crl-cookie-banner'>
+    <div class='crl-cookie-heading'>Privacy &amp; Cookie Consent</div>
+    <div class='crl-cookie-text'>
+      This site utilizes secure local session tokens and cryptographic tracking tools to audit referral commissions and maintain layout preferences.
+    </div>
+    <div class='crl-cookie-actions'>
+      <button class='crl-cookie-btn crl-cookie-accept' id='crl-cookie-accept-btn'>Accept</button>
+      <button class='crl-cookie-btn crl-cookie-decline' id='crl-cookie-decline-btn'>Decline</button>
+    </div>
+  </div>
+
+  <!-- JS: Dynamic CoinGecko Price Ticker -->
+  <script type='text/javascript'>
+//<![CDATA[
+(function() {
+  var caTickIds = {
+    btc: 'bitcoin',
+    eth: 'ethereum',
+    sol: 'solana',
+    kas: 'kaspa',
+    bnb: 'binancecoin',
+    xrp: 'ripple'
+  };
+
+  function caTickFormatPrice(key, value) {
+    if (value >= 100) {
+      return '$' + value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    } else if (value >= 1) {
+      return '$' + value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    } else {
+      return '$' + value.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    }
+  }
+
+  function caTickUpdate(key, price, change, logoUrl) {
+    var topLogoEl = document.getElementById('ca-tick-' + key + '-logo');
+    var topPriceEl = document.getElementById('ca-tick-' + key + '-price');
+    var topChangeEl = document.getElementById('ca-tick-' + key + '-change');
+
+    var formattedPrice = caTickFormatPrice(key, price);
+    var isUp = change >= 0;
+    var arrow = isUp ? '\u25B2 ' : '\u25BC ';
+    var sign = isUp ? '+' : '';
+    var formattedChange = arrow + sign + change.toFixed(2) + '%';
+    
+    var tickerClass = 'ticker-change ' + (isUp ? 'up' : 'down');
+
+    if (topLogoEl && logoUrl) topLogoEl.src = logoUrl;
+    if (topPriceEl) topPriceEl.textContent = formattedPrice;
+    if (topChangeEl) {
+      topChangeEl.textContent = formattedChange;
+      topChangeEl.className = tickerClass;
+    }
+  }
+
+  function caTickFetch() {
+    var ids = 'bitcoin,ethereum,solana,kaspa,binancecoin,ripple';
+    var url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd\x26ids=' + ids + '\x26price_change_percentage=24h';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        try {
+          var data = JSON.parse(xhr.responseText);
+          for (var i = 0; i < data.length; i++) {
+            var coin = data[i];
+            for (var k in caTickIds) {
+              if (caTickIds[k] === coin.id) {
+                caTickUpdate(k, coin.current_price, coin.price_change_percentage_24h || 0, coin.image);
+              }
+            }
+          }
+        } catch (e) {}
+      }
+    };
+    xhr.send();
+  }
+
+  caTickFetch();
+  setInterval(caTickFetch, 60000);
+})();
+//]]>
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultmessages='false' b:layoutsVersion='3' b:responsive='true' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta charset='utf-8'/>
+  <meta content='width=device-width, initial-scale=1, shrink-to-fit=no' name='viewport'/>
+  <title><data:view.title.escaped/></title>
+  <b:include data='blog' name='all-head-content'/>
+  
+  <link href='https://fonts.googleapis.com' rel='preconnect'/>
+  <link crossorigin='anonymous' href='https://fonts.gstatic.com' rel='preconnect'/>
+  <link href='https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;family=Space+Grotesk:wght@500;700&amp;display=swap' rel='stylesheet'/>
+  
+  <style type='text/css'>
+    /* <![CDATA[ */
+    :root {
+      --bg-primary: #080c10;
+      --bg-card: #0d1117;
+      --border-cyan: rgba(0, 229, 255, 0.2);
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent-cyan: #00e5ff;
+      --accent-green: #00ff88;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border-cyan);
+      margin-bottom: 32px;
+    }
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    /* ]]> */
+  </style>
+  <b:skin><![CDATA[]]></b:skin>
+</head>
+<body>
+  <header>
+    <div class='container'>
+      <a class='brand-title' expr:href='data:blog.homepageUrl'><data:blog.title/></a>
+    </div>
+  </header>
+  <main class='container'>
+    <b:section id='main' showaddelement='yes'>
+      <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog'>
+        <b:includable id='main'>
+          <b:loop values='data:posts' var='post'>
+            <article style='background: var(--bg-card); border: 1px solid var(--border-cyan); border-radius: 12px; padding: 24px; margin-bottom: 24px;'>
+              <h2 style='color: var(--accent-cyan); margin-top: 0;'><data:post.title/></h2>
+              <div><data:post.body/></div>
+            </article>
+          </b:loop>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </main>
+</body>
+</html>

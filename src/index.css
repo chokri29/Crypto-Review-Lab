@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Outfit:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Rajdhani", sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-cyber-bg-primary: #080c10;
+  --color-cyber-bg-secondary: #0d1117;
+  --color-cyber-bg-card: #0f1620;
+  --color-cyber-bg-card-hover: #141e2d;
+  --color-cyber-cyan: #00e5ff;
+  --color-cyber-blue: #1e73be;
+  --color-cyber-green: #00ff88;
+  --color-cyber-orange: #ff6b35;
+  --color-cyber-text-primary: #e8f4fd;
+  --color-cyber-text-secondary: #7b9ab5;
+  --color-cyber-text-muted: #3d5a73;
+}
+
+/* === Custom Global Cyber Aesthetic === */
+html {
+  font-size: 16.5px;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 640px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 17.5px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 18.5px;
+  }
+}
+
+body {
+  background-color: #080c10;
+  color: #e8f4fd;
+  font-family: "Outfit", sans-serif;
+  font-size: 1rem;
+  font-weight: 350;
+  line-height: 1.7;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* === GRID BACKGROUND === */
+.cyber-grid::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* === SCANLINE OVERLAY === */
+@media (min-width: 768px) {
+  .cyber-scanlines::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.05) 2px,
+      rgba(0, 0, 0, 0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+/* Clean scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+}
+
+/* Custom glow animations */
+@keyframes cyber-pulse {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(0,229,255,0.4)); }
+  50% { filter: drop-shadow(0 0 12px rgba(0,229,255,0.8)); }
+}
+
+/* === Light Theme Overrides === */
+html.light {
+  --color-cyber-bg-primary: #f1f5f9;
+  --color-cyber-bg-secondary: #e2e8f0;
+  --color-cyber-bg-card: #ffffff;
+  --color-cyber-bg-card-hover: #f8fafc;
+  --color-cyber-cyan: #0284c7;
+  --color-cyber-blue: #2563eb;
+  --color-cyber-green: #059669;
+  --color-cyber-orange: #d97706;
+  --color-cyber-text-primary: #0f172a;
+  --color-cyber-text-secondary: #334155;
+  --color-cyber-text-muted: #475569;
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: rgba(2, 132, 199, 0.25) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+html.light .cyber-grid::before {
+  background-image:
+    linear-gradient(rgba(2, 132, 199, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.08) 1px, transparent 1px);
+}
+
+html.light .cyber-scanlines::after {
+  opacity: 0.06;
+}
+
+/* Automatic component adaptation for hardcoded dark slate cards in Light Mode */
+html.light .bg-slate-900,
+html.light .bg-slate-950 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-400 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-500 {
+  color: #475569 !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/40 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(2, 132, 199, 0.3);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+.glow-cyan-hover:hover {
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+  border-color: rgba(0, 229, 255, 0.5);
+}
+
+/* Hide Transparency Badge widget across all viewports */
+#tb-badge-widget,
+[id^="tb-badge-"],
+.tb-badge-widget,
+iframe[src*="transparencybadge"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Hide scrollbars for easy-swipe containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
