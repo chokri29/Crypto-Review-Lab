@@ -11,8 +11,8 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import { INITIAL_REVIEWS } from "./src/data";
-import { calculateBlueprintScore } from "./src/services/EvaluationBlueprint";
+import { INITIAL_REVIEWS } from "./src/data.js";
+import { calculateBlueprintScore } from "./src/services/EvaluationBlueprint.js";
 import { 
   createProOrder, 
   approveAndDeliverProOrder, 
@@ -26,8 +26,8 @@ import {
   processNowPaymentsIpn,
   mapNowPaymentsStatusToPaymentStatus,
   PRINCIPAL_EMAIL 
-} from "./src/services/proOrderService";
-import { verifyAuditSignatureServerSide } from "./src/services/auditSigner";
+} from "./src/services/proOrderService.js";
+import { verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
 
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'crypto_reviews.json');
 
