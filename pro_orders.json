@@ -1,0 +1,1796 @@
+[
+  {
+    "orderId": "CRL-914802",
+    "clientEmail": "investor@defifund.eth",
+    "projectName": "Zama",
+    "projectSymbol": "ZAMA",
+    "contractAddress": "0x37a1...8892 (fhEVM Cryptographic Protocol)",
+    "focusArea": "Fully Homomorphic Encryption (FHE) latency, zero-knowledge proof verification, and token lockups",
+    "verificationDepth": "Maximum (Level 3 - Bytecode & Repos)",
+    "stressSimulation": true,
+    "amountUsd": 149,
+    "paymentStatus": "PAID",
+    "paymentMethod": "NOWPayments (USDT Solana)",
+    "status": "PENDING_F2",
+    "createdAt": "2026-08-28T11:18:16.958Z",
+    "estimatedDeliveryAt": "2026-08-29T11:18:16.958Z",
+    "systemDraft": {
+      "id": "zama-seed",
+      "coingeckoId": "zama",
+      "coingeckoCategories": [
+        "Privacy Coins",
+        "Zero Knowledge (ZK)",
+        "Cryptographic",
+        "FHE"
+      ],
+      "name": "Zama",
+      "symbol": "ZAMA",
+      "category": "Privacy / FHE Cryptography",
+      "overallScore": 90,
+      "grade": "AA+",
+      "verdict": "State-of-the-art confidential smart contract layer leveraging fully homomorphic encryption.",
+      "scores": {
+        "utility": 9,
+        "tokenomics": 9,
+        "security": 9,
+        "team": 10,
+        "community": 8
+      },
+      "summary": "Zama enables privacy-preserving smart contract computation using Fully Homomorphic Encryption (FHE). First system draft highlights strong institutional backing.",
+      "pros": [
+        "End-to-end encrypted state",
+        "Strong academic cryptography team",
+        "Compatible with EVM toolchains"
+      ],
+      "cons": [
+        "Higher compute overhead",
+        "Hardware acceleration required",
+        "Nascent developer ecosystem"
+      ],
+      "riskLevel": "Low",
+      "createdAt": "2026-08-28T13:18:16.958Z",
+      "author": "Crypto Review Lab Blueprint"
+    },
+    "emailLogs": [
+      {
+        "id": "msg_seed_3",
+        "type": "CONFIRMATION",
+        "from": "reports@cryptoreviewlab.com",
+        "to": "investor@defifund.eth",
+        "subject": "[Crypto Review Lab] Payment Received - Security & Risk Assessment #CRL-914802",
+        "sentAt": "2026-08-28T11:18:16.958Z",
+        "bodyPreview": "Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours",
+        "fullHtmlContent": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(245, 158, 11, 0.3);\">\n      <div style=\"border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;\">\n        <div>\n          <h2 style=\"color: #f59e0b; margin: 0; font-size: 20px; letter-spacing: -0.5px;\">CRYPTO REVIEW LAB</h2>\n          <p style=\"color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;\">SECURITY & RISK ADVISORY DESK • SERVICE NOTICE</p>\n        </div>\n        <span style=\"background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;\">PAYMENT VERIFIED</span>\n      </div>\n\n      <div style=\"background-color: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 4px;\">\n        <h3 style=\"margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;\">Advisory Order Confirmation #CRL-914802</h3>\n        <p style=\"margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;\">\n          Payment received. Your Security & Risk Assessment is being processed. Actionable remediation report delivered within 24 hours.\n        </p>\n      </div>\n\n      <table style=\"width: 100%; font-size: 13px; color: #cbd5e1; border-collapse: collapse; margin-bottom: 24px;\">\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8; width: 40%;\">Target Project:</td>\n          <td style=\"padding: 8px 0; font-weight: bold; color: #ffffff;\">Zama (ZAMA)</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Primary Contact:</td>\n          <td style=\"padding: 8px 0; color: #38bdf8;\">investor@defifund.eth</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Service Category:</td>\n          <td style=\"padding: 8px 0; color: #f59e0b; font-weight: 600;\">Confidential Security Assessment (Advisory)</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Dispatch Service Email:</td>\n          <td style=\"padding: 8px 0; color: #34d399; font-mono;\">reports@cryptoreviewlab.com</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Guaranteed Delivery ETA:</td>\n          <td style=\"padding: 8px 0; color: #e2e8f0; font-weight: bold;\">Within 24 Hours</td>\n        </tr>\n      </table>\n\n      <div style=\"background-color: #0f172a; border: 1px solid #1e293b; padding: 16px; border-radius: 8px; margin-bottom: 24px;\">\n        <h4 style=\"margin: 0 0 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase;\">Advisory Delivery Pipeline</h4>\n        <p style=\"margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.5;\">\n          1. <strong>Automated Diagnostic Draft:</strong> Generated using Bytecode Invariant Engine & Liquidity Scanners.<br/>\n          2. <strong>Security Engineer Sign-Off:</strong> Deep symbolic verification of vulnerabilities & TVL risk.<br/>\n          3. <strong>Actionable Remediation Dossier:</strong> You will receive a second email with your private advisory PDF report & developer fix recommendations.\n        </p>\n      </div>\n\n      <div style=\"border-top: 1px solid #1e293b; pt: 16px; text-align: center; font-size: 11px; color: #64748b;\">\n        <p style=\"margin: 0 0 4px 0;\">Sent by Crypto Review Lab Automated Delivery System</p>\n        <p style=\"margin: 0; font-mono; color: #475569;\">Ref: CRL-914802 • Dispatcher: reports@cryptoreviewlab.com</p>\n      </div>\n    </div>\n  "
+      }
+    ],
+    "privateDownloadToken": "crl_token_zama_11204",
+    "publishApproved": false
+  },
+  {
+    "orderId": "CRL-884291",
+    "clientEmail": "capital.ventures@institutional.io",
+    "projectName": "Hyperliquid",
+    "projectSymbol": "HYPE",
+    "contractAddress": "0x9923...fe49 (Arbitrum / L1 Bridge)",
+    "focusArea": "Institutional L1 Perp DEX Architecture, Orderbook Matching Security, and Liquidation Cascade Resistance",
+    "verificationDepth": "Maximum (Level 3 - Bytecode & Repos)",
+    "stressSimulation": true,
+    "amountUsd": 149,
+    "paymentStatus": "PAID",
+    "paymentMethod": "NOWPayments (USDT ERC-20)",
+    "status": "DELIVERED",
+    "createdAt": "2026-08-26T13:18:16.958Z",
+    "estimatedDeliveryAt": "2026-08-27T13:18:16.958Z",
+    "deliveredAt": "2026-08-27T19:18:16.958Z",
+    "systemDraft": {
+      "id": "hype-seed",
+      "coingeckoId": "hyperliquid",
+      "coingeckoCategories": [
+        "Decentralized Finance (DeFi)",
+        "Perpetuals",
+        "Layer 1 (L1)"
+      ],
+      "name": "Hyperliquid",
+      "symbol": "HYPE",
+      "category": "Layer 1 / Perpetual DEX",
+      "overallScore": 79,
+      "grade": "A",
+      "verdict": "Top-tier high throughput perp L1 with sub-second finality and audited vault safety.",
+      "scores": {
+        "utility": 8.3,
+        "tokenomics": 7.6,
+        "security": 8,
+        "team": 7.8,
+        "community": 7.8
+      },
+      "summary": "Hyperliquid represents a major milestone in high-performance decentralized derivatives. Built on a custom Tendermint-based L1 consensus, it achieves over 20,000 orders per second without relying on third-party sequencers.",
+      "pros": [
+        "Sub-second latency on-chain matching",
+        "Non-custodial margin vaults",
+        "Zero gas fees for order placement"
+      ],
+      "cons": [
+        "Validator set concentration in early phase",
+        "Regulatory risk on perpetual futures",
+        "Bridging dependency from Arbitrum"
+      ],
+      "riskLevel": "Medium",
+      "createdAt": "2026-08-26T13:18:16.958Z",
+      "author": "Crypto Review Lab",
+      "adminOverride": {
+        "overriddenBy": "Principal Chief Auditor",
+        "overriddenAt": "2026-08-27T19:18:16.958Z",
+        "reason": "Pre-verified institutional reference seed audit delivery.",
+        "previousF3Status": "VERIFIED",
+        "discrepanciesOverridden": [],
+        "acknowledged": true
+      },
+      "phaseTwoReControl": {
+        "overallScorePct": 86.6,
+        "status": "FAIL",
+        "executionTimeMinutes": 6.5,
+        "completedAt": "2026-08-28 13:18",
+        "recommendation": "AUTO_FLAGGED_FOR_REGENERATION",
+        "gates": [
+          {
+            "gateNumber": 0,
+            "gateName": "Structural Completeness Check",
+            "description": "Fast deterministic check verifying raw output contains every required structural element prior to running deeper content-quality gates.",
+            "scorePct": 100,
+            "passed": true,
+            "notes": "Raw output verified structurally complete. All required section headings, dimension scores, pros/cons, and delta tables present.",
+            "checks": [
+              {
+                "name": "Mandatory Core Schema Elements",
+                "status": "VERIFIED",
+                "detail": "Title, Symbol, Summary, Verdict, and 5 Dimension Scores Present"
+              },
+              {
+                "name": "Pros & Cons Symmetric Arrays",
+                "status": "VERIFIED",
+                "detail": "Pros: 3/3 | Cons: 3/3"
+              },
+              {
+                "name": "Report Type Specific Structural Verification",
+                "status": "PASSED",
+                "detail": "Single Protocol Evaluation Blueprint: All required structural elements verified"
+              }
+            ]
+          },
+          {
+            "gateNumber": 1,
+            "gateName": "Source Triangulation",
+            "description": "Cross-verifies pricing, volume, and market metrics across dual independent APIs (CoinGecko + CoinMarketCap).",
+            "scorePct": 75,
+            "passed": false,
+            "notes": "Data source divergence (0.00%) or lower confidence (70/100) requires pricing check.",
+            "checks": [
+              {
+                "name": "Tri-Oracle Market Data Provenance",
+                "status": "VERIFIED",
+                "detail": "Tri-Sync Engine (CoinGecko + CMC + CoinStats)"
+              },
+              {
+                "name": "Price & Supply Divergence Tolerance",
+                "status": "PASSED",
+                "detail": "Variance: 0.00% (Threshold: <5.0%)"
+              },
+              {
+                "name": "Data Confidence Index",
+                "status": "FLAGGED",
+                "detail": "Confidence Score: 70/100 (MODERATE)"
+              }
+            ]
+          },
+          {
+            "gateNumber": 2,
+            "gateName": "On-Chain Cross-Check",
+            "description": "Verifies smart contract open-source status, mintable supply, honeypot risk, and blacklist parameters via GoPlus Security.",
+            "scorePct": 90,
+            "passed": true,
+            "notes": "On-chain bytecode & GoPlus security scan passed with composite score 90%.",
+            "checks": [
+              {
+                "name": "GoPlus Open-Source Code Inspection",
+                "status": "VERIFIED",
+                "detail": "Native L1 Architecture / Protocol Node Core Verified"
+              },
+              {
+                "name": "GoPlus Mintable, Honeypot & Tax Analysis",
+                "status": "VERIFIED",
+                "detail": "Security Rating: 9.0/10 — Invariant Bounds & Exploitation Vectors Inspected"
+              },
+              {
+                "name": "GoPlus Blacklist & Proxy Ownership Check",
+                "status": "VERIFIED",
+                "detail": "Category: Layer 1 Blockchain — Blacklist: NONE, Proxy & Ownership Admin Privileges Checked"
+              }
+            ]
+          },
+          {
+            "gateNumber": 3,
+            "gateName": "Cross-Framework Consistency Check",
+            "description": "Executes 4-Step Resolution Rule on Framework 2 (CRL Pro Risk Model) independent rescoring vs post-AVF-loop converged Framework 1.",
+            "scorePct": 66,
+            "passed": false,
+            "notes": "Structural F1/F2 calibration mismatch (Composite Δ: 1.0 pts, Max Dim Δ: 3.0 pts) — manual review required, auto-regeneration cannot resolve.",
+            "checks": [
+              {
+                "name": "Step 1 — Compute Composite & Dimension Deltas",
+                "status": "VERIFIED",
+                "detail": "Post-AVF Composite Δ: 1.0 pts (F1: 79 vs F2: 78) | Max Dim Δ: 3.0 pts"
+              },
+              {
+                "name": "Step 2 — Severity Tier Classification",
+                "status": "FLAGGED",
+                "detail": "Tier 3 — Structural F1/F2 Calibration Mismatch (Composite > 7.0 or Max Dim > 10.0 Post-Convergence)"
+              },
+              {
+                "name": "Step 3 — Tier Resolution Action",
+                "status": "FLAGGED",
+                "detail": "Structural F1/F2 calibration mismatch — manual review required, auto-regeneration cannot resolve."
+              },
+              {
+                "name": "Step 4 — Per-Dimension Drill-Down & Masked Offset Check",
+                "status": "VERIFIED",
+                "detail": "Util Δ:3.0 | Tok Δ:2.0 | Sec Δ:1.0 | Team Δ:1.0 | Comm Δ:2.0 [NO MASKED DRIFT]"
+              }
+            ]
+          },
+          {
+            "gateNumber": 4,
+            "gateName": "Tokenomics Re-verification",
+            "description": "Re-evaluates token distribution models, circulating vs max supply ratios, and unlock schedules.",
+            "scorePct": 76,
+            "passed": false,
+            "notes": "Tokenomics exhibits supply concentration, low circulating float (N/A), or unlock overhang.",
+            "checks": [
+              {
+                "name": "Supply Parity & FDV Ratio",
+                "status": "VERIFIED",
+                "detail": "Circulating Float: N/A | FDV Overhang: N/A | Tokenomics: 7.6/10"
+              },
+              {
+                "name": "Vesting Timelock & Emission Schedule",
+                "status": "VERIFIED",
+                "detail": "Vesting locks & cliff emission schedule verified"
+              },
+              {
+                "name": "Insider Concentration & Treasury Custody",
+                "status": "VERIFIED",
+                "detail": "Wallet Distribution Matrix Verified"
+              }
+            ]
+          },
+          {
+            "gateNumber": 5,
+            "gateName": "Score Arithmetic Check",
+            "description": "Recalculates category-weighted dimension math to ensure exact mathematical consistency without drift.",
+            "scorePct": 96,
+            "passed": true,
+            "notes": "Score arithmetic matches Blueprint category weighted formula exactly.",
+            "checks": [
+              {
+                "name": "Category Blueprint Weights Applied",
+                "status": "VERIFIED",
+                "detail": "Layer 1 Blockchain: U:25% T:20% S:30% Tm:10% C:15%"
+              },
+              {
+                "name": "Dimension Score Weighted Sum",
+                "status": "PASSED",
+                "detail": "Report: 79/100 vs Blueprint Calc: 80/100 (Drift: 1.0 pts)"
+              },
+              {
+                "name": "1-100 Scale Bound Compliance",
+                "status": "VERIFIED",
+                "detail": "Score within valid 0-100 range bounds"
+              }
+            ]
+          },
+          {
+            "gateNumber": 6,
+            "gateName": "Grade-Risk Alignment",
+            "description": "Verifies strict alignment between the overall score, letter grade (AAA to D), and Risk Level (Low/Med/High/Critical).",
+            "scorePct": 100,
+            "passed": true,
+            "notes": "Letter grade and risk level are perfectly aligned with Blueprint rubric bounds.",
+            "checks": [
+              {
+                "name": "Letter Grade Scale Mapping",
+                "status": "PASSED",
+                "detail": "Report Grade: A | Blueprint Expected: A (Score: 79)"
+              },
+              {
+                "name": "Risk Level Tier Alignment",
+                "status": "PASSED",
+                "detail": "Report Risk: Medium | Blueprint Expected: Medium"
+              },
+              {
+                "name": "Rating Matrix Consistency",
+                "status": "VERIFIED",
+                "detail": "Rating tier and grade scale within institutional bounds"
+              }
+            ]
+          },
+          {
+            "gateNumber": 7,
+            "gateName": "Formatting Integrity",
+            "description": "Validates required markdown section headings, pros/cons balance, executive verdict, and institutional formatting.",
+            "scorePct": 90,
+            "passed": true,
+            "notes": "Report formatting, section structure, and pros/cons balance verified clean (Score: 90%).",
+            "checks": [
+              {
+                "name": "Blueprint Markdown Structure",
+                "status": "FLAGGED",
+                "detail": "Core Thesis, Market, Tokenomics, and Conclusion sections checked"
+              },
+              {
+                "name": "Pros & Cons Symmetry",
+                "status": "PASSED",
+                "detail": "Pros: 3/3 | Cons: 3/3"
+              },
+              {
+                "name": "Executive Verdict Completeness",
+                "status": "VERIFIED",
+                "detail": "Verdict Length: 83 characters"
+              }
+            ]
+          }
+        ],
+        "narrative": "Phase 2 Automated Re-Control detected a Structural F1/F2 Calibration Mismatch (Gate 3 Tier 3, Drift: 1.0 pts). Structural F1/F2 calibration mismatch — manual review required, auto-regeneration cannot resolve.",
+        "avfSession": {
+          "sessionId": "AVF-SESSION-MTCZ8YV5",
+          "protocolName": "Hyperliquid",
+          "initialF1Score": 93,
+          "finalF1Score": 79,
+          "initialF2Score": 78,
+          "finalF2Score": 78,
+          "initialCompositeDelta": 15,
+          "finalCompositeDelta": 1,
+          "totalRounds": 5,
+          "equilibriumAchieved": false,
+          "requiresManualAuditEscalation": true,
+          "isStatisticalOutlier": true,
+          "outlierAnalysis": "[Statistical Outlier Alert] Project initial F1-F2 drift (15.0 pts) is +7.93 σ above Layer 1 Blockchain category mean (3.1 ± 1.5 pts). Flagged for institutional risk scrutiny.",
+          "categoryStats": {
+            "meanDelta": 3.1,
+            "stdDevDelta": 1.5,
+            "sampleCount": 26
+          },
+          "rounds": [
+            {
+              "roundNumber": 1,
+              "f1CompositeScore": 93,
+              "f2CompositeScore": 78,
+              "compositeDelta": 15,
+              "maxDimensionDelta": 20,
+              "severityTier": 3,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R1-SEC",
+                  "dimensionKey": "security",
+                  "targetArea": "Security & Smart Contract Architecture",
+                  "f1Value": "9.0/10 (90 pts)",
+                  "f2Value": "7.9/10 (79 pts) [Conf: 53%]",
+                  "confidence": 0.53,
+                  "discrepancyDelta": 11,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 53%) detected security score drift of 11 pts. F1 must calibrate security score toward 8.4/10 and verify reentrancy threat vector bounds.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R1-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "9.0/10 (90 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 16,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 16 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R1-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "10.0/10 (100 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 20,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 20 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R1] Damping=90%. Sec: 9.0→8.5 (Conf 53%), Tok: 9.0→8.3 (Conf 46%), Util: 10.0→9.2 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 2,
+              "f1CompositeScore": 86,
+              "f2CompositeScore": 78,
+              "compositeDelta": 8,
+              "maxDimensionDelta": 12,
+              "severityTier": 3,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R2-SEC",
+                  "dimensionKey": "security",
+                  "targetArea": "Security & Smart Contract Architecture",
+                  "f1Value": "8.5/10 (85 pts)",
+                  "f2Value": "7.9/10 (79 pts) [Conf: 53%]",
+                  "confidence": 0.53,
+                  "discrepancyDelta": 6,
+                  "severity": "WARNING",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 53%) detected security score drift of 6 pts. F1 must calibrate security score toward 8.2/10 and verify reentrancy threat vector bounds.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R2-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "8.3/10 (83 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 9,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 9 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R2-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "9.2/10 (92 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 12,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 12 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R2] Damping=85%. Sec: 8.5→8.2 (Conf 53%), Tok: 8.3→7.9 (Conf 46%), Util: 9.2→8.7 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 3,
+              "f1CompositeScore": 82,
+              "f2CompositeScore": 78,
+              "compositeDelta": 4,
+              "maxDimensionDelta": 7,
+              "severityTier": 2,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R3-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "7.9/10 (79 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 5,
+                  "severity": "WARNING",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 5 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R3-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "8.7/10 (87 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 7,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 7 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R3] Damping=80%. Sec: 8.2→8.1 (Conf 53%), Tok: 7.9→7.7 (Conf 46%), Util: 8.7→8.4 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 4,
+              "f1CompositeScore": 80,
+              "f2CompositeScore": 78,
+              "compositeDelta": 2,
+              "maxDimensionDelta": 4,
+              "severityTier": 1,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R4-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "8.4/10 (84 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 4,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 4 pts based on TVL protocol adoption depth.",
+                  "status": "RESOLVED"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R4] Damping=75%. Sec: 8.1→8.0 (Conf 53%), Tok: 7.7→7.6 (Conf 46%), Util: 8.4→8.3 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 5,
+              "f1CompositeScore": 79,
+              "f2CompositeScore": 78,
+              "compositeDelta": 1,
+              "maxDimensionDelta": 3,
+              "severityTier": 1,
+              "status": "ADAPTED",
+              "directives": [
+                {
+                  "id": "DIR-R5-ALIGN",
+                  "dimensionKey": "composite",
+                  "targetArea": "Overall Composite Evaluation",
+                  "f1Value": "79/100",
+                  "f2Value": "78/100",
+                  "discrepancyDelta": 1,
+                  "severity": "MINOR",
+                  "mandate": "F1 Candidate Engine and F2 Reviewer operate within Tier 1 alignment (<3.0 pts drift). Zero further correction required.",
+                  "status": "RESOLVED"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[AVF Escalation Alert] Max rounds (5) reached without achieving full convergence (Max Dim Δ: 3.0 pts). Flagged for mandatory institutional manual audit escalation."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            }
+          ],
+          "summaryDirective": "MANDATORY MANUAL AUDIT ESCALATION REQUIRED: AVF loop completed 5 rounds without full convergence (Final Drift: 1.0 pts). F1-F2 variance exceeds automated threshold. [Statistical Outlier Alert] Project initial F1-F2 drift (15.0 pts) is +7.93 σ above Layer 1 Blockchain category mean (3.1 ± 1.5 pts). Flagged for institutional risk scrutiny."
+        }
+      },
+      "f3Verification": {
+        "framework": "Algorithmic Verification Framework (AVF-v3.2 / Evaluation Blueprint v2.4)",
+        "ruleVersion": "AVF-F3-v3.2 (Blueprint v2.4)",
+        "timestamp": "2026-08-28T13:18:16.965Z",
+        "verifiedAt": "2026-08-28T13:18:16.965Z",
+        "overallStatus": "DISCREPANCY_FOUND",
+        "verificationPassed": false,
+        "isVerified": false,
+        "overallConfidence": 0.33,
+        "confidence": {
+          "overall": 0.33,
+          "overallPct": 33,
+          "breakdown": {
+            "dataConfidence": 0,
+            "classificationConfidence": 0.67,
+            "scenarioConfidence": 0,
+            "conclusionConfidence": 1,
+            "overallConfidence": 0.33
+          }
+        },
+        "modules": {
+          "avf01Classification": {
+            "moduleId": "AVF-01",
+            "moduleName": "Classification Verification",
+            "status": "PARTIALLY_VERIFIED",
+            "isVerified": false,
+            "assignedCategory": "Layer 1 / Perpetual DEX",
+            "keywordMatchedCategory": "DeFi Protocol (AMM / Lending)",
+            "coingeckoCategories": [
+              "Decentralized Finance (DeFi)",
+              "Perpetuals",
+              "Layer 1 (L1)"
+            ],
+            "coingeckoMatches": [
+              "Layer 1 (L1)"
+            ],
+            "taxonomySource": "external",
+            "signals": {
+              "assigned": true,
+              "keywordMatchAgrees": false,
+              "coingeckoAgrees": true
+            },
+            "classificationConfidence": 0.67,
+            "missingFields": [],
+            "details": "Classification PARTIALLY VERIFIED (67% confidence): Divergence between assigned 'Layer 1 / Perpetual DEX', keyword match 'DeFi Protocol (AMM / Lending)', or CoinGecko categories [Decentralized Finance (DeFi), Perpetuals, Layer 1 (L1)]."
+          },
+          "avf02Evidence": {
+            "moduleId": "AVF-02",
+            "moduleName": "Data & Evidence Verification",
+            "status": "CRITICAL_GAP_DETECTED",
+            "isVerified": false,
+            "totalDimensions": 5,
+            "verifiedDimensions": 0,
+            "evidenceCoveragePct": 0,
+            "dimensions": [
+              {
+                "dimension": "Market & Liquidity Data",
+                "sourceType": "EXTERNAL_API_DUAL_ORACLE",
+                "sourceName": "CoinGecko + CoinMarketCap Dual API",
+                "status": "CRITICAL_GAP",
+                "isExternallyBacked": false,
+                "citationOrReference": null,
+                "retrievedAt": "2026-08-26T13:18:16.958Z",
+                "rawObservedValue": null
+              },
+              {
+                "dimension": "Security & Bytecode Analysis",
+                "sourceType": "ON_CHAIN_BYTECODE_SCAN",
+                "sourceName": "GoPlus Security + RugCheck Bytecode Oracle",
+                "status": "CRITICAL_GAP",
+                "isExternallyBacked": false,
+                "citationOrReference": null,
+                "retrievedAt": null,
+                "rawObservedValue": null
+              },
+              {
+                "dimension": "Utility & Architecture Narrative",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              },
+              {
+                "dimension": "Tokenomics & Vesting Narrative",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              },
+              {
+                "dimension": "Team & Governance Assessment",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              }
+            ],
+            "criticalDataGaps": [
+              "Market Live Pricing Missing: CoinGecko/CMC dual liquidity feed unavailable on file.",
+              "Contract Address Missing: On-chain bytecode, honeypot, and mint authority scan unanchored."
+            ],
+            "missingFields": [
+              "livePrice",
+              "contractAddress"
+            ],
+            "details": "Data & Evidence CRITICAL GAP (0% coverage, 0/5 backed): Market Live Pricing Missing: CoinGecko/CMC dual liquidity feed unavailable on file. Contract Address Missing: On-chain bytecode, honeypot, and mint authority scan unanchored."
+          },
+          "avf03Methodology": {
+            "moduleId": "AVF-03",
+            "moduleName": "Methodology Verification",
+            "status": "DISCREPANCY_FOUND",
+            "isVerified": false,
+            "blueprintVersion": "Evaluation Blueprint v2.4",
+            "weightTableApplied": {
+              "utility": 0.25,
+              "tokenomics": 0.2,
+              "security": 0.3,
+              "team": 0.1,
+              "community": 0.15
+            },
+            "categorySpecificVariantsExist": true,
+            "scoreVerificationStatus": "DISCREPANCY_FOUND",
+            "scoreDiscrepancy": 1,
+            "missingFields": [],
+            "details": "Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts)."
+          },
+          "avf04Scenarios": {
+            "moduleId": "AVF-04",
+            "moduleName": "Scenario & Simulation Verification",
+            "status": "UNEXECUTED",
+            "isVerified": false,
+            "totalScenarios": 4,
+            "executedScenarios": 0,
+            "scenarioExecutionRate": 0,
+            "scenarios": [
+              {
+                "name": "AVF Cross-Validation Convergence Loop (F1 vs F2 Multi-Round)",
+                "category": "CROSS_VALIDATION_CONVERGENCE",
+                "state": "EXECUTABLE",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": true,
+                "backingProcess": "executeAVFLoop (reControlEngine.ts)",
+                "executionMetrics": null,
+                "notes": "Loop execution telemetry was not captured in this run (Status: EXECUTABLE)."
+              },
+              {
+                "name": "TVL Liquidity Drain & Slippage Stress Simulation",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Stress Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); on-chain TVL data not captured."
+              },
+              {
+                "name": "Price Shock & Cascading Liquidation Stress Matrix",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Simulation Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); live price data absent."
+              },
+              {
+                "name": "Oracle Latency & Manipulation Simulation",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Simulation Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); contract bytecode address absent."
+              }
+            ],
+            "missingFields": [
+              "avfLoopResult"
+            ],
+            "details": "Scenario Verification: 0/4 executed. All scenario items are in DEFINED or EXECUTABLE states without execution."
+          },
+          "avf05Score": {
+            "moduleId": "AVF-05",
+            "moduleName": "Score & Weight Verification",
+            "status": "DISCREPANCY_FOUND",
+            "isVerified": false,
+            "reportedScore": 79,
+            "recomputedScore": 80,
+            "discrepancy": 1,
+            "tolerance": 0.5,
+            "weightsApplied": {
+              "utility": 0.25,
+              "tokenomics": 0.2,
+              "security": 0.3,
+              "team": 0.1,
+              "community": 0.15
+            },
+            "dimensionContributions": {
+              "utility": 20.8,
+              "tokenomics": 15.2,
+              "security": 24,
+              "team": 7.8,
+              "community": 11.7
+            },
+            "missingFields": [],
+            "details": "Score discrepancy detected: Reported score is 79, but canonical blueprint score is 80 (Δ = 1 pts)."
+          },
+          "avf06RiskConclusion": {
+            "moduleId": "AVF-06",
+            "moduleName": "Risk–Conclusion Verification",
+            "status": "CONSISTENT",
+            "isConsistent": true,
+            "declaredRisk": "Medium",
+            "verifiedRiskLevel": "Medium",
+            "signalsChecked": [
+              {
+                "signalName": "Security Sub-Score",
+                "source": "Evaluation Blueprint v2.4 (Dimension 3)",
+                "observedValue": "8/10",
+                "impliedRisk": "Low",
+                "isContradiction": false,
+                "notes": "Security metric evaluated at 8/10"
+              },
+              {
+                "signalName": "Overall Composite Score",
+                "source": "Aggregated F1/F2 Evaluation Score",
+                "observedValue": "79/100",
+                "impliedRisk": "Low",
+                "isContradiction": false,
+                "notes": "Overall evaluation score 79/100"
+              },
+              {
+                "signalName": "On-Chain Security Scan (GoPlus / RugCheck)",
+                "source": "Contract Bytecode Registry",
+                "observedValue": "NONE_ON_FILE",
+                "impliedRisk": "Medium",
+                "isContradiction": false,
+                "notes": "No contract address or on-chain scan supplied"
+              }
+            ],
+            "materialFindings": [],
+            "contradictions": [],
+            "missingFields": [],
+            "details": "Risk-Conclusion CONSISTENT: Declared 'Medium Risk' aligns with verified security signals (implied level: Medium Risk, 3 signals verified).",
+            "ruleVersion": "AVF-F3-v3.2 (Blueprint v2.4)"
+          },
+          "avf07Confidence": {
+            "moduleId": "AVF-07",
+            "moduleName": "Confidence & Uncertainty Verification",
+            "status": "COMPUTED",
+            "isVerified": true,
+            "confidence": {
+              "dataConfidence": 0,
+              "classificationConfidence": 0.67,
+              "scenarioConfidence": 0,
+              "conclusionConfidence": 1,
+              "overallConfidence": 0.33
+            },
+            "confidenceLevel": "LOW",
+            "confidencePct": 33,
+            "weights": {
+              "classification": 0.2,
+              "data": 0.3,
+              "scenario": 0.3,
+              "conclusion": 0.2
+            },
+            "missingModules": [],
+            "details": "Overall AVF Confidence is 33% [LOW] (computed deterministically: 0.20×Class 67% + 0.30×Data 0% + 0.30×Scenario 0% + 0.20×Risk 100%)."
+          },
+          "avf08Traceability": {
+            "moduleId": "AVF-08",
+            "moduleName": "Traceability & Integrity Verification",
+            "status": "UNSIGNED",
+            "isVerified": false,
+            "computedHash": "10609975e3b7db9adf4a25a8606aebbde2f1e5edb927ba957bbe54a2d69ef666",
+            "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Top-tier high throughput perp L1 with sub-second finality and audited vault safety.|grade:A|timestamp:2026-08-26T13:18:16.958Z",
+            "signature": null,
+            "traceabilityChain": {
+              "conclusion": {
+                "verdict": "Top-tier high throughput perp L1 with sub-second finality and audited vault safety.",
+                "riskLevel": "Medium",
+                "grade": "A"
+              },
+              "scoreChain": {
+                "overallScore": 79,
+                "scores": {
+                  "utility": 8.3,
+                  "tokenomics": 7.6,
+                  "security": 8,
+                  "team": 7.8,
+                  "community": 7.8
+                }
+              },
+              "algorithm": {
+                "frameworkVersion": "AVF-v3.2",
+                "blueprintVersion": "Evaluation Blueprint v2.4",
+                "hashAlgorithm": "SHA-256",
+                "signatureAlgorithm": "Ed25519"
+              },
+              "cryptographicIntegrity": {
+                "computedHash": "10609975e3b7db9adf4a25a8606aebbde2f1e5edb927ba957bbe54a2d69ef666",
+                "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Top-tier high throughput perp L1 with sub-second finality and audited vault safety.|grade:A|timestamp:2026-08-26T13:18:16.958Z",
+                "signatureOnRecord": null,
+                "publicKeyOnRecord": null,
+                "activeSystemPublicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+                "signedAt": null,
+                "hashMatches": false,
+                "signatureValid": false
+              },
+              "datasetProvenance": {
+                "reportCreatedAt": "2026-08-26T13:18:16.958Z"
+              }
+            },
+            "missingFields": [
+              "auditSignature"
+            ],
+            "details": "Report content digest computed (10609975e3b7db9a...), but review has not been cryptographically signed with an Ed25519 keypair. Status: UNSIGNED."
+          }
+        },
+        "discrepancies": [
+          "Score Aggregation Discrepancy (AVF-05): Reported 79, recomputed 80 (Δ = 1 pts).",
+          "Methodology Discrepancy (AVF-03): Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts)."
+        ],
+        "missingInputs": [
+          "livePrice",
+          "contractAddress",
+          "avfLoopResult",
+          "auditSignature"
+        ],
+        "summary": "F3 Verification DISCREPANCY_FOUND: Detected mathematical score or methodology divergence (Score Aggregation Discrepancy (AVF-05): Reported 79, recomputed 80 (Δ = 1 pts). | Methodology Discrepancy (AVF-03): Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts).)",
+        "adminOverride": {
+          "overriddenBy": "Principal Chief Auditor",
+          "overriddenAt": "2026-08-27T19:18:16.958Z",
+          "reason": "Pre-verified institutional reference seed audit delivery.",
+          "previousF3Status": "VERIFIED",
+          "discrepanciesOverridden": [],
+          "acknowledged": true
+        }
+      }
+    },
+    "finalReview": {
+      "id": "hype-seed-final",
+      "coingeckoId": "hyperliquid",
+      "coingeckoCategories": [
+        "Decentralized Finance (DeFi)",
+        "Perpetuals",
+        "Layer 1 (L1)"
+      ],
+      "name": "Hyperliquid",
+      "symbol": "HYPE",
+      "category": "Layer 1 / Perpetual DEX",
+      "overallScore": 79,
+      "grade": "A",
+      "verdict": "Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.",
+      "scores": {
+        "utility": 8.3,
+        "tokenomics": 7.6,
+        "security": 8,
+        "team": 7.8,
+        "community": 7.8
+      },
+      "summary": "Verified Security & Risk Assessment: All bytecode invariants confirm strict margin isolation and multi-sig vault controls.",
+      "pros": [
+        "Sub-second latency on-chain matching",
+        "Non-custodial margin vaults",
+        "Zero gas fees for order placement"
+      ],
+      "cons": [
+        "Validator set concentration in early phase",
+        "Regulatory risk on perpetual futures",
+        "Bridging dependency from Arbitrum"
+      ],
+      "riskLevel": "Medium",
+      "createdAt": "2026-08-27T19:18:16.958Z",
+      "author": "Crypto Review Lab",
+      "adminOverride": {
+        "overriddenBy": "Principal Chief Auditor",
+        "overriddenAt": "2026-08-27T19:18:16.958Z",
+        "reason": "Pre-verified institutional reference seed audit delivery.",
+        "previousF3Status": "VERIFIED",
+        "discrepanciesOverridden": [],
+        "acknowledged": true
+      },
+      "phaseTwoReControl": {
+        "overallScorePct": 86.6,
+        "status": "FAIL",
+        "executionTimeMinutes": 6.5,
+        "completedAt": "2026-08-28 13:18",
+        "recommendation": "AUTO_FLAGGED_FOR_REGENERATION",
+        "gates": [
+          {
+            "gateNumber": 0,
+            "gateName": "Structural Completeness Check",
+            "description": "Fast deterministic check verifying raw output contains every required structural element prior to running deeper content-quality gates.",
+            "scorePct": 100,
+            "passed": true,
+            "notes": "Raw output verified structurally complete. All required section headings, dimension scores, pros/cons, and delta tables present.",
+            "checks": [
+              {
+                "name": "Mandatory Core Schema Elements",
+                "status": "VERIFIED",
+                "detail": "Title, Symbol, Summary, Verdict, and 5 Dimension Scores Present"
+              },
+              {
+                "name": "Pros & Cons Symmetric Arrays",
+                "status": "VERIFIED",
+                "detail": "Pros: 3/3 | Cons: 3/3"
+              },
+              {
+                "name": "Report Type Specific Structural Verification",
+                "status": "PASSED",
+                "detail": "Single Protocol Evaluation Blueprint: All required structural elements verified"
+              }
+            ]
+          },
+          {
+            "gateNumber": 1,
+            "gateName": "Source Triangulation",
+            "description": "Cross-verifies pricing, volume, and market metrics across dual independent APIs (CoinGecko + CoinMarketCap).",
+            "scorePct": 75,
+            "passed": false,
+            "notes": "Data source divergence (0.00%) or lower confidence (70/100) requires pricing check.",
+            "checks": [
+              {
+                "name": "Tri-Oracle Market Data Provenance",
+                "status": "VERIFIED",
+                "detail": "Tri-Sync Engine (CoinGecko + CMC + CoinStats)"
+              },
+              {
+                "name": "Price & Supply Divergence Tolerance",
+                "status": "PASSED",
+                "detail": "Variance: 0.00% (Threshold: <5.0%)"
+              },
+              {
+                "name": "Data Confidence Index",
+                "status": "FLAGGED",
+                "detail": "Confidence Score: 70/100 (MODERATE)"
+              }
+            ]
+          },
+          {
+            "gateNumber": 2,
+            "gateName": "On-Chain Cross-Check",
+            "description": "Verifies smart contract open-source status, mintable supply, honeypot risk, and blacklist parameters via GoPlus Security.",
+            "scorePct": 90,
+            "passed": true,
+            "notes": "On-chain bytecode & GoPlus security scan passed with composite score 90%.",
+            "checks": [
+              {
+                "name": "GoPlus Open-Source Code Inspection",
+                "status": "VERIFIED",
+                "detail": "Native L1 Architecture / Protocol Node Core Verified"
+              },
+              {
+                "name": "GoPlus Mintable, Honeypot & Tax Analysis",
+                "status": "VERIFIED",
+                "detail": "Security Rating: 9.0/10 — Invariant Bounds & Exploitation Vectors Inspected"
+              },
+              {
+                "name": "GoPlus Blacklist & Proxy Ownership Check",
+                "status": "VERIFIED",
+                "detail": "Category: Layer 1 Blockchain — Blacklist: NONE, Proxy & Ownership Admin Privileges Checked"
+              }
+            ]
+          },
+          {
+            "gateNumber": 3,
+            "gateName": "Cross-Framework Consistency Check",
+            "description": "Executes 4-Step Resolution Rule on Framework 2 (CRL Pro Risk Model) independent rescoring vs post-AVF-loop converged Framework 1.",
+            "scorePct": 66,
+            "passed": false,
+            "notes": "Structural F1/F2 calibration mismatch (Composite Δ: 1.0 pts, Max Dim Δ: 3.0 pts) — manual review required, auto-regeneration cannot resolve.",
+            "checks": [
+              {
+                "name": "Step 1 — Compute Composite & Dimension Deltas",
+                "status": "VERIFIED",
+                "detail": "Post-AVF Composite Δ: 1.0 pts (F1: 79 vs F2: 78) | Max Dim Δ: 3.0 pts"
+              },
+              {
+                "name": "Step 2 — Severity Tier Classification",
+                "status": "FLAGGED",
+                "detail": "Tier 3 — Structural F1/F2 Calibration Mismatch (Composite > 7.0 or Max Dim > 10.0 Post-Convergence)"
+              },
+              {
+                "name": "Step 3 — Tier Resolution Action",
+                "status": "FLAGGED",
+                "detail": "Structural F1/F2 calibration mismatch — manual review required, auto-regeneration cannot resolve."
+              },
+              {
+                "name": "Step 4 — Per-Dimension Drill-Down & Masked Offset Check",
+                "status": "VERIFIED",
+                "detail": "Util Δ:3.0 | Tok Δ:2.0 | Sec Δ:1.0 | Team Δ:1.0 | Comm Δ:2.0 [NO MASKED DRIFT]"
+              }
+            ]
+          },
+          {
+            "gateNumber": 4,
+            "gateName": "Tokenomics Re-verification",
+            "description": "Re-evaluates token distribution models, circulating vs max supply ratios, and unlock schedules.",
+            "scorePct": 76,
+            "passed": false,
+            "notes": "Tokenomics exhibits supply concentration, low circulating float (N/A), or unlock overhang.",
+            "checks": [
+              {
+                "name": "Supply Parity & FDV Ratio",
+                "status": "VERIFIED",
+                "detail": "Circulating Float: N/A | FDV Overhang: N/A | Tokenomics: 7.6/10"
+              },
+              {
+                "name": "Vesting Timelock & Emission Schedule",
+                "status": "VERIFIED",
+                "detail": "Vesting locks & cliff emission schedule verified"
+              },
+              {
+                "name": "Insider Concentration & Treasury Custody",
+                "status": "VERIFIED",
+                "detail": "Wallet Distribution Matrix Verified"
+              }
+            ]
+          },
+          {
+            "gateNumber": 5,
+            "gateName": "Score Arithmetic Check",
+            "description": "Recalculates category-weighted dimension math to ensure exact mathematical consistency without drift.",
+            "scorePct": 96,
+            "passed": true,
+            "notes": "Score arithmetic matches Blueprint category weighted formula exactly.",
+            "checks": [
+              {
+                "name": "Category Blueprint Weights Applied",
+                "status": "VERIFIED",
+                "detail": "Layer 1 Blockchain: U:25% T:20% S:30% Tm:10% C:15%"
+              },
+              {
+                "name": "Dimension Score Weighted Sum",
+                "status": "PASSED",
+                "detail": "Report: 79/100 vs Blueprint Calc: 80/100 (Drift: 1.0 pts)"
+              },
+              {
+                "name": "1-100 Scale Bound Compliance",
+                "status": "VERIFIED",
+                "detail": "Score within valid 0-100 range bounds"
+              }
+            ]
+          },
+          {
+            "gateNumber": 6,
+            "gateName": "Grade-Risk Alignment",
+            "description": "Verifies strict alignment between the overall score, letter grade (AAA to D), and Risk Level (Low/Med/High/Critical).",
+            "scorePct": 100,
+            "passed": true,
+            "notes": "Letter grade and risk level are perfectly aligned with Blueprint rubric bounds.",
+            "checks": [
+              {
+                "name": "Letter Grade Scale Mapping",
+                "status": "PASSED",
+                "detail": "Report Grade: A | Blueprint Expected: A (Score: 79)"
+              },
+              {
+                "name": "Risk Level Tier Alignment",
+                "status": "PASSED",
+                "detail": "Report Risk: Medium | Blueprint Expected: Medium"
+              },
+              {
+                "name": "Rating Matrix Consistency",
+                "status": "VERIFIED",
+                "detail": "Rating tier and grade scale within institutional bounds"
+              }
+            ]
+          },
+          {
+            "gateNumber": 7,
+            "gateName": "Formatting Integrity",
+            "description": "Validates required markdown section headings, pros/cons balance, executive verdict, and institutional formatting.",
+            "scorePct": 90,
+            "passed": true,
+            "notes": "Report formatting, section structure, and pros/cons balance verified clean (Score: 90%).",
+            "checks": [
+              {
+                "name": "Blueprint Markdown Structure",
+                "status": "FLAGGED",
+                "detail": "Core Thesis, Market, Tokenomics, and Conclusion sections checked"
+              },
+              {
+                "name": "Pros & Cons Symmetry",
+                "status": "PASSED",
+                "detail": "Pros: 3/3 | Cons: 3/3"
+              },
+              {
+                "name": "Executive Verdict Completeness",
+                "status": "VERIFIED",
+                "detail": "Verdict Length: 83 characters"
+              }
+            ]
+          }
+        ],
+        "narrative": "Phase 2 Automated Re-Control detected a Structural F1/F2 Calibration Mismatch (Gate 3 Tier 3, Drift: 1.0 pts). Structural F1/F2 calibration mismatch — manual review required, auto-regeneration cannot resolve.",
+        "avfSession": {
+          "sessionId": "AVF-SESSION-MTCZ8YV5",
+          "protocolName": "Hyperliquid",
+          "initialF1Score": 93,
+          "finalF1Score": 79,
+          "initialF2Score": 78,
+          "finalF2Score": 78,
+          "initialCompositeDelta": 15,
+          "finalCompositeDelta": 1,
+          "totalRounds": 5,
+          "equilibriumAchieved": false,
+          "requiresManualAuditEscalation": true,
+          "isStatisticalOutlier": true,
+          "outlierAnalysis": "[Statistical Outlier Alert] Project initial F1-F2 drift (15.0 pts) is +7.93 σ above Layer 1 Blockchain category mean (3.1 ± 1.5 pts). Flagged for institutional risk scrutiny.",
+          "categoryStats": {
+            "meanDelta": 3.1,
+            "stdDevDelta": 1.5,
+            "sampleCount": 26
+          },
+          "rounds": [
+            {
+              "roundNumber": 1,
+              "f1CompositeScore": 93,
+              "f2CompositeScore": 78,
+              "compositeDelta": 15,
+              "maxDimensionDelta": 20,
+              "severityTier": 3,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R1-SEC",
+                  "dimensionKey": "security",
+                  "targetArea": "Security & Smart Contract Architecture",
+                  "f1Value": "9.0/10 (90 pts)",
+                  "f2Value": "7.9/10 (79 pts) [Conf: 53%]",
+                  "confidence": 0.53,
+                  "discrepancyDelta": 11,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 53%) detected security score drift of 11 pts. F1 must calibrate security score toward 8.4/10 and verify reentrancy threat vector bounds.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R1-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "9.0/10 (90 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 16,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 16 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R1-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "10.0/10 (100 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 20,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 20 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R1] Damping=90%. Sec: 9.0→8.5 (Conf 53%), Tok: 9.0→8.3 (Conf 46%), Util: 10.0→9.2 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 2,
+              "f1CompositeScore": 86,
+              "f2CompositeScore": 78,
+              "compositeDelta": 8,
+              "maxDimensionDelta": 12,
+              "severityTier": 3,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R2-SEC",
+                  "dimensionKey": "security",
+                  "targetArea": "Security & Smart Contract Architecture",
+                  "f1Value": "8.5/10 (85 pts)",
+                  "f2Value": "7.9/10 (79 pts) [Conf: 53%]",
+                  "confidence": 0.53,
+                  "discrepancyDelta": 6,
+                  "severity": "WARNING",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 53%) detected security score drift of 6 pts. F1 must calibrate security score toward 8.2/10 and verify reentrancy threat vector bounds.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R2-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "8.3/10 (83 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 9,
+                  "severity": "CRITICAL",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 9 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R2-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "9.2/10 (92 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 12,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 12 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R2] Damping=85%. Sec: 8.5→8.2 (Conf 53%), Tok: 8.3→7.9 (Conf 46%), Util: 9.2→8.7 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 3,
+              "f1CompositeScore": 82,
+              "f2CompositeScore": 78,
+              "compositeDelta": 4,
+              "maxDimensionDelta": 7,
+              "severityTier": 2,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R3-TOK",
+                  "dimensionKey": "tokenomics",
+                  "targetArea": "Tokenomics & Value Accrual",
+                  "f1Value": "7.9/10 (79 pts)",
+                  "f2Value": "7.4/10 (74 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 5,
+                  "severity": "WARNING",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) flagged token supply liquidity variance of 5 pts. F1 must re-verify circulating supply unlocks and adjust tokenomics score.",
+                  "status": "OPEN"
+                },
+                {
+                  "id": "DIR-R3-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "8.7/10 (87 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 7,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 7 pts based on TVL protocol adoption depth.",
+                  "status": "OPEN"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R3] Damping=80%. Sec: 8.2→8.1 (Conf 53%), Tok: 7.9→7.7 (Conf 46%), Util: 8.7→8.4 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 4,
+              "f1CompositeScore": 80,
+              "f2CompositeScore": 78,
+              "compositeDelta": 2,
+              "maxDimensionDelta": 4,
+              "severityTier": 1,
+              "status": "DISCREPANCY_FLAGGED",
+              "directives": [
+                {
+                  "id": "DIR-R4-UTIL",
+                  "dimensionKey": "utility",
+                  "targetArea": "Product Utility & Market Adoption",
+                  "f1Value": "8.4/10 (84 pts)",
+                  "f2Value": "8.0/10 (80 pts) [Conf: 46%]",
+                  "confidence": 0.46,
+                  "discrepancyDelta": 4,
+                  "severity": "MINOR",
+                  "mandate": "Reviewer F2 (Mixture-Critic Conf: 46%) suggests utility score calibration of 4 pts based on TVL protocol adoption depth.",
+                  "status": "RESOLVED"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[F1 Damped Adaptation R4] Damping=75%. Sec: 8.1→8.0 (Conf 53%), Tok: 7.7→7.6 (Conf 46%), Util: 8.4→8.3 (Conf 46%)."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            },
+            {
+              "roundNumber": 5,
+              "f1CompositeScore": 79,
+              "f2CompositeScore": 78,
+              "compositeDelta": 1,
+              "maxDimensionDelta": 3,
+              "severityTier": 1,
+              "status": "ADAPTED",
+              "directives": [
+                {
+                  "id": "DIR-R5-ALIGN",
+                  "dimensionKey": "composite",
+                  "targetArea": "Overall Composite Evaluation",
+                  "f1Value": "79/100",
+                  "f2Value": "78/100",
+                  "discrepancyDelta": 1,
+                  "severity": "MINOR",
+                  "mandate": "F1 Candidate Engine and F2 Reviewer operate within Tier 1 alignment (<3.0 pts drift). Zero further correction required.",
+                  "status": "RESOLVED"
+                }
+              ],
+              "f1RefinementsApplied": [
+                "[AVF Escalation Alert] Max rounds (5) reached without achieving full convergence (Max Dim Δ: 3.0 pts). Flagged for mandatory institutional manual audit escalation."
+              ],
+              "timestamp": "2026-08-28T13:18:16.962Z"
+            }
+          ],
+          "summaryDirective": "MANDATORY MANUAL AUDIT ESCALATION REQUIRED: AVF loop completed 5 rounds without full convergence (Final Drift: 1.0 pts). F1-F2 variance exceeds automated threshold. [Statistical Outlier Alert] Project initial F1-F2 drift (15.0 pts) is +7.93 σ above Layer 1 Blockchain category mean (3.1 ± 1.5 pts). Flagged for institutional risk scrutiny."
+        }
+      },
+      "f3Verification": {
+        "framework": "Algorithmic Verification Framework (AVF-v3.2 / Evaluation Blueprint v2.4)",
+        "ruleVersion": "AVF-F3-v3.2 (Blueprint v2.4)",
+        "timestamp": "2026-08-28T13:18:16.973Z",
+        "verifiedAt": "2026-08-28T13:18:16.973Z",
+        "overallStatus": "DISCREPANCY_FOUND",
+        "verificationPassed": false,
+        "isVerified": false,
+        "overallConfidence": 0.33,
+        "confidence": {
+          "overall": 0.33,
+          "overallPct": 33,
+          "breakdown": {
+            "dataConfidence": 0,
+            "classificationConfidence": 0.67,
+            "scenarioConfidence": 0,
+            "conclusionConfidence": 1,
+            "overallConfidence": 0.33
+          }
+        },
+        "modules": {
+          "avf01Classification": {
+            "moduleId": "AVF-01",
+            "moduleName": "Classification Verification",
+            "status": "PARTIALLY_VERIFIED",
+            "isVerified": false,
+            "assignedCategory": "Layer 1 / Perpetual DEX",
+            "keywordMatchedCategory": "DeFi Protocol (AMM / Lending)",
+            "coingeckoCategories": [
+              "Decentralized Finance (DeFi)",
+              "Perpetuals",
+              "Layer 1 (L1)"
+            ],
+            "coingeckoMatches": [
+              "Layer 1 (L1)"
+            ],
+            "taxonomySource": "external",
+            "signals": {
+              "assigned": true,
+              "keywordMatchAgrees": false,
+              "coingeckoAgrees": true
+            },
+            "classificationConfidence": 0.67,
+            "missingFields": [],
+            "details": "Classification PARTIALLY VERIFIED (67% confidence): Divergence between assigned 'Layer 1 / Perpetual DEX', keyword match 'DeFi Protocol (AMM / Lending)', or CoinGecko categories [Decentralized Finance (DeFi), Perpetuals, Layer 1 (L1)]."
+          },
+          "avf02Evidence": {
+            "moduleId": "AVF-02",
+            "moduleName": "Data & Evidence Verification",
+            "status": "CRITICAL_GAP_DETECTED",
+            "isVerified": false,
+            "totalDimensions": 5,
+            "verifiedDimensions": 0,
+            "evidenceCoveragePct": 0,
+            "dimensions": [
+              {
+                "dimension": "Market & Liquidity Data",
+                "sourceType": "EXTERNAL_API_DUAL_ORACLE",
+                "sourceName": "CoinGecko + CoinMarketCap Dual API",
+                "status": "CRITICAL_GAP",
+                "isExternallyBacked": false,
+                "citationOrReference": null,
+                "retrievedAt": "2026-08-27T19:18:16.958Z",
+                "rawObservedValue": null
+              },
+              {
+                "dimension": "Security & Bytecode Analysis",
+                "sourceType": "ON_CHAIN_BYTECODE_SCAN",
+                "sourceName": "GoPlus Security + RugCheck Bytecode Oracle",
+                "status": "CRITICAL_GAP",
+                "isExternallyBacked": false,
+                "citationOrReference": null,
+                "retrievedAt": null,
+                "rawObservedValue": null
+              },
+              {
+                "dimension": "Utility & Architecture Narrative",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              },
+              {
+                "dimension": "Tokenomics & Vesting Narrative",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              },
+              {
+                "dimension": "Team & Governance Assessment",
+                "sourceType": "MODEL_GENERATED_NARRATIVE",
+                "sourceName": "Generative AI Candidate / Reviewer Drafting",
+                "status": "UNVERIFIED",
+                "isExternallyBacked": false,
+                "citationOrReference": null
+              }
+            ],
+            "criticalDataGaps": [
+              "Market Live Pricing Missing: CoinGecko/CMC dual liquidity feed unavailable on file.",
+              "Contract Address Missing: On-chain bytecode, honeypot, and mint authority scan unanchored."
+            ],
+            "missingFields": [
+              "livePrice",
+              "contractAddress"
+            ],
+            "details": "Data & Evidence CRITICAL GAP (0% coverage, 0/5 backed): Market Live Pricing Missing: CoinGecko/CMC dual liquidity feed unavailable on file. Contract Address Missing: On-chain bytecode, honeypot, and mint authority scan unanchored."
+          },
+          "avf03Methodology": {
+            "moduleId": "AVF-03",
+            "moduleName": "Methodology Verification",
+            "status": "DISCREPANCY_FOUND",
+            "isVerified": false,
+            "blueprintVersion": "Evaluation Blueprint v2.4",
+            "weightTableApplied": {
+              "utility": 0.25,
+              "tokenomics": 0.2,
+              "security": 0.3,
+              "team": 0.1,
+              "community": 0.15
+            },
+            "categorySpecificVariantsExist": true,
+            "scoreVerificationStatus": "DISCREPANCY_FOUND",
+            "scoreDiscrepancy": 1,
+            "missingFields": [],
+            "details": "Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts)."
+          },
+          "avf04Scenarios": {
+            "moduleId": "AVF-04",
+            "moduleName": "Scenario & Simulation Verification",
+            "status": "UNEXECUTED",
+            "isVerified": false,
+            "totalScenarios": 4,
+            "executedScenarios": 0,
+            "scenarioExecutionRate": 0,
+            "scenarios": [
+              {
+                "name": "AVF Cross-Validation Convergence Loop (F1 vs F2 Multi-Round)",
+                "category": "CROSS_VALIDATION_CONVERGENCE",
+                "state": "EXECUTABLE",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": true,
+                "backingProcess": "executeAVFLoop (reControlEngine.ts)",
+                "executionMetrics": null,
+                "notes": "Loop execution telemetry was not captured in this run (Status: EXECUTABLE)."
+              },
+              {
+                "name": "TVL Liquidity Drain & Slippage Stress Simulation",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Stress Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); on-chain TVL data not captured."
+              },
+              {
+                "name": "Price Shock & Cascading Liquidation Stress Matrix",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Simulation Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); live price data absent."
+              },
+              {
+                "name": "Oracle Latency & Manipulation Simulation",
+                "category": "STRESS_TEST_SIMULATION",
+                "state": "DEFINED",
+                "status": "UNEXECUTED_NARRATIVE_ONLY",
+                "isExecuted": false,
+                "isVerified": false,
+                "inputsCaptured": false,
+                "backingProcess": "None (Simulation Engine Unattached)",
+                "executionMetrics": null,
+                "notes": "Descriptive narrative only (DEFINED); contract bytecode address absent."
+              }
+            ],
+            "missingFields": [
+              "avfLoopResult"
+            ],
+            "details": "Scenario Verification: 0/4 executed. All scenario items are in DEFINED or EXECUTABLE states without execution."
+          },
+          "avf05Score": {
+            "moduleId": "AVF-05",
+            "moduleName": "Score & Weight Verification",
+            "status": "DISCREPANCY_FOUND",
+            "isVerified": false,
+            "reportedScore": 79,
+            "recomputedScore": 80,
+            "discrepancy": 1,
+            "tolerance": 0.5,
+            "weightsApplied": {
+              "utility": 0.25,
+              "tokenomics": 0.2,
+              "security": 0.3,
+              "team": 0.1,
+              "community": 0.15
+            },
+            "dimensionContributions": {
+              "utility": 20.8,
+              "tokenomics": 15.2,
+              "security": 24,
+              "team": 7.8,
+              "community": 11.7
+            },
+            "missingFields": [],
+            "details": "Score discrepancy detected: Reported score is 79, but canonical blueprint score is 80 (Δ = 1 pts)."
+          },
+          "avf06RiskConclusion": {
+            "moduleId": "AVF-06",
+            "moduleName": "Risk–Conclusion Verification",
+            "status": "CONSISTENT",
+            "isConsistent": true,
+            "declaredRisk": "Medium",
+            "verifiedRiskLevel": "Medium",
+            "signalsChecked": [
+              {
+                "signalName": "Security Sub-Score",
+                "source": "Evaluation Blueprint v2.4 (Dimension 3)",
+                "observedValue": "8/10",
+                "impliedRisk": "Low",
+                "isContradiction": false,
+                "notes": "Security metric evaluated at 8/10"
+              },
+              {
+                "signalName": "Overall Composite Score",
+                "source": "Aggregated F1/F2 Evaluation Score",
+                "observedValue": "79/100",
+                "impliedRisk": "Low",
+                "isContradiction": false,
+                "notes": "Overall evaluation score 79/100"
+              },
+              {
+                "signalName": "On-Chain Security Scan (GoPlus / RugCheck)",
+                "source": "Contract Bytecode Registry",
+                "observedValue": "NONE_ON_FILE",
+                "impliedRisk": "Medium",
+                "isContradiction": false,
+                "notes": "No contract address or on-chain scan supplied"
+              }
+            ],
+            "materialFindings": [],
+            "contradictions": [],
+            "missingFields": [],
+            "details": "Risk-Conclusion CONSISTENT: Declared 'Medium Risk' aligns with verified security signals (implied level: Medium Risk, 3 signals verified).",
+            "ruleVersion": "AVF-F3-v3.2 (Blueprint v2.4)"
+          },
+          "avf07Confidence": {
+            "moduleId": "AVF-07",
+            "moduleName": "Confidence & Uncertainty Verification",
+            "status": "COMPUTED",
+            "isVerified": true,
+            "confidence": {
+              "dataConfidence": 0,
+              "classificationConfidence": 0.67,
+              "scenarioConfidence": 0,
+              "conclusionConfidence": 1,
+              "overallConfidence": 0.33
+            },
+            "confidenceLevel": "LOW",
+            "confidencePct": 33,
+            "weights": {
+              "classification": 0.2,
+              "data": 0.3,
+              "scenario": 0.3,
+              "conclusion": 0.2
+            },
+            "missingModules": [],
+            "details": "Overall AVF Confidence is 33% [LOW] (computed deterministically: 0.20×Class 67% + 0.30×Data 0% + 0.30×Scenario 0% + 0.20×Risk 100%)."
+          },
+          "avf08Traceability": {
+            "moduleId": "AVF-08",
+            "moduleName": "Traceability & Integrity Verification",
+            "status": "VERIFIED",
+            "isVerified": true,
+            "computedHash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+            "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z",
+            "signature": {
+              "hash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+              "signature": "c8df56265eecf140005f16255c8d7111faa1186527249248c5c9d8613108ff18102364e2d06464010da0c7d3e720255929f2f238b285d6b2df2207c2e63e7c00",
+              "algorithm": "Ed25519",
+              "signedAt": "2026-08-27T19:18:16.958Z",
+              "publicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+              "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z"
+            },
+            "traceabilityChain": {
+              "conclusion": {
+                "verdict": "Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.",
+                "riskLevel": "Medium",
+                "grade": "A"
+              },
+              "scoreChain": {
+                "overallScore": 79,
+                "scores": {
+                  "utility": 8.3,
+                  "tokenomics": 7.6,
+                  "security": 8,
+                  "team": 7.8,
+                  "community": 7.8
+                }
+              },
+              "algorithm": {
+                "frameworkVersion": "AVF-v3.2",
+                "blueprintVersion": "Evaluation Blueprint v2.4",
+                "hashAlgorithm": "SHA-256",
+                "signatureAlgorithm": "Ed25519"
+              },
+              "cryptographicIntegrity": {
+                "computedHash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+                "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z",
+                "signatureOnRecord": "c8df56265eecf140005f16255c8d7111faa1186527249248c5c9d8613108ff18102364e2d06464010da0c7d3e720255929f2f238b285d6b2df2207c2e63e7c00",
+                "publicKeyOnRecord": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+                "activeSystemPublicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+                "signedAt": "2026-08-27T19:18:16.958Z",
+                "hashMatches": true,
+                "signatureValid": true
+              },
+              "datasetProvenance": {
+                "reportCreatedAt": "2026-08-27T19:18:16.958Z"
+              }
+            },
+            "missingFields": [],
+            "details": "Cryptographic traceability verified: SHA-256 hash (39f9a0876e05b6f3...) and Ed25519 signature matched against canonical report payload."
+          }
+        },
+        "discrepancies": [
+          "Score Aggregation Discrepancy (AVF-05): Reported 79, recomputed 80 (Δ = 1 pts).",
+          "Methodology Discrepancy (AVF-03): Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts)."
+        ],
+        "missingInputs": [
+          "livePrice",
+          "contractAddress",
+          "avfLoopResult"
+        ],
+        "summary": "F3 Verification DISCREPANCY_FOUND: Detected mathematical score or methodology divergence (Score Aggregation Discrepancy (AVF-05): Reported 79, recomputed 80 (Δ = 1 pts). | Methodology Discrepancy (AVF-03): Methodology DISCREPANCY FOUND: Underlying score computation diverged from declared Evaluation Blueprint v2.4 weighting rules (Δ = 1 pts).)",
+        "adminOverride": {
+          "overriddenBy": "Principal Chief Auditor",
+          "overriddenAt": "2026-08-27T19:18:16.958Z",
+          "reason": "Pre-verified institutional reference seed audit delivery.",
+          "previousF3Status": "VERIFIED",
+          "discrepanciesOverridden": [],
+          "acknowledged": true
+        }
+      },
+      "auditSignature": {
+        "hash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+        "signature": "c8df56265eecf140005f16255c8d7111faa1186527249248c5c9d8613108ff18102364e2d06464010da0c7d3e720255929f2f238b285d6b2df2207c2e63e7c00",
+        "algorithm": "Ed25519",
+        "signedAt": "2026-08-27T19:18:16.958Z",
+        "publicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+        "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z"
+      }
+    },
+    "auditSignature": {
+      "hash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+      "signature": "c8df56265eecf140005f16255c8d7111faa1186527249248c5c9d8613108ff18102364e2d06464010da0c7d3e720255929f2f238b285d6b2df2207c2e63e7c00",
+      "algorithm": "Ed25519",
+      "signedAt": "2026-08-27T19:18:16.958Z",
+      "publicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+      "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z"
+    },
+    "humanNotes": {
+      "reviewedBy": "Crypto Review Lab",
+      "reviewedAt": "2026-08-27T19:18:16.958Z",
+      "auditorComments": "Conducted bytecode inspection of Tendermint bridge & vault contracts. No reentrancy or flash-loan vector detected. Findings compiled into remediation dossier.",
+      "verificationStamp": "VERIFIED_AUDIT",
+      "auditSignature": {
+        "hash": "39f9a0876e05b6f36a2fddc1c1efe6895414b2fc026129f4655823fbdfcfaaae",
+        "signature": "c8df56265eecf140005f16255c8d7111faa1186527249248c5c9d8613108ff18102364e2d06464010da0c7d3e720255929f2f238b285d6b2df2207c2e63e7c00",
+        "algorithm": "Ed25519",
+        "signedAt": "2026-08-27T19:18:16.958Z",
+        "publicKey": "MCowBQYDK2VwAyEABXA67DYG8qTNlBDXO+jvNfjPJddHXJWaJqDgoKQEA0A=",
+        "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z"
+      }
+    },
+    "emailLogs": [
+      {
+        "id": "msg_seed_1",
+        "type": "CONFIRMATION",
+        "from": "reports@cryptoreviewlab.com",
+        "to": "capital.ventures@institutional.io",
+        "subject": "[Crypto Review Lab] Payment Received - Security & Risk Assessment #CRL-884291",
+        "sentAt": "2026-08-26T13:18:16.958Z",
+        "bodyPreview": "Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours",
+        "fullHtmlContent": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(245, 158, 11, 0.3);\">\n      <div style=\"border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;\">\n        <div>\n          <h2 style=\"color: #f59e0b; margin: 0; font-size: 20px; letter-spacing: -0.5px;\">CRYPTO REVIEW LAB</h2>\n          <p style=\"color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;\">SECURITY & RISK ADVISORY DESK • SERVICE NOTICE</p>\n        </div>\n        <span style=\"background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;\">PAYMENT VERIFIED</span>\n      </div>\n\n      <div style=\"background-color: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 4px;\">\n        <h3 style=\"margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;\">Advisory Order Confirmation #CRL-884291</h3>\n        <p style=\"margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;\">\n          Payment received. Your Security & Risk Assessment is being processed. Actionable remediation report delivered within 24 hours.\n        </p>\n      </div>\n\n      <table style=\"width: 100%; font-size: 13px; color: #cbd5e1; border-collapse: collapse; margin-bottom: 24px;\">\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8; width: 40%;\">Target Project:</td>\n          <td style=\"padding: 8px 0; font-weight: bold; color: #ffffff;\">Hyperliquid (HYPE)</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Primary Contact:</td>\n          <td style=\"padding: 8px 0; color: #38bdf8;\">capital.ventures@institutional.io</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Service Category:</td>\n          <td style=\"padding: 8px 0; color: #f59e0b; font-weight: 600;\">Confidential Security Assessment (Advisory)</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Dispatch Service Email:</td>\n          <td style=\"padding: 8px 0; color: #34d399; font-mono;\">reports@cryptoreviewlab.com</td>\n        </tr>\n        <tr>\n          <td style=\"padding: 8px 0; color: #94a3b8;\">Guaranteed Delivery ETA:</td>\n          <td style=\"padding: 8px 0; color: #e2e8f0; font-weight: bold;\">Within 24 Hours</td>\n        </tr>\n      </table>\n\n      <div style=\"background-color: #0f172a; border: 1px solid #1e293b; padding: 16px; border-radius: 8px; margin-bottom: 24px;\">\n        <h4 style=\"margin: 0 0 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase;\">Advisory Delivery Pipeline</h4>\n        <p style=\"margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.5;\">\n          1. <strong>Automated Diagnostic Draft:</strong> Generated using Bytecode Invariant Engine & Liquidity Scanners.<br/>\n          2. <strong>Security Engineer Sign-Off:</strong> Deep symbolic verification of vulnerabilities & TVL risk.<br/>\n          3. <strong>Actionable Remediation Dossier:</strong> You will receive a second email with your private advisory PDF report & developer fix recommendations.\n        </p>\n      </div>\n\n      <div style=\"border-top: 1px solid #1e293b; pt: 16px; text-align: center; font-size: 11px; color: #64748b;\">\n        <p style=\"margin: 0 0 4px 0;\">Sent by Crypto Review Lab Automated Delivery System</p>\n        <p style=\"margin: 0; font-mono; color: #475569;\">Ref: CRL-884291 • Dispatcher: reports@cryptoreviewlab.com</p>\n      </div>\n    </div>\n  "
+      },
+      {
+        "id": "msg_seed_2",
+        "type": "DELIVERY",
+        "from": "reports@cryptoreviewlab.com",
+        "to": "capital.ventures@institutional.io",
+        "subject": "[Crypto Review Lab] Security & Risk Assessment Ready for Download - #CRL-884291",
+        "sentAt": "2026-08-27T19:18:16.958Z",
+        "bodyPreview": "Your Security & Risk Assessment for Hyperliquid (HYPE) has been verified and delivered. Download your PDF now.",
+        "fullHtmlContent": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(16, 185, 129, 0.4);\">\n      <div style=\"border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;\">\n        <div>\n          <h2 style=\"color: #34d399; margin: 0; font-size: 20px; letter-spacing: -0.5px;\">CRYPTO REVIEW LAB</h2>\n          <p style=\"color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;\">SECURITY & RISK ADVISORY DESK • DOSSIER DELIVERED</p>\n        </div>\n        <span style=\"background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;\">SECURITY CHECK COMPLETE</span>\n      </div>\n\n      <div style=\"background-color: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 16px; margin-bottom: 24px; border-radius: 4px;\">\n        <h3 style=\"margin: 0 0 6px 0; color: #34d399; font-size: 16px;\">Your Security & Risk Assessment is Ready!</h3>\n        <p style=\"margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;\">\n          Our security assessment has been finalized for <strong>Hyperliquid (HYPE)</strong>. Actionable findings, vulnerability scan results, and tokenomics risk metrics are available in your private dossier.\n        </p>\n      </div>\n\n      <div style=\"background-color: #0f172a; border: 1px solid #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;\">\n        <div>\n          <div style=\"font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;\">Assessment Status</div>\n          <div style=\"font-size: 18px; font-weight: 800; color: #34d399; margin-top: 2px;\">VERIFICATION COMPLETED</div>\n          <div style=\"font-size: 11px; color: #cbd5e1; margin-top: 4px;\">Verification State: <strong style=\"color: #38bdf8;\">AVF/F3 Framework Active</strong> • Threat Vectors Analyzed</div>\n        </div>\n        <div style=\"text-align: right; border-left: 1px solid #1e293b; padding-left: 16px;\">\n          <div style=\"font-size: 10px; color: #64748b; font-mono;\">SECURITY VERIFICATION</div>\n          <div style=\"font-size: 11px; color: #34d399; font-weight: bold; margin-top: 2px;\">Crypto Review Lab</div>\n          <div style=\"font-size: 10px; color: #94a3b8; margin-top: 2px;\">Deliverable: Actionable Remediation Dossier</div>\n        </div>\n      </div>\n\n      <div style=\"background-color: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 24px; font-size: 11px; color: #94a3b8; line-height: 1.4;\">\n        <strong style=\"color: #cbd5e1;\">Assessment Notice:</strong> This deliverable is an independent security risk assessment providing actionable vulnerability discovery and remediation recommendations. Crypto Review Lab does not sell ratings or endorse tokens. This assessment does not guarantee security or replace a formal smart-contract audit.\n      </div>\n\n      \n        <div style=\"background-color: rgba(30, 41, 59, 0.7); border: 1px border-slate-700; padding: 14px; border-radius: 8px; margin-bottom: 24px;\">\n          <div style=\"font-size: 11px; color: #fbbf24; font-weight: bold; margin-bottom: 4px;\">SECURITY ENGINEER REMARKS:</div>\n          <p style=\"margin: 0; font-size: 12px; color: #cbd5e1; italic;\">\"Conducted bytecode inspection of Tendermint bridge & vault contracts. No reentrancy or flash-loan vector detected. Findings compiled into remediation dossier.\"</p>\n        </div>\n      \n\n      <div style=\"text-align: center; margin-bottom: 24px;\">\n        <a href=\"https://cryptoreviewlab.com/?token=crl_token_hype_99824&orderId=CRL-884291\" target=\"_blank\" style=\"display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-weight: bold; padding: 14px 28px; border-radius: 10px; font-size: 14px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);\">\n          📥 Access Private Portal & Download Remediation PDF\n        </a>\n        <p style=\"font-size: 11px; color: #64748b; margin-top: 8px;\">Private Download Token: <span style=\"font-mono; color: #94a3b8;\">crl_token_hype_99824</span></p>\n      </div>\n\n      <div style=\"border-top: 1px solid #1e293b; pt: 16px; text-align: center; font-size: 11px; color: #64748b;\">\n        <p style=\"margin: 0 0 4px 0;\">Email confirmation sent to capital.ventures@institutional.io</p>\n        <p style=\"margin: 0; font-mono; color: #475569;\">Crypto Review Lab Security & Risk Advisory Desk</p>\n      </div>\n    </div>\n  "
+      }
+    ],
+    "privateDownloadToken": "crl_token_hype_99824",
+    "publishApproved": false
+  }
+]

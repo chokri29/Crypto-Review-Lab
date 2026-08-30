@@ -1,0 +1,82 @@
+{
+  "Restaking / Shared Security / AVS": {
+    "category": "Restaking / Shared Security / AVS",
+    "sampleCount": 14,
+    "meanDelta": 3.5,
+    "sumDeltas": 49,
+    "sumSquareDeltas": 215.2,
+    "stdDevDelta": 1.7
+  },
+  "DeFi Protocol (AMM / Lending)": {
+    "category": "DeFi Protocol (AMM / Lending)",
+    "sampleCount": 22,
+    "meanDelta": 4.2,
+    "sumDeltas": 92.4,
+    "sumSquareDeltas": 462,
+    "stdDevDelta": 1.9
+  },
+  "Privacy / Cryptographic (FHE / ZK / MPC)": {
+    "category": "Privacy / Cryptographic (FHE / ZK / MPC)",
+    "sampleCount": 16,
+    "meanDelta": 4.79,
+    "sumDeltas": 76.6,
+    "sumSquareDeltas": 607,
+    "stdDevDelta": 3.88
+  },
+  "Layer 1 Blockchain": {
+    "category": "Layer 1 Blockchain",
+    "sampleCount": 27,
+    "meanDelta": 3.54,
+    "sumDeltas": 95.6,
+    "sumSquareDeltas": 535.2,
+    "stdDevDelta": 2.7
+  },
+  "Layer 2 / Scaling": {
+    "category": "Layer 2 / Scaling",
+    "sampleCount": 18,
+    "meanDelta": 3.4,
+    "sumDeltas": 61.2,
+    "sumSquareDeltas": 265.4,
+    "stdDevDelta": 1.6
+  },
+  "Infrastructure (Oracle / Bridge)": {
+    "category": "Infrastructure (Oracle / Bridge)",
+    "sampleCount": 16,
+    "meanDelta": 3.6,
+    "sumDeltas": 57.6,
+    "sumSquareDeltas": 248.8,
+    "stdDevDelta": 1.6
+  },
+  "RWA (Tokenization / TradFi Bridge)": {
+    "category": "RWA (Tokenization / TradFi Bridge)",
+    "sampleCount": 15,
+    "meanDelta": 3.9,
+    "sumDeltas": 58.5,
+    "sumSquareDeltas": 272.5,
+    "stdDevDelta": 1.8
+  },
+  "DePIN (Compute / Storage / Wireless)": {
+    "category": "DePIN (Compute / Storage / Wireless)",
+    "sampleCount": 14,
+    "meanDelta": 4.1,
+    "sumDeltas": 57.4,
+    "sumSquareDeltas": 280,
+    "stdDevDelta": 1.9
+  },
+  "Memecoin / Speculative": {
+    "category": "Memecoin / Speculative",
+    "sampleCount": 20,
+    "meanDelta": 6.8,
+    "sumDeltas": 136,
+    "sumSquareDeltas": 1120,
+    "stdDevDelta": 3.1
+  },
+  "Specialized / Experimental": {
+    "category": "Specialized / Experimental",
+    "sampleCount": 10,
+    "meanDelta": 4.5,
+    "sumDeltas": 45,
+    "sumSquareDeltas": 250,
+    "stdDevDelta": 2.1
+  }
+}

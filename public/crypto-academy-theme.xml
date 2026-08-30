@@ -6,6 +6,12 @@
   <meta content='width=device-width, initial-scale=1, shrink-to-fit=no' name='viewport'/>
   <title><data:blog.pageTitle/></title>
   
+  <!-- Override Blogger Default Favicon with High-Res App Icon for Google Search -->
+  <link rel='icon' type='image/png' sizes='192x192' href='https://www.cryptoreviewlab.com/icon-192.png'/>
+  <link rel='icon' type='image/png' sizes='512x512' href='https://www.cryptoreviewlab.com/icon-512.png'/>
+  <link rel='shortcut icon' type='image/png' href='https://www.cryptoreviewlab.com/icon-192.png'/>
+  <link rel='apple-touch-icon' sizes='180x180' href='https://www.cryptoreviewlab.com/apple-touch-icon.png'/>
+  
   <b:skin><![CDATA[
     /* =========================================================================
        CRYPTO ACADEMY ONLINE - STANDALONE HIGH-FIDELITY CYBERNETIC THEME

@@ -7,13 +7,13 @@ import React, { useEffect } from 'react';
 import { generateDualFaqJsonLd } from '../data/faqData';
 
 interface FaqJsonLdProps {
-  activeTab?: 'lab' | 'blog' | 'chat' | 'academy';
+  activeTab?: 'lab' | 'blog' | 'chat' | 'xstocks' | 'academy' | 'auditor' | 'orders' | 'f3';
 }
 
 /**
  * FaqJsonLd Component & Dynamic Hook
- * Inject and synchronize dual JSON-LD FAQ schema entities for Google Rich Snippets
- * (Crypto Academy FAQs and Crypto Review Lab FAQs)
+ * Inject and synchronize multi-topic JSON-LD FAQ schema entities for Google Rich Snippets
+ * (Crypto Academy FAQs, Review Lab Audit FAQs, Prop Trading Evaluation Criteria, and AVF Engine Security Protocols)
  */
 export default function FaqJsonLd({ activeTab }: FaqJsonLdProps) {
   useEffect(() => {

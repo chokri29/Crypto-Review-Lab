@@ -1,36 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <!-- Core Sections -->
   <url>
     <loc>https://www.cryptoreviewlab.com/</loc>
-    <lastmod>2026-07-22</lastmod>
+    <lastmod>2026-07-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.cryptoreviewlab.com/?tab=lab</loc>
-    <lastmod>2026-07-22</lastmod>
+    <lastmod>2026-07-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.cryptoreviewlab.com/?tab=blog</loc>
-    <lastmod>2026-07-22</lastmod>
+    <lastmod>2026-07-27</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.cryptoreviewlab.com/?tab=academy</loc>
-    <lastmod>2026-07-22</lastmod>
+    <lastmod>2026-07-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.cryptoreviewlab.com/?tab=chat</loc>
-    <lastmod>2026-07-22</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+
+  <!-- Crypto Projects & Reviews -->
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=hyperliquid-decentralized-perp-exchange</loc>
+    <lastmod>2026-07-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/50882/large/hyperliquid.png</image:loc>
+      <image:title>Hyperliquid (HYPE) AA+ Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=arbitrum-scaling-ethereum-layer2</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/16547/large/arbitrum_logo.png</image:loc>
+      <image:title>Arbitrum (ARB) AA Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=uniswap-defi-amm-gold-standard</loc>
+    <lastmod>2026-07-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png</image:loc>
+      <image:title>Uniswap (UNI) AAA Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=render-network-depin-ai-compute</loc>
+    <lastmod>2026-07-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/11636/large/rndr.png</image:loc>
+      <image:title>Render Network (RENDER) A Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=solana-high-performance-monolith</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/4128/large/solana.png</image:loc>
+      <image:title>Solana (SOL) AA Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=chainlink-decentralized-oracle-network</loc>
+    <lastmod>2026-06-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png</image:loc>
+      <image:title>Chainlink (LINK) AAA Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=sui-network-object-centric-l1</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/26375/large/sui_asset.png</image:loc>
+      <image:title>Sui Network (SUI) AA+ Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?tab=blog&amp;review=kaspa-proof-of-work-blockdag</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://assets.coingecko.com/coins/images/25751/large/kaspa-icon.png</image:loc>
+      <image:title>Kaspa (KAS) AA Security Review &amp; Rating</image:title>
+    </image:image>
+  </url>
+
+  <!-- Resources & Legal Disclosures -->
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?modal=resources</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?modal=privacy</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?modal=disclaimer</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?modal=tos</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.cryptoreviewlab.com/?modal=contact</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

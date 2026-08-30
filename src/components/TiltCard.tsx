@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface TiltCardProps {
   children: React.ReactNode;
@@ -16,13 +16,22 @@ export const TiltCard: React.FC<TiltCardProps> = ({
   scale = 1.04,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [transformStyle, setTransformStyle] = useState<string>(
-    'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)'
-  );
+  const [isFinePointer, setIsFinePointer] = useState<boolean>(true);
+  const [transformStyle, setTransformStyle] = useState<string>('none');
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const media = window.matchMedia('(pointer: fine)');
+      setIsFinePointer(media.matches);
+      const listener = (e: MediaQueryListEvent) => setIsFinePointer(e.matches);
+      media.addEventListener('change', listener);
+      return () => media.removeEventListener('change', listener);
+    }
+  }, []);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
+    if (!isFinePointer || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -38,12 +47,13 @@ export const TiltCard: React.FC<TiltCardProps> = ({
   };
 
   const handleMouseEnter = () => {
+    if (!isFinePointer) return;
     setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    setTransformStyle('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
+    setTransformStyle('none');
   };
 
   return (
@@ -54,17 +64,18 @@ export const TiltCard: React.FC<TiltCardProps> = ({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        transform: transformStyle,
+        transform: isFinePointer ? transformStyle : 'none',
         transition: isHovered
           ? 'transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease-out'
           : 'transform 0.45s ease-out, box-shadow 0.45s ease-out',
-        willChange: 'transform',
+        willChange: isFinePointer ? 'transform' : 'auto',
       }}
-      className={`transform-gpu cursor-pointer transition-all duration-300 rounded-xl overflow-hidden ${
-        isHovered ? 'shadow-[0_15px_40px_rgba(0,229,255,0.22)] border-cyber-cyan/40' : ''
+      className={`cursor-pointer transition-all duration-300 rounded-xl overflow-hidden ${
+        isHovered && isFinePointer ? 'shadow-[0_15px_40px_rgba(0,229,255,0.22)] border-cyber-cyan/40' : ''
       } ${className}`}
     >
       {children}
     </div>
   );
 };
+

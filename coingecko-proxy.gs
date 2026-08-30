@@ -16,8 +16,8 @@
 // Deployed GAS Proxy Endpoint URL
 var DEPLOYED_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec";
 
-// Default CoinGecko Demo API Key provided by user
-var DEFAULT_API_KEY = "CG-LpjEoHkniUiPJGDezkNrz9gq";
+// Default CoinGecko Demo API Key (configure via Script Properties COINGECKO_API_KEY)
+var DEFAULT_API_KEY = "";
 
 /**
  * Helper to retrieve the active CoinGecko API key
@@ -31,7 +31,7 @@ function getApiKey() {
   } catch (e) {
     // Ignore property lookup error
   }
-  return DEFAULT_API_KEY;
+  return "";
 }
 
 /**

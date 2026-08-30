@@ -31,6 +31,7 @@ export default function ThreeCore() {
 (function(){
   const canvas = document.getElementById('stage');
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 
   const scene = new THREE.Scene();
@@ -205,27 +206,27 @@ export default function ThreeCore() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
 
-    hexGroup.rotation.y = t*1.0;
-    hexGroup.rotation.x = Math.sin(t*0.8)*0.08;
+    hexGroup.rotation.y = t*1.6;
+    hexGroup.rotation.x = Math.sin(t*0.8)*0.12;
 
-    coreGroup.rotation.y = -t*1.8;
-    coreGroup.rotation.x = t*0.65;
+    coreGroup.rotation.y = -t*2.8;
+    coreGroup.rotation.x = t*1.1;
 
     nodes.forEach((n, i)=>{
-      const s = 1 + 0.4*Math.sin(t*10.0 + i*0.7);
+      const s = 1 + 0.4*Math.sin(t*12.0 + i*0.7);
       n.scale.setScalar(s);
     });
-    innerGlow.material.opacity = 0.14 + 0.08*Math.sin(t*8.0);
-    innerGlow2.material.opacity = 0.35 + 0.25*Math.sin(t*10.0);
+    innerGlow.material.opacity = 0.16 + 0.1*Math.sin(t*8.0);
+    innerGlow2.material.opacity = 0.4 + 0.3*Math.sin(t*10.0);
 
-    ringGroup.rotation.y = t*1.2;
+    ringGroup.rotation.y = t*1.8;
     blockNodes.forEach((b,i)=>{
-      b.rotation.x += 0.052;
-      b.rotation.y += 0.076;
+      b.rotation.x += 0.08;
+      b.rotation.y += 0.11;
     });
 
     pulses.forEach(p=>{
-      p.t += 0.012;
+      p.t += 0.022;
       if(p.t>1) p.t -= 1;
       const a = p.t*Math.PI*2;
       p.mesh.position.set(Math.cos(a)*ringRadius, Math.sin(a)*ringRadius*0.42, Math.sin(a*2)*0.35);
@@ -247,19 +248,25 @@ export default function ThreeCore() {
   `;
 
   return (
-    <div className="w-full h-full min-h-[175px] md:min-h-[190px] flex items-center justify-center relative overflow-hidden bg-[#080d1a] border border-[#00e5ff]/20 rounded-3xl shadow-[0_0_25px_rgba(0,229,255,0.08)]">
-      {/* AI x Crypto Label exactly matching the style in screenshot */}
-      <div className="absolute bottom-3 left-4 z-20 font-mono text-[9px] sm:text-xs text-[#00e5ff]/90 tracking-[4px] uppercase select-none font-bold drop-shadow-[0_0_6px_rgba(0,229,255,0.4)]">
-        AI x Crypto
+    <div className="w-full h-full min-h-[175px] md:min-h-[190px] flex items-center justify-center relative overflow-hidden bg-transparent rounded-2xl">
+      {/* Top Right AVF Engine HUD Overlay Badge */}
+      <div className="absolute top-3 right-4 z-20 flex items-center gap-1.5 font-mono text-[9px] text-cyan-300 font-bold tracking-wider uppercase select-none bg-slate-950/70 border border-cyan-500/30 px-2.5 py-1 rounded-full backdrop-blur-md shadow-sm">
+        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span>AVF ENGINE • MATRIX</span>
+      </div>
+
+      {/* Bottom Left AI x Crypto Label */}
+      <div className="absolute bottom-3 left-4 z-20 font-mono text-[9px] sm:text-xs text-[#00e5ff]/90 tracking-[3px] uppercase select-none font-bold drop-shadow-[0_0_6px_rgba(0,229,255,0.4)] flex items-center gap-2">
+        <span>AI x CRYPTO</span>
       </div>
       
       {/* Core Background Gradient glows */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,229,255,0.08)_0%,transparent_70%)] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,229,255,0.06)_0%,transparent_70%)] pointer-events-none"></div>
 
       <iframe
         title="AI x Crypto 3D Emblem"
         srcDoc={threeHtml}
-        className="w-full h-full min-h-[175px] md:min-h-[190px] border-0 bg-transparent block"
+        className="w-full h-full min-h-[175px] md:min-h-[190px] border-0 bg-transparent block pointer-events-none"
         scrolling="no"
         loading="lazy"
       />

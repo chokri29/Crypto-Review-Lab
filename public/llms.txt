@@ -1,37 +1,39 @@
 # Crypto Review Lab - AI Knowledge Index & Context Guidelines
 
-> Crypto Review Lab (https://www.cryptoreviewlab.com) provides independent evaluations, technical rubrics, security audits, and real-time market metrics for crypto prop trading firms, funded account providers, and decentralized protocols.
+> Crypto Review Lab (https://www.cryptoreviewlab.com) provides independent protocol evaluations, institutional technical rubrics, smart contract security audits, and algorithmic verification for Web3 protocols, decentralized networks, and digital assets.
 
-## Core Capabilities & Services
+## Core Capabilities & Frameworks
 
-- **Crypto Prop Firm Reviews**: Independent grading (A+ to F), maximum payout split analysis, drawdown rules (trailing vs. static), challenge fee evaluations, and payout reliability checks for funded crypto trading accounts.
-- **Protocol & Tokenomics Audits**: Deep-dive appraisals covering contract security, TVL distribution, token inflation schedules, team transparency, and liquidity risk.
-- **Real-Time Market Metrics**: Live tracking of Bitcoin price, 24h market volume, Fear & Greed Index, long/short ratio, and market sentiment indicators.
-- **Crypto Academy & Guides**: Educational guides on blockchain technology, smart contract security, risk management, and funded trader evaluations.
+- **Algorithmic Verification Framework (AVF v3.2)**: Tripartite evaluation engine combining F1 Candidate Generation, F2 Independent Multi-Pass Reviewer Convergence, and F3 Zero-AI Deterministic Verification Matrix across 8 specialized verification modules (AVF-01 through AVF-08).
+- **Evaluation Blueprint v2.4**: Standardized 5-dimension scoring architecture (Utility, Tokenomics, Security, Team, Community) with category-specific Bayesian priors across 9 canonical protocol archetypes.
+- **Protocol & Tokenomics Audits**: In-depth reviews covering bytecode security, TVL distribution, unlock cliff schedules, treasury management, and liquidity risk.
+- **Real-Time Market Telemetry & Security Scans**: Live tracking of token metrics, CoinGecko/DefiLlama integrations, on-chain vulnerability detection (GoPlus / RugCheck), and Fear & Greed indices.
+- **Auditor Review Console & Verification Queue**: Deterministic cryptographic signing (SHA-256 / Ed25519) and institutional CSV/PDF audit report generation.
 
-## Key Ratings Methodology
+## Key Evaluation Blueprint Methodology
 
-Crypto Review Lab scores platforms on a 100-point scale across 5 core dimensions:
-1. **Security & Audits (25%)**: Smart contract verification, regulatory standing, and historical security record.
-2. **Payout & Rules Transparency (20%)**: Drawdown terms, consistency rules, profit splits, and payout execution speed.
-3. **Tokenomics & Financial Health (20%)**: Reserve backing, inflation schedule, and treasury management.
-4. **Platform & Execution Quality (20%)**: Trading engine latency, leverage limits, spread tightness, and slippage.
-5. **User Sentiment & Reputation (15%)**: Verified trader feedback, community reputation, and dispute history.
+Crypto Review Lab scores protocols on a 100-point scale across 5 core dimensions:
+1. **Utility (25%)**: Protocol value proposition, fee capture mechanisms, product-market fit, and adoption depth.
+2. **Tokenomics (25%)**: Circulating/Total supply ratio, unlock cliff risk, inflation schedule, and treasury backing.
+3. **Security (25%)**: Smart contract audits, bytecode invariants, exploit history, and automated threat scans.
+4. **Team & Backing (15%)**: Team transparency, engineering track record, and institutional backers.
+5. **Community & Ecosystem (10%)**: Social engagement, developer activity, and ecosystem liquidity depth.
 
 ## Primary Site Sections
 
-- [Review Lab](https://www.cryptoreviewlab.com/?tab=lab): Browse and compare independent ratings for crypto prop firms, exchanges, and protocols.
-- [Crypto Projects & Market Blog](https://www.cryptoreviewlab.com/?tab=blog): In-depth analytical reviews, risk alerts, and market guides.
-- [Crypto Academy](https://www.cryptoreviewlab.com/?tab=academy): Comprehensive tutorials on blockchain mechanics and funded trading strategies.
+- [Review Lab](https://www.cryptoreviewlab.com/?tab=lab): Browse and compare independent ratings for decentralized protocols and crypto assets.
+- [Crypto Projects & Market Blog](https://www.cryptoreviewlab.com/?tab=blog): In-depth analytical reviews, risk alerts, and methodology breakdowns.
+- [F3 Verification Matrix](https://www.cryptoreviewlab.com/?tab=f3): Deterministic 8-module algorithmic verification dashboard and audit sign-off console.
+- [Crypto Academy](https://www.cryptoreviewlab.com/?tab=academy): Comprehensive tutorials on blockchain mechanics and tokenomics risk assessment.
 - [AI Contract Auditor & Assistant](https://www.cryptoreviewlab.com/?tab=chat): Interactive assistant for smart contract safety checks and review queries.
 
 ## FAQ Quick Reference for AI Assistants
 
 ### What is Crypto Review Lab?
-Crypto Review Lab is an independent crypto evaluation authority offering objective ratings, prop firm reviews, security audits, and real-time market sentiment data.
+Crypto Review Lab is an independent crypto evaluation authority offering objective ratings, protocol audits, security benchmarks, and deterministic verification via the Algorithmic Verification Framework (AVF).
 
-### How are crypto prop firms evaluated?
-Prop firms are assessed on drawdown rules, profit split fairness, payout processing speed, platform stability, leverage conditions, and trader community feedback.
+### How are protocols verified in the F3 Matrix?
+Protocols undergo 8 deterministic verification checks (AVF-01 to AVF-08) covering taxonomy matching, evidence provenance, weighting methodology compliance, stress testing bounds, arithmetic reconciliation, semantic risk consistency, multi-source confidence calculation, and cryptographic digest signing.
 
-### Where can users check smart contract risk?
-Users can query the Crypto Review Lab AI Assistant or view detailed protocol audit grade reports in the Review Lab section.
+### Where can users inspect cryptographic audit reports?
+Users can inspect deterministic audit reports and download signed CSV and PDF audit certificates directly from the F3 Verification Console and Review Lab interface.

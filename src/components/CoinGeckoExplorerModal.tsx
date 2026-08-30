@@ -102,7 +102,7 @@ export default function CoinGeckoExplorerModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -120,14 +120,15 @@ export default function CoinGeckoExplorerModal({
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-display font-black text-base sm:text-lg text-cyber-text-primary uppercase tracking-wide flex items-center gap-2">
-                  CoinGecko Live Project Switcher
-                  <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded-full">
-                    API LIVE
+                <h3 className="font-display font-black text-base sm:text-lg text-cyber-text-primary uppercase tracking-wide flex items-center gap-2 flex-wrap">
+                  Tri-Sync Market Explorer & Synchronizer
+                  <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    CoinGecko + CMC + CoinStats Active
                   </span>
                 </h3>
                 <p className="text-xs text-slate-400 font-sans">
-                  Search & switch any project from CoinGecko directly into your Review Lab registry.
+                  Cross-verify & switch projects using live CoinGecko API, CoinMarketCap (CMC), and CoinStats consensus feeds.
                 </p>
               </div>
             </div>
@@ -135,7 +136,7 @@ export default function CoinGeckoExplorerModal({
             <div className="flex items-center gap-2">
               {syncSuccessToast && (
                 <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg animate-fade-in shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                  ✓ Updated!
+                  ✓ Tri-Synced!
                 </span>
               )}
               <button
@@ -143,10 +144,10 @@ export default function CoinGeckoExplorerModal({
                 onClick={handleTopSyncClick}
                 disabled={isSyncing || isSyncingLocal}
                 className="px-3 py-1.5 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan hover:text-slate-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                title="Update all registry prices with live CoinGecko API"
+                title="Update all registry prices using Tri-Sync Engine (CoinGecko + CMC + CoinStats)"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${(isSyncing || isSyncingLocal) ? 'animate-spin text-white' : ''}`} />
-                <span className="hidden sm:inline">{(isSyncing || isSyncingLocal) ? 'Updating...' : 'Update Prices'}</span>
+                <span className="hidden sm:inline">{(isSyncing || isSyncingLocal) ? 'Syncing Tri-Engine...' : 'Sync Tri-Sync Engine'}</span>
               </button>
               <button
                 type="button"
@@ -166,7 +167,7 @@ export default function CoinGeckoExplorerModal({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search thousands of projects on CoinGecko (e.g. Ethereum, Near, Ondo, PePe)..."
+                placeholder="Search thousands of projects via CoinGecko + CMC Dual Engine (e.g. Hyperliquid, Zama, Berachain, Ondo)..."
                 className="w-full bg-slate-950 border border-cyber-cyan/30 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-cyber-text-primary placeholder:text-slate-500 focus:outline-none focus:border-cyber-cyan focus:ring-1 focus:ring-cyber-cyan/50 font-sans transition-all"
               />
               {query && (
@@ -189,11 +190,11 @@ export default function CoinGeckoExplorerModal({
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-cyber-cyan flex items-center gap-1.5">
                     <Search className="w-3.5 h-3.5" />
-                    CoinGecko Search Results
+                    CoinGecko + CMC Dual Search Results
                   </h4>
                   {isSearching && (
                     <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
-                      <RefreshCw className="w-3 h-3 animate-spin text-cyber-cyan" /> Querying CoinGecko...
+                      <RefreshCw className="w-3 h-3 animate-spin text-cyber-cyan" /> Querying CoinGecko + CMC Dual API...
                     </span>
                   )}
                 </div>
@@ -273,7 +274,7 @@ export default function CoinGeckoExplorerModal({
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-mono text-xs font-bold uppercase tracking-wider text-cyber-cyan flex items-center gap-1.5">
                     <TrendingUp className="w-3.5 h-3.5 text-cyber-cyan" />
-                    CoinGecko Trending Protocols Right Now
+                    CoinGecko + CMC Trending Protocols Right Now
                   </h4>
                   <button
                     type="button"
@@ -364,16 +365,27 @@ export default function CoinGeckoExplorerModal({
           <div className="p-4 bg-slate-950/80 border-t border-cyber-cyan/15 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-              <span>Data source: Official CoinGecko API</span>
+              <span>Data source: Official CoinGecko API + CoinMarketCap (CMC) Pro API</span>
             </div>
-            <a
-              href="https://www.coingecko.com"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-cyber-cyan hover:underline flex items-center gap-1 font-mono text-[11px]"
-            >
-              CoinGecko.com <ExternalLink className="w-3 h-3" />
-            </a>
+            <div className="flex items-center gap-3 font-mono text-[11px]">
+              <a
+                href="https://www.coingecko.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-cyber-cyan hover:underline flex items-center gap-1"
+              >
+                CoinGecko.com <ExternalLink className="w-3 h-3" />
+              </a>
+              <span className="text-slate-600">|</span>
+              <a
+                href="https://coinmarketcap.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-cyber-blue hover:underline flex items-center gap-1"
+              >
+                CoinMarketCap.com <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
         </motion.div>
       </div>

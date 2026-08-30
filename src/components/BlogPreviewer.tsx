@@ -33,23 +33,60 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
-  Archive
+  Archive,
+  Crown,
+  Zap,
+  Cpu,
+  Play,
+  Pause,
+  Pin,
+  Layers,
+  Activity,
+  Building2,
+  HardDrive,
+  Code,
+  Bell,
+  BellRing
 } from 'lucide-react';
+
+// All 9 standardized categories + All options with icons and badges matching ReviewLab style
+const CATEGORY_OPTIONS = [
+  { value: 'All', label: 'All Categories', badge: 'All Audit Reports', icon: BookOpen, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'Layer 1 Blockchain', label: 'Layer 1 Blockchain', badge: 'L1 Blockchain', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'Layer 2 / Scaling', label: 'Layer 2 / Scaling', badge: 'L2 / Rollups', icon: Zap, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  { value: 'DeFi Protocol (AMM / Lending)', label: 'DeFi Protocol (AMM / Lending)', badge: 'DeFi & Vaults', icon: Activity, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { value: 'RWA (Tokenization / TradFi Bridge)', label: 'RWA (Tokenization / TradFi Bridge)', badge: 'RWA & TradFi', icon: Building2, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { value: 'DePIN (Compute / Storage / Wireless)', label: 'DePIN (Compute / Storage / Wireless)', badge: 'DePIN & Compute', icon: HardDrive, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
+  { value: 'Privacy / Cryptographic (FHE / ZK / MPC)', label: 'Privacy / Cryptographic (FHE / ZK / MPC)', badge: 'FHE & Zero-Knowledge', icon: ShieldCheck, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+  { value: 'Infrastructure (Oracle / Bridge)', label: 'Infrastructure (Oracle / Bridge)', badge: 'Oracles & Bridges', icon: Code, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+  { value: 'Memecoin / Speculative', label: 'Memecoin / Speculative', badge: 'Memes & Speculative', icon: Flame, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+  { value: 'Specialized / Experimental', label: 'Specialized / Experimental', badge: 'Move/Rust & Experimental', icon: Cpu, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+];
 import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
-import LiveMarketData from './LiveMarketData';
+import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
+import { ProTierBadge } from './ProTierBadge';
+import { ComparisonReportView } from './ComparisonReportView';
+import AIMarketSummary from './AIMarketSummary';
+import { getMetricColor } from '../utils/metricColors';
+import MajorEventsAlertBox from './MajorEventsAlertBox';
 import { TiltCard } from './TiltCard';
+import MarketMetricsTable from './MarketMetricsTable';
+import CryptoPriceChart from './CryptoPriceChart';
+import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 
 interface BlogPreviewerProps {
   reviews: CryptoReview[];
   selectedReviewId?: string | null;
   setSelectedReviewId?: (id: string | null) => void;
-  setActiveTab?: (tab: 'lab' | 'blog' | 'chat' | 'academy') => void;
+  setActiveTab?: (tab: 'lab' | 'blog' | 'chat' | 'academy' | 'auditor' | 'orders') => void;
   headerSearchQuery?: string;
   setHeaderSearchQuery?: (query: string) => void;
   onOpenCoinGeckoModal?: () => void;
   onSyncCoinGecko?: () => void;
   isSyncingCoinGecko?: boolean;
+  onLaunchProEvaluation?: (prefill?: { name?: string; symbol?: string; category?: string; focusArea?: string }) => void;
+  onLaunchRegularEvaluation?: (prefill?: { name?: string; symbol?: string; category?: string; focusArea?: string }) => void;
 }
 
 export default function BlogPreviewer({ 
@@ -61,7 +98,9 @@ export default function BlogPreviewer({
   setHeaderSearchQuery,
   onOpenCoinGeckoModal,
   onSyncCoinGecko,
-  isSyncingCoinGecko
+  isSyncingCoinGecko,
+  onLaunchProEvaluation,
+  onLaunchRegularEvaluation
 }: BlogPreviewerProps) {
   const [internalSearchQuery, setInternalSearchQuery] = useState('');
   const searchQuery = headerSearchQuery !== undefined ? headerSearchQuery : internalSearchQuery;
@@ -72,11 +111,112 @@ export default function BlogPreviewer({
     setInternalSearchQuery(q);
   };
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
+      }
+    };
+    if (isCategoryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCategoryDropdownOpen]);
+
   const [isArchiveDropdownOpen, setIsArchiveDropdownOpen] = useState(false);
   const [isCustomSelectOpen, setIsCustomSelectOpen] = useState(false);
   const [selectedArchiveTitle, setSelectedArchiveTitle] = useState('');
   const [showSyncToast, setShowSyncToast] = useState(false);
   const [localActiveReviewId, setLocalActiveReviewId] = useState<string | null>(null);
+
+  // Watchlist state initialized from localStorage
+  const [watchlist, setWatchlist] = useState<string[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('crl_watchlist');
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Failed to load watchlist:', e);
+    }
+    return [];
+  });
+
+  const toggleWatchlist = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setWatchlist((prev) => {
+      const updated = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('crl_watchlist', JSON.stringify(updated));
+        }
+      } catch (err) {
+        console.warn('Failed to save watchlist:', err);
+      }
+      return updated;
+    });
+  };
+
+  const clearWatchlist = () => {
+    setWatchlist([]);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('crl_watchlist');
+      }
+    } catch (err) {
+      console.warn('Failed to clear watchlist:', err);
+    }
+  };
+
+  const watchlistReviews = reviews.filter((r) => watchlist.includes(r.id));
+
+  // Notified projects state initialized from localStorage
+  const [notifiedProjects, setNotifiedProjects] = useState<string[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('crl_notified_projects');
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn('Failed to load notified projects:', e);
+    }
+    return [];
+  });
+
+  const toggleNotification = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (typeof window !== 'undefined' && window.Notification && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+    setNotifiedProjects((prev) => {
+      const updated = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('crl_notified_projects', JSON.stringify(updated));
+        }
+      } catch (err) {
+        console.warn('Failed to save notified projects:', err);
+      }
+      return updated;
+    });
+  };
+
+  const [isAdminMaster] = useState<boolean>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('crl_admin_authenticated') === 'true';
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  });
+  const [showPromoteModal, setShowPromoteModal] = useState<boolean>(false);
 
   const handleSyncClick = () => {
     if (onSyncCoinGecko) {
@@ -308,8 +448,10 @@ export default function BlogPreviewer({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Derive unique categories dynamically
-  const categories = ['All', ...Array.from(new Set(reviews.map((r) => r.category)))];
+  // Derive categories from standard configuration list
+  const categories = CATEGORY_OPTIONS.map((opt) => opt.value);
+  const selectedCategoryObj = CATEGORY_OPTIONS.find((opt) => opt.value === selectedCategory) || CATEGORY_OPTIONS[0];
+  const SelectedIconComp = selectedCategoryObj.icon;
 
   // Predictive matching categories based on search query
   const matchingCategories = searchQuery.trim()
@@ -334,9 +476,38 @@ export default function BlogPreviewer({
                           r.symbol.toLowerCase().includes(q) ||
                           r.category.toLowerCase().includes(q) ||
                           (r.verdict && r.verdict.toLowerCase().includes(q));
-    const matchesCategory = selectedCategory === 'All' || r.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || 
+                            r.category === selectedCategory ||
+                            r.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+                            selectedCategory.toLowerCase().includes(r.category.toLowerCase());
     return matchesSearch && matchesCategory;
   });
+
+  // State & Auto-rotation timer for "LATEST AUDIT REVIEWS"
+  const [latestPage, setLatestPage] = useState(0);
+  const [isLatestAutoPlay, setIsLatestAutoPlay] = useState(true);
+  const [isLatestHovered, setIsLatestHovered] = useState(false);
+
+  const itemsPerPage = 4;
+  const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+
+  useEffect(() => {
+    setLatestPage(0);
+  }, [selectedCategory, searchQuery]);
+
+  useEffect(() => {
+    if (!isLatestAutoPlay || isLatestHovered || totalPages <= 1) return;
+    const timer = setInterval(() => {
+      setLatestPage((prev) => (prev + 1) % totalPages);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [isLatestAutoPlay, isLatestHovered, totalPages]);
+
+  const currentLatestPage = totalPages > 0 ? latestPage % totalPages : 0;
+  const currentLatestReviews = filteredReviews.slice(
+    currentLatestPage * itemsPerPage,
+    (currentLatestPage + 1) * itemsPerPage
+  );
 
   // Framer motion variants for staggered card entrance animations
   const staggerContainerVariants = {
@@ -358,7 +529,7 @@ export default function BlogPreviewer({
       scale: 1,
       transition: {
         duration: 0.38,
-        ease: [0.215, 0.61, 0.355, 1],
+        ease: 'easeOut',
       }
     },
   };
@@ -394,7 +565,21 @@ export default function BlogPreviewer({
 
   const renderContentMarkdown = (text: string) => {
     if (!text) return null;
-    return text.split('\n').map((line, idx) => {
+
+    // Sanitize, strip redundant summary headers (since shown visually at top), and normalize terminology
+    const sanitizedText = text
+      .replace(/### Real-Time Dual Market Sync[\s\S]*?(?=### |$)/gi, '')
+      .replace(/### Locked Evaluation Blueprint Audit Results[\s\S]*?(?=### |$)/gi, '')
+      .replace(/CoinGecko Live Protocol Overview/gi, 'CoinGecko + CMC Live Protocol Overview')
+      .replace(/Real-Time CoinGecko Market Metrics/gi, 'Real-Time CoinGecko + CMC Market Metrics')
+      .replace(/tracked directly via the CoinGecko API\.?/gi, 'tracked directly via the CoinGecko & CoinMarketCap (CMC) APIs.')
+      .replace(/tracked directly via the CoinGecko API/gi, 'tracked directly via the CoinGecko & CoinMarketCap (CMC) APIs')
+      .replace(/CoinGecko quantitative parameters/gi, 'CoinGecko + CMC quantitative parameters')
+      .replace(/regular CoinGecko data refreshes/gi, 'regular CoinGecko + CMC dual data refreshes')
+      .replace(/CoinGecko data refreshes/gi, 'CoinGecko + CMC dual data refreshes')
+      .replace(/CoinGecko & Blueprint Engine/gi, 'CoinGecko + CMC Dual Engine');
+
+    return sanitizedText.split('\n').map((line, idx) => {
       const trimmed = line.trim();
       
       // Secondary Headers
@@ -461,9 +646,29 @@ export default function BlogPreviewer({
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
-      {/* Live Market Data / Crypto Price Widget at top before search bar */}
+      {/* Market Intelligence Hero Heading */}
+      <div className="mb-6 space-y-2.5 sm:space-y-3">
+        <div>
+          <span className="inline-flex items-center gap-2 font-orbitron font-bold text-[8px] sm:text-[9.5px] text-cyan-300 bg-cyan-500/10 border border-cyan-400/40 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full uppercase tracking-[1.5px] sm:tracking-[2px] shadow-[0_0_12px_rgba(0,229,255,0.18)] max-w-full truncate">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
+            Live Crypto Markets Stream Active
+          </span>
+        </div>
+        <h1 className="font-orbitron font-extrabold text-[21px] sm:text-2xl md:text-3xl lg:text-4xl text-slate-100 tracking-tight sm:tracking-wide leading-tight pt-1 break-words">
+          Master the{' '}
+          <span className="font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 drop-shadow-[0_0_22px_rgba(0,229,255,0.5)] inline-block">
+            Decentralized
+          </span>{' '}
+          Economy
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-3xl">
+          Real-time global crypto market surveillance, algorithmic cross-chain metrics, and dual-oracle intelligence powered by the AVF Engine.
+        </p>
+      </div>
+
+      {/* AI Market Summary Widget at top before search bar */}
       <div className="mb-8 sm:mb-10 md:mb-12">
-        <LiveMarketData />
+        <AIMarketSummary reviews={reviews} />
       </div>
 
       {/* Top Header Navigation Bar with Breadcrumbs & Search */}
@@ -494,12 +699,12 @@ export default function BlogPreviewer({
               title="Return to Review List"
             >
               <BookOpen className="w-3.5 h-3.5 text-cyber-cyan/80" />
-              <span>Projects Review</span>
+              <span>Market Intelligence</span>
             </button>
           ) : (
             <span className="text-cyber-cyan font-bold flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-cyber-cyan" />
-              <span>Projects Review</span>
+              <span>Market Intelligence</span>
             </span>
           )}
 
@@ -630,7 +835,7 @@ export default function BlogPreviewer({
               </p>
             </div>
 
-            {/* CoinGecko Live Controls & Quick Stats */}
+            {/* CoinGecko + CMC Live Dual Controls & Quick Stats */}
             <div className="flex flex-wrap items-center gap-2">
               {onOpenCoinGeckoModal && (
                 <button
@@ -642,9 +847,9 @@ export default function BlogPreviewer({
                   <div className="p-1 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan group-hover:bg-cyber-cyan group-hover:text-slate-950 transition-colors">
                     <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                   </div>
-                  <span className="font-bold tracking-wider">Switch / Import via CoinGecko</span>
+                  <span className="font-bold tracking-wider">Switch / Import via CoinGecko + CMC</span>
                   <span className="text-[9px] font-mono font-extrabold text-slate-950 bg-cyber-cyan px-1.5 py-0.5 rounded shadow-sm">
-                    API LIVE
+                    DUAL API LIVE
                   </span>
                 </button>
               )}
@@ -656,14 +861,14 @@ export default function BlogPreviewer({
                     onClick={handleSyncClick}
                     disabled={isSyncingCoinGecko}
                     className="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-cyber-cyan/30 text-slate-300 hover:text-cyber-cyan font-mono text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                    title="Sync all live prices from CoinGecko API"
+                    title="Sync all live market prices from CoinGecko + CMC Dual Engine"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-cyber-cyan ${isSyncingCoinGecko ? 'animate-spin' : ''}`} />
-                    <span className="hidden sm:inline">{isSyncingCoinGecko ? 'Syncing...' : 'Sync Prices'}</span>
+                    <span className="hidden sm:inline">{isSyncingCoinGecko ? 'Dual Syncing...' : 'Sync Prices (CG + CMC)'}</span>
                   </button>
                   {showSyncToast && (
                     <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg animate-fade-in">
-                      ✓ Prices Synced!
+                      ✓ CG + CMC Synced!
                     </span>
                   )}
                 </div>
@@ -688,26 +893,134 @@ export default function BlogPreviewer({
           </div>
 
           {/* Category Filter Bar */}
-          <div className="bg-cyber-bg-card border border-cyber-cyan/10 rounded-2xl p-3 md:p-3.5 flex items-center justify-between gap-3 shadow-lg overflow-x-auto">
-            <div className="flex items-center gap-2 text-xs font-mono text-cyber-text-muted shrink-0 uppercase tracking-wider">
-              <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
-              <span>Category Filter:</span>
+          <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-3.5 shadow-lg relative">
+            {/* Mobile View Layout (< sm) */}
+            <div className="sm:hidden space-y-2.5" ref={categoryDropdownRef}>
+              <div className="flex items-center justify-between gap-2 text-xs font-mono text-cyber-text-muted uppercase tracking-wider">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
+                  <span className="font-bold text-slate-300">Category Filter</span>
+                </div>
+                <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-full font-mono">
+                  {selectedCategory === 'All'
+                    ? `${reviews.length} Audited`
+                    : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Audited`}
+                </span>
+              </div>
+
+              {/* Custom Cyber Dropdown Button (Matching Image 2 Style) */}
+              <div className="relative w-full">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                  className="w-full flex items-center justify-between gap-3 bg-slate-950 text-slate-100 font-sans text-xs font-bold px-3 py-2.5 rounded-xl border border-cyber-cyan/40 hover:border-cyber-cyan shadow-[0_0_15px_rgba(0,229,255,0.18)] transition-all cursor-pointer"
+                  aria-haspopup="listbox"
+                  aria-expanded={isCategoryDropdownOpen}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0 pr-1">
+                    <div className={`p-1.5 rounded-lg border shrink-0 ${selectedCategoryObj.color}`}>
+                      <SelectedIconComp className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col text-left min-w-0">
+                      <span className="truncate text-xs font-semibold text-slate-100">{selectedCategoryObj.label}</span>
+                      <span className="text-[10px] text-slate-400 font-mono truncate">{selectedCategoryObj.badge}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
+                      {selectedCategory === 'All'
+                        ? reviews.length
+                        : reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+
+                <AnimatePresence>
+                  {isCategoryDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
+                      className="absolute left-0 right-0 top-full mt-2 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_25px_rgba(0,229,255,0.2)] overflow-hidden z-50 py-1.5 divide-y divide-slate-800/80 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-cyan/30"
+                      role="listbox"
+                    >
+                      {CATEGORY_OPTIONS.map((opt) => {
+                        const count = opt.value === 'All'
+                          ? reviews.length
+                          : reviews.filter(r => r.category === opt.value || r.category.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(r.category.toLowerCase())).length;
+                        const isSelected = selectedCategory === opt.value;
+                        const IconComp = opt.icon;
+
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory(opt.value);
+                              setIsCategoryDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-500/10 text-emerald-300 font-semibold border-l-4 border-emerald-400'
+                                : 'text-slate-300 hover:bg-slate-800/80 hover:text-slate-100'
+                            }`}
+                            role="option"
+                            aria-selected={isSelected}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className={`p-1.5 rounded-lg border shrink-0 ${opt.color}`}>
+                                <IconComp className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-sans text-xs font-medium truncate">{opt.label}</span>
+                                <span className="text-[10px] text-slate-400 font-mono truncate">{opt.badge}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold ${
+                                isSelected
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  : 'bg-slate-950/80 text-slate-400 border-white/10'
+                              }`}>
+                                {count}
+                              </span>
+                              {isSelected && (
+                                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-display whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer ${
-                    selectedCategory === cat 
-                      ? 'bg-cyber-cyan text-cyber-bg-primary shadow-[0_0_12px_rgba(0,229,255,0.25)] font-bold' 
-                      : 'bg-cyber-bg-primary text-cyber-text-secondary hover:text-cyber-text-primary border border-cyber-cyan/15 hover:border-cyber-cyan/30'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            {/* Desktop Horizontal Pill Bar (visible on sm+) */}
+            <div className="hidden sm:flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs font-mono text-cyber-text-muted shrink-0 uppercase tracking-wider">
+                <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
+                <span>Category Filter:</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-display whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer ${
+                      selectedCategory === cat 
+                        ? 'bg-cyber-cyan text-cyber-bg-primary shadow-[0_0_12px_rgba(0,229,255,0.25)] font-bold' 
+                        : 'bg-cyber-bg-primary text-cyber-text-secondary hover:text-cyber-text-primary border border-cyber-cyan/15 hover:border-cyber-cyan/30'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -805,11 +1118,11 @@ export default function BlogPreviewer({
                   </li>
                   <li className="flex items-center gap-1.5">
                     <span className="text-cyber-cyan font-bold">•</span>
-                    <span>Browse popular categories: Layer 1, DeFi, Layer 2, AI & DePIN, Prop Trading</span>
+                    <span>Browse popular categories: Layer 1, DeFi, Layer 2, RWA, DePIN, AI, Prop Trading</span>
                   </li>
                 </ul>
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {['All', 'Layer 1', 'DeFi', 'Layer 2', 'AI & DePIN', 'Prop Trading'].map((cat) => (
+                  {['All', 'Layer 1', 'DeFi', 'Layer 2', 'RWA', 'DePIN', 'AI', 'Prop Trading'].map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -839,36 +1152,217 @@ export default function BlogPreviewer({
               )}
             </div>
           ) : (
-            <div className="space-y-12">
-              {/* LATEST POSTS GRID (First 4 posts) */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-display text-xs font-black tracking-widest text-cyber-cyan uppercase">LATEST AUDIT REVIEWS</h3>
-                  <div className="h-px bg-cyber-cyan/20 flex-1"></div>
-                  <span className="text-[10px] font-mono text-cyber-cyan uppercase border border-cyber-cyan/25 px-2 py-0.5 rounded">4 Recent Audits</span>
+            <div className="space-y-10">
+              {/* PINNED WATCHLIST SECTION (Pinned Favorite Projects) */}
+              {watchlistReviews.length > 0 && (
+                <div className="space-y-4 bg-gradient-to-r from-amber-950/25 via-slate-900/70 to-amber-950/25 border border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-[0_0_30px_rgba(251,191,36,0.15)] relative overflow-hidden animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/25 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]">
+                        <Pin className="w-4 h-4 fill-amber-400" />
+                      </div>
+                      <h3 className="font-display text-xs font-black tracking-widest text-amber-400 uppercase flex items-center gap-2">
+                        PINNED WATCHLIST
+                      </h3>
+                      <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                        {watchlistReviews.length} Pinned
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={clearWatchlist}
+                      className="text-[10px] font-mono font-bold text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 border border-amber-500/25 hover:border-amber-500/50 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                    >
+                      <X className="w-3 h-3" />
+                      <span>Clear Watchlist</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {watchlistReviews.map((rev) => {
+                      const riskStyles = getRiskStyles(rev.riskLevel);
+                      return (
+                        <motion.div
+                          key={`watchlist-${rev.id}`}
+                          whileHover={{ scale: 1.035, y: -4 }}
+                          transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+                          className="h-full"
+                        >
+                          <TiltCard className="h-full" scale={1.035} onClick={() => setActiveReviewId(rev.id)}>
+                            <div className="bg-slate-900/90 border border-amber-500/35 hover:border-amber-400 hover:shadow-[0_16px_40px_rgba(251,191,36,0.28)] rounded-xl p-4 md:p-4.5 flex flex-col justify-between group cursor-pointer transition-all duration-300 h-full relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+
+                              <div className="space-y-2.5">
+                                {/* Card Header */}
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <img
+                                      src={getCoinLogoUrl(rev.symbol, rev.logoUrl, rev.coingeckoId)}
+                                      alt={rev.name}
+                                      className="w-8 h-8 rounded-xl border border-amber-500/40 object-contain bg-slate-950 p-1 shrink-0 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
+                                      referrerPolicy="no-referrer"
+                                      onError={(e) => {
+                                        (e.target as HTMLElement).style.display = 'none';
+                                      }}
+                                    />
+                                    <div className="space-y-0.5 text-left min-w-0">
+                                      <span className="text-[9px] font-mono text-amber-400 uppercase tracking-widest block truncate">{rev.category}</span>
+                                      <h3 className="font-display font-bold text-base text-cyber-text-primary group-hover:text-amber-400 transition-colors flex items-center gap-1.5 leading-tight truncate">
+                                        {rev.name}
+                                        <span className="text-xs font-mono text-cyber-text-secondary font-normal uppercase">({rev.symbol})</span>
+                                      </h3>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    {Boolean(rev.proBenchmarks || rev.auditSignature?.tier === 'pro') && (
+                                      <ProTierBadge size="sm" />
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => toggleWatchlist(rev.id, e)}
+                                      title="Unpin from Watchlist"
+                                      className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.35)] hover:bg-amber-500/30 transition-all cursor-pointer"
+                                    >
+                                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                                    </button>
+
+                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getGradeColor(rev.grade)}`}>
+                                      {rev.grade}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <p className="text-xs text-cyber-text-secondary leading-relaxed line-clamp-2 text-left">
+                                  {rev.verdict}
+                                </p>
+
+                                {rev.livePrice !== undefined && (
+                                  <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950/80 border border-amber-500/20 text-xs font-mono">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9.5px] text-amber-400 font-bold">LIVE $</span>
+                                      <span className="font-bold text-white">
+                                        ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      </span>
+                                    </div>
+                                    {rev.liveChange24h !== undefined && (
+                                      <span className={`font-bold px-1.5 py-0.2 rounded text-[10px] ${rev.liveChange24h >= 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'}`}>
+                                        {rev.liveChange24h >= 0 ? '▲ +' : '▼ '}{rev.liveChange24h.toFixed(2)}%
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="pt-2.5 mt-3 border-t border-amber-500/20 flex items-center justify-between">
+                                <span className={`border text-[9px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
+                                  {rev.riskLevel} RISK
+                                </span>
+                                <span className="text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
+                                  Audit Report
+                                  <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
+                                </span>
+                              </div>
+                            </div>
+                          </TiltCard>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* LATEST POSTS GRID (Auto-Rotating Batches) */}
+              <div 
+                className="space-y-4"
+                onMouseEnter={() => setIsLatestHovered(true)}
+                onMouseLeave={() => setIsLatestHovered(false)}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyber-cyan/15 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-xs font-black tracking-widest text-cyber-cyan uppercase flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />
+                      LATEST AUDIT REVIEWS
+                    </h3>
+                    <span className="text-[10px] font-mono text-cyan-300 bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded font-bold">
+                      Batch {currentLatestPage + 1} of {totalPages || 1} ({filteredReviews.length} Total)
+                    </span>
+                  </div>
+
+                  {/* Dynamic Rotation & Navigation Controls */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsLatestAutoPlay(!isLatestAutoPlay)}
+                      title={isLatestAutoPlay ? 'Pause Auto Rotation' : 'Resume Auto Rotation'}
+                      className={`p-1.5 rounded-lg border text-xs transition-all cursor-pointer flex items-center gap-1 font-mono text-[10px] font-bold ${
+                        isLatestAutoPlay 
+                          ? 'bg-cyber-cyan/15 text-cyber-cyan border-cyber-cyan/40 shadow-[0_0_10px_rgba(0,229,255,0.2)]' 
+                          : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                      }`}
+                    >
+                      {isLatestAutoPlay ? (
+                        <>
+                          <Pause className="w-3 h-3 text-cyber-cyan" />
+                          <span className="hidden sm:inline">LIVE ROTATING</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-3 h-3 text-slate-400" />
+                          <span className="hidden sm:inline">PAUSED</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLatestPage((prev) => (prev - 1 + (totalPages || 1)) % (totalPages || 1))}
+                      disabled={totalPages <= 1}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyber-cyan/10 border border-slate-800 hover:border-cyber-cyan/40 text-slate-300 hover:text-cyber-cyan transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Previous Projects Batch"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setLatestPage((prev) => (prev + 1) % (totalPages || 1))}
+                      disabled={totalPages <= 1}
+                      className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyber-cyan/10 border border-slate-800 hover:border-cyber-cyan/40 text-slate-300 hover:text-cyber-cyan transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Next Projects Batch"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
                 
                 <motion.div 
                   variants={staggerContainerVariants}
                   initial="hidden"
                   animate="show"
-                  key={`latest-grid-${selectedCategory}-${searchQuery}`}
+                  key={`latest-grid-${currentLatestPage}-${selectedCategory}-${searchQuery}`}
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4"
                 >
-                  {filteredReviews.slice(0, 4).map((rev) => {
+                  {currentLatestReviews.map((rev) => {
                     const riskStyles = getRiskStyles(rev.riskLevel);
+                    const isPinned = watchlist.includes(rev.id);
                     return (
                       <motion.div 
                         key={rev.id} 
-                        variants={cardEntranceVariants} 
-                        whileHover={{ scale: 1.035, y: -4 }}
+                        variants={cardEntranceVariants as any} 
+                        whileHover={{ scale: 1.038, y: -5 }}
                         transition={{ type: 'spring', stiffness: 350, damping: 22 }}
                         className="h-full"
                       >
                         <TiltCard className="h-full" scale={1.035} onClick={() => setActiveReviewId(rev.id)}>
                           <motion.div
                             layoutId={`review-card-${rev.id}`}
-                            className="bg-cyber-bg-card/75 border border-cyber-cyan/10 group-hover:border-cyber-cyan/40 group-hover:bg-cyber-bg-card-hover rounded-xl p-4 md:p-4.5 shadow-md flex flex-col justify-between group cursor-pointer transition-all duration-300 hover:shadow-[0_12px_30px_rgba(0,229,255,0.18)] h-full"
+                            className={`bg-cyber-bg-card/75 border rounded-xl p-4 md:p-4.5 shadow-md flex flex-col justify-between group cursor-pointer transition-all duration-300 h-full ${
+                              isPinned
+                                ? 'border-amber-400/50 hover:border-amber-400 hover:shadow-[0_16px_40px_rgba(251,191,36,0.22)]'
+                                : 'border-cyber-cyan/15 hover:border-cyber-cyan/60 hover:shadow-[0_16px_40px_rgba(0,229,255,0.22)] group-hover:bg-cyber-bg-card-hover'
+                            }`}
                           >
                             <div className="space-y-2.5">
                               {/* Card Header */}
@@ -892,9 +1386,28 @@ export default function BlogPreviewer({
                                   </div>
                                 </div>
 
-                                {/* Grade badge */}
-                                <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getGradeColor(rev.grade)}`}>
-                                  {rev.grade}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {Boolean(rev.proBenchmarks || rev.auditSignature?.tier === 'pro') && (
+                                    <ProTierBadge size="sm" />
+                                  )}
+                                  {/* Watchlist Pin Button */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => toggleWatchlist(rev.id, e)}
+                                    title={isPinned ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                    className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                                      isPinned
+                                        ? 'bg-amber-500/20 text-amber-400 border-amber-400/60 shadow-[0_0_12px_rgba(251,191,36,0.35)]'
+                                        : 'bg-slate-950/80 text-slate-400 hover:text-amber-400 border-white/10 hover:border-amber-400/40 hover:bg-slate-900'
+                                    }`}
+                                  >
+                                    <Star className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
+                                  </button>
+
+                                  {/* Grade badge */}
+                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getGradeColor(rev.grade)}`}>
+                                    {rev.grade}
+                                  </div>
                                 </div>
                               </div>
 
@@ -945,11 +1458,87 @@ export default function BlogPreviewer({
                 </motion.div>
               </div>
 
-              {/* MORE ARTICLES TWO-COLUMN SECTION (Registry Archives Dropdown + Sidebar) */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+              {/* MORE ARTICLES & UTILITIES SECTION (Full-Width Top Rated Audits + Archives & AI Sandbox) */}
+              <div className="space-y-6">
+                {/* 1. Full-Width Top Rated Security Audits */}
+                <div className="bg-slate-900/60 backdrop-blur-md border border-cyber-cyan/20 rounded-2xl p-4 sm:p-5 text-left relative overflow-hidden shadow-lg group">
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/50 to-transparent"></div>
+                  <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5 mb-3.5">
+                    <h4 className="font-mono text-xs font-bold text-cyber-text-primary uppercase tracking-widest flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
+                      Top Rated Audits
+                    </h4>
+                    <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2.5 py-0.5 rounded-full">
+                      HIGH SCORE
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    {reviews
+                      .slice()
+                      .sort((a, b) => b.overallScore - a.overallScore)
+                      .slice(0, 4)
+                      .map((item) => {
+                        const gradeStyles = getGradeBadgeStyles(item.grade, item.overallScore);
+                        const isPinned = watchlist.includes(item.id);
+                        return (
+                          <motion.div
+                            key={item.id}
+                            whileHover={{ scale: 1.035, y: -3 }}
+                            transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+                          >
+                            <div
+                              onClick={() => {
+                                setActiveReviewId(item.id);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className={`w-full text-left group flex items-center justify-between p-3 bg-slate-950/70 rounded-xl transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_12px_28px_rgba(0,229,255,0.22)] border ${
+                                isPinned
+                                  ? 'border-amber-400/50 hover:border-amber-400'
+                                  : 'border-white/10 hover:border-cyber-cyan/60 hover:bg-cyber-cyan/10'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={(e) => toggleWatchlist(item.id, e)}
+                                  title={isPinned ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                  className={`p-1 rounded-lg border transition-all cursor-pointer shrink-0 ${
+                                    isPinned
+                                      ? 'bg-amber-500/20 text-amber-400 border-amber-400/60 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                                      : 'bg-slate-900 text-slate-400 hover:text-amber-400 border-white/10 hover:border-amber-400/40'
+                                  }`}
+                                >
+                                  <Star className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
+                                </button>
+
+                                <div className="w-8 h-8 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/25 flex items-center justify-center font-mono text-[9px] font-bold text-cyber-cyan group-hover:border-cyber-cyan/50 group-hover:bg-cyber-cyan/20 transition-colors shrink-0">
+                                  {item.symbol}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-xs font-bold text-cyber-text-primary truncate group-hover:text-cyber-cyan transition-colors">
+                                    {item.name}
+                                  </div>
+                                  <div className="text-[9.5px] font-mono text-cyber-text-secondary truncate">
+                                    {item.category}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right shrink-0 pl-1">
+                                <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${gradeStyles.bg} ${gradeStyles.text} ${gradeStyles.border}`}>
+                                  {item.grade} • {item.overallScore}%
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* 2. Bottom Row: Registry Archives Dropdown + AI Auditor Sandbox */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   {/* Left Column: Registry Archives Dropdown Component */}
-                  <div className="lg:col-span-2 space-y-4">
+                  <div className="lg:col-span-7 space-y-4">
                     <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-cyber-cyan/25 rounded-2xl p-4 text-left shadow-xl relative overflow-hidden transition-all duration-300">
                       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
                       
@@ -1007,56 +1596,79 @@ export default function BlogPreviewer({
                               <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-cyber-cyan/30">
                                 {filteredReviews.slice(4).map((rev) => {
                                   const riskStyles = getRiskStyles(rev.riskLevel);
+                                  const isPinned = watchlist.includes(rev.id);
                                   return (
-                                    <div
+                                    <motion.div
                                       key={rev.id}
-                                      onClick={() => {
-                                        setActiveReviewId(rev.id);
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                      }}
-                                      className="p-2.5 rounded-xl bg-slate-950/80 hover:bg-cyber-cyan/15 border border-white/5 hover:border-cyber-cyan/40 flex items-center justify-between gap-3 group cursor-pointer transition-all duration-200 shadow-sm"
+                                      whileHover={{ scale: 1.015, x: 2 }}
+                                      transition={{ type: 'spring', stiffness: 350, damping: 22 }}
                                     >
-                                      <div className="flex items-center gap-2.5 min-w-0">
-                                        <img
-                                          src={getCoinLogoUrl(rev.symbol, rev.logoUrl, rev.coingeckoId)}
-                                          alt={rev.name}
-                                          className="w-7 h-7 rounded-xl border border-cyber-cyan/30 object-contain bg-slate-950 p-0.5 shrink-0"
-                                          referrerPolicy="no-referrer"
-                                          onError={(e) => {
-                                            (e.target as HTMLElement).style.display = 'none';
-                                          }}
-                                        />
-                                        <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                                          <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
-                                            {rev.name}
+                                      <div
+                                        onClick={() => {
+                                          setActiveReviewId(rev.id);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className={`p-2.5 rounded-xl bg-slate-950/80 flex items-center justify-between gap-3 group cursor-pointer transition-all duration-300 shadow-sm border ${
+                                          isPinned
+                                            ? 'border-amber-400/50 hover:border-amber-400 hover:shadow-[0_8px_24px_rgba(251,191,36,0.2)]'
+                                            : 'border-white/5 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/15 hover:shadow-[0_8px_24px_rgba(0,229,255,0.18)]'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                          <button
+                                            type="button"
+                                            onClick={(e) => toggleWatchlist(rev.id, e)}
+                                            title={isPinned ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                            className={`p-1 rounded-lg border transition-all cursor-pointer shrink-0 ${
+                                              isPinned
+                                                ? 'bg-amber-500/20 text-amber-400 border-amber-400/60 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
+                                                : 'bg-slate-900 text-slate-500 hover:text-amber-400 border-white/10 hover:border-amber-400/40'
+                                            }`}
+                                          >
+                                            <Star className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
+                                          </button>
+
+                                          <img
+                                            src={getCoinLogoUrl(rev.symbol, rev.logoUrl, rev.coingeckoId)}
+                                            alt={rev.name}
+                                            className="w-7 h-7 rounded-xl border border-cyber-cyan/30 object-contain bg-slate-950 p-0.5 shrink-0"
+                                            referrerPolicy="no-referrer"
+                                            onError={(e) => {
+                                              (e.target as HTMLElement).style.display = 'none';
+                                            }}
+                                          />
+                                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                                            <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
+                                              {rev.name}
+                                            </span>
+                                            <span className="font-mono text-[11px] text-cyber-cyan font-bold uppercase shrink-0">
+                                              [{rev.symbol}]
+                                            </span>
+                                            <span className="font-mono text-[9px] text-cyber-text-muted bg-slate-900 px-1.5 py-0.2 rounded border border-white/5 shrink-0 hidden md:inline-block">
+                                              {rev.category}
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                          {rev.livePrice !== undefined && (
+                                            <span className="font-mono text-xs font-bold text-white bg-slate-900 border border-cyber-cyan/20 px-2 py-0.5 rounded-lg hidden sm:inline-block">
+                                              ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </span>
+                                          )}
+                                          <span className={`border text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wide hidden xs:inline-block ${riskStyles.bg} ${riskStyles.text}`}>
+                                            {rev.riskLevel}
                                           </span>
-                                          <span className="font-mono text-[11px] text-cyber-cyan font-bold uppercase shrink-0">
-                                            [{rev.symbol}]
-                                          </span>
-                                          <span className="font-mono text-[9px] text-cyber-text-muted bg-slate-900 px-1.5 py-0.2 rounded border border-white/5 shrink-0 hidden md:inline-block">
-                                            {rev.category}
-                                          </span>
+                                          <button
+                                            type="button"
+                                            className="px-2.5 py-1 rounded-lg bg-cyber-cyan/15 group-hover:bg-cyber-cyan border border-cyber-cyan/30 text-cyber-cyan group-hover:text-slate-950 font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-1 shadow-sm"
+                                          >
+                                            <span>Audit</span>
+                                            <ArrowRight className="w-3 h-3" />
+                                          </button>
                                         </div>
                                       </div>
-
-                                      <div className="flex items-center gap-2 shrink-0">
-                                        {rev.livePrice !== undefined && (
-                                          <span className="font-mono text-xs font-bold text-white bg-slate-900 border border-cyber-cyan/20 px-2 py-0.5 rounded-lg hidden sm:inline-block">
-                                            ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                          </span>
-                                        )}
-                                        <span className={`border text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wide hidden xs:inline-block ${riskStyles.bg} ${riskStyles.text}`}>
-                                          {rev.riskLevel}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          className="px-2.5 py-1 rounded-lg bg-cyber-cyan/15 group-hover:bg-cyber-cyan border border-cyber-cyan/30 text-cyber-cyan group-hover:text-slate-950 font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-1 shadow-sm"
-                                        >
-                                          <span>Audit</span>
-                                          <ArrowRight className="w-3 h-3" />
-                                        </button>
-                                      </div>
-                                    </div>
+                                    </motion.div>
                                   );
                                 })}
                               </div>
@@ -1067,63 +1679,8 @@ export default function BlogPreviewer({
                     </div>
                   </div>
 
-                  {/* Right Column: Refined Cyber Sidebar */}
-                  <aside className="space-y-5">
-                    {/* Widget 1: Top Rated Security Audits */}
-                    <div className="bg-slate-900/60 backdrop-blur-md border border-cyber-cyan/20 rounded-2xl p-4 text-left relative overflow-hidden shadow-lg group">
-                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/50 to-transparent"></div>
-                      <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5 mb-3">
-                        <h4 className="font-mono text-xs font-bold text-cyber-text-primary uppercase tracking-widest flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-                          Top Rated Audits
-                        </h4>
-                        <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-full">
-                          HIGH SCORE
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        {reviews
-                          .slice()
-                          .sort((a, b) => b.overallScore - a.overallScore)
-                          .slice(0, 4)
-                          .map((item) => {
-                            const gradeStyles = getGradeBadgeStyles(item.grade, item.overallScore);
-                            return (
-                              <motion.button
-                                key={item.id}
-                                whileHover={{ scale: 1.02, x: 2 }}
-                                transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                                onClick={() => {
-                                  setActiveReviewId(item.id);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="w-full text-left group flex items-center justify-between p-2.5 bg-slate-950/40 hover:bg-cyber-cyan/10 border border-white/5 hover:border-cyber-cyan/35 rounded-xl transition-all cursor-pointer hover:shadow-[0_4px_16px_rgba(0,229,255,0.12)]"
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                  <div className="w-8 h-8 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/25 flex items-center justify-center font-mono text-[9px] font-bold text-cyber-cyan group-hover:border-cyber-cyan/50 group-hover:bg-cyber-cyan/20 transition-colors shrink-0">
-                                    {item.symbol}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <div className="text-xs font-bold text-cyber-text-primary truncate group-hover:text-cyber-cyan transition-colors">
-                                      {item.name}
-                                    </div>
-                                    <div className="text-[9.5px] font-mono text-cyber-text-secondary truncate">
-                                      {item.category}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-right shrink-0">
-                                  <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${gradeStyles.bg} ${gradeStyles.text} ${gradeStyles.border}`}>
-                                    {item.grade} • {item.overallScore}%
-                                  </span>
-                                </div>
-                              </motion.button>
-                            );
-                          })}
-                      </div>
-                    </div>
-
-                    {/* Widget 2: AI Auditor Sandbox Card */}
+                  {/* Right Column: AI Auditor Sandbox Card */}
+                  <div className="lg:col-span-5">
                     <div className="bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-cyber-cyan/10 backdrop-blur-md border border-cyber-cyan/35 rounded-2xl p-4.5 text-left relative overflow-hidden shadow-xl group">
                       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
                       <div className="flex items-center gap-2 mb-2">
@@ -1149,7 +1706,7 @@ export default function BlogPreviewer({
                         Launch AI Auditor Chat →
                       </button>
                     </div>
-                  </aside>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1182,7 +1739,7 @@ export default function BlogPreviewer({
           className="max-w-3xl mx-auto bg-cyber-bg-card border border-cyber-cyan/15 rounded-xl shadow-2xl overflow-hidden"
         >
           {/* Top navigation back link */}
-          <div className="px-5 py-3 md:py-3.5 bg-cyber-bg-secondary/60 border-b border-cyber-cyan/15 flex items-center justify-between">
+          <div className="px-5 py-3 md:py-3.5 bg-cyber-bg-secondary/60 border-b border-cyber-cyan/15 flex items-center justify-between gap-3 flex-wrap">
             <button
               onClick={handleBackToList}
               className="text-xs md:text-sm font-display uppercase tracking-wider text-cyber-text-secondary hover:text-cyber-cyan flex items-center gap-1.5 cursor-pointer font-bold py-1 px-2.5 rounded-lg hover:bg-cyber-cyan/10 border border-transparent hover:border-cyber-cyan/20 transition-all"
@@ -1191,14 +1748,82 @@ export default function BlogPreviewer({
               <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-cyber-cyan" />
               <span>Back to List</span>
             </button>
-            <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-cyber-text-muted uppercase tracking-widest">
-              <Flame className="w-3.5 h-3.5 text-cyber-orange" />
-              <span>Full Project Audit Report</span>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={(e) => toggleWatchlist(activeReview.id, e)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  watchlist.includes(activeReview.id)
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_12px_rgba(251,191,36,0.3)]'
+                    : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-white/10 hover:border-amber-400/40'
+                }`}
+                title={watchlist.includes(activeReview.id) ? 'Unpin from Watchlist' : 'Pin to Watchlist'}
+              >
+                <Star className={`w-3.5 h-3.5 ${watchlist.includes(activeReview.id) ? 'fill-amber-400 text-amber-400' : ''}`} />
+                <span className="hidden sm:inline">{watchlist.includes(activeReview.id) ? 'Pinned to Watchlist' : 'Add to Watchlist'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => toggleNotification(activeReview.id, e)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  notifiedProjects.includes(activeReview.id)
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                    : 'bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 border border-white/10 hover:border-emerald-400/40'
+                }`}
+                title={notifiedProjects.includes(activeReview.id) ? 'Risk Re-Scan Notifications Active' : 'Get Notified on Risk Changes'}
+              >
+                {notifiedProjects.includes(activeReview.id) ? <BellRing className="w-3.5 h-3.5 text-emerald-400 animate-bounce" /> : <Bell className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">{notifiedProjects.includes(activeReview.id) ? 'Notifications Active' : 'Get Notified'}</span>
+              </button>
+
+              {isAdminMaster && activeReview && (
+                <button
+                  type="button"
+                  onClick={() => setShowPromoteModal(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition-all cursor-pointer shadow-md shadow-amber-500/10"
+                  title="Admin: Promote current review to canonical reference store"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Promote to Canonical</span>
+                </button>
+              )}
+
+              <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-cyber-text-muted uppercase tracking-widest">
+                <Flame className="w-3.5 h-3.5 text-cyber-orange" />
+                <span>Full Project Audit Report</span>
+              </div>
             </div>
           </div>
 
           {/* Reading body */}
           <div className="p-4 md:p-6.5 space-y-5 md:space-y-6">
+            {notifiedProjects.includes(activeReview.id) && (
+              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
+                <div className="flex items-center gap-2.5 text-emerald-300">
+                  <BellRing className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse mt-0.5 sm:mt-0" />
+                  <span>Monitoring Active: Browser & UI alerts will trigger if <strong className="text-white">{activeReview.name}</strong> risk level changes significantly after re-scans.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const oldRisk = activeReview.riskLevel || 'Low';
+                    const newRisk = oldRisk === 'Low' ? 'High' : 'Low';
+                    if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
+                      new Notification('🚨 CRL Audit Risk Alert', {
+                        body: `${activeReview.name} risk level changed significantly from ${oldRisk} to ${newRisk} after automated security re-scan!`
+                      });
+                    }
+                    alert(`🚨 SIMULATED RE-SCAN RISK ALERT:\n\nProject: ${activeReview.name} (${activeReview.symbol})\nRisk level shifted significantly from [${oldRisk}] to [${newRisk}]!\n\nBrowser-based alert & UI notification dispatched successfully.`);
+                  }}
+                  className="w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 font-bold tracking-wide transition-all cursor-pointer border border-emerald-500/40 shrink-0 text-center"
+                >
+                  Simulate Re-Scan Test
+                </button>
+              </div>
+            )}
+
             {/* Blog Post Title block */}
             <div className="space-y-2.5 border-b border-cyber-cyan/15 pb-4">
               <div className="flex items-center gap-3">
@@ -1225,142 +1850,188 @@ export default function BlogPreviewer({
               <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3.5 text-[10px] md:text-xs text-cyber-text-secondary font-mono uppercase tracking-wider pt-2 border-t border-cyber-cyan/10">
                 <span className="flex items-center gap-1">
                   <User className="w-3.5 h-3.5 text-cyber-cyan" />
-                  {activeReview.author}
+                  {activeReview.author?.toLowerCase().includes('coingecko') && !activeReview.author?.toLowerCase().includes('cmc')
+                    ? 'COINGECKO + CMC + COINSTATS TRI-SYNC ENGINE'
+                    : activeReview.author}
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-cyber-cyan" />
                   Updated: {activeReview.createdAt}
                 </span>
                 <span className="text-cyber-text-muted select-none">•</span>
-                <span className="text-cyber-green font-bold">Audit Verified</span>
+                <span className="text-cyber-green font-bold">Framework Verified</span>
               </div>
             </div>
 
-            {/* CoinGecko Real-Time Market Data Card */}
+            {/* CoinGecko + CMC + CoinStats Tri-Sync Market Engine Data Card with Framer Motion Count-Up Animations */}
             {activeReview.livePrice !== undefined && (
-              <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-cyber-cyan/30 rounded-2xl p-4 text-left relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
-                <div className="flex flex-wrap items-center justify-between border-b border-cyber-cyan/15 pb-2.5 mb-3 gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="p-1 rounded bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan font-mono text-[10px] font-bold">
-                      COINGECKO LIVE MARKET FEED
-                    </span>
-                    <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                      {activeReview.name} ({activeReview.symbol})
-                    </span>
-                  </div>
-                  {activeReview.lastSyncedAt && (
-                    <span className="text-[10px] font-mono text-slate-400">
-                      Synced: {activeReview.lastSyncedAt}
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center sm:text-left">
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
-                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block mb-0.5">Live USD Price</span>
-                    <span className="text-base font-mono font-bold text-white">
-                      ${activeReview.livePrice < 1 ? activeReview.livePrice.toFixed(4) : activeReview.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
-                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block mb-0.5">24h Price Change</span>
-                    <span className={`text-base font-mono font-bold ${activeReview.liveChange24h !== undefined && activeReview.liveChange24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {activeReview.liveChange24h !== undefined ? `${activeReview.liveChange24h >= 0 ? '▲ +' : '▼ '}${activeReview.liveChange24h.toFixed(2)}%` : 'N/A'}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
-                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block mb-0.5">CoinGecko Rank</span>
-                    <span className="text-base font-mono font-bold text-cyber-cyan">
-                      #{activeReview.liveRank || 'N/A'}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-slate-950/80 border border-white/5">
-                    <span className="text-[9.5px] font-mono uppercase text-slate-400 block mb-0.5">24h Volume</span>
-                    <span className="text-base font-mono font-bold text-white">
-                      ${activeReview.liveVolume24h ? (activeReview.liveVolume24h >= 1e9 ? `${(activeReview.liveVolume24h / 1e9).toFixed(2)}B` : `${(activeReview.liveVolume24h / 1e6).toFixed(1)}M`) : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <MarketMetricsTable
+                data={activeReview}
+                onRefresh={onSyncCoinGecko}
+                isRefreshing={isSyncingCoinGecko}
+              />
             )}
 
-            {/* Score Showcase Hero */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-cyber-bg-primary/50 border border-cyber-cyan/15 rounded-xl p-4 md:p-4.5">
-              <div className="flex flex-col items-center justify-center p-3 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none mb-1.5">Audit Rating</span>
-                <span className="text-4xl md:text-4.5xl font-display font-black text-cyber-cyan tracking-wider">{activeReview.grade}</span>
-                <span className="text-[10px] md:text-xs font-mono text-cyber-text-secondary uppercase mt-2">Audit Score: {activeReview.overallScore}/100</span>
-              </div>
+            {/* Live Historical Price Chart with Multi-Timeframes & AI Trend Forecast Projection */}
+            <CryptoPriceChart
+              coinId={activeReview.coingeckoId || activeReview.symbol.toLowerCase()}
+              symbol={activeReview.symbol}
+              name={activeReview.name}
+              currentPrice={activeReview.livePrice || 0}
+              change24h={activeReview.liveChange24h || 0}
+              marketCap={activeReview.liveMarketCap}
+              volume24h={activeReview.liveVolume24h}
+              allTimeLow={activeReview.atl || activeReview.allTimeLow}
+              allTimeHigh={activeReview.ath || activeReview.allTimeHigh}
+              atlChangePct={activeReview.atlChangePct}
+              athChangePct={activeReview.athChangePct}
+              totalSupply={activeReview.totalSupply}
+              circulatingSupply={activeReview.circulatingSupply}
+              maxSupply={activeReview.maxSupply}
+            />
 
-              <div className="col-span-2 space-y-2 p-0.5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Core Security Metrics</span>
-                <div className="space-y-2">
-                  {[
-                    { label: 'Utility', val: activeReview.scores.utility },
-                    { label: 'Tokenomics', val: activeReview.scores.tokenomics },
-                    { label: 'Security/Code', val: activeReview.scores.security },
-                    { label: 'Team', val: activeReview.scores.team },
-                    { label: 'Community', val: activeReview.scores.community },
-                  ].map((metric, index) => (
-                    <div key={index} className="flex items-center gap-2 text-[11px] md:text-xs font-sans">
-                      <span className="w-20 text-cyber-text-secondary font-display font-bold uppercase tracking-wider text-left text-[10px]">{metric.label}</span>
-                      <div className="flex-1 h-1.5 bg-cyber-bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-cyber-cyan rounded-full" style={{ width: `${metric.val * 10}%` }}></div>
-                      </div>
-                      <span className="w-8 text-right font-mono text-cyber-cyan font-semibold">{metric.val}/10</span>
+            {/* Score Showcase Hero - Institutional Audit Rating & Security Dimension Metrics */}
+            {(() => {
+              const activeBlueprint = calculateBlueprintScore(activeReview.scores || { utility: 5, tokenomics: 5, security: 5, team: 5, community: 5 }, activeReview.category);
+              const overallColor = activeBlueprint.overallScore >= 75 ? 'text-emerald-400' : activeBlueprint.overallScore >= 50 ? 'text-amber-400' : 'text-rose-400';
+              return (
+                <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                    {/* Col 1: Grade & Overall Rating */}
+                    <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-1.5">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Audit Rating</span>
+                      <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.grade}</span>
+                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Audit Score: {activeBlueprint.overallScore}/100</span>
+                      <span className={`text-[10px] font-mono font-extrabold uppercase px-3 py-1 rounded-full border mt-1 ${activeBlueprint.overallScore >= 75 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : activeBlueprint.overallScore >= 50 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
+                        {activeBlueprint.overallScore >= 75 ? 'Low Systemic Risk' : activeBlueprint.overallScore >= 50 ? 'Moderate Caution' : 'High Security Risk'}
+                      </span>
                     </div>
-                  ))}
+
+                    {/* Col 2: Color-Coded Dimension Bars & Indices */}
+                    <div className="md:col-span-8 space-y-2.5 p-0.5">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Core Security Metrics</span>
+                        <span className="text-[10px] font-mono text-slate-400">Value-Proportional Color Indices</span>
+                      </div>
+                      <div className="space-y-3">
+                        {[
+                          { label: 'Utility', val: activeReview.scores.utility },
+                          { label: 'Tokenomics', val: activeReview.scores.tokenomics },
+                          { label: 'Security/Code', val: activeReview.scores.security },
+                          { label: 'Team', val: activeReview.scores.team },
+                          { label: 'Community', val: activeReview.scores.community },
+                        ].map((metric, index) => {
+                          const c = getMetricColor(metric.val);
+                          return (
+                            <div key={index} className="flex items-center gap-3 text-[11px] md:text-xs font-sans">
+                              <span className="w-28 text-slate-200 font-display font-bold uppercase tracking-wider text-left text-[11px] truncate">{metric.label}</span>
+                              <div className="flex-1 h-2 bg-slate-950/80 border border-slate-800 rounded-full overflow-hidden p-0.5">
+                                <div className={`h-full ${c.bgClass} rounded-full transition-all duration-700`} style={{ width: `${metric.val * 10}%` }}></div>
+                              </div>
+                              <span className={`w-12 text-right font-mono font-extrabold text-[12px] ${c.textClass}`}>{metric.val}/10</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              );
+            })()}
+
+            {/* Data Engine Provenance Badge & Evaluation Blueprint Overview & Security Alerts */}
+            <div className="space-y-3.5 my-3 text-left">
+              {/* Tri-Oracle Data Source Provenance Badge */}
+              <div className="bg-slate-950/80 border border-cyber-cyan/20 p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shadow-md">
+                <span className="flex items-center gap-2 text-cyber-cyan font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Tri-Sync
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Cross-validated real-time market depth, historical candle feeds & tri-oracle rank synchronization
+                </span>
               </div>
+
+              {/* Evaluation Blueprint Overview */}
+              <div className="bg-slate-950/60 border border-cyber-cyan/20 rounded-xl p-4 space-y-1.5 shadow-md">
+                <h3 className="font-display font-bold text-xs md:text-sm text-cyber-cyan uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-1.5 h-3.5 bg-cyber-cyan rounded-full"></span>
+                  Evaluation Blueprint Overview
+                </h3>
+                <p className="text-xs md:text-sm font-sans text-slate-200 leading-relaxed">
+                  <strong className="text-white font-bold">{activeReview.name} ({activeReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.
+                </p>
+              </div>
+
+              {/* Major Events & Critical Security Alerts Box */}
+              <MajorEventsAlertBox 
+                name={activeReview.name} 
+                symbol={activeReview.symbol} 
+                category={activeReview.category}
+                scores={activeReview.scores}
+                overallScore={activeReview.overallScore}
+                riskLevel={activeReview.riskLevel}
+                coingeckoId={activeReview.coingeckoId}
+                contractAddress={activeReview.contractAddress}
+                chainId={activeReview.chainId}
+              />
             </div>
 
-            {/* Pros & Cons Editorial card */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 border-y border-cyber-cyan/15 py-4">
-              <div className="space-y-2.5">
-                <h4 className="text-xs md:text-sm font-display font-bold uppercase tracking-wider text-cyber-green flex items-center gap-1.5 text-left">
-                  <CheckCircle className="w-4 h-4 text-cyber-green" />
-                  Core Catalysts
+            {/* Institutional Benchmark Comparison Section */}
+            {activeReview.comparisonReport && (
+              <ComparisonReportView 
+                data={activeReview.comparisonReport} 
+                isPaidPro={Boolean(activeReview.proBenchmarks)}
+                onUnlockPro={() => {
+                  if (onLaunchProEvaluation) {
+                    onLaunchProEvaluation({
+                      name: activeReview.name,
+                      symbol: activeReview.symbol,
+                      category: activeReview.category
+                    });
+                  } else if (setActiveTab) {
+                    setActiveTab('lab');
+                  }
+                }}
+              />
+            )}
+
+            {/* Evaluation Blueprint Terminal Launcher - Security & Risk Assessment CTA */}
+            <div className="my-6 p-4 sm:p-6 bg-gradient-to-r from-slate-950 via-purple-950/40 to-slate-950 border border-purple-500/30 rounded-2xl shadow-xl max-w-2xl mx-auto flex flex-col items-center text-center gap-4 sm:gap-5 w-full">
+              <div className="flex flex-col items-center space-y-2 max-w-xl w-full">
+                <div className="flex items-center gap-2 justify-center">
+                  <Cpu className="w-4 h-4 text-cyan-400 animate-spin shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-mono font-bold text-cyan-300 uppercase tracking-widest">
+                    Security & Risk Advisory Desk
+                  </span>
+                </div>
+                <h4 className="font-display font-black text-sm sm:text-base md:text-lg text-slate-100 leading-snug px-2">
+                  Request Security & Risk Assessment for {activeReview.name} ({activeReview.symbol})
                 </h4>
-                <ul className="space-y-1.5">
-                  {activeReview.pros.map((pro, i) => (
-                    <li key={i} className="text-xs text-cyber-text-secondary leading-relaxed flex items-start gap-2 text-left">
-                      <span className="text-cyber-green font-bold">✓</span>
-                      <span>{pro}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-mono leading-relaxed px-2">
+                  B2B diagnostic advisory: Conducted prior to public launch, contract upgrades, or whenever detailed security verification is required.
+                </p>
               </div>
 
-              <div className="space-y-2.5">
-                <h4 className="text-xs md:text-sm font-display font-bold uppercase tracking-wider text-cyber-orange flex items-center gap-1.5 text-left">
-                  <AlertTriangle className="w-4 h-4 text-cyber-orange" />
-                  Primary Obstacles
-                </h4>
-                <ul className="space-y-1.5">
-                  {activeReview.cons.map((con, i) => (
-                    <li key={i} className="text-xs text-cyber-text-secondary leading-relaxed flex items-start gap-2 text-left">
-                      <span className="text-cyber-orange font-bold">✗</span>
-                      <span>{con}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex items-stretch justify-center w-full max-w-md">
+                <button
+                  onClick={() => {
+                    if (onLaunchProEvaluation) {
+                      onLaunchProEvaluation({
+                        name: activeReview.name,
+                        symbol: activeReview.symbol,
+                        category: activeReview.category
+                      });
+                    } else if (setActiveTab) {
+                      setActiveTab('lab');
+                    }
+                  }}
+                  className="w-full px-5 py-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-display font-black text-xs sm:text-sm uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.35)] hover:shadow-[0_0_28px_rgba(245,158,11,0.5)] flex items-center justify-center gap-2 border border-amber-300/40"
+                >
+                  <Crown className="w-4 h-4 text-slate-950 fill-slate-950 shrink-0" />
+                  <span>Launch Security Assessment ›</span>
+                </button>
               </div>
-            </div>
-
-            {/* Main blog markdown body */}
-            <article className="prose prose-invert max-w-none text-cyber-text-secondary text-xs md:text-sm leading-relaxed text-left">
-              {renderContentMarkdown(activeReview.summary)}
-            </article>
-
-            {/* Disclaimer disclaimer */}
-            <div className="bg-cyber-bg-primary/30 border border-cyber-cyan/15 p-4 md:p-3.5 rounded-xl text-center">
-              <p className="text-[10px] md:text-[11px] font-mono text-cyber-text-muted uppercase tracking-wider leading-relaxed">
-                Disclaimer: The evaluations generated by Crypto Review Lab represent algorithmic and analytical simulations based on available web3 criteria. This is not financial, legal, or investment advice. Hold assets at your own risk.
-              </p>
             </div>
 
             {/* Bottom Action Bar: Back to List Button & Social Share Toolbar */}
@@ -1424,6 +2095,14 @@ export default function BlogPreviewer({
               </div>
             </div>
           </div>
+
+          {activeReview && (
+            <PromoteCanonicalModal
+              isOpen={showPromoteModal}
+              onClose={() => setShowPromoteModal(false)}
+              newReview={activeReview}
+            />
+          )}
         </motion.div>
       ) : null}
     </div>

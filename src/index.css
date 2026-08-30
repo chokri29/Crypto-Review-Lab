@@ -1,10 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Outfit:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Michroma&family=Syncopate:wght@400;700&family=Audiowide&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Share+Tech+Mono&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Rajdhani", sans-serif;
+  --font-sans: "Exo 2", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Orbitron", "Rajdhani", sans-serif;
   --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-orbitron: "Orbitron", sans-serif;
+  --font-michroma: "Michroma", sans-serif;
+  --font-syncopate: "Syncopate", sans-serif;
+  --font-audiowide: "Audiowide", cursive;
 
   --color-cyber-bg-primary: #080c10;
   --color-cyber-bg-secondary: #0d1117;
@@ -20,6 +24,23 @@
 }
 
 /* === Custom Global Cyber Aesthetic === */
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
 html {
   font-size: 16.5px;
   -webkit-text-size-adjust: 100%;
@@ -50,7 +71,6 @@ body {
   font-size: 1rem;
   font-weight: 350;
   line-height: 1.7;
-  overflow-x: hidden;
   position: relative;
 }
 
@@ -229,6 +249,76 @@ iframe[src*="transparencybadge"] {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* === FUTURISTIC CRYPTO AI TYPOGRAPHY (INSPIRED BY IMAGES 1 & 2) === */
+
+/* Image 1 Style: Neon sci-fi glowing title with high-tech flares & double-stroke vibes */
+.font-futuristic-neon {
+  font-family: 'Orbitron', 'Michroma', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 
+    0 0 8px rgba(0, 229, 255, 0.9),
+    0 0 20px rgba(0, 229, 255, 0.6),
+    0 0 35px rgba(0, 229, 255, 0.3);
+}
+
+/* Image 2 Style: Clean minimal wide sci-fi typography with lens flare glow */
+.font-futuristic-clean {
+  font-family: 'Michroma', 'Syncopate', 'Orbitron', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #f8fafc;
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+}
+
+/* Cyber Title Gradient Text with high-tech glow */
+.font-cyber-title {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, #ffffff 0%, #00e5ff 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.5));
+}
+
+/* Custom mobile horizontal touch-scrolling scrollbar styling for Benchmark Comparison */
+.benchmark-touch-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+.benchmark-touch-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.benchmark-touch-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 4px;
+}
+
+.benchmark-touch-scroll::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.4);
+  border-radius: 4px;
+}
+
+.benchmark-touch-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.7);
+}
+
+/* Secondary Tech Label Style */
+.font-tech-label {
+  font-family: 'Share Tech Mono', 'Orbitron', monospace;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
 
 
 
