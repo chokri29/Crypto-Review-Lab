@@ -7,7 +7,6 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
@@ -181,9 +180,8 @@ function getFriendlyErrorMessage(error: any): string {
   return errMsg;
 }
 
-async function startServer() {
+export function createServerApp() {
   const app = express();
-  const PORT = 3000;
 
   // Disable X-Powered-By to prevent server information/software versions disclosure
   app.disable("x-powered-by");
@@ -2942,8 +2940,17 @@ ${dualSyncContext}`;
     }
   });
 
+  return app;
+}
+
+export const app = createServerApp();
+
+async function startServer() {
+  const PORT = 3000;
+
   // Vite Dev Server middleware integration
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -2962,4 +2969,9 @@ ${dualSyncContext}`;
   });
 }
 
-startServer();
+// Only start standalone HTTP server when not running in serverless environments like Vercel
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
