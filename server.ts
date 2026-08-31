@@ -269,8 +269,6 @@ function formatExteriorEvidence(securityScan: any, marketSnapshot: any, contract
       const riskNames = sData.rugcheckRisks?.length ? ` (Risks: ${sData.rugcheckRisks.map((r: any) => r.name || r).join(', ')})` : '';
       facts.push(`RugCheck score: ${sData.rugcheckScore}${riskNames}`);
     }
-    if (sData.verified_contract !== undefined) facts.push(`Moralis verified contract: ${sData.verified_contract ? 'Yes' : 'No'}`);
-    if (sData.possible_spam !== undefined) facts.push(`Moralis spam flag: ${sData.possible_spam ? 'YES' : 'No'}`);
     if (sData.top10HolderConcentrationPct !== undefined) {
       facts.push(`Top 10 holder concentration: ${sData.top10HolderConcentrationPct}%`);
     }
@@ -1593,26 +1591,30 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     return str;
   }
 
-  function resolveMoralisChain(chainInput: string | number): string {
+  function resolveAlchemySubdomain(chainInput: string | number): string | null {
     const str = String(chainInput).toLowerCase().trim();
-    if (str === "1" || str === "eth" || str === "ethereum" || str === "mainnet") return "0x1";
-    if (str === "56" || str === "bsc" || str === "binance" || str === "bnb") return "0x38";
-    if (str === "137" || str === "polygon" || str === "matic") return "0x89";
-    if (str === "42161" || str === "arbitrum" || str === "arb") return "0xa4b1";
-    if (str === "10" || str === "optimism" || str === "op") return "0xa";
-    if (str === "43114" || str === "avalanche" || str === "avax") return "0xa86a";
-    if (str === "8453" || str === "base") return "0x2105";
-    if (str === "59144" || str === "linea") return "0xe708";
-    if (str === "534352" || str === "scroll") return "0x82750";
-    if (str === "324" || str === "zksync") return "0x144";
-    if (str === "25" || str === "cronos") return "0x19";
-    if (str === "100" || str === "gnosis") return "0x64";
+    if (str === "1" || str === "eth" || str === "ethereum" || str === "mainnet") return "eth-mainnet";
+    if (str === "137" || str === "polygon" || str === "matic") return "polygon-mainnet";
+    if (str === "42161" || str === "arbitrum" || str === "arb") return "arb-mainnet";
+    if (str === "10" || str === "optimism" || str === "op") return "opt-mainnet";
+    if (str === "8453" || str === "base") return "base-mainnet";
+    if (str === "59144" || str === "linea") return "linea-mainnet";
+    if (str === "534352" || str === "scroll") return "scroll-mainnet";
+    if (str === "324" || str === "zksync") return "zksync-mainnet";
+    if (str === "43114" || str === "avalanche" || str === "avax") return "avax-mainnet";
+    if (str === "100" || str === "gnosis") return "gnosis-mainnet";
+    if (str === "5000" || str === "mantle") return "mantle-mainnet";
+    if (str === "81457" || str === "blast") return "blast-mainnet";
+    if (str === "48900" || str === "zircuit") return "zircuit-mainnet";
+    if (str === "80094" || str === "berachain") return "berachain-mainnet";
+    if (str === "480" || str === "worldchain") return "worldchain-mainnet";
+    if (str === "4200" || str === "merlin") return "merlin-mainnet";
+    if (str === "169" || str === "manta") return "manta-mainnet";
+    if (str === "146" || str === "sonic") return "sonic-mainnet";
+    if (str === "185" || str === "mint") return "mint-mainnet";
+    if (str === "196" || str === "xlayer") return "xlayer-mainnet";
 
-    const num = parseInt(str, 10);
-    if (!isNaN(num) && num > 0) {
-      return "0x" + num.toString(16);
-    }
-    return str;
+    return null;
   }
 
   function parseGoPlusTokenData(tokenData: any) {
@@ -1837,50 +1839,77 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
   }
 
-  async function runMoralisScan(chainId: string, contractAddress: string, isSolana: boolean, isSui: boolean): Promise<SecurityProviderOutcome> {
+  async function runAlchemyScan(chainId: string, contractAddress: string, isSolana: boolean, isSui: boolean): Promise<SecurityProviderOutcome> {
     if (isSolana || isSui) {
-      return { status: "UNAVAILABLE", error: "Moralis corroboration is only applicable for EVM chains" };
+      return { status: "UNAVAILABLE", error: "Alchemy corroboration is only applicable for EVM chains" };
     }
 
-    const moralisKey = (process.env.MORALIS_API_KEY || "").trim();
-    if (!moralisKey) {
-      return { status: "UNAVAILABLE", error: "MORALIS_API_KEY not configured" };
+    const alchemyKey = (process.env.ALCHEMY_API_KEY || "").trim();
+    if (!alchemyKey) {
+      return { status: "UNAVAILABLE", error: "ALCHEMY_API_KEY not configured" };
     }
 
-    const moralisChain = resolveMoralisChain(chainId);
-    const headers = {
-      "Accept": "application/json",
-      "X-API-Key": moralisKey
-    };
+    const subdomain = resolveAlchemySubdomain(chainId);
+    if (!subdomain) {
+      return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by Alchemy` };
+    }
 
     let isMetadataTimeout = false;
     let isMetadataFailed = false;
     let isOwnersTimeout = false;
     let isOwnersFailed = false;
-    let verified_contract: boolean | undefined;
-    let possible_spam: boolean | undefined;
+
+    let tokenName: string | undefined;
+    let tokenSymbol: string | undefined;
+    let decimals: number | undefined;
+    let logo: string | undefined;
     let top10HolderConcentrationPct: number | undefined;
     let hasAnyField = false;
 
-    // Run metadata and owners requests concurrently
+    // Run metadata (JSON-RPC) and owners requests concurrently
     await Promise.allSettled([
+      // 1. alchemy_getTokenMetadata via JSON-RPC POST
       (async () => {
-        const metaUrl = `https://deep-index.moralis.io/api/v2.2/erc20/metadata?chain=${encodeURIComponent(moralisChain)}&addresses=${encodeURIComponent(contractAddress)}`;
+        const metaUrl = `https://${subdomain}.g.alchemy.com/v2/${alchemyKey}`;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const metaRes = await fetch(metaUrl, { headers, signal: controller.signal });
+          const metaRes = await fetch(metaUrl, {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              id: 1,
+              jsonrpc: "2.0",
+              method: "alchemy_getTokenMetadata",
+              params: [contractAddress]
+            }),
+            signal: controller.signal
+          });
           clearTimeout(timeout);
           if (metaRes.ok) {
             const metaJson = await metaRes.json();
-            const metaObj = Array.isArray(metaJson) ? metaJson[0] : (metaJson && typeof metaJson === "object" ? metaJson : null);
-            if (metaObj) {
-              if (typeof metaObj.verified_contract === "boolean") {
-                verified_contract = metaObj.verified_contract;
+            const result = metaJson?.result;
+            if (result && typeof result === "object") {
+              if (result.name) {
+                tokenName = String(result.name);
                 hasAnyField = true;
               }
-              if (typeof metaObj.possible_spam === "boolean") {
-                possible_spam = metaObj.possible_spam;
+              if (result.symbol) {
+                tokenSymbol = String(result.symbol);
+                hasAnyField = true;
+              }
+              if (result.decimals !== undefined && result.decimals !== null) {
+                const dec = Number(result.decimals);
+                if (!isNaN(dec)) {
+                  decimals = dec;
+                  hasAnyField = true;
+                }
+              }
+              if (result.logo) {
+                logo = String(result.logo);
                 hasAnyField = true;
               }
             }
@@ -1896,31 +1925,83 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           }
         }
       })(),
+      // 2. Token holders endpoint for top-10 holder concentration
       (async () => {
-        const ownersUrl = `https://deep-index.moralis.io/api/v2.2/erc20/${encodeURIComponent(contractAddress)}/owners?chain=${encodeURIComponent(moralisChain)}&limit=10&order=DESC`;
+        const ownersUrl = `https://${subdomain}.g.alchemy.com/nft/v3/${alchemyKey}/getOwnersForContract?contractAddress=${encodeURIComponent(contractAddress)}&withTokenBalances=true`;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const ownersRes = await fetch(ownersUrl, { headers, signal: controller.signal });
+          const ownersRes = await fetch(ownersUrl, {
+            headers: { "Accept": "application/json" },
+            signal: controller.signal
+          });
           clearTimeout(timeout);
           if (ownersRes.ok) {
             const ownersJson = await ownersRes.json();
-            const ownersList = Array.isArray(ownersJson?.result)
-              ? ownersJson.result
+            const ownersList = Array.isArray(ownersJson?.owners)
+              ? ownersJson.owners
               : Array.isArray(ownersJson)
               ? ownersJson
               : [];
             if (ownersList.length > 0) {
-              let sumPct = 0;
-              for (const owner of ownersList.slice(0, 10)) {
-                const raw = owner.percentage_relative_to_total_supply ?? owner.percentageRelativeToTotalSupply;
-                const pct = typeof raw === "number" ? raw : parseFloat(raw || "0");
-                if (!isNaN(pct) && pct > 0) {
-                  sumPct += pct;
+              const parsedBalances: number[] = [];
+              let sumTotal = 0;
+
+              for (const owner of ownersList) {
+                if (typeof owner === "object" && owner !== null) {
+                  // Direct percentage if provided
+                  const directPct = owner.percentage_relative_to_total_supply ?? owner.percentageRelativeToTotalSupply ?? owner.percentage;
+                  if (directPct !== undefined && directPct !== null) {
+                    const p = typeof directPct === "number" ? directPct : parseFloat(String(directPct));
+                    if (!isNaN(p) && p > 0) {
+                      parsedBalances.push(p);
+                      continue;
+                    }
+                  }
+
+                  // tokenBalances array
+                  if (Array.isArray(owner.tokenBalances) && owner.tokenBalances.length > 0) {
+                    let ownerBal = 0;
+                    for (const tb of owner.tokenBalances) {
+                      const rawBal = tb.balance ?? tb.tokenBalance;
+                      const b = typeof rawBal === "number" ? rawBal : parseFloat(String(rawBal));
+                      if (!isNaN(b) && b > 0) {
+                        ownerBal += b;
+                      }
+                    }
+                    if (ownerBal > 0) {
+                      parsedBalances.push(ownerBal);
+                      sumTotal += ownerBal;
+                      continue;
+                    }
+                  }
+
+                  // Direct balance
+                  const rawB = owner.balance ?? owner.tokenBalance;
+                  if (rawB !== undefined && rawB !== null) {
+                    const b = typeof rawB === "number" ? rawB : parseFloat(String(rawB));
+                    if (!isNaN(b) && b > 0) {
+                      parsedBalances.push(b);
+                      sumTotal += b;
+                    }
+                  }
                 }
               }
-              top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(sumPct * 100) / 100));
-              hasAnyField = true;
+
+              if (parsedBalances.length > 0) {
+                parsedBalances.sort((a, b) => b - a);
+                const top10 = parsedBalances.slice(0, 10);
+                if (sumTotal === 0) {
+                  const sumPct = top10.reduce((acc, val) => acc + val, 0);
+                  top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(sumPct * 100) / 100));
+                  hasAnyField = true;
+                } else if (sumTotal > 0) {
+                  const top10Sum = top10.reduce((acc, val) => acc + val, 0);
+                  const calcPct = (top10Sum / sumTotal) * 100;
+                  top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(calcPct * 100) / 100));
+                  hasAnyField = true;
+                }
+              }
             }
           } else {
             isOwnersFailed = true;
@@ -1937,29 +2018,33 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     ]);
 
     if (hasAnyField) {
-      const moralisData: {
-        verified_contract?: boolean;
-        possible_spam?: boolean;
+      const alchemyData: {
+        tokenName?: string;
+        tokenSymbol?: string;
+        decimals?: number;
+        logo?: string;
         top10HolderConcentrationPct?: number;
       } = {};
-      if (verified_contract !== undefined) moralisData.verified_contract = verified_contract;
-      if (possible_spam !== undefined) moralisData.possible_spam = possible_spam;
-      if (top10HolderConcentrationPct !== undefined) moralisData.top10HolderConcentrationPct = top10HolderConcentrationPct;
+      if (tokenName) alchemyData.tokenName = tokenName;
+      if (tokenSymbol) alchemyData.tokenSymbol = tokenSymbol;
+      if (decimals !== undefined) alchemyData.decimals = decimals;
+      if (logo) alchemyData.logo = logo;
+      if (top10HolderConcentrationPct !== undefined) alchemyData.top10HolderConcentrationPct = top10HolderConcentrationPct;
 
       return {
         status: "AVAILABLE",
-        data: moralisData
+        data: alchemyData
       };
     }
 
     if (isMetadataTimeout && isOwnersTimeout) {
-      return { status: "TIMEOUT", error: "Moralis API requests timed out" };
+      return { status: "TIMEOUT", error: "Alchemy API requests timed out" };
     }
     if (isMetadataFailed && isOwnersFailed) {
-      return { status: "FAILED", error: "Moralis API requests failed" };
+      return { status: "FAILED", error: "Alchemy API requests failed" };
     }
 
-    return { status: "NO_DATA", error: "No metadata or holder concentration records returned by Moralis" };
+    return { status: "NO_DATA", error: "No metadata or holder concentration records returned by Alchemy" };
   }
 
   // --- In-Memory Rate Limiter for /api/security/scan (20 req / 60s per IP) ---
@@ -1992,7 +2077,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   const securityScanCache = new Map<string, SecurityScanCacheEntry>();
   const SECURITY_SCAN_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-  // API endpoint: Independent Multi-Provider Security Scan (GoPlus + RugCheck + Moralis)
+  // API endpoint: Independent Multi-Provider Security Scan (GoPlus + RugCheck + Alchemy)
   app.get("/api/security/scan", async (req, res) => {
     try {
       // 1. Per-IP Rate Limiting (20 req / 60s window)
@@ -2013,14 +2098,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           success: false,
           cached: false,
           error: "Security scan unavailable — no contract address on file",
-          source: "GoPlus / RugCheck / Moralis",
+          source: "GoPlus / RugCheck / Alchemy",
           contractAddress: "",
           chainId: "",
           timestamp: new Date().toISOString(),
           providers: {
             goplus: { status: "UNAVAILABLE", error: "Missing contract address" },
             rugcheck: { status: "UNAVAILABLE", error: "Missing contract address" },
-            moralis: { status: "UNAVAILABLE", error: "Missing contract address" }
+            alchemy: { status: "UNAVAILABLE", error: "Missing contract address" }
           }
         });
       }
@@ -2045,16 +2130,16 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       }
 
       // Execute applicable providers independently in parallel
-      const [goplusResult, rugcheckResult, moralisResult] = await Promise.all([
+      const [goplusResult, rugcheckResult, alchemyResult] = await Promise.all([
         runGoPlusScan(resolvedChainId, contractAddress, isSolana, isSui),
         runRugCheckScan(contractAddress, isSolana),
-        runMoralisScan(resolvedChainId, contractAddress, isSolana, isSui)
+        runAlchemyScan(resolvedChainId, contractAddress, isSolana, isSui)
       ]);
 
       const providers: Record<string, { status: SecurityProviderStatus; error?: string }> = {
         goplus: { status: goplusResult.status, ...(goplusResult.error ? { error: goplusResult.error } : {}) },
         rugcheck: { status: rugcheckResult.status, ...(rugcheckResult.error ? { error: rugcheckResult.error } : {}) },
-        moralis: { status: moralisResult.status, ...(moralisResult.error ? { error: moralisResult.error } : {}) }
+        alchemy: { status: alchemyResult.status, ...(alchemyResult.error ? { error: alchemyResult.error } : {}) }
       };
 
       // Helper to store only success: true results in cache with 6-hour TTL and return with cached: false
@@ -2154,10 +2239,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       }
 
       // EVM Network Logic
-      if (goplusResult.status === "AVAILABLE" && moralisResult.status === "AVAILABLE") {
+      if (goplusResult.status === "AVAILABLE" && alchemyResult.status === "AVAILABLE") {
         return sendAndCacheSuccess({
           success: true,
-          source: "GoPlus Security + Moralis",
+          source: "GoPlus Security + Alchemy",
           contractAddress,
           chainId: resolvedChainId,
           timestamp: new Date().toISOString(),
@@ -2165,10 +2250,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           providers,
           data: {
             ...goplusResult.data,
-            verified_contract: moralisResult.data.verified_contract,
-            possible_spam: moralisResult.data.possible_spam,
-            top10HolderConcentrationPct: moralisResult.data.top10HolderConcentrationPct,
-            moralisCorroboration: moralisResult.data
+            ...(alchemyResult.data.top10HolderConcentrationPct !== undefined
+              ? { top10HolderConcentrationPct: alchemyResult.data.top10HolderConcentrationPct }
+              : {}),
+            alchemyCorroboration: alchemyResult.data
           }
         });
       }
@@ -2186,20 +2271,22 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         });
       }
 
-      if (moralisResult.status === "AVAILABLE") {
-        // GoPlus failed or unavailable, but Moralis succeeded: return Moralis corroboration without fabricating primary GoPlus fields
+      if (alchemyResult.status === "AVAILABLE") {
+        // GoPlus failed or unavailable, but Alchemy succeeded: return Alchemy corroboration without fabricating primary GoPlus fields
         return sendAndCacheSuccess({
           success: true,
-          source: "Moralis Token API (Corroboration)",
+          source: "Alchemy Token API (Corroboration)",
           contractAddress,
           chainId: resolvedChainId,
           timestamp: new Date().toISOString(),
           providers,
           data: {
-            verified_contract: moralisResult.data.verified_contract,
-            possible_spam: moralisResult.data.possible_spam,
-            top10HolderConcentrationPct: moralisResult.data.top10HolderConcentrationPct,
-            moralisCorroboration: moralisResult.data
+            ...(alchemyResult.data.tokenName ? { tokenName: alchemyResult.data.tokenName } : {}),
+            ...(alchemyResult.data.tokenSymbol ? { tokenSymbol: alchemyResult.data.tokenSymbol } : {}),
+            ...(alchemyResult.data.top10HolderConcentrationPct !== undefined
+              ? { top10HolderConcentrationPct: alchemyResult.data.top10HolderConcentrationPct }
+              : {}),
+            alchemyCorroboration: alchemyResult.data
           }
         });
       }
@@ -2209,7 +2296,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         success: false,
         cached: false,
         error: "Security scan unavailable for this network",
-        source: "GoPlus / Moralis",
+        source: "GoPlus / Alchemy",
         contractAddress,
         chainId: resolvedChainId,
         timestamp: new Date().toISOString(),
@@ -2221,14 +2308,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         success: false,
         cached: false,
         error: "Failed to fetch security scan data from providers.",
-        source: "GoPlus / RugCheck / Moralis",
+        source: "GoPlus / RugCheck / Alchemy",
         contractAddress: (req.query.address || req.query.contractAddress || "") as string,
         chainId: (req.query.chain || req.query.chainId || "1") as string,
         timestamp: new Date().toISOString(),
         providers: {
           goplus: { status: "FAILED", error: err.message },
           rugcheck: { status: "FAILED", error: err.message },
-          moralis: { status: "FAILED", error: err.message }
+          alchemy: { status: "FAILED", error: err.message }
         }
       });
     }

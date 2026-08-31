@@ -691,12 +691,12 @@ export default function MajorEventsAlertBox({
           <SecurityBadge label="Ownership" isRisk={isOwnershipRisk} text={ownershipText} />
         </div>
 
-        {/* Optional Moralis Corroboration Telemetry Banner */}
+        {/* Optional Alchemy / On-Chain Corroboration Telemetry Banner */}
         {(data.top10HolderConcentrationPct !== undefined || data.verified_contract !== undefined || data.possible_spam !== undefined) && (
           <div className="mt-2 pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-400 bg-slate-900/40 rounded-lg px-2.5 py-1.5 border border-slate-800/40">
             <div className="flex items-center gap-1.5 text-cyan-400 font-semibold">
               <Sparkles className="w-3 h-3 text-cyan-400" />
-              <span>Moralis Corroboration:</span>
+              <span>Alchemy Corroboration:</span>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {data.top10HolderConcentrationPct !== undefined && (
