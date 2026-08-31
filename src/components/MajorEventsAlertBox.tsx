@@ -58,9 +58,11 @@ export interface SecurityScanData {
   verified_contract?: boolean;
   possible_spam?: boolean;
   top10HolderConcentrationPct?: number;
-  moralisCorroboration?: {
-    verified_contract?: boolean;
-    possible_spam?: boolean;
+  blockscoutCorroboration?: {
+    tokenName?: string;
+    tokenSymbol?: string;
+    decimals?: number;
+    logo?: string;
     top10HolderConcentrationPct?: number;
   };
 }
@@ -691,23 +693,15 @@ export default function MajorEventsAlertBox({
           <SecurityBadge label="Ownership" isRisk={isOwnershipRisk} text={ownershipText} />
         </div>
 
-        {/* Optional Alchemy / On-Chain Corroboration Telemetry Banner */}
-        {(data.top10HolderConcentrationPct !== undefined || data.verified_contract !== undefined || data.possible_spam !== undefined) && (
+        {/* Optional Blockscout / On-Chain Corroboration Telemetry Banner */}
+        {data.top10HolderConcentrationPct !== undefined && (
           <div className="mt-2 pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-slate-400 bg-slate-900/40 rounded-lg px-2.5 py-1.5 border border-slate-800/40">
             <div className="flex items-center gap-1.5 text-cyan-400 font-semibold">
               <Sparkles className="w-3 h-3 text-cyan-400" />
-              <span>Alchemy Corroboration:</span>
+              <span>Blockscout Corroboration:</span>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              {data.top10HolderConcentrationPct !== undefined && (
-                <span>Top 10 Supply: <strong className={data.top10HolderConcentrationPct > 70 ? 'text-amber-300 font-bold' : 'text-slate-200'}>{data.top10HolderConcentrationPct}%</strong></span>
-              )}
-              {data.verified_contract !== undefined && (
-                <span>Contract Verified: <strong className={data.verified_contract ? 'text-emerald-300' : 'text-amber-300'}>{data.verified_contract ? 'Yes' : 'No'}</strong></span>
-              )}
-              {data.possible_spam !== undefined && (
-                <span>Spam Flag: <strong className={data.possible_spam ? 'text-rose-400 font-bold' : 'text-emerald-300'}>{data.possible_spam ? 'FLAGGED' : 'Clean'}</strong></span>
-              )}
+              <span>Top 10 Supply: <strong className={data.top10HolderConcentrationPct > 70 ? 'text-amber-300 font-bold' : 'text-slate-200'}>{data.top10HolderConcentrationPct}%</strong></span>
             </div>
           </div>
         )}

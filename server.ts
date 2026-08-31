@@ -1591,32 +1591,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     return str;
   }
 
-  function resolveAlchemySubdomain(chainInput: string | number): string | null {
-    const str = String(chainInput).toLowerCase().trim();
-    if (str === "1" || str === "eth" || str === "ethereum" || str === "mainnet") return "eth-mainnet";
-    if (str === "137" || str === "polygon" || str === "matic") return "polygon-mainnet";
-    if (str === "42161" || str === "arbitrum" || str === "arb") return "arb-mainnet";
-    if (str === "10" || str === "optimism" || str === "op") return "opt-mainnet";
-    if (str === "8453" || str === "base") return "base-mainnet";
-    if (str === "59144" || str === "linea") return "linea-mainnet";
-    if (str === "534352" || str === "scroll") return "scroll-mainnet";
-    if (str === "324" || str === "zksync") return "zksync-mainnet";
-    if (str === "43114" || str === "avalanche" || str === "avax") return "avax-mainnet";
-    if (str === "100" || str === "gnosis") return "gnosis-mainnet";
-    if (str === "5000" || str === "mantle") return "mantle-mainnet";
-    if (str === "81457" || str === "blast") return "blast-mainnet";
-    if (str === "48900" || str === "zircuit") return "zircuit-mainnet";
-    if (str === "80094" || str === "berachain") return "berachain-mainnet";
-    if (str === "480" || str === "worldchain") return "worldchain-mainnet";
-    if (str === "4200" || str === "merlin") return "merlin-mainnet";
-    if (str === "169" || str === "manta") return "manta-mainnet";
-    if (str === "146" || str === "sonic") return "sonic-mainnet";
-    if (str === "185" || str === "mint") return "mint-mainnet";
-    if (str === "196" || str === "xlayer") return "xlayer-mainnet";
-
-    return null;
-  }
-
   function parseGoPlusTokenData(tokenData: any) {
     const ownerAddr = (tokenData.owner_address || tokenData.owner || "").toLowerCase().trim();
     const isRenounced =
@@ -1839,212 +1813,195 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
   }
 
-  async function runAlchemyScan(chainId: string, contractAddress: string, isSolana: boolean, isSui: boolean): Promise<SecurityProviderOutcome> {
+  async function runBlockscoutScan(chainId: string, contractAddress: string, isSolana: boolean, isSui: boolean): Promise<SecurityProviderOutcome> {
     if (isSolana || isSui) {
-      return { status: "UNAVAILABLE", error: "Alchemy corroboration is only applicable for EVM chains" };
+      return { status: "UNAVAILABLE", error: "Blockscout corroboration is only applicable for EVM chains" };
     }
 
-    const alchemyKey = (process.env.ALCHEMY_API_KEY || "").trim();
-    if (!alchemyKey) {
-      return { status: "UNAVAILABLE", error: "ALCHEMY_API_KEY not configured" };
+    const blockscoutKey = (process.env.BLOCKSCOUT_API_KEY || "").trim();
+    if (!blockscoutKey) {
+      return { status: "UNAVAILABLE", error: "BLOCKSCOUT_API_KEY not configured" };
     }
 
-    const subdomain = resolveAlchemySubdomain(chainId);
-    if (!subdomain) {
-      return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by Alchemy` };
+    const resolvedChain = resolveEvmChainId(chainId);
+    if (!SUPPORTED_GOPLUS_EVM_CHAINS.has(resolvedChain) && !/^\d+$/.test(resolvedChain)) {
+      return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by Blockscout` };
     }
 
-    let isMetadataTimeout = false;
-    let isMetadataFailed = false;
-    let isOwnersTimeout = false;
-    let isOwnersFailed = false;
+    let isTokenTimeout = false;
+    let isTokenFailed = false;
+    let isHoldersTimeout = false;
+    let isHoldersFailed = false;
 
     let tokenName: string | undefined;
     let tokenSymbol: string | undefined;
     let decimals: number | undefined;
     let logo: string | undefined;
+    let totalSupplyStr: string | undefined;
     let top10HolderConcentrationPct: number | undefined;
     let hasAnyField = false;
 
-    // Run metadata (JSON-RPC) and owners requests concurrently
+    // Run token metadata and token holders requests concurrently
     await Promise.allSettled([
-      // 1. alchemy_getTokenMetadata via JSON-RPC POST
+      // 1. Token Metadata endpoint: https://api.blockscout.com/{chainId}/api/v2/tokens/{contractAddress}?apikey={key}
       (async () => {
-        const metaUrl = `https://${subdomain}.g.alchemy.com/v2/${alchemyKey}`;
+        const tokenUrl = `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}?apikey=${encodeURIComponent(blockscoutKey)}`;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const metaRes = await fetch(metaUrl, {
-            method: "POST",
-            headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              id: 1,
-              jsonrpc: "2.0",
-              method: "alchemy_getTokenMetadata",
-              params: [contractAddress]
-            }),
+          const tokenRes = await fetch(tokenUrl, {
+            headers: { "Accept": "application/json" },
             signal: controller.signal
           });
           clearTimeout(timeout);
-          if (metaRes.ok) {
-            const metaJson = await metaRes.json();
-            const result = metaJson?.result;
-            if (result && typeof result === "object") {
-              if (result.name) {
-                tokenName = String(result.name);
+          if (tokenRes.ok) {
+            const tokenJson = await tokenRes.json();
+            if (tokenJson && typeof tokenJson === "object") {
+              if (tokenJson.name) {
+                tokenName = String(tokenJson.name);
                 hasAnyField = true;
               }
-              if (result.symbol) {
-                tokenSymbol = String(result.symbol);
+              if (tokenJson.symbol) {
+                tokenSymbol = String(tokenJson.symbol);
                 hasAnyField = true;
               }
-              if (result.decimals !== undefined && result.decimals !== null) {
-                const dec = Number(result.decimals);
+              if (tokenJson.decimals !== undefined && tokenJson.decimals !== null) {
+                const dec = typeof tokenJson.decimals === "number" ? tokenJson.decimals : parseInt(String(tokenJson.decimals), 10);
                 if (!isNaN(dec)) {
                   decimals = dec;
                   hasAnyField = true;
                 }
               }
-              if (result.logo) {
-                logo = String(result.logo);
+              if (tokenJson.icon_url) {
+                logo = String(tokenJson.icon_url);
                 hasAnyField = true;
+              }
+              if (tokenJson.total_supply !== undefined && tokenJson.total_supply !== null) {
+                totalSupplyStr = String(tokenJson.total_supply);
               }
             }
           } else {
-            isMetadataFailed = true;
+            isTokenFailed = true;
           }
         } catch (err: any) {
           clearTimeout(timeout);
           if (err.name === "AbortError") {
-            isMetadataTimeout = true;
+            isTokenTimeout = true;
           } else {
-            isMetadataFailed = true;
+            isTokenFailed = true;
           }
         }
       })(),
-      // 2. Token holders endpoint for top-10 holder concentration
+      // 2. Token Holders endpoint: https://api.blockscout.com/{chainId}/api/v2/tokens/{contractAddress}/holders?apikey={key}
       (async () => {
-        const ownersUrl = `https://${subdomain}.g.alchemy.com/nft/v3/${alchemyKey}/getOwnersForContract?contractAddress=${encodeURIComponent(contractAddress)}&withTokenBalances=true`;
+        const holdersUrl = `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}/holders?apikey=${encodeURIComponent(blockscoutKey)}`;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
-          const ownersRes = await fetch(ownersUrl, {
+          const holdersRes = await fetch(holdersUrl, {
             headers: { "Accept": "application/json" },
             signal: controller.signal
           });
           clearTimeout(timeout);
-          if (ownersRes.ok) {
-            const ownersJson = await ownersRes.json();
-            const ownersList = Array.isArray(ownersJson?.owners)
-              ? ownersJson.owners
-              : Array.isArray(ownersJson)
-              ? ownersJson
+          if (holdersRes.ok) {
+            const holdersJson = await holdersRes.json();
+            const items = Array.isArray(holdersJson?.items)
+              ? holdersJson.items
+              : Array.isArray(holdersJson)
+              ? holdersJson
               : [];
-            if (ownersList.length > 0) {
-              const parsedBalances: number[] = [];
-              let sumTotal = 0;
 
-              for (const owner of ownersList) {
-                if (typeof owner === "object" && owner !== null) {
-                  // Direct percentage if provided
-                  const directPct = owner.percentage_relative_to_total_supply ?? owner.percentageRelativeToTotalSupply ?? owner.percentage;
-                  if (directPct !== undefined && directPct !== null) {
-                    const p = typeof directPct === "number" ? directPct : parseFloat(String(directPct));
-                    if (!isNaN(p) && p > 0) {
-                      parsedBalances.push(p);
-                      continue;
-                    }
-                  }
-
-                  // tokenBalances array
-                  if (Array.isArray(owner.tokenBalances) && owner.tokenBalances.length > 0) {
-                    let ownerBal = 0;
-                    for (const tb of owner.tokenBalances) {
-                      const rawBal = tb.balance ?? tb.tokenBalance;
-                      const b = typeof rawBal === "number" ? rawBal : parseFloat(String(rawBal));
-                      if (!isNaN(b) && b > 0) {
-                        ownerBal += b;
-                      }
-                    }
-                    if (ownerBal > 0) {
-                      parsedBalances.push(ownerBal);
-                      sumTotal += ownerBal;
-                      continue;
-                    }
-                  }
-
-                  // Direct balance
-                  const rawB = owner.balance ?? owner.tokenBalance;
-                  if (rawB !== undefined && rawB !== null) {
-                    const b = typeof rawB === "number" ? rawB : parseFloat(String(rawB));
-                    if (!isNaN(b) && b > 0) {
-                      parsedBalances.push(b);
-                      sumTotal += b;
-                    }
-                  }
+            if (items.length > 0) {
+              // Sort items descending by balance/value (defensive against unordered responses)
+              const sortedItems = [...items].sort((a, b) => {
+                try {
+                  const aVal = BigInt(a.value ?? a.balance ?? 0);
+                  const bVal = BigInt(b.value ?? b.balance ?? 0);
+                  return bVal > aVal ? 1 : bVal < aVal ? -1 : 0;
+                } catch {
+                  return 0;
                 }
+              });
+
+              const top10 = sortedItems.slice(0, 10);
+              let sumTop10 = 0n;
+              for (const item of top10) {
+                try {
+                  sumTop10 += BigInt(item.value ?? item.balance ?? 0);
+                } catch {}
               }
 
-              if (parsedBalances.length > 0) {
-                parsedBalances.sort((a, b) => b - a);
-                const top10 = parsedBalances.slice(0, 10);
-                if (sumTotal === 0) {
-                  const sumPct = top10.reduce((acc, val) => acc + val, 0);
-                  top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(sumPct * 100) / 100));
-                  hasAnyField = true;
-                } else if (sumTotal > 0) {
-                  const top10Sum = top10.reduce((acc, val) => acc + val, 0);
-                  const calcPct = (top10Sum / sumTotal) * 100;
-                  top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(calcPct * 100) / 100));
-                  hasAnyField = true;
+              if (sumTop10 > 0n) {
+                // If total_supply is available from token metadata, calculate top 10 supply ratio
+                if (totalSupplyStr) {
+                  try {
+                    const supplyBig = BigInt(totalSupplyStr);
+                    if (supplyBig > 0n) {
+                      const pctBps = Number((sumTop10 * 10000n) / supplyBig);
+                      top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(pctBps) / 100));
+                      hasAnyField = true;
+                    }
+                  } catch {}
+                }
+
+                // If totalSupply was not found or failed, calculate against sum of all returned items if available
+                if (top10HolderConcentrationPct === undefined && items.length > 0) {
+                  let totalItemsSum = 0n;
+                  for (const it of sortedItems) {
+                    try {
+                      totalItemsSum += BigInt(it.value ?? it.balance ?? 0);
+                    } catch {}
+                  }
+                  if (totalItemsSum > 0n) {
+                    const pctBps = Number((sumTop10 * 10000n) / totalItemsSum);
+                    top10HolderConcentrationPct = Math.min(100, Math.max(0, Math.round(pctBps) / 100));
+                    hasAnyField = true;
+                  }
                 }
               }
             }
           } else {
-            isOwnersFailed = true;
+            isHoldersFailed = true;
           }
         } catch (err: any) {
           clearTimeout(timeout);
           if (err.name === "AbortError") {
-            isOwnersTimeout = true;
+            isHoldersTimeout = true;
           } else {
-            isOwnersFailed = true;
+            isHoldersFailed = true;
           }
         }
       })()
     ]);
 
     if (hasAnyField) {
-      const alchemyData: {
+      const blockscoutData: {
         tokenName?: string;
         tokenSymbol?: string;
         decimals?: number;
         logo?: string;
         top10HolderConcentrationPct?: number;
       } = {};
-      if (tokenName) alchemyData.tokenName = tokenName;
-      if (tokenSymbol) alchemyData.tokenSymbol = tokenSymbol;
-      if (decimals !== undefined) alchemyData.decimals = decimals;
-      if (logo) alchemyData.logo = logo;
-      if (top10HolderConcentrationPct !== undefined) alchemyData.top10HolderConcentrationPct = top10HolderConcentrationPct;
+      if (tokenName) blockscoutData.tokenName = tokenName;
+      if (tokenSymbol) blockscoutData.tokenSymbol = tokenSymbol;
+      if (decimals !== undefined) blockscoutData.decimals = decimals;
+      if (logo) blockscoutData.logo = logo;
+      if (top10HolderConcentrationPct !== undefined) blockscoutData.top10HolderConcentrationPct = top10HolderConcentrationPct;
 
       return {
         status: "AVAILABLE",
-        data: alchemyData
+        data: blockscoutData
       };
     }
 
-    if (isMetadataTimeout && isOwnersTimeout) {
-      return { status: "TIMEOUT", error: "Alchemy API requests timed out" };
+    if (isTokenTimeout && isHoldersTimeout) {
+      return { status: "TIMEOUT", error: "Blockscout API requests timed out" };
     }
-    if (isMetadataFailed && isOwnersFailed) {
-      return { status: "FAILED", error: "Alchemy API requests failed" };
+    if (isTokenFailed && isHoldersFailed) {
+      return { status: "FAILED", error: "Blockscout API requests failed" };
     }
 
-    return { status: "NO_DATA", error: "No metadata or holder concentration records returned by Alchemy" };
+    return { status: "NO_DATA", error: "No metadata or holder concentration records returned by Blockscout" };
   }
 
   // --- In-Memory Rate Limiter for /api/security/scan (20 req / 60s per IP) ---
@@ -2077,7 +2034,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   const securityScanCache = new Map<string, SecurityScanCacheEntry>();
   const SECURITY_SCAN_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
-  // API endpoint: Independent Multi-Provider Security Scan (GoPlus + RugCheck + Alchemy)
+  // API endpoint: Independent Multi-Provider Security Scan (GoPlus + RugCheck + Blockscout)
   app.get("/api/security/scan", async (req, res) => {
     try {
       // 1. Per-IP Rate Limiting (20 req / 60s window)
@@ -2098,14 +2055,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           success: false,
           cached: false,
           error: "Security scan unavailable — no contract address on file",
-          source: "GoPlus / RugCheck / Alchemy",
+          source: "GoPlus / RugCheck / Blockscout",
           contractAddress: "",
           chainId: "",
           timestamp: new Date().toISOString(),
           providers: {
             goplus: { status: "UNAVAILABLE", error: "Missing contract address" },
             rugcheck: { status: "UNAVAILABLE", error: "Missing contract address" },
-            alchemy: { status: "UNAVAILABLE", error: "Missing contract address" }
+            blockscout: { status: "UNAVAILABLE", error: "Missing contract address" }
           }
         });
       }
@@ -2130,16 +2087,16 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       }
 
       // Execute applicable providers independently in parallel
-      const [goplusResult, rugcheckResult, alchemyResult] = await Promise.all([
+      const [goplusResult, rugcheckResult, blockscoutResult] = await Promise.all([
         runGoPlusScan(resolvedChainId, contractAddress, isSolana, isSui),
         runRugCheckScan(contractAddress, isSolana),
-        runAlchemyScan(resolvedChainId, contractAddress, isSolana, isSui)
+        runBlockscoutScan(resolvedChainId, contractAddress, isSolana, isSui)
       ]);
 
       const providers: Record<string, { status: SecurityProviderStatus; error?: string }> = {
         goplus: { status: goplusResult.status, ...(goplusResult.error ? { error: goplusResult.error } : {}) },
         rugcheck: { status: rugcheckResult.status, ...(rugcheckResult.error ? { error: rugcheckResult.error } : {}) },
-        alchemy: { status: alchemyResult.status, ...(alchemyResult.error ? { error: alchemyResult.error } : {}) }
+        blockscout: { status: blockscoutResult.status, ...(blockscoutResult.error ? { error: blockscoutResult.error } : {}) }
       };
 
       // Helper to store only success: true results in cache with 6-hour TTL and return with cached: false
@@ -2239,10 +2196,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       }
 
       // EVM Network Logic
-      if (goplusResult.status === "AVAILABLE" && alchemyResult.status === "AVAILABLE") {
+      if (goplusResult.status === "AVAILABLE" && blockscoutResult.status === "AVAILABLE") {
         return sendAndCacheSuccess({
           success: true,
-          source: "GoPlus Security + Alchemy",
+          source: "GoPlus Security + Blockscout",
           contractAddress,
           chainId: resolvedChainId,
           timestamp: new Date().toISOString(),
@@ -2250,10 +2207,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           providers,
           data: {
             ...goplusResult.data,
-            ...(alchemyResult.data.top10HolderConcentrationPct !== undefined
-              ? { top10HolderConcentrationPct: alchemyResult.data.top10HolderConcentrationPct }
+            ...(blockscoutResult.data.top10HolderConcentrationPct !== undefined
+              ? { top10HolderConcentrationPct: blockscoutResult.data.top10HolderConcentrationPct }
               : {}),
-            alchemyCorroboration: alchemyResult.data
+            blockscoutCorroboration: blockscoutResult.data
           }
         });
       }
@@ -2271,22 +2228,22 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         });
       }
 
-      if (alchemyResult.status === "AVAILABLE") {
-        // GoPlus failed or unavailable, but Alchemy succeeded: return Alchemy corroboration without fabricating primary GoPlus fields
+      if (blockscoutResult.status === "AVAILABLE") {
+        // GoPlus failed or unavailable, but Blockscout succeeded: return Blockscout corroboration without fabricating primary GoPlus fields
         return sendAndCacheSuccess({
           success: true,
-          source: "Alchemy Token API (Corroboration)",
+          source: "Blockscout Token API (Corroboration)",
           contractAddress,
           chainId: resolvedChainId,
           timestamp: new Date().toISOString(),
           providers,
           data: {
-            ...(alchemyResult.data.tokenName ? { tokenName: alchemyResult.data.tokenName } : {}),
-            ...(alchemyResult.data.tokenSymbol ? { tokenSymbol: alchemyResult.data.tokenSymbol } : {}),
-            ...(alchemyResult.data.top10HolderConcentrationPct !== undefined
-              ? { top10HolderConcentrationPct: alchemyResult.data.top10HolderConcentrationPct }
+            ...(blockscoutResult.data.tokenName ? { tokenName: blockscoutResult.data.tokenName } : {}),
+            ...(blockscoutResult.data.tokenSymbol ? { tokenSymbol: blockscoutResult.data.tokenSymbol } : {}),
+            ...(blockscoutResult.data.top10HolderConcentrationPct !== undefined
+              ? { top10HolderConcentrationPct: blockscoutResult.data.top10HolderConcentrationPct }
               : {}),
-            alchemyCorroboration: alchemyResult.data
+            blockscoutCorroboration: blockscoutResult.data
           }
         });
       }
@@ -2296,7 +2253,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         success: false,
         cached: false,
         error: "Security scan unavailable for this network",
-        source: "GoPlus / Alchemy",
+        source: "GoPlus / Blockscout",
         contractAddress,
         chainId: resolvedChainId,
         timestamp: new Date().toISOString(),
@@ -2308,14 +2265,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         success: false,
         cached: false,
         error: "Failed to fetch security scan data from providers.",
-        source: "GoPlus / RugCheck / Alchemy",
+        source: "GoPlus / RugCheck / Blockscout",
         contractAddress: (req.query.address || req.query.contractAddress || "") as string,
         chainId: (req.query.chain || req.query.chainId || "1") as string,
         timestamp: new Date().toISOString(),
         providers: {
           goplus: { status: "FAILED", error: err.message },
           rugcheck: { status: "FAILED", error: err.message },
-          alchemy: { status: "FAILED", error: err.message }
+          blockscout: { status: "FAILED", error: err.message }
         }
       });
     }

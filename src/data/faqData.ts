@@ -135,7 +135,7 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
     question: 'What is the methodology scope and technical boundary of this assessment?',
     definition: 'Automated diagnostic assessment performing pattern- and heuristic-based bytecode analysis and on-chain telemetry corroboration.',
     tip: 'Not a formal smart contract audit; excludes manual line-by-line review, complex logic-level exploit testing, and off-chain operational security audits.',
-    answer: 'This assessment performs automated pattern- and heuristic-based bytecode analysis (via GoPlus Security and RugCheck) paired with on-chain data corroboration (via Moralis) and deterministic verification. This assessment does NOT perform manual line-by-line code review, deep logic-level exploit analysis, or off-chain operational security evaluations (such as private key custody management, team infrastructure security, or off-chain incident history). It is an automated technical diagnostic and risk evaluation, not a formal smart contract audit or security certification.'
+    answer: 'This assessment performs automated pattern- and heuristic-based bytecode analysis (via GoPlus Security and RugCheck) paired with on-chain data corroboration (via Blockscout) and deterministic verification. This assessment does NOT perform manual line-by-line code review, deep logic-level exploit analysis, or off-chain operational security evaluations (such as private key custody management, team infrastructure security, or off-chain incident history). It is an automated technical diagnostic and risk evaluation, not a formal smart contract audit or security certification.'
   }
 ];
 
