@@ -267,6 +267,11 @@ export default function App() {
         return 'blog';
       }
 
+      const stockParam = params.get('stock') || params.get('xstock');
+      if (stockParam) {
+        return 'xstocks';
+      }
+
       const tab = params.get('tab');
       if (tab === 'xstocks' || tab === 'stocks' || tab === 'academy') {
         return 'xstocks';
@@ -1280,7 +1285,11 @@ export default function App() {
       canonicalTag.setAttribute('rel', 'canonical');
       document.head.appendChild(canonicalTag);
     }
-    let currentUrl = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : `https://www.cryptoreviewlab.com/`;
+    let originUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.cryptoreviewlab.com';
+    if (originUrl.includes('ais-dev-')) {
+      originUrl = originUrl.replace('ais-dev-', 'ais-pre-');
+    }
+    let currentUrl = `${originUrl}${typeof window !== 'undefined' ? window.location.pathname : '/'}`;
     const canonicalParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     if (selectedReviewId) {
       canonicalParams.set('tab', activeTab || 'blog');

@@ -108,11 +108,47 @@ function playCyberAlertChime() {
 }
 
 export default function XStocksPage() {
-  const [selectedStock, setSelectedStock] = useState<XStockRegistryItem>(XSTOCKS_REGISTRY[0]);
+  const [selectedStock, setSelectedStock] = useState<XStockRegistryItem>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const stockParam = params.get('stock') || params.get('xstock') || params.get('symbol');
+        if (stockParam) {
+          const clean = stockParam.trim().toLowerCase();
+          const match = XSTOCKS_REGISTRY.find(
+            s => s.symbol.toLowerCase() === clean || 
+                 s.underlyingTicker.toLowerCase() === clean || 
+                 s.coingeckoId.toLowerCase() === clean ||
+                 s.name.toLowerCase().includes(clean)
+          );
+          if (match) return match;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to parse initial stock param:', e);
+    }
+    return XSTOCKS_REGISTRY[0];
+  });
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [marketHours, setMarketHours] = useState<UsMarketHoursStatus>(() => getUsMarketHoursStatus());
+
+  // Sync selectedStock to URL search params when in xstocks tab
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('tab') === 'xstocks' || url.searchParams.has('stock')) {
+        if (url.searchParams.get('stock') !== selectedStock.symbol) {
+          url.searchParams.set('stock', selectedStock.symbol);
+          window.history.replaceState({ tab: 'xstocks', stock: selectedStock.symbol }, '', url.toString());
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to sync stock to URL:', e);
+    }
+  }, [selectedStock.symbol]);
 
   // Favorites state persisted in localStorage
   const [favorites, setFavorites] = useState<string[]>(() => {

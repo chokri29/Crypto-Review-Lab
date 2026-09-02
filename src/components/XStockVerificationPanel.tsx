@@ -21,11 +21,16 @@ import {
   ArrowRightLeft, 
   HelpCircle,
   Clock,
-  Sparkles
+  Sparkles,
+  Share2,
+  Copy,
+  Check,
+  Send
 } from 'lucide-react';
 import { XStockRegistryItem, UsMarketHoursStatus } from '../data/xstocksRegistry';
 import { XStockQuoteState } from './XStocksPage';
 import { useCurrency } from '../context/CurrencyContext';
+import { getPublicXStockShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 
 interface SecurityScanData {
   is_honeypot?: boolean;
@@ -81,6 +86,37 @@ export default function XStockVerificationPanel({
   const [scanResponse, setScanResponse] = useState<SecurityScanResponse | null>(null);
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  // Social sharing handlers
+  const handleCopyShareLink = async () => {
+    const url = getPublicXStockShareUrl(selectedStock.symbol);
+    const success = await copyTextToClipboard(url);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleShareTwitter = () => {
+    const url = getPublicXStockShareUrl(selectedStock.symbol);
+    const text = `Explore the public multi-oracle & contract verification report for ${selectedStock.name} (${selectedStock.symbol} ↔ ${selectedStock.underlyingTicker}) on Crypto Review Lab:`;
+    const shareHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(shareHref, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareFacebook = () => {
+    const url = getPublicXStockShareUrl(selectedStock.symbol);
+    const shareHref = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(shareHref, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareTelegram = () => {
+    const url = getPublicXStockShareUrl(selectedStock.symbol);
+    const text = `Public Verification & Integrity Report for ${selectedStock.name} (${selectedStock.symbol}):`;
+    const shareHref = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+    window.open(shareHref, '_blank', 'noopener,noreferrer');
+  };
 
   // Fetch contract security scan via /api/security/scan
   const fetchSecurityScan = useCallback(async (stock: XStockRegistryItem) => {
@@ -192,7 +228,69 @@ export default function XStockVerificationPanel({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Social Share Toolbar */}
+          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-cyber-cyan/30 px-2.5 py-1.5 rounded-xl shadow-sm">
+            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <Share2 className="w-3 h-3 text-cyber-cyan" />
+              <span className="hidden sm:inline">Share:</span>
+            </span>
+            <button
+              type="button"
+              onClick={handleShareTwitter}
+              className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg border border-slate-800 transition-colors cursor-pointer"
+              title="Share verification telemetry on X (Twitter)"
+              aria-label="Share on X"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleShareTelegram}
+              className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+              title="Share on Telegram"
+              aria-label="Share on Telegram"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleShareFacebook}
+              className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+              title="Share on Facebook"
+              aria-label="Share on Facebook"
+            >
+              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyShareLink}
+              className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                copied
+                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                  : 'bg-slate-900 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan border-slate-800'
+              }`}
+              title="Copy Direct Public Link to Clipboard"
+              aria-label="Copy Direct Link"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-cyber-cyan" />
+                  <span>Copy</span>
+                </>
+              )}
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => {
@@ -200,11 +298,11 @@ export default function XStockVerificationPanel({
               if (onRefreshAll) onRefreshAll();
             }}
             disabled={isScanning || isRefreshingQuotes}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
             title="Re-run contract security scan and synchronize oracle feeds"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning || isRefreshingQuotes ? 'animate-spin' : ''}`} />
-            <span>{isScanning ? 'Scanning Bytecode...' : 'Refresh Telemetry'}</span>
+            <span>{isScanning ? 'Scanning...' : 'Refresh Telemetry'}</span>
           </button>
         </div>
       </div>
@@ -644,6 +742,80 @@ export default function XStockVerificationPanel({
             No public proof-of-reserve feed or collateral explorer is registered for this xStock entry.
           </p>
         )}
+      </div>
+
+      {/* SECTION 5: SHARE VERIFICATION TELEMETRY ACTION BAR */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-950 via-slate-900/90 to-slate-950 border border-cyber-cyan/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-cyber-cyan" />
+            <span className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">
+              Share Public Verification Report
+            </span>
+          </div>
+          <p className="text-[11px] font-mono text-slate-400">
+            Share the multi-oracle telemetry, bytecode security, and legal structure of {selectedStock.name} ({selectedStock.symbol}).
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handleShareTwitter}
+            className="px-3 py-1.5 bg-slate-900 hover:bg-cyber-cyan/20 text-slate-200 hover:text-cyber-cyan rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Share on X / Twitter"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            <span>Post on X</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareTelegram}
+            className="px-3 py-1.5 bg-slate-900 hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-400 rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Share on Telegram"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Telegram</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareFacebook}
+            className="px-3 py-1.5 bg-slate-900 hover:bg-blue-600/20 text-slate-200 hover:text-blue-400 rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Share on Facebook"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+            <span>Facebook</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopyShareLink}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              copied
+                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
+                : 'bg-slate-900 hover:bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/30'
+            }`}
+            title="Copy Public Telemetry Link"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-cyber-cyan" />
+                <span>Copy Share Link</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* HONESTY & INDEPENDENCE FOOTNOTE */}

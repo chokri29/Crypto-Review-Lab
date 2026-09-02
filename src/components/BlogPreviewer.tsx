@@ -75,6 +75,7 @@ import MarketMetricsTable from './MarketMetricsTable';
 import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
+import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 
 interface BlogPreviewerProps {
   reviews: CryptoReview[];
@@ -378,60 +379,15 @@ export default function BlogPreviewer({
 
   const getPublicShareUrl = () => {
     const targetId = activeReview?.id || activeReviewId;
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', 'blog');
-      if (targetId) {
-        url.searchParams.set('review', targetId);
-      } else {
-        url.searchParams.delete('review');
-      }
-      return url.toString();
-    }
-    if (targetId) {
-      return `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(targetId)}`;
-    }
-    return `https://www.cryptoreviewlab.com/?tab=blog`;
+    return getPublicReviewShareUrl(targetId);
   };
 
-  const fallbackCopyTextToClipboard = (text: string) => {
-    try {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.top = '-9999px';
-      textArea.style.left = '-9999px';
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      if (successful) {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      }
-    } catch (err) {
-      console.warn('Fallback copy failed:', err);
-    }
-  };
-
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const shareUrl = getPublicShareUrl();
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareUrl)
-          .then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2500);
-          })
-          .catch(() => {
-            fallbackCopyTextToClipboard(shareUrl);
-          });
-      } else {
-        fallbackCopyTextToClipboard(shareUrl);
-      }
-    } catch (e) {
-      fallbackCopyTextToClipboard(shareUrl);
+    const success = await copyTextToClipboard(shareUrl);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     }
   };
 
