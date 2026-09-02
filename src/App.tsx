@@ -24,8 +24,6 @@ import {
   Lock,
   ShieldCheck,
   ChevronUp,
-  Sun,
-  Moon,
   Search,
   QrCode,
   Copy,
@@ -53,6 +51,7 @@ import ReviewLab from './components/ReviewLab';
 import MarketTicker from './components/MarketTicker';
 import CookieBanner from './components/CookieBanner';
 import FaqJsonLd from './components/FaqJsonLd';
+import CurrencyDropdown from './components/CurrencyDropdown';
 import { fetchLiveCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
@@ -574,32 +573,11 @@ export default function App() {
   });
 
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try {
-      return (localStorage.getItem('crypto_review_lab_theme') as 'dark' | 'light') || 'dark';
-    } catch (e) {
-      return 'dark';
-    }
-  });
 
   useEffect(() => {
-    try {
-      localStorage.setItem('crypto_review_lab_theme', theme);
-    } catch (e) {
-      // ignore
-    }
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    }
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1480,27 +1458,10 @@ export default function App() {
             )}
           </nav>
 
-          {/* Quick theme navigation triggers */}
+          {/* Quick header controls & global currency selector */}
           <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 text-xs font-orbitron uppercase tracking-wider w-full lg:w-auto flex-wrap sm:flex-nowrap shrink-0 pt-0.5 lg:pt-0">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 sm:px-3 sm:py-1.5 rounded-xl bg-cyber-bg-card/90 border-2 border-cyber-cyan/35 text-cyber-cyan hover:border-cyber-cyan hover:bg-cyber-cyan/15 transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 font-bold shadow-[0_0_12px_rgba(0,229,255,0.15)] shrink-0"
-              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Cyber Dark Mode'}
-              aria-label="Toggle visual theme"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline text-[10px] font-orbitron font-bold tracking-wider">LIGHT</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-cyber-cyan" />
-                  <span className="hidden sm:inline text-[10px] font-orbitron font-bold tracking-wider">CYBER</span>
-                </>
-              )}
-            </button>
+            {/* Unified Sleek Fiat Currency Dropdown */}
+            <CurrencyDropdown />
 
             {/* Header Search Input with Real-time Autocomplete Dropdown */}
             <div ref={searchContainerRef} className="relative w-40 sm:w-48 md:w-56">

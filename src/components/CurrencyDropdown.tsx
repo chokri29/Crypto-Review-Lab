@@ -72,8 +72,8 @@ export const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className={`absolute top-full mt-2 z-50 w-72 rounded-2xl bg-[#0c1319] border border-slate-700/80 shadow-[0_16px_36px_rgba(0,0,0,0.65),0_0_20px_rgba(0,229,255,0.12)] p-1.5 backdrop-blur-xl ${
-              align === 'right' ? 'right-0' : 'left-0'
+            className={`absolute top-full mt-2 z-50 w-64 sm:w-72 max-w-[calc(100vw-32px)] rounded-2xl bg-[#0c1319] border border-slate-700/80 shadow-[0_16px_36px_rgba(0,0,0,0.65),0_0_20px_rgba(0,229,255,0.12)] p-1.5 backdrop-blur-xl ${
+              align === 'right' ? 'left-0 sm:left-auto sm:right-0' : 'left-0'
             }`}
           >
             <div className="px-3 py-1.5 mb-1 border-b border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider">

@@ -40,7 +40,6 @@ import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
 import XStockAlertModal, { XStockPriceAlert } from './XStockAlertModal';
 import XStockAlertBanner from './XStockAlertBanner';
-import CurrencyDropdown from './CurrencyDropdown';
 import { useCurrency } from '../context/CurrencyContext';
 import { fetchLiveCoinGeckoMarkets } from '../services/coingecko';
 import { fetchLiveCMCQuote } from '../services/cmc';
@@ -578,10 +577,6 @@ export default function XStocksPage() {
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-cyber-cyan" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
                 <span className="text-[10px]">{soundEnabled ? 'Chime ON' : 'Chime MUTED'}</span>
               </button>
-
-              <div className="ml-auto sm:ml-0">
-                <CurrencyDropdown />
-              </div>
             </div>
           </div>
 
