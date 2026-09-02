@@ -32,6 +32,7 @@ import {
   TechnicalIndicators,
   ChartTimeframe
 } from '../services/marketChartService';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface XStockPriceChartProps {
   symbol: string;
@@ -354,14 +355,7 @@ export default function XStockPriceChart({
   };
 
   const hoverPoint = hoverIndex !== null && activePrices[hoverIndex] ? activePrices[hoverIndex] : null;
-
-  // Formatters
-  const formatPrice = (val?: number) => {
-    if (val === undefined || val === null || isNaN(val) || val <= 0) return '—';
-    if (val >= 1000) return `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    if (val >= 1) return `$${val.toFixed(2)}`;
-    return `$${val.toFixed(4)}`;
-  };
+  const { formatPrice, formatCompactCap, selectedCurrency } = useCurrency();
 
   const strokeColor = isPositive ? '#10b981' : '#f43f5e';
   const fillGradientId = `xstock-grad-${symbol}-${isPositive ? 'pos' : 'neg'}`;
@@ -637,7 +631,7 @@ export default function XStockPriceChart({
             </div>
             {hoverPoint.volume && (
               <div className="text-[9px] font-mono text-cyber-cyan mt-0.5">
-                Vol: ${(hoverPoint.volume / 1000).toFixed(0)}K
+                Vol: {formatCompactCap(hoverPoint.volume)}
               </div>
             )}
           </div>

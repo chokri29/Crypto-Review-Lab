@@ -20,6 +20,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { MultiSourceConvergenceReport } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
 
 export interface MarketMetricsData {
   name: string;
@@ -149,8 +150,10 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
     ? parseFloat(((resolvedCirculating / resolvedTotal) * 100).toFixed(1)) 
     : undefined;
 
+  const { formatPrice: ctxFormatPrice, formatRawLarge: ctxFormatRawLarge, convertPrice, currencyInfo } = useCurrency();
+
   // Formatters for CountUpValue
-  const formatPrice = (val: number) => {
+  const formatPriceNumOnly = (val: number) => {
     if (val <= 0) return '0.00';
     if (val < 0.0001) return val.toFixed(8);
     if (val < 1) return val.toFixed(4);
@@ -160,9 +163,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
 
   const formatSubPrice = (val?: number) => {
     if (!val || val <= 0) return 'N/A';
-    if (val < 0.0001) return `$${val.toFixed(6)}`;
-    if (val < 1) return `$${val.toFixed(4)}`;
-    return `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return ctxFormatPrice(val);
   };
 
   const formatSupplyNumber = (val: number) => {
@@ -176,10 +177,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
 
   const formatLargeCurrency = (val: number) => {
     if (!val || val <= 0) return 'N/A';
-    if (val >= 1e12) return `${(val / 1e12).toFixed(2)}T`;
-    if (val >= 1e9) return `${(val / 1e9).toFixed(2)}B`;
-    if (val >= 1e6) return `${(val / 1e6).toFixed(1)}M`;
-    return val.toLocaleString();
+    return ctxFormatRawLarge(val);
   };
 
   const isPositiveChange = liveChange24h >= 0;
@@ -198,9 +196,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
   const athCmc = parseFloat((resolvedAth * 1.001).toFixed(resolvedAth < 1 ? 4 : 2));
   const athCs = parseFloat((resolvedAth * 0.999).toFixed(resolvedAth < 1 ? 4 : 2));
 
+  const convertedLivePrice = convertPrice(livePrice);
+  const convertedAth = convertPrice(resolvedAth);
+  const convertedAtl = convertPrice(resolvedAtl);
+  const curSymbolPrefix = `${currencyInfo?.symbol || '$'}${currencyInfo?.code === 'CHF' ? ' ' : ''}`;
+
   return (
     <motion.div
-      key={`${symbol}-${livePrice}-${resolvedAth}-${resolvedAtl}`}
+      key={`${symbol}-${livePrice}-${resolvedAth}-${resolvedAtl}-${currencyInfo?.code || 'USD'}`}
       initial={{ opacity: 0, y: 16, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
@@ -224,7 +227,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           {livePrice > 0 && (
             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-950/80 border border-white/10 text-xs font-mono">
               <span className="text-slate-400 text-[10px] uppercase">Spot:</span>
-              <span className="font-bold text-white">${formatPrice(livePrice)}</span>
+              <span className="font-bold text-white">{curSymbolPrefix}{formatPriceNumOnly(convertedLivePrice)}</span>
               <span className={`text-[10px] font-bold flex items-center ${isPositiveChange ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {isPositiveChange ? '+' : ''}{liveChange24h.toFixed(2)}%
               </span>
@@ -306,9 +309,9 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           <span className="text-base font-mono font-bold text-white block">
             {resolvedAtl > 0 ? (
               <CountUpValue
-                value={resolvedAtl}
-                formatFn={formatPrice}
-                prefix="$"
+                value={convertedAtl}
+                formatFn={formatPriceNumOnly}
+                prefix={curSymbolPrefix}
                 duration={1.2}
               />
             ) : (
@@ -346,9 +349,9 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           <span className="text-base font-mono font-bold text-white block">
             {resolvedAth > 0 ? (
               <CountUpValue
-                value={resolvedAth}
-                formatFn={formatPrice}
-                prefix="$"
+                value={convertedAth}
+                formatFn={formatPriceNumOnly}
+                prefix={curSymbolPrefix}
                 duration={1.2}
               />
             ) : (

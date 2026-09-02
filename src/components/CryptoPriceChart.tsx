@@ -33,6 +33,7 @@ import {
   MultiTimeframeAlignmentResult,
   ChartTimeframe
 } from '../services/marketChartService';
+import { useCurrency } from '../context/CurrencyContext';
 
 export interface CryptoPriceChartProps {
   coinId?: string;
@@ -353,22 +354,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
     };
   }, [chartMode, activeIndicators, activePrices, minVal, priceRange, svgDimensions]);
 
-  // Formatters
-  const formatPriceVal = (v: number) => {
-    if (v <= 0) return '$0.00';
-    if (v < 0.0001) return `$${v.toFixed(8)}`;
-    if (v < 1) return `$${v.toFixed(4)}`;
-    if (v >= 1000) return `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    return `$${v.toFixed(2)}`;
-  };
-
-  const formatLargeNum = (num?: number) => {
-    if (!num || num <= 0) return 'N/A';
-    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    return `$${num.toLocaleString()}`;
-  };
+  const { formatPrice: formatPriceVal, formatCompactCap: formatLargeNum, selectedCurrency } = useCurrency();
 
   const formatSupply = (num?: number) => {
     if (!num || num <= 0) return 'Data unavailable';

@@ -40,6 +40,8 @@ import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
 import XStockAlertModal, { XStockPriceAlert } from './XStockAlertModal';
 import XStockAlertBanner from './XStockAlertBanner';
+import CurrencyDropdown from './CurrencyDropdown';
+import { useCurrency } from '../context/CurrencyContext';
 import { fetchLiveCoinGeckoMarkets } from '../services/coingecko';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
@@ -490,13 +492,7 @@ export default function XStocksPage() {
   const activeQuote = stockQuotes[selectedStock.symbol.toUpperCase()];
   const triggeredAlerts = alerts.filter(a => a.triggered);
   const activeAlertsCount = alerts.filter(a => a.active && !a.triggered).length;
-
-  const formatPrice = (val?: number) => {
-    if (val === undefined || val === null || isNaN(val) || val <= 0) return '—';
-    if (val >= 1000) return `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    if (val >= 1) return `$${val.toFixed(2)}`;
-    return `$${val.toFixed(4)}`;
-  };
+  const { formatPrice, selectedCurrency } = useCurrency();
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -536,7 +532,7 @@ export default function XStocksPage() {
               24/7 on-chain secondary market quoting for tokenized US equities with Dual-Oracle on-chain consensus (CoinGecko + CoinMarketCap) & real-time underlying equity peg verification via Finnhub.
             </p>
 
-            {/* Quick Action Pills: Favorites Count & Price Alert Manager */}
+            {/* Quick Action Pills: Favorites Count & Price Alert Manager & Currency Selector */}
             <div className="flex items-center gap-2.5 pt-2 flex-wrap">
               <button
                 type="button"
@@ -582,6 +578,10 @@ export default function XStocksPage() {
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-cyber-cyan" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
                 <span className="text-[10px]">{soundEnabled ? 'Chime ON' : 'Chime MUTED'}</span>
               </button>
+
+              <div className="ml-auto sm:ml-0">
+                <CurrencyDropdown />
+              </div>
             </div>
           </div>
 

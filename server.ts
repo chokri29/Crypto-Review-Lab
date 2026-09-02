@@ -2712,6 +2712,120 @@ ${dualSyncContext}`;
     }
   });
 
+  // API endpoint: Multi-Currency Fiat Exchange Rates
+  interface FiatRatesCache {
+    rates: Record<string, number>;
+    timestamp: number;
+  }
+  let fiatRatesCache: FiatRatesCache | null = null;
+  const FIAT_RATES_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  const FALLBACK_FIAT_RATES: Record<string, number> = {
+    USD: 1.0,
+    GBP: 0.7394,
+    EUR: 0.8625,
+    AUD: 1.3992,
+    CAD: 1.3891,
+    JPY: 160.11,
+    CHF: 0.8113,
+    SGD: 1.2730
+  };
+
+  app.get("/api/fiat-rates", async (req, res) => {
+    try {
+      const now = Date.now();
+      if (fiatRatesCache && (now - fiatRatesCache.timestamp < FIAT_RATES_CACHE_TTL)) {
+        return res.json({
+          source: "cache",
+          base: "USD",
+          rates: fiatRatesCache.rates,
+          timestamp: new Date(fiatRatesCache.timestamp).toISOString()
+        });
+      }
+
+      let fetchedRates: Record<string, number> | null = null;
+
+      // 1. Primary: open.er-api.com free open exchange rates
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const erRes = await fetch("https://open.er-api.com/v6/latest/USD", {
+          signal: controller.signal,
+          headers: { "Accept": "application/json" }
+        });
+        clearTimeout(timeout);
+        if (erRes.ok) {
+          const erData = await erRes.json();
+          if (erData && erData.rates) {
+            fetchedRates = {
+              USD: 1.0,
+              GBP: Number(erData.rates.GBP) || FALLBACK_FIAT_RATES.GBP,
+              EUR: Number(erData.rates.EUR) || FALLBACK_FIAT_RATES.EUR,
+              AUD: Number(erData.rates.AUD) || FALLBACK_FIAT_RATES.AUD,
+              CAD: Number(erData.rates.CAD) || FALLBACK_FIAT_RATES.CAD,
+              JPY: Number(erData.rates.JPY) || FALLBACK_FIAT_RATES.JPY,
+              CHF: Number(erData.rates.CHF) || FALLBACK_FIAT_RATES.CHF,
+              SGD: Number(erData.rates.SGD) || FALLBACK_FIAT_RATES.SGD
+            };
+          }
+        }
+      } catch (err: any) {
+        console.warn("Primary fiat exchange rates fetch failed:", err?.message);
+      }
+
+      // 2. Secondary fallback: Frankfurter ECB rates
+      if (!fetchedRates) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 4000);
+          const frankRes = await fetch("https://api.frankfurter.dev/v1/latest?base=USD", {
+            signal: controller.signal,
+            headers: { "Accept": "application/json" }
+          });
+          clearTimeout(timeout);
+          if (frankRes.ok) {
+            const frankData = await frankRes.json();
+            if (frankData && frankData.rates) {
+              fetchedRates = {
+                USD: 1.0,
+                GBP: Number(frankData.rates.GBP) || FALLBACK_FIAT_RATES.GBP,
+                EUR: Number(frankData.rates.EUR) || FALLBACK_FIAT_RATES.EUR,
+                AUD: Number(frankData.rates.AUD) || FALLBACK_FIAT_RATES.AUD,
+                CAD: Number(frankData.rates.CAD) || FALLBACK_FIAT_RATES.CAD,
+                JPY: Number(frankData.rates.JPY) || FALLBACK_FIAT_RATES.JPY,
+                CHF: Number(frankData.rates.CHF) || FALLBACK_FIAT_RATES.CHF,
+                SGD: Number(frankData.rates.SGD) || FALLBACK_FIAT_RATES.SGD
+              };
+            }
+          }
+        } catch (err: any) {
+          console.warn("Secondary frankfurter fiat exchange rates fetch failed:", err?.message);
+        }
+      }
+
+      const finalRates = fetchedRates || FALLBACK_FIAT_RATES;
+      fiatRatesCache = {
+        rates: finalRates,
+        timestamp: now
+      };
+
+      res.json({
+        source: fetchedRates ? "live" : "fallback",
+        base: "USD",
+        rates: finalRates,
+        timestamp: new Date(now).toISOString()
+      });
+    } catch (error: any) {
+      console.error("Fiat rates endpoint error:", error);
+      res.json({
+        source: "fallback",
+        base: "USD",
+        rates: FALLBACK_FIAT_RATES,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // API endpoint: CoinGecko Proxy for Markets
   app.get("/api/coingecko/markets", async (req, res) => {
     try {
@@ -2989,6 +3103,51 @@ ${dualSyncContext}`;
 
 export const app = createServerApp();
 
+function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
+  try {
+    const reviews = loadReviewsFromFile();
+    const queryParam = (req.query.review || req.query.reviewId || req.query.article || req.query.id) as string | undefined;
+    
+    let activeReview: any = null;
+    if (queryParam) {
+      const q = String(queryParam).toLowerCase();
+      activeReview = reviews.find((r: any) => 
+        (r.id && r.id.toLowerCase() === q) ||
+        (r.coingeckoId && r.coingeckoId.toLowerCase() === q.replace(/^cg-/, '')) ||
+        (r.symbol && r.symbol.toLowerCase() === q) ||
+        (r.name && r.name.toLowerCase() === q)
+      );
+    }
+
+    if (activeReview) {
+      const pageTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Rating: ${activeReview.grade} | Crypto Review Lab`;
+      const pageDesc = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290);
+      const pageUrl = `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(activeReview.id)}`;
+      const pageImage = activeReview.logoUrl || 'https://www.cryptoreviewlab.com/og-banner.jpg';
+
+      let replaced = rawHtml;
+      replaced = replaced.replace(/<title>.*?<\/title>/gi, `<title>${pageTitle}</title>`);
+      replaced = replaced.replace(/<meta\s+name="description"\s+content=".*?"\s*\/?>/gi, `<meta name="description" content="${pageDesc}" />`);
+      replaced = replaced.replace(/<link\s+rel="canonical"\s+href=".*?"\s*\/?>/gi, `<link rel="canonical" href="${pageUrl}" />`);
+      replaced = replaced.replace(/<meta\s+property="og:title"\s+content=".*?"\s*\/?>/gi, `<meta property="og:title" content="${pageTitle}" />`);
+      replaced = replaced.replace(/<meta\s+property="og:description"\s+content=".*?"\s*\/?>/gi, `<meta property="og:description" content="${pageDesc}" />`);
+      replaced = replaced.replace(/<meta\s+property="og:url"\s+content=".*?"\s*\/?>/gi, `<meta property="og:url" content="${pageUrl}" />`);
+      replaced = replaced.replace(/<meta\s+property="og:image"\s+content=".*?"\s*\/?>/gi, `<meta property="og:image" content="${pageImage}" />`);
+      replaced = replaced.replace(/<meta\s+property="og:image:secure_url"\s+content=".*?"\s*\/?>/gi, `<meta property="og:image:secure_url" content="${pageImage}" />`);
+      replaced = replaced.replace(/<meta\s+name="twitter:title"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:title" content="${pageTitle}" />`);
+      replaced = replaced.replace(/<meta\s+name="twitter:description"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:description" content="${pageDesc}" />`);
+      replaced = replaced.replace(/<meta\s+name="twitter:image"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:image" content="${pageImage}" />`);
+      replaced = replaced.replace(/<meta\s+name="twitter:image:src"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:image:src" content="${pageImage}" />`);
+      replaced = replaced.replace(/<meta\s+name="twitter:url"\s+content=".*?"\s*\/?>/gi, `<meta name="twitter:url" content="${pageUrl}" />`);
+
+      return replaced;
+    }
+  } catch (err) {
+    console.warn("Error rendering HTML with dynamic meta:", err);
+  }
+  return rawHtml;
+}
+
 async function startServer() {
   const PORT = 3000;
 
@@ -3017,6 +3176,17 @@ async function startServer() {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
+      try {
+        const indexPath = path.join(distPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          const rawHtml = fs.readFileSync(indexPath, 'utf-8');
+          const finalHtml = renderHtmlWithMeta(rawHtml, req);
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.status(200).send(finalHtml);
+        }
+      } catch (e) {
+        console.error("Error serving dynamic index.html:", e);
+      }
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

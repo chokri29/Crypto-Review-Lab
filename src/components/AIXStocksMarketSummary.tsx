@@ -11,6 +11,7 @@ import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { XStockQuoteState } from './XStocksPage';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface AIXStocksMarketSummaryProps {
   stockQuotes?: Record<string, XStockQuoteState>;
@@ -23,6 +24,7 @@ export default function AIXStocksMarketSummary({
   isRefreshing: parentRefreshing,
   onRefresh: parentRefresh
 }: AIXStocksMarketSummaryProps) {
+  const { formatCompactCap } = useCurrency();
   const [internalQuotes, setInternalQuotes] = useState<Record<string, XStockQuoteState>>({});
   const [isLocalFetching, setIsLocalFetching] = useState<boolean>(false);
 
@@ -35,17 +37,6 @@ export default function AIXStocksMarketSummary({
   const [fallbackLoser] = useState<{ symbol: string; change: number }>({ symbol: 'AMZNX', change: -1.60 });
 
   const isFetching = parentRefreshing || isLocalFetching;
-
-  // Format currency values in Millions ($M) or Billions ($B)
-  const formatVal = (valInMillions: number): string => {
-    if (valInMillions >= 1000) {
-      return `$${(valInMillions / 1000).toFixed(2)}B`;
-    }
-    if (valInMillions >= 1) {
-      return `$${valInMillions.toFixed(2)}M`;
-    }
-    return `$${(valInMillions * 1000).toFixed(0)}K`;
-  };
 
   // Direct fetch fallback if quotes are not passed from parent
   const fetchDirectMetrics = async () => {
@@ -288,7 +279,7 @@ export default function AIXStocksMarketSummary({
           </span>
         </div>
         <div className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]">
-          {formatVal(metrics.totalCap)}
+          {formatCompactCap(metrics.totalCap, 'M')}
         </div>
         <div className="font-mono text-[10px] text-slate-400 pt-0.5">
           24h aggregate valuation across tokenized equities
@@ -302,7 +293,7 @@ export default function AIXStocksMarketSummary({
             24H VOLUME
           </div>
           <div className="font-display font-black text-base sm:text-lg text-cyber-cyan tracking-tight">
-            {formatVal(metrics.totalVolume)}
+            {formatCompactCap(metrics.totalVolume, 'M')}
           </div>
           <div className="font-mono text-[9px] text-slate-400">
             on-chain secondary vol

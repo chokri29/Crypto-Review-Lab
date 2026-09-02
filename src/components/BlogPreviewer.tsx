@@ -73,6 +73,8 @@ import MajorEventsAlertBox from './MajorEventsAlertBox';
 import { TiltCard } from './TiltCard';
 import MarketMetricsTable from './MarketMetricsTable';
 import CryptoPriceChart from './CryptoPriceChart';
+import CurrencyDropdown from './CurrencyDropdown';
+import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 
 interface BlogPreviewerProps {
@@ -133,6 +135,7 @@ export default function BlogPreviewer({
   const [selectedArchiveTitle, setSelectedArchiveTitle] = useState('');
   const [showSyncToast, setShowSyncToast] = useState(false);
   const [localActiveReviewId, setLocalActiveReviewId] = useState<string | null>(null);
+  const { formatPrice: ctxFormatPrice, selectedCurrency } = useCurrency();
 
   // Watchlist state initialized from localStorage
   const [watchlist, setWatchlist] = useState<string[]>(() => {
@@ -722,102 +725,109 @@ export default function BlogPreviewer({
           )}
         </nav>
 
-        {/* Top Search Input Bar with Interactive Live Search Overlay */}
-        <div ref={searchContainerRef} className="relative w-full sm:w-72 md:w-96 shrink-0">
-          <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 text-cyber-cyan absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-transform group-focus-within:scale-110" />
-            <input
-              type="text"
-              value={searchQuery}
-              onFocus={() => setIsSearchFocused(true)}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsSearchFocused(true);
-                if (activeReview) {
-                  setActiveReviewId(null);
-                }
-              }}
-              placeholder="Search project name, symbol, or category..."
-              className="w-full bg-cyber-bg-primary/95 hover:bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-9 pr-8 py-2 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_18px_rgba(0,229,255,0.35)] transition-all font-mono"
-              aria-label="Search audited projects by name, symbol, or category"
-            />
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setIsSearchFocused(false);
+        {/* Top Controls: Search Input Bar & Currency Selector */}
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <div ref={searchContainerRef} className="relative w-full sm:w-64 md:w-80 shrink-0">
+            <div className="relative w-full">
+              <Search className="w-3.5 h-3.5 text-cyber-cyan absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-transform group-focus-within:scale-110" />
+              <input
+                type="text"
+                value={searchQuery}
+                onFocus={() => setIsSearchFocused(true)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsSearchFocused(true);
+                  if (activeReview) {
+                    setActiveReviewId(null);
+                  }
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cyber-text-muted hover:text-cyber-cyan p-1 cursor-pointer transition-colors"
-                aria-label="Clear search query"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <span className="hidden md:inline-flex items-center gap-0.5 absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[9px] text-cyber-text-muted/60 bg-cyber-cyan/5 border border-cyber-cyan/15 px-1.5 py-0.5 rounded pointer-events-none">
-                ⌘K
-              </span>
+                placeholder="Search project name, symbol, or category..."
+                className="w-full bg-cyber-bg-primary/95 hover:bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-9 pr-8 py-2 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_18px_rgba(0,229,255,0.35)] transition-all font-mono"
+                aria-label="Search audited projects by name, symbol, or category"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setIsSearchFocused(false);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-cyber-text-muted hover:text-cyber-cyan p-1 cursor-pointer transition-colors"
+                  aria-label="Clear search query"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <span className="hidden md:inline-flex items-center gap-0.5 absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[9px] text-cyber-text-muted/60 bg-cyber-cyan/5 border border-cyber-cyan/15 px-1.5 py-0.5 rounded pointer-events-none">
+                  ⌘K
+                </span>
+              )}
+            </div>
+
+            {/* Clean Minimal Live Search Results Dropdown Overlay */}
+            {isSearchFocused && searchQuery.trim().length > 0 && (
+              <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-[360px] md:w-[400px] mt-2 bg-cyber-bg-card border border-cyber-cyan/30 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden max-h-[380px] overflow-y-auto animate-fade-in">
+                {/* Simple Search Header */}
+                <div className="px-3 py-2 bg-cyber-bg-primary/90 flex items-center justify-between text-[10px] font-mono text-cyber-text-muted uppercase border-b border-cyber-cyan/15">
+                  <span className="font-bold text-cyber-cyan">RESULTS ({liveSearchResults.length})</span>
+                  <span className="text-[9px]">ESC TO CLOSE</span>
+                </div>
+
+                {liveSearchResults.length > 0 ? (
+                  <div className="divide-y divide-cyber-cyan/10">
+                    {liveSearchResults.map((review) => (
+                      <button
+                        key={review.id}
+                        onClick={() => {
+                          setActiveReviewId(review.id);
+                          setIsSearchFocused(false);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="w-full text-left px-3.5 py-2.5 hover:bg-cyber-cyan/10 flex items-center justify-between gap-3 transition-colors cursor-pointer group"
+                      >
+                        {/* Name, Symbol & Category */}
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
+                              {highlightMatch(review.name, searchQuery)}
+                            </span>
+                            <span className="font-mono text-[10px] text-cyber-text-muted font-bold shrink-0">
+                              ({highlightMatch(review.symbol, searchQuery)})
+                            </span>
+                          </div>
+                          <span className="font-mono text-[9px] text-cyber-text-muted mt-0.5 truncate">
+                            {highlightMatch(review.category, searchQuery)}
+                          </span>
+                        </div>
+
+                        {/* Grade Badge */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
+                            {highlightMatch(review.grade, searchQuery)}
+                          </span>
+                          <span className="font-mono text-[10px] text-cyber-text-muted">
+                            {review.overallScore}/100
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center font-mono text-xs text-cyber-text-muted space-y-2">
+                    <p>No projects found matching <span className="text-cyber-cyan font-bold">"{searchQuery}"</span></p>
+                    <p className="text-[10px] text-cyber-text-muted/70">
+                      Try searching ticker symbol (e.g. BTC, ETH, SOL, HYPE) or category (DeFi, L1)
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Clean Minimal Live Search Results Dropdown Overlay */}
-          {isSearchFocused && searchQuery.trim().length > 0 && (
-            <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-[360px] md:w-[400px] mt-2 bg-cyber-bg-card border border-cyber-cyan/30 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden max-h-[380px] overflow-y-auto animate-fade-in">
-              {/* Simple Search Header */}
-              <div className="px-3 py-2 bg-cyber-bg-primary/90 flex items-center justify-between text-[10px] font-mono text-cyber-text-muted uppercase border-b border-cyber-cyan/15">
-                <span className="font-bold text-cyber-cyan">RESULTS ({liveSearchResults.length})</span>
-                <span className="text-[9px]">ESC TO CLOSE</span>
-              </div>
-
-              {liveSearchResults.length > 0 ? (
-                <div className="divide-y divide-cyber-cyan/10">
-                  {liveSearchResults.map((review) => (
-                    <button
-                      key={review.id}
-                      onClick={() => {
-                        setActiveReviewId(review.id);
-                        setIsSearchFocused(false);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="w-full text-left px-3.5 py-2.5 hover:bg-cyber-cyan/10 flex items-center justify-between gap-3 transition-colors cursor-pointer group"
-                    >
-                      {/* Name, Symbol & Category */}
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
-                            {highlightMatch(review.name, searchQuery)}
-                          </span>
-                          <span className="font-mono text-[10px] text-cyber-text-muted font-bold shrink-0">
-                            ({highlightMatch(review.symbol, searchQuery)})
-                          </span>
-                        </div>
-                        <span className="font-mono text-[9px] text-cyber-text-muted mt-0.5 truncate">
-                          {highlightMatch(review.category, searchQuery)}
-                        </span>
-                      </div>
-
-                      {/* Grade Badge */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
-                          {highlightMatch(review.grade, searchQuery)}
-                        </span>
-                        <span className="font-mono text-[10px] text-cyber-text-muted">
-                          {review.overallScore}/100
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-center font-mono text-xs text-cyber-text-muted space-y-2">
-                  <p>No projects found matching <span className="text-cyber-cyan font-bold">"{searchQuery}"</span></p>
-                  <p className="text-[10px] text-cyber-text-muted/70">
-                    Try searching ticker symbol (e.g. BTC, ETH, SOL, HYPE) or category (DeFi, L1)
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Currency Dropdown Selector */}
+          <div className="shrink-0">
+            <CurrencyDropdown />
+          </div>
         </div>
       </div>
 
@@ -1241,9 +1251,9 @@ export default function BlogPreviewer({
                                 {rev.livePrice !== undefined && (
                                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950/80 border border-amber-500/20 text-xs font-mono">
                                     <div className="flex items-center gap-1.5">
-                                      <span className="text-[9.5px] text-amber-400 font-bold">LIVE $</span>
+                                      <span className="text-[9.5px] text-amber-400 font-bold">LIVE {selectedCurrency?.code || 'USD'}</span>
                                       <span className="font-bold text-white">
-                                        ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {ctxFormatPrice(rev.livePrice)}
                                       </span>
                                     </div>
                                     {rev.liveChange24h !== undefined && (
@@ -1420,9 +1430,9 @@ export default function BlogPreviewer({
                               {rev.livePrice !== undefined && (
                                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950/60 border border-cyber-cyan/20 text-xs font-mono">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-[9.5px] text-cyber-cyan font-bold">LIVE $</span>
+                                    <span className="text-[9.5px] text-cyber-cyan font-bold">LIVE {selectedCurrency?.code || 'USD'}</span>
                                     <span className="font-bold text-white">
-                                      ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      {ctxFormatPrice(rev.livePrice)}
                                     </span>
                                   </div>
                                   {rev.liveChange24h !== undefined && (

@@ -6,26 +6,21 @@
 import React, { useState, useEffect } from 'react';
 import { Bot, RefreshCw, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
 import { CryptoReview } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface AIMarketSummaryProps {
   reviews?: CryptoReview[];
 }
 
 export default function AIMarketSummary({ reviews = [] }: AIMarketSummaryProps) {
-  const [globalCap, setGlobalCap] = useState<number>(2.29); // In Trillions
+  const { formatCompactCap } = useCurrency();
+  const [globalCap, setGlobalCap] = useState<number>(2.29); // In Trillions USD
   const [globalCapChange, setGlobalCapChange] = useState<number>(0.39);
-  const [volume24h, setVolume24h] = useState<number>(55.04); // In Billions
+  const [volume24h, setVolume24h] = useState<number>(55.04); // In Billions USD
   const [btcDominance, setBtcDominance] = useState<number>(56.7);
   const [topGainer, setTopGainer] = useState<{ symbol: string; change: number }>({ symbol: 'ETH', change: 1.80 });
   const [topLoser, setTopLoser] = useState<{ symbol: string; change: number }>({ symbol: 'HYPE', change: -3.20 });
   const [isFetching, setIsFetching] = useState<boolean>(false);
-
-  const formatCapValue = (valInTrillions: number): string => {
-    if (valInTrillions >= 1) {
-      return `$${valInTrillions.toFixed(2)}T`;
-    }
-    return `$${(valInTrillions * 1000).toFixed(2)}B`;
-  };
 
   const fetchGlobalMarketData = async () => {
     setIsFetching(true);
@@ -138,7 +133,7 @@ export default function AIMarketSummary({ reviews = [] }: AIMarketSummaryProps) 
           </span>
         </div>
         <div className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]">
-          {formatCapValue(globalCap)}
+          {formatCompactCap(globalCap, 'T')}
         </div>
         <div className="font-mono text-[10px] text-slate-400 pt-0.5">
           24h aggregate valuation across all crypto markets
@@ -152,7 +147,7 @@ export default function AIMarketSummary({ reviews = [] }: AIMarketSummaryProps) 
             24H VOLUME
           </div>
           <div className="font-display font-black text-base sm:text-lg text-cyber-cyan tracking-tight">
-            ${volume24h.toFixed(2)}B
+            {formatCompactCap(volume24h, 'B')}
           </div>
           <div className="font-mono text-[9px] text-slate-400">
             global exchange vol

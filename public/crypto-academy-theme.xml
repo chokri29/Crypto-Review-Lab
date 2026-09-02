@@ -2579,6 +2579,8 @@
           <h5 class='footer-title'>Site</h5>
           <ul class='footer-links'>
             <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='author' href='javascript:void(0)'>&#8250; About Author</a></li>
+            <li class='footer-link-item'><a href='https://github.com/chokri29/Crypto-Review-Lab' rel='noopener noreferrer' target='_blank'>&#8250; GitHub</a></li>
+            <li class='footer-link-item'><a href='https://www.crypto-academy.online/search/label/Reviews?m=1' rel='noopener noreferrer' target='_blank'>&#8250; Blog</a></li>
             <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='contact' href='javascript:void(0)'>&#8250; Contact</a></li>
             <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='privacy' href='javascript:void(0)'>&#8250; Privacy Policy</a></li>
             <li class='footer-link-item'><a class='cyber-modal-trigger' data-modal='disclaimer' href='javascript:void(0)'>&#8250; Disclaimer</a></li>
