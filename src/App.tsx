@@ -1541,18 +1541,6 @@ export default function App() {
                 </div>
               )}
             </div>
-
-            {/* "Search" Tab Button alongside Subscribe */}
-            <button
-              onClick={() => {
-                setActiveTab('blog');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="bg-cyber-cyan/15 hover:bg-cyber-cyan/25 text-cyber-cyan border border-cyber-cyan/40 hover:border-cyber-cyan font-black px-3 py-1.5 rounded-xl shadow-[0_0_12px_rgba(0,229,255,0.2)] transition-all duration-300 cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 text-[11px] sm:text-xs shrink-0"
-            >
-              <Search className="w-3.5 h-3.5 shrink-0 text-cyber-cyan" />
-              <span>Search</span>
-            </button>
           </div>
 
         </div>
