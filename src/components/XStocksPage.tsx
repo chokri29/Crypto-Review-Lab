@@ -40,6 +40,7 @@ import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
 import XStockAlertModal, { XStockPriceAlert } from './XStockAlertModal';
 import XStockAlertBanner from './XStockAlertBanner';
+import XStockVerificationPanel from './XStockVerificationPanel';
 import { useCurrency } from '../context/CurrencyContext';
 import { fetchLiveCoinGeckoMarkets } from '../services/coingecko';
 import { fetchLiveCMCQuote } from '../services/cmc';
@@ -893,69 +894,14 @@ export default function XStocksPage() {
             isMarketOpen={marketHours.isOpen}
           />
 
-          {/* Real-Time Peg Verification Banner */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-cyber-bg-card to-slate-950 border border-cyber-cyan/35 shadow-xl space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Scale className="w-4 h-4 text-cyber-cyan" />
-                <span className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wide">
-                  Real-Time Underlying Peg Verification ({selectedStock.symbol} ↔ {selectedStock.underlyingTicker})
-                </span>
-              </div>
-              <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold self-start sm:self-auto ${
-                activeQuote?.pegStatus === 'TIGHT_PEG'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : activeQuote?.pegStatus === 'MODERATE_VARIANCE'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : activeQuote?.pegStatus === 'DIVERGENT'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700'
-              }`}>
-                {activeQuote?.pegStatus === 'TIGHT_PEG'
-                  ? 'Optimal Parity (<0.5%)'
-                  : activeQuote?.pegStatus === 'MODERATE_VARIANCE'
-                  ? 'Moderate Variance (<2.0%)'
-                  : activeQuote?.pegStatus === 'DIVERGENT'
-                  ? 'High Divergence (≥2.0%)'
-                  : 'Peg check unavailable'}
-              </span>
-            </div>
-
-            {/* Main Peg Comparison Display */}
-            {activeQuote?.livePrice && activeQuote.livePrice > 0 && activeQuote?.equityPrice && activeQuote.equityPrice > 0 && typeof activeQuote?.pegDeviationPct === 'number' ? (
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-cyber-cyan/20 space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-mono">
-                  <div className="flex items-center gap-2 text-white">
-                    <span className="font-bold text-cyber-cyan">{selectedStock.symbol}:</span>
-                    <span>{formatPrice(activeQuote.livePrice)} on-chain</span>
-                    <ArrowRightLeft className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                    <span className="font-bold text-purple-400">{selectedStock.underlyingTicker}:</span>
-                    <span>{formatPrice(activeQuote.equityPrice)} {selectedStock.exchange}</span>
-                    <span className="text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
-                      {activeQuote.equityQuote?.priceLabel || (marketHours.isOpen ? 'Live Market' : 'Last Close')}
-                    </span>
-                  </div>
-                  <div className={`font-bold text-xs sm:text-sm ${
-                    Math.abs(activeQuote.pegDeviationPct) < 0.5 
-                      ? 'text-emerald-400' 
-                      : Math.abs(activeQuote.pegDeviationPct) < 2.0 
-                      ? 'text-amber-400' 
-                      : 'text-rose-400'
-                  }`}>
-                    {activeQuote.pegDeviationPct >= 0 ? '+' : ''}{activeQuote.pegDeviationPct.toFixed(2)}% deviation
-                  </div>
-                </div>
-                <div className="text-[10px] font-mono text-slate-400">
-                  Formula: (OnChainPrice - EquityPrice) / EquityPrice = ({activeQuote.livePrice.toFixed(2)} - {activeQuote.equityPrice.toFixed(2)}) / {activeQuote.equityPrice.toFixed(2)}
-                </div>
-              </div>
-            ) : (
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono text-slate-400 flex items-center gap-2">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Peg check unavailable (awaiting valid on-chain consensus and Finnhub equity quote).</span>
-              </div>
-            )}
-          </div>
+          {/* Dedicated Free Public Verification & Telemetry Panel */}
+          <XStockVerificationPanel
+            selectedStock={selectedStock}
+            activeQuote={activeQuote}
+            marketHours={marketHours}
+            isRefreshingQuotes={isRefreshing}
+            onRefreshAll={syncXStocksData}
+          />
 
           {/* Dual-Oracle & Finnhub Consensus Telemetry Breakdown Box */}
           <div className="p-5 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl space-y-4">
