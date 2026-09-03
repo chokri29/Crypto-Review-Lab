@@ -589,7 +589,7 @@ export default function XStocksPage() {
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
-              24/7 on-chain secondary market quoting for tokenized US equities with Dual-Oracle on-chain consensus (CoinGecko + CoinMarketCap) & real-time underlying equity peg verification via Finnhub.
+              24/7 on-chain secondary market quoting for tokenized US equities with Market Data Cross-Check (CoinGecko &amp; CoinMarketCap aggregators) and real-time underlying equity basis verification via Finnhub.
             </p>
 
             {/* Quick Action Pills: Favorites Count & Price Alert Manager & Currency Selector */}
@@ -705,7 +705,7 @@ export default function XStocksPage() {
                   onClick={syncXStocksData}
                   disabled={isRefreshing}
                   className="p-1.5 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan cursor-pointer transition-all disabled:opacity-50"
-                  title="Refresh Oracle & Finnhub Quotes"
+                  title="Refresh Market Data & Finnhub Quotes"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
                 </button>
@@ -969,13 +969,13 @@ export default function XStocksPage() {
             onRefreshAll={syncXStocksData}
           />
 
-          {/* Dual-Oracle & Finnhub Consensus Telemetry Breakdown Box */}
+          {/* Market Data Cross-Check & Finnhub Equity Feeds Breakdown Box */}
           <div className="p-5 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-3">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-cyber-cyan" />
                 <span className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wide">
-                  Oracle & Equity Telemetry Feeds ({selectedStock.symbol})
+                  Market Data Cross-Check &amp; Equity Feeds ({selectedStock.symbol})
                 </span>
               </div>
               <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${
@@ -988,9 +988,9 @@ export default function XStocksPage() {
                   : 'bg-slate-800 text-slate-400 border border-slate-700'
               }`}>
                 {activeQuote?.status === 'LIVE_DUAL_ORACLE' 
-                  ? 'Dual On-Chain Verified' 
+                  ? 'Dual Source Cross-Checked' 
                   : activeQuote?.status === 'SINGLE_ORACLE'
-                  ? 'Single On-Chain Feed'
+                  ? 'Single Aggregator Feed'
                   : activeQuote?.status === 'UNRESOLVED_DIVERGENCE'
                   ? '⚠️ Unresolved Divergence'
                   : 'Data Unavailable'}
@@ -998,7 +998,7 @@ export default function XStocksPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-              {/* CoinMarketCap Oracle */}
+              {/* CoinMarketCap Aggregator */}
               <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[10px]">
                   <span>CoinMarketCap (CMC)</span>
@@ -1010,11 +1010,11 @@ export default function XStocksPage() {
                   {activeQuote?.cmcPrice ? formatPrice(activeQuote.cmcPrice) : 'No direct quote'}
                 </div>
                 <div className="text-[9.5px] text-slate-500">
-                  On-Chain: {selectedStock.cmcSymbol}
+                  Market Aggregator: {selectedStock.cmcSymbol}
                 </div>
               </div>
 
-              {/* CoinGecko Oracle */}
+              {/* CoinGecko Aggregator */}
               <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[10px]">
                   <span>CoinGecko (CG)</span>
@@ -1026,24 +1026,24 @@ export default function XStocksPage() {
                   {activeQuote?.cgPrice ? formatPrice(activeQuote.cgPrice) : 'No direct quote'}
                 </div>
                 <div className="text-[9.5px] text-slate-500">
-                  On-Chain ID: {selectedStock.coingeckoId}
+                  Market Aggregator ID: {selectedStock.coingeckoId}
                 </div>
               </div>
 
-              {/* Finnhub Equity Oracle */}
+              {/* Finnhub Equity Feed */}
               <div className="p-3 rounded-xl bg-slate-950 border border-purple-900/40 space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span className="text-purple-300">Finnhub Equity Oracle</span>
+                  <span className="text-purple-300">Finnhub Equity Quote</span>
                   <span className={`w-2 h-2 rounded-full ${
                     activeQuote?.equityPrice ? 'bg-purple-400' : 'bg-slate-600'
                   }`} />
                 </div>
                 <div className="text-sm font-bold text-white">
-                  {activeQuote?.equityPrice ? formatPrice(activeQuote.equityPrice) : 'Peg check unavailable'}
+                  {activeQuote?.equityPrice ? formatPrice(activeQuote.equityPrice) : 'Basis check unavailable'}
                 </div>
                 <div className="text-[9.5px] text-purple-400/80 flex items-center justify-between">
                   <span>Ticker: {selectedStock.underlyingTicker}</span>
-                  <span>{activeQuote?.equityQuote?.priceLabel || (marketHours.isOpen ? 'Live' : 'Last Close')}</span>
+                  <span>{activeQuote?.equityQuote?.basisLabel || (marketHours.isOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis')}</span>
                 </div>
               </div>
             </div>

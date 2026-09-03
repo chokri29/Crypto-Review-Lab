@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { isNyseMarketHour as isNyseCalendarMarketHour } from '../utils/usMarketCalendar';
+
 export interface PricePoint {
   timestamp: number;
   price: number;
@@ -127,34 +129,11 @@ const CACHE_TTL_MS = 90 * 1000; // 90s cache
 
 /**
  * Checks if a timestamp falls within NYSE trading hours:
- * 9:30 AM to 16:00 (4:00 PM) America/New_York, Monday through Friday.
+ * 9:30 AM to 16:00 (4:00 PM) America/New_York (or 13:00 on early close days),
+ * taking into account weekends, all official NYSE holidays, and early-close sessions.
  */
 export function isNyseMarketHour(timestamp: number): boolean {
-  const date = new Date(timestamp);
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    hour12: false,
-    weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-  });
-  const parts = formatter.formatToParts(date);
-  let weekday = '';
-  let hour = 0;
-  let minute = 0;
-  for (const part of parts) {
-    if (part.type === 'weekday') weekday = part.value; // 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
-    if (part.type === 'hour') hour = parseInt(part.value, 10);
-    if (part.type === 'minute') minute = parseInt(part.value, 10);
-  }
-
-  // Mon–Fri only
-  const isWeekday = weekday === 'Mon' || weekday === 'Tue' || weekday === 'Wed' || weekday === 'Thu' || weekday === 'Fri';
-  if (!isWeekday) return false;
-
-  const totalMinutes = hour * 60 + minute;
-  // 9:30 AM = 570 mins, 16:00 (4:00 PM) = 960 mins
-  return totalMinutes >= 570 && totalMinutes <= 960;
+  return isNyseCalendarMarketHour(timestamp);
 }
 
 /**
@@ -419,11 +398,11 @@ export function computeMultiTimeframeAlignment(
 }
 
 /**
- * Computes real technical indicators directly from actual price data array:
+ * Computes technical indicators directly from price data array:
  * 1. SMA (20-period simple moving average)
  * 2. EMA (20-period exponential moving average with standard 2/(N+1) multiplier)
  * 3. 14-period Relative Strength Index (Wilder's RSI formula)
- * 4. Support and Resistance derived from real local pivot highs and lows (neighborhood extrema)
+ * 4. Support and Resistance derived from local pivot highs and lows (neighborhood extrema)
  * 5. Technical Confluence Score (0–100 composite)
  */
 export function computeTechnicalIndicators(prices: PricePoint[]): TechnicalIndicators {

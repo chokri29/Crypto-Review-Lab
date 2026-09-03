@@ -53,7 +53,7 @@ export default function XStockAlertBanner({
               </div>
 
               <p className="text-xs font-mono text-amber-200/90 flex items-center gap-1.5 flex-wrap">
-                <span>Oracle price hit threshold:</span>
+                <span>Market price hit threshold:</span>
                 <strong className="text-white font-black bg-slate-900/90 px-1.5 py-0.5 rounded border border-amber-500/30">
                   {alert.direction === 'ABOVE' ? '≥' : '≤'} ${alert.targetPrice.toFixed(2)} USD
                 </strong>

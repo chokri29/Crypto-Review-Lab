@@ -18,7 +18,8 @@ import {
   Info,
   ArrowUpRight,
   ArrowDownRight,
-  Minus
+  Minus,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   ChartDataResult, 
@@ -180,6 +181,12 @@ export default function XStockPriceChart({
   const startPrice = rawPrices.length > 0 ? rawPrices[0] : currentPrice;
   const displayChangePct = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : (propChange24h ?? 0);
   const isPositive = displayChangePct >= 0;
+
+  // Determine if historical chart data is based on synthetic/fallback simulation
+  const isSynthetic = useMemo(() => {
+    if (!chartData) return true;
+    return chartData.provenance === 'SYNTHETIC' || !chartData.isLiveFeed || !chartData.isVerificationGrade;
+  }, [chartData]);
 
   // Derived Indicators based on consensus-snapped array filtered for NYSE hours
   const activeIndicators = useMemo<TechnicalIndicators | undefined>(() => {
@@ -409,7 +416,7 @@ export default function XStockPriceChart({
                   Price unavailable
                 </span>
                 <span className="text-xs font-mono text-slate-500">
-                  (No active oracle feed detected)
+                  (No active market data feed detected)
                 </span>
               </div>
             )}
@@ -446,6 +453,11 @@ export default function XStockPriceChart({
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Technical Indicators</span>
+            {isSynthetic && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                SYNTHETIC / DEMO
+              </span>
+            )}
             {showIndicators ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
         </div>
@@ -604,7 +616,7 @@ export default function XStockPriceChart({
             <Activity className="w-8 h-8 text-slate-600 mb-1" />
             <span className="text-slate-300 font-bold">Chart Telemetry Unavailable</span>
             <span className="text-[11px] max-w-sm text-slate-500">
-              Live secondary market feeds for {symbol} are currently not reporting on connected oracle endpoints.
+              Live secondary market feeds for {symbol} are currently not reporting on connected market data aggregator endpoints.
             </span>
           </div>
         ) : null}
@@ -638,20 +650,53 @@ export default function XStockPriceChart({
         )}
       </div>
 
-      {/* Real Technical Indicators Panel */}
+      {/* Technical Indicators Panel */}
       {showIndicators && activeIndicators && (
         <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/20 space-y-3 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Activity className="w-4 h-4 text-cyber-cyan" />
               <span className="font-orbitron font-bold text-white uppercase tracking-wider text-[11px]">
                 Technical Indicators ({timeframe})
               </span>
+              {isSynthetic ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  SYNTHETIC / DEMO
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  LIVE MARKET DATA
+                </span>
+              )}
             </div>
-            <span className="text-[10px] text-slate-400">
-              Computed from {activePrices.length} data points (NYSE Filtered)
-            </span>
+            <div className="text-[10px] text-slate-400">
+              {isSynthetic ? (
+                <span className="text-amber-400/90 font-bold">
+                  Verification-Grade Indicators: Unavailable
+                </span>
+              ) : (
+                <span>Computed from {activePrices.length} data points (NYSE Filtered)</span>
+              )}
+            </div>
           </div>
+
+          {/* Prominent Synthetic / Demo Advisory */}
+          {isSynthetic && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5 font-mono">
+                <div className="font-bold flex items-center gap-2 flex-wrap">
+                  <span className="bg-amber-500/25 px-1.5 py-0.5 rounded text-[10px] text-amber-200 border border-amber-500/40">
+                    SYNTHETIC / DEMO
+                  </span>
+                  <span className="text-white">Verification-Grade Indicators Unavailable</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                  Live secondary market historical candles for {symbol} are currently not provided by connected APIs. These indicators are computed on synthetic fallback price history for demonstration only and do NOT represent verification-grade technical indicators.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Technical Confluence Score Gauge */}
           {confluence && (
@@ -663,7 +708,7 @@ export default function XStockPriceChart({
                   </div>
                   <div>
                     <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
-                      Technical Confluence
+                      Technical Confluence {isSynthetic && '(SYNTHETIC / DEMO)'}
                     </span>
                     <div className="text-base font-bold text-white flex items-baseline gap-1.5">
                       <span
@@ -680,14 +725,18 @@ export default function XStockPriceChart({
                       <span className="text-[10px] text-slate-500">/ 100</span>
                       <span
                         className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold uppercase ml-1 border ${
-                          confluence.score >= 60
+                          isSynthetic
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            : confluence.score >= 60
                             ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                             : confluence.score <= 40
                             ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
                             : 'bg-slate-800 text-slate-300 border-slate-700'
                         }`}
                       >
-                        {confluence.score >= 60
+                        {isSynthetic
+                          ? 'Demo Simulation'
+                          : confluence.score >= 60
                           ? 'Bullish Confluence'
                           : confluence.score <= 40
                           ? 'Bearish Confluence'
@@ -758,7 +807,9 @@ export default function XStockPriceChart({
 
               {/* Disclaimer Text */}
               <p className="text-[10px] font-mono text-slate-400 italic pt-1 border-t border-cyber-cyan/10">
-                Calculated from the indicators above. Not a prediction — a summary of current technical positioning.
+                {isSynthetic
+                  ? 'SYNTHETIC / DEMO: Calculated from simulated history. Verification-grade technical indicators are unavailable.'
+                  : 'Calculated from the indicators above. Not a prediction — a summary of current technical positioning.'}
               </p>
             </div>
           )}
@@ -773,13 +824,15 @@ export default function XStockPriceChart({
                   </div>
                   <div>
                     <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
-                      Multi-Timeframe Alignment
+                      Multi-Timeframe Alignment {isSynthetic && '(SYNTHETIC / DEMO)'}
                     </span>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span
                         id="xstock-mtf-alignment-badge"
                         className={`text-[9px] px-2 py-0.5 rounded font-extrabold uppercase border ${
-                          mtfAlignment.color === 'green'
+                          isSynthetic
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : mtfAlignment.color === 'green'
                             ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                             : mtfAlignment.color === 'red'
                             ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
@@ -788,7 +841,7 @@ export default function XStockPriceChart({
                             : 'bg-slate-800 text-slate-300 border-slate-700'
                         }`}
                       >
-                        {mtfAlignment.label}
+                        {isSynthetic ? 'SYNTHETIC / DEMO' : mtfAlignment.label}
                       </span>
                     </div>
                   </div>
@@ -842,7 +895,11 @@ export default function XStockPriceChart({
               {showMtfDetails && (
                 <div id="xstock-mtf-details-breakdown" className="pt-2 border-t border-cyber-cyan/15 space-y-1.5 text-[11px] font-mono">
                   <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                    <span>SMA(20) Slope Direction per Timeframe (NYSE Filtered)</span>
+                    <span>
+                      {isSynthetic 
+                        ? 'SMA(20) Slope Direction per Timeframe (SYNTHETIC / DEMO)' 
+                        : 'SMA(20) Slope Direction per Timeframe (NYSE Filtered)'}
+                    </span>
                     <span className="text-slate-500">Threshold: ±0.1%</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -893,7 +950,14 @@ export default function XStockPriceChart({
             <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
               <div className="flex items-center justify-between text-slate-400 text-[10px]">
                 <span>SMA (20)</span>
-                <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                <div className="flex items-center gap-1">
+                  {isSynthetic && (
+                    <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      DEMO
+                    </span>
+                  )}
+                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                </div>
               </div>
               <div className="text-sm font-bold text-white mt-1">
                 {activeIndicators.sma20 ? formatPrice(activeIndicators.sma20) : 'N/A'}
@@ -909,7 +973,14 @@ export default function XStockPriceChart({
             <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
               <div className="flex items-center justify-between text-slate-400 text-[10px]">
                 <span>EMA (20)</span>
-                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                <div className="flex items-center gap-1">
+                  {isSynthetic && (
+                    <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      DEMO
+                    </span>
+                  )}
+                  <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                </div>
               </div>
               <div className="text-sm font-bold text-white mt-1">
                 {activeIndicators.ema20 ? formatPrice(activeIndicators.ema20) : 'N/A'}
@@ -925,13 +996,20 @@ export default function XStockPriceChart({
             <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
               <div className="flex items-center justify-between text-slate-400 text-[10px]">
                 <span>RSI (14)</span>
-                <span className={`text-[9px] font-bold px-1 rounded ${
-                  activeIndicators.rsiCondition === 'overbought' ? 'bg-rose-500/20 text-rose-400' :
-                  activeIndicators.rsiCondition === 'oversold' ? 'bg-emerald-500/20 text-emerald-400' :
-                  'bg-slate-800 text-slate-300'
-                }`}>
-                  {activeIndicators.rsiCondition || 'neutral'}
-                </span>
+                <div className="flex items-center gap-1">
+                  {isSynthetic && (
+                    <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      DEMO
+                    </span>
+                  )}
+                  <span className={`text-[9px] font-bold px-1 rounded ${
+                    activeIndicators.rsiCondition === 'overbought' ? 'bg-rose-500/20 text-rose-400' :
+                    activeIndicators.rsiCondition === 'oversold' ? 'bg-emerald-500/20 text-emerald-400' :
+                    'bg-slate-800 text-slate-300'
+                  }`}>
+                    {activeIndicators.rsiCondition || 'neutral'}
+                  </span>
+                </div>
               </div>
               <div className="text-sm font-bold text-white mt-1">
                 {activeIndicators.rsi14 ?? 'N/A'}
@@ -947,14 +1025,19 @@ export default function XStockPriceChart({
 
             {/* Support / Resistance */}
             <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <div className="text-slate-400 text-[10px]">
+              <div className="flex items-center justify-between text-slate-400 text-[10px]">
                 <span>Pivot Key Levels</span>
+                {isSynthetic && (
+                  <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                    DEMO
+                  </span>
+                )}
               </div>
               <div className="text-[11px] font-bold text-emerald-400 mt-1">
-                Sup: {formatPrice(activeIndicators.keySupport)}
+                Sup: {formatPrice(activeIndicators.keySupport)} {isSynthetic ? '(Demo)' : ''}
               </div>
               <div className="text-[11px] font-bold text-rose-400 mt-0.5">
-                Res: {formatPrice(activeIndicators.keyResistance)}
+                Res: {formatPrice(activeIndicators.keyResistance)} {isSynthetic ? '(Demo)' : ''}
               </div>
             </div>
           </div>

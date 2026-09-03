@@ -15,7 +15,9 @@ export interface FinnhubQuote {
   t?: number;  // Timestamp
   effectivePrice?: number;
   isLiveQuote?: boolean;
-  priceLabel?: 'Live Price' | 'Last Close' | 'Unavailable';
+  priceLabel?: 'Live Equity Basis' | 'Last Close / After-Hours Basis' | 'Live Price' | 'Last Close' | 'Unavailable';
+  basisLabel?: 'Live Equity Basis' | 'Last Close / After-Hours Basis';
+  basisTimestampFormatted?: string;
 }
 
 export const FINNHUB_GAS_URL = 'https://script.google.com/macros/s/AKfycbz3gpHcXA-yc7myC5UNJ-pIJyNnE1xXfAO_v3vlfbjJOSH345Cc4DtoGPYzcHq3diUUAg/exec';
@@ -69,30 +71,42 @@ export async function fetchLiveFinnhubQuote(
       // If market is open and c > 0, use c (live quote)
       let effectivePrice = 0;
       let isLiveQuote = false;
-      let priceLabel: 'Live Price' | 'Last Close' | 'Unavailable' = 'Unavailable';
+      const basisLabel: 'Live Equity Basis' | 'Last Close / After-Hours Basis' = isMarketOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis';
+      let priceLabel: 'Live Equity Basis' | 'Last Close / After-Hours Basis' = basisLabel;
 
       if (isMarketOpen && c > 0) {
         effectivePrice = c;
         isLiveQuote = true;
-        priceLabel = 'Live Price';
+        priceLabel = 'Live Equity Basis';
       } else if (!isMarketOpen && pc > 0) {
         effectivePrice = pc;
         isLiveQuote = false;
-        priceLabel = 'Last Close';
+        priceLabel = 'Last Close / After-Hours Basis';
       } else if (c > 0) {
         effectivePrice = c;
         isLiveQuote = isMarketOpen;
-        priceLabel = isMarketOpen ? 'Live Price' : 'Last Close';
+        priceLabel = isMarketOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis';
       } else if (pc > 0) {
         effectivePrice = pc;
         isLiveQuote = false;
-        priceLabel = 'Last Close';
+        priceLabel = 'Last Close / After-Hours Basis';
       }
 
       if (effectivePrice <= 0) {
         finnhubCache[cleanSymbol] = { data: null, timestamp: now };
         return null;
       }
+
+      const quoteTimestamp = typeof data.t === 'number' && data.t > 0 ? data.t : Math.floor(now / 1000);
+      const basisTimestampFormatted = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).format(new Date(quoteTimestamp * 1000)) + ' ET';
 
       const quote: FinnhubQuote = {
         symbol: cleanSymbol,
@@ -103,10 +117,12 @@ export async function fetchLiveFinnhubQuote(
         l: typeof data.l === 'number' ? data.l : undefined,
         o: typeof data.o === 'number' ? data.o : undefined,
         pc,
-        t: typeof data.t === 'number' ? data.t : undefined,
+        t: quoteTimestamp,
         effectivePrice,
         isLiveQuote,
-        priceLabel
+        priceLabel,
+        basisLabel,
+        basisTimestampFormatted
       };
 
       finnhubCache[cleanSymbol] = { data: quote, timestamp: now };
