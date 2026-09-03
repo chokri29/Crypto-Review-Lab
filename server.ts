@@ -1652,6 +1652,9 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       is_blacklisted: isBlacklisted,
       is_proxy: isProxy,
       is_open_source: isOpenSource,
+      verified_contract: (tokenData.is_open_source !== undefined && tokenData.is_open_source !== null && String(tokenData.is_open_source).trim() !== "")
+        ? (tokenData.is_open_source === "1" || tokenData.is_open_source === 1 || tokenData.is_open_source === true)
+        : null,
       renounced: isRenounced,
       trust_list: isTrustList,
       owner_is_contract: ownerIsContract,
@@ -1662,8 +1665,12 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       tokenName: tokenData.token_name || tokenData.name || "",
       tokenSymbol: tokenData.token_symbol || tokenData.symbol || "",
       ownerAddress: tokenData.owner_address || tokenData.owner || "",
-      buyTax: tokenData.buy_tax ? `${(parseFloat(tokenData.buy_tax) * (tokenData.buy_tax < 1 ? 100 : 1)).toFixed(1)}%` : "0%",
-      sellTax: tokenData.sell_tax ? `${(parseFloat(tokenData.sell_tax) * (tokenData.sell_tax < 1 ? 100 : 1)).toFixed(1)}%` : "0%",
+      buyTax: (tokenData.buy_tax !== undefined && tokenData.buy_tax !== null && String(tokenData.buy_tax).trim() !== "" && !isNaN(parseFloat(String(tokenData.buy_tax))))
+        ? `${(parseFloat(String(tokenData.buy_tax)) * (parseFloat(String(tokenData.buy_tax)) < 1 && parseFloat(String(tokenData.buy_tax)) > 0 ? 100 : 1)).toFixed(1)}%`
+        : null,
+      sellTax: (tokenData.sell_tax !== undefined && tokenData.sell_tax !== null && String(tokenData.sell_tax).trim() !== "" && !isNaN(parseFloat(String(tokenData.sell_tax))))
+        ? `${(parseFloat(String(tokenData.sell_tax)) * (parseFloat(String(tokenData.sell_tax)) < 1 && parseFloat(String(tokenData.sell_tax)) > 0 ? 100 : 1)).toFixed(1)}%`
+        : null,
       cannotSell
     };
   }
@@ -1788,7 +1795,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           owner_change_balance: false,
           is_blacklisted: false,
           is_proxy: false,
-          is_open_source: true,
+          is_open_source: null,
+          verified_contract: typeof rugData.tokenMeta?.verified === "boolean"
+            ? rugData.tokenMeta.verified
+            : (typeof rugData.verified === "boolean" ? rugData.verified : null),
           renounced: isRenounced,
           trust_list: isTrustList,
           owner_is_contract: false,
@@ -1798,8 +1808,12 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           tokenName: tokenMeta.name || "Solana Token",
           tokenSymbol: tokenMeta.symbol || contractAddress.slice(0, 6),
           ownerAddress: mintAuth || "",
-          buyTax: "0%",
-          sellTax: "0%",
+          buyTax: (rugData.transferFee?.pct !== undefined && rugData.transferFee?.pct !== null && !isNaN(parseFloat(rugData.transferFee.pct)))
+            ? `${parseFloat(rugData.transferFee.pct).toFixed(1)}%`
+            : null,
+          sellTax: (rugData.transferFee?.pct !== undefined && rugData.transferFee?.pct !== null && !isNaN(parseFloat(rugData.transferFee.pct)))
+            ? `${parseFloat(rugData.transferFee.pct).toFixed(1)}%`
+            : null,
           cannotSell,
           rugcheckScore: rugData.score,
           rugcheckRisks: risks

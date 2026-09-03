@@ -180,9 +180,10 @@ export default function XStockVerificationPanel({
 
   // --- 2. Compute Tracking-Error / Basis Divergence (Equity Basis Tracking Signal) ---
   const liveTokenPrice = activeQuote?.livePrice;
+  const isDivergent = activeQuote?.status === 'UNRESOLVED_DIVERGENCE';
   const equityPrice = activeQuote?.equityPrice;
   const hasEquityPrice = typeof equityPrice === 'number' && equityPrice > 0;
-  const hasLiveTokenPrice = typeof liveTokenPrice === 'number' && liveTokenPrice > 0;
+  const hasLiveTokenPrice = typeof liveTokenPrice === 'number' && liveTokenPrice > 0 && !isDivergent;
 
   let basisDeviationPct: number | null = null;
   let basisStatus: 'TIGHT_PARITY' | 'MODERATE_BASIS' | 'ELEVATED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
@@ -522,7 +523,13 @@ export default function XStockVerificationPanel({
               <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
                 <span className="text-[9px] text-slate-500 block uppercase">On-Chain Price ({selectedStock.symbol})</span>
                 <span className="text-cyber-cyan font-bold">
-                  {typeof liveTokenPrice === 'number' && liveTokenPrice > 0 ? formatPrice(liveTokenPrice) : 'Unavailable'}
+                  {isDivergent ? (
+                    <span className="text-amber-400">Divergent (Unresolved)</span>
+                  ) : typeof liveTokenPrice === 'number' && liveTokenPrice > 0 ? (
+                    formatPrice(liveTokenPrice)
+                  ) : (
+                    'Unavailable'
+                  )}
                 </span>
               </div>
               <div className="p-2.5 rounded-lg bg-slate-900/90 border border-purple-950/60">
@@ -687,15 +694,25 @@ export default function XStockVerificationPanel({
               <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
                 <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Buy / Sell Transfer Tax</div>
                 <div className="text-white font-bold">
-                  {scanData.buyTax || '0%'} Buy / {scanData.sellTax || '0%'} Sell
+                  {scanData.buyTax ? scanData.buyTax : 'Not Reported'} Buy / {scanData.sellTax ? scanData.sellTax : 'Not Reported'} Sell
                 </div>
               </div>
 
               {/* RugCheck / Verified Status */}
               <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
                 <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Contract Verification</div>
-                <div className="text-cyber-cyan font-bold">
-                  {scanData.verified_contract !== false ? 'Verified Token Architecture' : 'Unverified Bytecode'}
+                <div className={`font-bold ${
+                  scanData.verified_contract === true
+                    ? 'text-cyber-cyan'
+                    : scanData.verified_contract === false
+                    ? 'text-rose-400'
+                    : 'text-slate-400'
+                }`}>
+                  {scanData.verified_contract === true
+                    ? 'Verified Token Architecture'
+                    : scanData.verified_contract === false
+                    ? 'Unverified Bytecode/Token Architecture'
+                    : 'Verification Unavailable'}
                 </div>
               </div>
 

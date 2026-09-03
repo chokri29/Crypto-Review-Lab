@@ -12,6 +12,7 @@ import {
 export interface SourceMetricValue {
   value?: number | null;
   isFallback?: boolean;
+  provenance?: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   sourceName: string;
 }
 
@@ -23,6 +24,7 @@ export interface MultiSourceInput {
   cgRank?: number;
   cgChange24h?: number;
   cgIsFallback?: boolean;
+  cgProvenance?: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cgCirculatingSupply?: number;
   cgMaxSupply?: number;
   cgTotalSupply?: number;
@@ -36,22 +38,27 @@ export interface MultiSourceInput {
   cmcRank?: number;
   cmcChange24h?: number;
   cmcIsFallback?: boolean;
+  cmcProvenance?: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cmcAth?: number;
   cmcAtl?: number;
   cmcCirculatingSupply?: number;
   cmcTotalSupply?: number;
 
-  // CoinStats
+  // CoinStats (Used only for general crypto, NOT xStocks)
   csPrice?: number;
   csMarketCap?: number;
   csVolume?: number;
   csRank?: number;
   csChange24h?: number;
   csIsFallback?: boolean;
+  csProvenance?: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   csAth?: number;
   csAtl?: number;
   csCirculatingSupply?: number;
   csTotalSupply?: number;
+
+  // Flag to indicate xStock convergence (CoinStats excluded, dual-oracle CG+CMC only)
+  isXStock?: boolean;
 }
 
 /**
@@ -84,8 +91,8 @@ export function reconcileMetric(
   const rawValues: Record<string, number> = {};
 
   for (const [sourceKey, item] of Object.entries(sources)) {
-    // Rule 6: Never let missing/derived/fallback data count as independent corroboration
-    if (!item || item.isFallback) continue;
+    // Rule 6: Never let missing/derived/fallback/synthetic data count as independent corroboration
+    if (!item || item.isFallback || item.provenance === 'SYNTHETIC' || item.provenance === 'UNAVAILABLE') continue;
     const val = item.value;
     if (typeof val === 'number' && !isNaN(val) && (isRank ? val >= 1 : val > 0)) {
       validEntries.push({ source: sourceKey, value: val });
@@ -304,12 +311,14 @@ export function reconcileMetric(
  */
 export function computeMultiSourceConvergence(input: MultiSourceInput): {
   report: MultiSourceConvergenceReport;
-  livePrice: number;
+  status: MultiSourceConvergenceReport['overallStatus'];
+  consensusPrice: number | null;
+  livePrice: number | null;
   liveMarketCap: number;
   liveVolume24h: number;
   liveRank: number;
-  cmcRank: number;
-  cmcPrice: number;
+  cmcRank?: number;
+  cmcPrice?: number;
   csPrice?: number;
   csRank?: number;
   csVolume24h?: number;
@@ -335,50 +344,66 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // 1. Reconcile Price (±1.0% tolerance)
+  // 1. Prepare sources: Exclude CoinStats completely if this is an xStock token
+  const priceSources: Record<string, SourceMetricValue> = {
+    coingecko: { value: input.cgPrice, isFallback: input.cgIsFallback, provenance: input.cgProvenance, sourceName: 'coingecko' },
+    coinmarketcap: { value: input.cmcPrice, isFallback: input.cmcIsFallback, provenance: input.cmcProvenance, sourceName: 'coinmarketcap' }
+  };
+  if (!input.isXStock && (input.csPrice !== undefined || input.csIsFallback !== undefined)) {
+    priceSources.coinstats = { value: input.csPrice, isFallback: input.csIsFallback, provenance: input.csProvenance, sourceName: 'coinstats' };
+  }
+
   const priceRecon = reconcileMetric(
     'price',
-    {
-      coingecko: { value: input.cgPrice, isFallback: input.cgIsFallback, sourceName: 'coingecko' },
-      coinmarketcap: { value: input.cmcPrice, isFallback: input.cmcIsFallback, sourceName: 'coinmarketcap' },
-      coinstats: { value: input.csPrice, isFallback: input.csIsFallback, sourceName: 'coinstats' }
-    },
+    priceSources,
     CONVERGENCE_TOLERANCES.PRICE_TOLERANCE,
     false
   );
 
   // 2. Reconcile Market Cap (±1.5% tolerance)
+  const mcapSources: Record<string, SourceMetricValue> = {
+    coingecko: { value: input.cgMarketCap, isFallback: input.cgIsFallback, provenance: input.cgProvenance, sourceName: 'coingecko' },
+    coinmarketcap: { value: input.cmcMarketCap, isFallback: input.cmcIsFallback, provenance: input.cmcProvenance, sourceName: 'coinmarketcap' }
+  };
+  if (!input.isXStock && (input.csMarketCap !== undefined || input.csIsFallback !== undefined)) {
+    mcapSources.coinstats = { value: input.csMarketCap, isFallback: input.csIsFallback, provenance: input.csProvenance, sourceName: 'coinstats' };
+  }
+
   const mcapRecon = reconcileMetric(
     'marketCap',
-    {
-      coingecko: { value: input.cgMarketCap, isFallback: input.cgIsFallback, sourceName: 'coingecko' },
-      coinmarketcap: { value: input.cmcMarketCap, isFallback: input.cmcIsFallback, sourceName: 'coinmarketcap' },
-      coinstats: { value: input.csMarketCap, isFallback: input.csIsFallback, sourceName: 'coinstats' }
-    },
+    mcapSources,
     CONVERGENCE_TOLERANCES.MARKET_CAP_TOLERANCE,
     false
   );
 
   // 3. Reconcile 24h Volume (±3.0% tolerance)
+  const volumeSources: Record<string, SourceMetricValue> = {
+    coingecko: { value: input.cgVolume, isFallback: input.cgIsFallback, provenance: input.cgProvenance, sourceName: 'coingecko' },
+    coinmarketcap: { value: input.cmcVolume, isFallback: input.cmcIsFallback, provenance: input.cmcProvenance, sourceName: 'coinmarketcap' }
+  };
+  if (!input.isXStock && (input.csVolume !== undefined || input.csIsFallback !== undefined)) {
+    volumeSources.coinstats = { value: input.csVolume, isFallback: input.csIsFallback, provenance: input.csProvenance, sourceName: 'coinstats' };
+  }
+
   const volumeRecon = reconcileMetric(
     'volume24h',
-    {
-      coingecko: { value: input.cgVolume, isFallback: input.cgIsFallback, sourceName: 'coingecko' },
-      coinmarketcap: { value: input.cmcVolume, isFallback: input.cmcIsFallback, sourceName: 'coinmarketcap' },
-      coinstats: { value: input.csVolume, isFallback: input.csIsFallback, sourceName: 'coinstats' }
-    },
+    volumeSources,
     CONVERGENCE_TOLERANCES.VOLUME_TOLERANCE,
     false
   );
 
   // 4. Reconcile Rank (±1 rank tolerance)
+  const rankSources: Record<string, SourceMetricValue> = {
+    coingecko: { value: input.cgRank, isFallback: input.cgIsFallback, provenance: input.cgProvenance, sourceName: 'coingecko' },
+    coinmarketcap: { value: input.cmcRank, isFallback: input.cmcIsFallback, provenance: input.cmcProvenance, sourceName: 'coinmarketcap' }
+  };
+  if (!input.isXStock && (input.csRank !== undefined || input.csIsFallback !== undefined)) {
+    rankSources.coinstats = { value: input.csRank, isFallback: input.csIsFallback, provenance: input.csProvenance, sourceName: 'coinstats' };
+  }
+
   const rankRecon = reconcileMetric(
     'marketCapRank',
-    {
-      coingecko: { value: input.cgRank, isFallback: input.cgIsFallback, sourceName: 'coingecko' },
-      coinmarketcap: { value: input.cmcRank, isFallback: input.cmcIsFallback, sourceName: 'coinmarketcap' },
-      coinstats: { value: input.csRank, isFallback: input.csIsFallback, sourceName: 'coinstats' }
-    },
+    rankSources,
     CONVERGENCE_TOLERANCES.RANK_TOLERANCE,
     true
   );
@@ -400,59 +425,85 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   const allFullyCross = [priceRecon, mcapRecon].every(r => r.status === 'FULLY_CROSS_VALIDATED');
   const isSingleSource = activeSourcesCount === 1;
 
-  if (isSingleSource) {
+  if (priceRecon.status === 'UNRESOLVED_DIVERGENCE') {
+    overallStatus = 'UNRESOLVED_DIVERGENCE';
+    confidenceScore = 30;
+    confidenceLevel = 'DIVERGENT';
+  } else if (priceRecon.status === 'NO_DATA') {
+    overallStatus = 'NO_DATA';
+    confidenceScore = 0;
+    confidenceLevel = 'DIVERGENT';
+  } else if (isSingleSource) {
     overallStatus = 'SINGLE_SOURCE_DEGRADED';
     confidenceScore = 75;
     confidenceLevel = 'MODERATE';
   } else if (hasUnresolved) {
     overallStatus = 'UNRESOLVED_DIVERGENCE';
-    confidenceScore = 80;
+    confidenceScore = 60;
     confidenceLevel = 'DIVERGENT';
-  } else if (allFullyCross && activeSourcesCount === 3) {
+  } else if (allFullyCross && activeSourcesCount >= (input.isXStock ? 2 : 3)) {
     overallStatus = 'FULL_CONSENSUS';
     confidenceScore = 99;
     confidenceLevel = 'HIGH';
   } else {
     overallStatus = 'PARTIAL_CONSENSUS';
-    confidenceScore = 92;
+    confidenceScore = 90;
     confidenceLevel = 'MODERATE';
   }
 
-  // Final consensus or fallback values for presentation
-  const finalPrice = priceRecon.consensusValue ?? input.cgPrice ?? input.cmcPrice ?? input.csPrice ?? 0;
-  const finalMarketCap = mcapRecon.consensusValue ?? input.cgMarketCap ?? input.cmcMarketCap ?? input.csMarketCap ?? 0;
-  const finalVolume = volumeRecon.consensusValue ?? input.cgVolume ?? input.csVolume ?? input.cmcVolume ?? 0;
-  const finalRank = rankRecon.consensusValue ?? input.cgRank ?? input.cmcRank ?? input.csRank ?? 0;
+  // Final consensus values:
+  // STRICT RULE: If UNRESOLVED_DIVERGENCE or NO_DATA, finalPrice MUST be null!
+  // NEVER manufacture a price with `... ?? sourcePrice ?? 0`!
+  const isPriceDivergentOrMissing = priceRecon.status === 'UNRESOLVED_DIVERGENCE' || priceRecon.status === 'NO_DATA';
+  const finalPrice: number | null = isPriceDivergentOrMissing ? null : (priceRecon.consensusValue ?? null);
+  const finalMarketCap = (mcapRecon.status === 'UNRESOLVED_DIVERGENCE' || mcapRecon.status === 'NO_DATA')
+    ? (mcapRecon.consensusValue ?? 0)
+    : (mcapRecon.consensusValue ?? (input.cgMarketCap ?? input.cmcMarketCap ?? 0));
+  const finalVolume = (volumeRecon.status === 'UNRESOLVED_DIVERGENCE' || volumeRecon.status === 'NO_DATA')
+    ? (volumeRecon.consensusValue ?? 0)
+    : (volumeRecon.consensusValue ?? (input.cgVolume ?? input.cmcVolume ?? 0));
+  const finalRank = rankRecon.consensusValue ?? 0;
 
   // Supply & Historical metrics derivation
-  const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (finalPrice > 0 && finalMarketCap > 0 ? Math.round(finalMarketCap / finalPrice) : 0);
+  const hasValidPrice = typeof finalPrice === 'number' && finalPrice > 0;
+  const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (hasValidPrice && finalMarketCap > 0 ? Math.round(finalMarketCap / finalPrice) : 0);
   const maxSupply = input.cgMaxSupply;
   const totalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply || (maxSupply ? Math.round(maxSupply * 0.95) : (estimatedCircSupply > 0 ? estimatedCircSupply : undefined));
-  const fdvCalculated = maxSupply && finalPrice > 0 ? Math.round(finalPrice * maxSupply) : (totalSupply && finalPrice > 0 ? Math.round(finalPrice * totalSupply) : (finalMarketCap > 0 ? Math.round(finalMarketCap * 1.15) : 0));
+  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : (finalMarketCap > 0 ? Math.round(finalMarketCap * 1.15) : 0));
 
   // ATH & ATL cross-validation
   const validAth = [input.cgAth, input.cmcAth, input.csAth].filter((v): v is number => typeof v === 'number' && v > 0);
-  const allTimeHigh = validAth.length > 0 ? (validAth.reduce((a, b) => a + b, 0) / validAth.length) : parseFloat((finalPrice * 1.65).toFixed(finalPrice < 1 ? 4 : 2));
+  const allTimeHigh = validAth.length > 0 ? (validAth.reduce((a, b) => a + b, 0) / validAth.length) : (hasValidPrice ? parseFloat((finalPrice * 1.65).toFixed(finalPrice < 1 ? 4 : 2)) : undefined);
 
   const validAtl = [input.cgAtl, input.cmcAtl, input.csAtl].filter((v): v is number => typeof v === 'number' && v > 0);
-  const allTimeLow = validAtl.length > 0 ? (validAtl.reduce((a, b) => a + b, 0) / validAtl.length) : parseFloat((finalPrice * 0.22).toFixed(finalPrice < 1 ? 4 : 2));
+  const allTimeLow = validAtl.length > 0 ? (validAtl.reduce((a, b) => a + b, 0) / validAtl.length) : (hasValidPrice ? parseFloat((finalPrice * 0.22).toFixed(finalPrice < 1 ? 4 : 2)) : undefined);
 
-  const athChangePct = allTimeHigh > 0 && finalPrice > 0 ? parseFloat((((finalPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
-  const atlChangePct = allTimeLow > 0 && finalPrice > 0 ? parseFloat((((finalPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
+  const athChangePct = allTimeHigh && hasValidPrice ? parseFloat((((finalPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
+  const atlChangePct = allTimeLow && hasValidPrice ? parseFloat((((finalPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
 
-  const dataSourcesList = [
-    'CoinGecko API v3 (Primary Feed)',
-    'CoinMarketCap Pro API (Liquidity & Depth)',
-    'CoinStats Apps Script Web App Proxy (Tri-Oracle Validation)'
-  ];
+  const dataSourcesList = input.isXStock
+    ? [
+        'CoinGecko API v3 (Live Feed)',
+        'CoinMarketCap Pro API (Liquidity & Depth)'
+      ]
+    : [
+        'CoinGecko API v3 (Primary Feed)',
+        'CoinMarketCap Pro API (Liquidity & Depth)',
+        'CoinStats Apps Script Web App Proxy (Tri-Oracle Validation)'
+      ];
 
-  let syncRuleApplied = 'Tri-Oracle Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)';
+  let syncRuleApplied = input.isXStock
+    ? 'Dual-Oracle Convergence (xStocks): Strict Cross-Validation (±1.0% Price, ±1.5% Cap, ±3.0% Vol)'
+    : 'Tri-Oracle Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)';
+
   if (overallStatus === 'FULL_CONSENSUS') {
-    syncRuleApplied = '3-Source Full Consensus: CoinGecko + CMC + CoinStats agree within ±1% median';
+    syncRuleApplied = input.isXStock
+      ? '2-Source Full Consensus: CoinGecko + CMC agree within ±1% tolerance'
+      : '3-Source Full Consensus: CoinGecko + CMC + CoinStats agree within ±1% median';
   } else if (overallStatus === 'PARTIAL_CONSENSUS') {
-    syncRuleApplied = `2-Source Partial Consensus: Outlier filtered | Triangulation applied across ${activeSources.join(', ')}`;
+    syncRuleApplied = `2-Source Partial Consensus: Cross-validation confirmed across ${activeSources.join(', ')}`;
   } else if (overallStatus === 'UNRESOLVED_DIVERGENCE') {
-    syncRuleApplied = '⚠️ Multi-Source Divergence Detected: Metrics flagged for auditor review';
+    syncRuleApplied = '⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved';
   } else if (overallStatus === 'SINGLE_SOURCE_DEGRADED') {
     syncRuleApplied = `Degraded to Single-Source (${activeSources[0] || 'Unknown'}): Multi-source consensus unavailable`;
   }
@@ -475,12 +526,14 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
 
   return {
     report,
+    status: overallStatus,
+    consensusPrice: priceRecon.consensusValue,
     livePrice: finalPrice,
     liveMarketCap: finalMarketCap,
     liveVolume24h: finalVolume,
     liveRank: Math.round(finalRank),
     cmcRank: input.cmcRank || Math.round(finalRank),
-    cmcPrice: input.cmcPrice || finalPrice,
+    cmcPrice: input.cmcPrice,
     csPrice: input.csPrice,
     csRank: input.csRank,
     csVolume24h: input.csVolume,
@@ -489,7 +542,9 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     supplyDivergencePct: volumeRecon.divergencePct,
     confidenceScore,
     confidenceLevel,
-    dataEngine: `CoinGecko + CMC + CoinStats Tri-Oracle Sync (${activeSourcesCount} Sources Active)`,
+    dataEngine: input.isXStock
+      ? `CoinGecko + CMC Dual-Oracle Sync (${activeSourcesCount} Sources Active)`
+      : `CoinGecko + CMC + CoinStats Tri-Oracle Sync (${activeSourcesCount} Sources Active)`,
     dataSources: dataSourcesList,
     syncRuleApplied,
     circulatingSupply: estimatedCircSupply,

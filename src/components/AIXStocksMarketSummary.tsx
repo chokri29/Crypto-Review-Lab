@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { XSTOCKS_REGISTRY, XStockRegistryItem } from '../data/xstocksRegistry';
-import { fetchLiveCoinGeckoMarkets } from '../services/coingecko';
+import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
@@ -52,7 +52,7 @@ export default function AIXStocksMarketSummary({
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
       const [cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
-        fetchLiveCoinGeckoMarkets(cgIds).catch(() => ({})),
+        fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         Promise.all(
           cmcSymbols.map(sym => 
             fetchLiveCMCQuote(sym).then(q => ({ sym, q })).catch(() => ({ sym, q: null }))
@@ -86,34 +86,61 @@ export default function AIXStocksMarketSummary({
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
-        const cgPrice = cgData?.current_price;
-        const cmcPrice = cmcData?.price;
-        const cgVol = cgData?.total_volume;
-        const cmcVol = cmcData?.volume24h;
-        const cgCap = cgData?.market_cap;
-        const cmcCap = cmcData?.marketCap;
-        const cgChange = cgData?.price_change_percentage_24h;
-        const cmcChange = cmcData?.percentChange24h;
+        // Check provenance: Must NEVER be synthetic or fallback
+        const isCgValid = cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number';
+        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
+        const cgPrice = isCgValid ? cgData.current_price : undefined;
+        const cgVol = isCgValid ? cgData.total_volume : undefined;
+        const cgCap = isCgValid ? cgData.market_cap : undefined;
+        const cgChange = isCgValid ? cgData.price_change_percentage_24h : undefined;
+
+        const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
+        const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
+        const cmcPrice = isCmcValid ? cmcData.price : undefined;
+        const cmcVol = isCmcValid ? cmcData.volume24h : undefined;
+        const cmcCap = isCmcValid ? cmcData.marketCap : undefined;
+        const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
         const convergenceResult = computeMultiSourceConvergence({
           cgPrice,
           cgVolume: cgVol,
           cgMarketCap: cgCap,
           cgChange24h: cgChange,
+          cgIsFallback: !isCgValid,
+          cgProvenance,
+
           cmcPrice,
           cmcVolume: cmcVol,
           cmcMarketCap: cmcCap,
-          cmcChange24h: cmcChange
+          cmcChange24h: cmcChange,
+          cmcIsFallback: !isCmcValid,
+          cmcProvenance,
+
+          isXStock: true
         });
 
-        const livePrice = convergenceResult.livePrice > 0 ? convergenceResult.livePrice : (cmcPrice || cgPrice || 0);
+        const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
+        const livePrice = isDivergent ? null : convergenceResult.livePrice;
         const change24h = typeof cmcChange === 'number' ? cmcChange : (typeof cgChange === 'number' ? cgChange : undefined);
         const volume24h = convergenceResult.liveVolume24h > 0 ? convergenceResult.liveVolume24h : (cmcVol || cgVol || 0);
         const marketCap = convergenceResult.liveMarketCap > 0 ? convergenceResult.liveMarketCap : (cmcCap || cgCap || 0);
 
-        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNAVAILABLE' = 'UNAVAILABLE';
-        if (cgPrice && cmcPrice) status = 'LIVE_DUAL_ORACLE';
-        else if (cgPrice || cmcPrice) status = 'SINGLE_ORACLE';
+        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
+        let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';
+
+        if (isDivergent) {
+          status = 'UNRESOLVED_DIVERGENCE';
+          provenance = 'UNAVAILABLE';
+        } else if (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS') {
+          status = 'LIVE_DUAL_ORACLE';
+          provenance = 'LIVE';
+        } else if (convergenceResult.status === 'SINGLE_SOURCE_DEGRADED' || (livePrice !== null && livePrice > 0)) {
+          status = 'SINGLE_ORACLE';
+          provenance = 'LIVE';
+        } else {
+          status = 'UNAVAILABLE';
+          provenance = 'UNAVAILABLE';
+        }
 
         let equityPrice: number | undefined = undefined;
         let pegDeviationPct: number | undefined = undefined;
@@ -121,7 +148,7 @@ export default function AIXStocksMarketSummary({
 
         if (finnhubData && typeof finnhubData.effectivePrice === 'number' && finnhubData.effectivePrice > 0) {
           equityPrice = finnhubData.effectivePrice;
-          if (livePrice > 0) {
+          if (livePrice !== null && livePrice > 0 && status !== 'UNRESOLVED_DIVERGENCE') {
             const dev = (livePrice - equityPrice) / equityPrice;
             pegDeviationPct = dev * 100;
             const absDev = Math.abs(pegDeviationPct);
@@ -137,6 +164,7 @@ export default function AIXStocksMarketSummary({
           volume24h,
           marketCap,
           status,
+          provenance,
           cgPrice,
           cmcPrice,
           equityQuote: finnhubData,

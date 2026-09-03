@@ -35,6 +35,8 @@ export interface CoinGeckoMarketItem {
   cmcPrice?: number;
   dataEngine?: string;
   dataSources?: string[];
+  isFallback?: boolean;
+  provenance?: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
 }
 
 export interface CoinGeckoSearchResult {
@@ -143,7 +145,9 @@ export async function fetchLiveCoinGeckoMarkets(ids: string[]): Promise<Record<s
         total_supply: baseline.total_supply,
         circulating_supply: baseline.circulating_supply,
         dataEngine: 'UI Fallback Generator (Synthetic)',
-        dataSources: ['Synthetic UI Baseline Demo Engine (Not Verified External API)']
+        dataSources: ['Synthetic UI Baseline Demo Engine (Not Verified External API)'],
+        isFallback: true,
+        provenance: 'SYNTHETIC'
       };
 
       map[lowerId] = fallbackItem;
@@ -180,7 +184,9 @@ export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Reco
             const verifiedItem: CoinGeckoMarketItem = {
               ...item,
               dataEngine: 'CoinGecko API v3 (Live External Oracle)',
-              dataSources: ['CoinGecko API v3 Live Feed']
+              dataSources: ['CoinGecko API v3 Live Feed'],
+              isFallback: false,
+              provenance: 'LIVE'
             };
             map[item.id] = verifiedItem;
             if (item.symbol) {
@@ -395,7 +401,7 @@ export async function applyDualSyncArchitecture(
   });
 
   return {
-    livePrice: convergence.livePrice,
+    livePrice: convergence.livePrice ?? undefined,
     liveChange24h: cgChange24h,
     liveMarketCap: convergence.liveMarketCap,
     liveVolume24h: convergence.liveVolume24h,

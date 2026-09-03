@@ -82,6 +82,8 @@ export interface ChartDataResult {
   circulatingSupply?: number;
   source: 'Tri-Sync Engine' | 'CoinGecko Live' | 'CoinStats Live' | 'Algorithmic Multi-Source Synthesis';
   isLiveFeed: boolean;
+  provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
+  isVerificationGrade: boolean;
   indicators?: TechnicalIndicators;
 }
 
@@ -698,6 +700,8 @@ export function generateSyntheticChart(
     circulatingSupply,
     source: 'Algorithmic Multi-Source Synthesis',
     isLiveFeed: false,
+    provenance: 'SYNTHETIC',
+    isVerificationGrade: false,
     indicators
   };
 }
@@ -780,6 +784,8 @@ export async function fetchHistoricalMarketChart(
             circulatingSupply,
             source: 'Tri-Sync Engine',
             isLiveFeed: true,
+            provenance: 'LIVE',
+            isVerificationGrade: true,
             indicators
           };
 

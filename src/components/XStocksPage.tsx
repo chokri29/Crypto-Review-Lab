@@ -42,18 +42,19 @@ import XStockAlertModal, { XStockPriceAlert } from './XStockAlertModal';
 import XStockAlertBanner from './XStockAlertBanner';
 import XStockVerificationPanel from './XStockVerificationPanel';
 import { useCurrency } from '../context/CurrencyContext';
-import { fetchLiveCoinGeckoMarkets } from '../services/coingecko';
+import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { MultiSourceConvergenceReport } from '../types';
 
 export interface XStockQuoteState {
-  livePrice: number; // On-chain converged price
+  livePrice: number | null; // On-chain converged price (null if divergent or unavailable)
   change24h?: number;
   volume24h: number;
   marketCap: number;
-  status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNAVAILABLE';
+  status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE';
+  provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cgPrice?: number;
   cmcPrice?: number;
   equityQuote?: FinnhubQuote | null;
@@ -265,7 +266,8 @@ export default function XStocksPage() {
 
         const quote = quotes[alert.symbol.toUpperCase()];
         const livePrice = quote?.livePrice;
-        if (!livePrice || livePrice <= 0) return alert;
+        // Do not trigger automated alert execution on divergent, synthetic, or unavailable feeds
+        if (!livePrice || livePrice <= 0 || quote?.status === 'UNRESOLVED_DIVERGENCE' || quote?.provenance !== 'LIVE') return alert;
 
         let shouldTrigger = false;
         if (alert.direction === 'ABOVE' && livePrice >= alert.targetPrice) {
@@ -317,8 +319,8 @@ export default function XStocksPage() {
 
       // Execute on-chain oracles and Finnhub equity quote fetches in parallel
       const [cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
-        // CoinGecko On-Chain Market Quotes
-        fetchLiveCoinGeckoMarkets(cgIds).catch(() => ({})),
+        // CoinGecko On-Chain Market Quotes (Verification-grade live feed, no synthetic fallback)
+        fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         // CoinMarketCap On-Chain Quotes
         Promise.all(
           cmcSymbols.map(sym => 
@@ -354,45 +356,65 @@ export default function XStocksPage() {
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
-        // Prepare On-Chain Multi-source inputs (CoinGecko + CMC)
-        const cgPrice = cgData?.current_price;
-        const cmcPrice = cmcData?.price;
+        // Check CoinGecko provenance: Must NEVER be synthetic or fallback
+        const isCgValid = cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number';
+        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
+        const cgPrice = isCgValid ? cgData.current_price : undefined;
+        const cgVol = isCgValid ? cgData.total_volume : undefined;
+        const cgCap = isCgValid ? cgData.market_cap : undefined;
+        const cgChange = isCgValid ? cgData.price_change_percentage_24h : undefined;
 
-        const cgVol = cgData?.total_volume;
-        const cmcVol = cmcData?.volume24h;
+        // Check CoinMarketCap provenance
+        const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
+        const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
+        const cmcPrice = isCmcValid ? cmcData.price : undefined;
+        const cmcVol = isCmcValid ? cmcData.volume24h : undefined;
+        const cmcCap = isCmcValid ? cmcData.marketCap : undefined;
+        const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
-        const cgCap = cgData?.market_cap;
-        const cmcCap = cmcData?.marketCap;
-
-        const cgChange = cgData?.price_change_percentage_24h;
-        const cmcChange = cmcData?.percentChange24h;
-
-        // Converge on-chain feeds
+        // Converge on-chain feeds (CoinGecko + CMC only, no CoinStats)
         const convergenceResult = computeMultiSourceConvergence({
           cgPrice,
           cgVolume: cgVol,
           cgMarketCap: cgCap,
           cgChange24h: cgChange,
+          cgIsFallback: !isCgValid,
+          cgProvenance,
 
           cmcPrice,
           cmcVolume: cmcVol,
           cmcMarketCap: cmcCap,
-          cmcChange24h: cmcChange
+          cmcChange24h: cmcChange,
+          cmcIsFallback: !isCmcValid,
+          cmcProvenance,
+
+          isXStock: true
         });
 
         // Determine best verified on-chain price
-        const livePrice = convergenceResult.livePrice > 0 ? convergenceResult.livePrice : (cmcPrice || cgPrice || 0);
+        // STRICT P0 REQUIREMENT: If consensus is unresolved/divergent or missing, livePrice MUST BE null!
+        // NEVER select CoinGecko or CMC as fallback merely because consensus is unresolved!
+        const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
+        const livePrice = isDivergent ? null : convergenceResult.livePrice;
         const change24h = typeof cmcChange === 'number' ? cmcChange : (typeof cgChange === 'number' ? cgChange : undefined);
         const volume24h = convergenceResult.liveVolume24h > 0 ? convergenceResult.liveVolume24h : (cmcVol || cgVol || 0);
         const marketCap = convergenceResult.liveMarketCap > 0 ? convergenceResult.liveMarketCap : (cmcCap || cgCap || 0);
 
-        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNAVAILABLE' = 'UNAVAILABLE';
-        if (cgPrice && cmcPrice) {
+        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
+        let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';
+
+        if (isDivergent) {
+          status = 'UNRESOLVED_DIVERGENCE';
+          provenance = 'UNAVAILABLE';
+        } else if (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS') {
           status = 'LIVE_DUAL_ORACLE';
-        } else if (cgPrice || cmcPrice) {
+          provenance = 'LIVE';
+        } else if (convergenceResult.status === 'SINGLE_SOURCE_DEGRADED' || (livePrice !== null && livePrice > 0)) {
           status = 'SINGLE_ORACLE';
+          provenance = 'LIVE';
         } else {
           status = 'UNAVAILABLE';
+          provenance = 'UNAVAILABLE';
         }
 
         // Finnhub Underlying Equity Quote & Peg Deviation Calculation
@@ -403,7 +425,8 @@ export default function XStocksPage() {
 
         if (finnhubData && typeof finnhubData.effectivePrice === 'number' && finnhubData.effectivePrice > 0) {
           equityPrice = finnhubData.effectivePrice;
-          if (livePrice > 0) {
+          // STRICT RULE: If divergence is unresolved or on-chain price is missing, peg calculation is SUPPRESSED
+          if (livePrice !== null && livePrice > 0 && status !== 'UNRESOLVED_DIVERGENCE') {
             pegDeviation = (livePrice - equityPrice) / equityPrice;
             pegDeviationPct = pegDeviation * 100;
             const absDev = Math.abs(pegDeviationPct);
@@ -423,6 +446,7 @@ export default function XStocksPage() {
           volume24h,
           marketCap,
           status,
+          provenance,
           cgPrice,
           cmcPrice,
           equityQuote: finnhubData,
@@ -818,7 +842,11 @@ export default function XStocksPage() {
 
                       <div className="text-right shrink-0 flex flex-col items-end">
                         <div className="font-mono font-bold text-xs text-white">
-                          {quote?.livePrice && quote.livePrice > 0 ? (
+                          {quote?.status === 'UNRESOLVED_DIVERGENCE' ? (
+                            <span className="text-amber-400 font-semibold text-[10px]" title="Price feeds diverged beyond tolerance limit — consensus unresolved">
+                              Divergent
+                            </span>
+                          ) : quote?.livePrice && quote.livePrice > 0 ? (
                             formatPrice(quote.livePrice)
                           ) : isRefreshing ? (
                             <span className="text-slate-500 text-[10px]">...</span>
@@ -828,7 +856,9 @@ export default function XStocksPage() {
                         </div>
                         
                         {/* Peg deviation indicator or 24h change */}
-                        {typeof quote?.pegDeviationPct === 'number' ? (
+                        {quote?.status === 'UNRESOLVED_DIVERGENCE' ? (
+                          <div className="text-[9.5px] font-mono text-amber-400/90 font-bold">Peg: Unresolved</div>
+                        ) : typeof quote?.pegDeviationPct === 'number' ? (
                           <div className={`text-[9.5px] font-mono font-bold ${
                             Math.abs(quote.pegDeviationPct) < 0.5 
                               ? 'text-emerald-400' 
@@ -953,12 +983,16 @@ export default function XStocksPage() {
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : activeQuote?.status === 'SINGLE_ORACLE'
                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : activeQuote?.status === 'UNRESOLVED_DIVERGENCE'
+                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                   : 'bg-slate-800 text-slate-400 border border-slate-700'
               }`}>
                 {activeQuote?.status === 'LIVE_DUAL_ORACLE' 
                   ? 'Dual On-Chain Verified' 
                   : activeQuote?.status === 'SINGLE_ORACLE'
                   ? 'Single On-Chain Feed'
+                  : activeQuote?.status === 'UNRESOLVED_DIVERGENCE'
+                  ? '⚠️ Unresolved Divergence'
                   : 'Data Unavailable'}
               </span>
             </div>

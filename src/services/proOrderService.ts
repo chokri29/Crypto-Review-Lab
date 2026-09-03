@@ -313,7 +313,7 @@ export async function fetchAndAttachLiveMarketData(
         csChange24h: csItem?.priceChange1d
       });
 
-      review.livePrice = convergence.livePrice;
+      review.livePrice = convergence.livePrice ?? undefined;
       review.cmcPrice = convergence.cmcPrice;
       review.csPrice = convergence.csPrice;
       review.confidenceScore = convergence.confidenceScore;
