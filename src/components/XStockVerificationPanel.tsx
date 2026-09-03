@@ -25,7 +25,8 @@ import {
   Share2,
   Copy,
   Check,
-  Send
+  Send,
+  ChevronDown
 } from 'lucide-react';
 import { XStockRegistryItem, UsMarketHoursStatus } from '../data/xstocksRegistry';
 import { XStockQuoteState } from './XStocksPage';
@@ -87,6 +88,7 @@ export default function XStockVerificationPanel({
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [showFaqInfo, setShowFaqInfo] = useState<boolean>(false);
 
   // Social sharing handlers
   const handleCopyShareLink = async () => {
@@ -223,8 +225,8 @@ export default function XStockVerificationPanel({
             <ShieldCheck className="w-5 h-5 text-cyber-cyan shrink-0" />
             <span>Verification & Integrity Panel ({selectedStock.name})</span>
           </h2>
-          <p className="text-xs text-slate-400 font-sans">
-            Independent, public verification telemetry for {selectedStock.name} tracking {selectedStock.underlyingName}. Evaluates feed consistency, equity basis tracking error, bytecode security risks, and issuer disclosures.
+          <p className="text-xs text-slate-300 font-sans leading-relaxed">
+            Free, independent verification for tokenized stocks (xStocks) — cross-checks on-chain price feeds against the real underlying equity price, scans the wrapper contract for security risks, and discloses the issuer, custodian, and legal structure behind the token.
           </p>
         </div>
 
@@ -305,6 +307,84 @@ export default function XStockVerificationPanel({
             <span>{isScanning ? 'Scanning...' : 'Refresh Telemetry'}</span>
           </button>
         </div>
+      </div>
+
+      {/* METHODOLOGY & FAQ GUIDE ACCORDION */}
+      <div className="rounded-xl border border-cyber-cyan/30 bg-slate-950/80 overflow-hidden shadow-md">
+        <button
+          type="button"
+          onClick={() => setShowFaqInfo(!showFaqInfo)}
+          className="w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-900/70 transition-colors cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0">
+              <HelpCircle className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <span className="font-orbitron font-bold text-xs text-white block">
+                What is the Multi-Oracle & Contract Verification Report for xStocks?
+              </span>
+              <span className="text-[10.5px] font-mono text-slate-400">
+                Independent public methodology • 3 verification signals • Custody &amp; Proof-of-Reserve transparency
+              </span>
+            </div>
+          </div>
+          <span className="text-[11px] font-mono text-cyber-cyan flex items-center gap-1.5 font-bold shrink-0 ml-2">
+            <span>{showFaqInfo ? 'Hide Details' : 'Read Methodology'}</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showFaqInfo ? 'rotate-180' : ''}`} />
+          </span>
+        </button>
+
+        {showFaqInfo && (
+          <div className="p-4 pt-2 border-t border-slate-800/90 text-xs font-mono text-slate-300 space-y-3.5 leading-relaxed bg-slate-950/95">
+            <p className="text-slate-300 font-sans leading-relaxed">
+              This is a free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security &amp; Risk Assessment product. It checks three distinct things:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-cyan-500/30 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-cyber-cyan font-bold text-[11px] uppercase tracking-wider">
+                  <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyber-cyan text-[10px] flex items-center justify-center font-black">1</span>
+                  <span>Crypto Feed Consensus</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-sans leading-normal">
+                  Whether independent crypto price aggregators (CoinGecko, CoinMarketCap, and CoinStats where available) agree on the token&apos;s on-chain price.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/30 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-300 text-[10px] flex items-center justify-center font-black">2</span>
+                  <span>Tracking Accuracy</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-sans leading-normal">
+                  The real-time tracking accuracy between the on-chain token and its actual underlying equity price via Finnhub — the more meaningful signal for an xStock, since it measures whether the token is actually doing its one job.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] flex items-center justify-center font-black">3</span>
+                  <span>Bytecode Security Scan</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-sans leading-normal">
+                  An on-chain contract security scan (GoPlus, RugCheck, or Blockscout, depending on the token&apos;s chain) for bytecode-level risks like mint authority or ownership concentration.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[11.5px] text-slate-300 font-sans leading-relaxed">
+              The panel also discloses the token&apos;s issuer, custodian, legal jurisdiction, and instrument type where publicly known, along with a link to the issuer&apos;s own Proof-of-Reserve feed if one is published.
+            </p>
+
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200/90 font-sans flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold text-amber-300">CRL Honesty Standard:</span> As with all CRL findings, any check that returns no data is shown honestly as &quot;Unavailable&quot; or &quot;Not Disclosed&quot; rather than assumed to be clean — including Proof-of-Reserve links, which are provided as a convenience reference to the issuer&apos;s own published data, not independently verified by CRL.
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* SECTION 1: TWO DISTINCT SEPARATELY-LABELED DIVERGENCE CHECKS */}
@@ -819,13 +899,13 @@ export default function XStockVerificationPanel({
       </div>
 
       {/* HONESTY & INDEPENDENCE FOOTNOTE */}
-      <div className="text-[10px] font-mono text-slate-500 border-t border-slate-900 pt-3 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
-          <span>Independent Telemetry Standard • Zero Sponsored Listings</span>
+      <div className="text-[10px] font-mono text-slate-400 border-t border-slate-900 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-1.5 text-slate-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+          <span className="font-bold">Independent Telemetry Standard • Zero Sponsored Listings</span>
         </div>
-        <div>
-          Missing or unavailable data points default to neutral unverified states.
+        <div className="text-slate-500 text-[9.5px] max-w-xl leading-relaxed">
+          As with all CRL findings, any check that returns no data is shown honestly as &quot;Unavailable&quot; or &quot;Not Disclosed&quot; rather than assumed to be clean — including Proof-of-Reserve links, which are provided as a convenience reference to the issuer&apos;s own published data, not independently verified by CRL.
         </div>
       </div>
 

@@ -6,7 +6,7 @@
 export interface FAQItem {
   question: string;
   answer: string;
-  category: 'academy' | 'lab' | 'prop' | 'avf' | 'general';
+  category: 'academy' | 'lab' | 'prop' | 'avf' | 'xstocks' | 'general';
   tip?: string;
   definition?: string;
 }
@@ -139,9 +139,20 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
   }
 ];
 
+export const XSTOCKS_FAQ_ITEMS: FAQItem[] = [
+  {
+    category: 'xstocks',
+    question: 'What is the Multi-Oracle & Contract Verification Report for xStocks?',
+    definition: 'A free, public verification panel cross-checking on-chain price feeds, Finnhub underlying tracking accuracy, contract bytecode security scans, and issuer/custodian disclosures.',
+    tip: 'Checks 3 core signals: crypto aggregator consensus (CG/CMC/CoinStats), tracking accuracy against the real underlying equity price via Finnhub, and bytecode security. Unverified or missing items are disclosed honestly as "Unavailable" or "Not Disclosed".',
+    answer: 'This is a free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security & Risk Assessment product. It checks three distinct things: (1) whether independent crypto price aggregators (CoinGecko, CoinMarketCap, and CoinStats where available) agree on the token\'s on-chain price, (2) the real-time tracking accuracy between the on-chain token and its actual underlying equity price via Finnhub — the more meaningful signal for an xStock, since it measures whether the token is actually doing its one job, and (3) an on-chain contract security scan (GoPlus, RugCheck, or Blockscout, depending on the token\'s chain) for bytecode-level risks like mint authority or ownership concentration.\nThe panel also discloses the token\'s issuer, custodian, legal jurisdiction, and instrument type where publicly known, along with a link to the issuer\'s own Proof-of-Reserve feed if one is published. As with all CRL findings, any check that returns no data is shown honestly as "Unavailable" or "Not Disclosed" rather than assumed to be clean — including Proof-of-Reserve links, which are provided as a convenience reference to the issuer\'s own published data, not independently verified by CRL.'
+  }
+];
+
 export const ALL_FAQ_ITEMS: FAQItem[] = [
   ...REVIEW_LAB_FAQ_ITEMS,
-  ...AVF_SECURITY_FAQ_ITEMS
+  ...AVF_SECURITY_FAQ_ITEMS,
+  ...XSTOCKS_FAQ_ITEMS
 ];
 
 export function generateSingleFaqJsonLd(items: FAQItem[], title: string, entityId: string) {
@@ -219,14 +230,22 @@ export function generateDualFaqJsonLd(activeTab?: string) {
     'https://www.cryptoreviewlab.com/?m=1#avf-security-faq'
   );
 
+  const xStocksSchema = generateSingleFaqJsonLd(
+    XSTOCKS_FAQ_ITEMS,
+    'xStocks Multi-Oracle & Contract Verification FAQs',
+    'https://www.cryptoreviewlab.com/?m=1#xstocks-verification-faq'
+  );
+
   const avfSecurityArticle = generateAvfSecurityProtocolsStructuredData();
 
-  let faqSchemas = [reviewLabSchema, avfSecuritySchema];
+  let faqSchemas = [reviewLabSchema, avfSecuritySchema, xStocksSchema];
 
-  if (activeTab === 'lab' || activeTab === 'auditor') {
-    faqSchemas = [reviewLabSchema, avfSecuritySchema];
+  if (activeTab === 'xstocks') {
+    faqSchemas = [xStocksSchema, reviewLabSchema, avfSecuritySchema];
+  } else if (activeTab === 'lab' || activeTab === 'auditor') {
+    faqSchemas = [reviewLabSchema, avfSecuritySchema, xStocksSchema];
   } else if (activeTab === 'chat' || activeTab === 'orders') {
-    faqSchemas = [avfSecuritySchema, reviewLabSchema];
+    faqSchemas = [avfSecuritySchema, reviewLabSchema, xStocksSchema];
   }
 
   return {

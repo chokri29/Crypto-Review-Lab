@@ -295,7 +295,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
   const verdictsPerPage = 4;
 
   // FAQ Accordion & Search State
-  const [faqCategory, setFaqCategory] = useState<'all' | 'avf' | 'lab' | 'academy'>('all');
+  const [faqCategory, setFaqCategory] = useState<'all' | 'avf' | 'xstocks' | 'lab' | 'academy'>('all');
   const [faqSearch, setFaqSearch] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -1125,8 +1125,8 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-cyber-cyan/20 text-xs font-mono">
-          {(['all', 'avf', 'lab', 'academy'] as const).map((cat) => (
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-cyber-cyan/20 text-xs font-mono flex-wrap">
+          {(['all', 'avf', 'xstocks', 'lab', 'academy'] as const).map((cat) => (
             <button
               key={cat}
               type="button"
@@ -1137,7 +1137,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              {cat === 'all' ? 'All' : cat.toUpperCase()}
+              {cat === 'all' ? 'All' : cat === 'xstocks' ? 'xStocks' : cat.toUpperCase()}
             </button>
           ))}
         </div>
