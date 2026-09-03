@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { XStockRegistryItem } from '../data/xstocksRegistry';
 import { XStockQuoteState } from './XStocksPage';
+import { XStockSelectDropdown } from './XStockSelectDropdown';
 
 export interface XStockPriceAlert {
   id: string;
@@ -43,6 +44,7 @@ interface XStockAlertModalProps {
   onClose: () => void;
   selectedStock: XStockRegistryItem;
   currentQuote?: XStockQuoteState;
+  stockQuotes?: Record<string, XStockQuoteState>;
   allStocks: XStockRegistryItem[];
   alerts: XStockPriceAlert[];
   onAddAlert: (alert: Omit<XStockPriceAlert, 'id' | 'createdAt' | 'triggered'>) => void;
@@ -59,6 +61,7 @@ export default function XStockAlertModal({
   onClose,
   selectedStock,
   currentQuote,
+  stockQuotes,
   allStocks,
   alerts,
   onAddAlert,
@@ -95,7 +98,23 @@ export default function XStockAlertModal({
   if (!isOpen) return null;
 
   const targetStock = allStocks.find(s => s.symbol.toUpperCase() === targetStockSymbol.toUpperCase()) || selectedStock;
-  const curLivePrice = (targetStock.symbol === selectedStock.symbol ? currentQuote?.livePrice : 0) || 0;
+  const curLivePrice = (stockQuotes && stockQuotes[targetStock.symbol.toUpperCase()]?.livePrice) ||
+    (targetStock.symbol === selectedStock.symbol ? currentQuote?.livePrice : 0) ||
+    0;
+
+  const handleStockSelect = (newSymbol: string) => {
+    setTargetStockSymbol(newSymbol);
+    const newStock = allStocks.find(s => s.symbol.toUpperCase() === newSymbol.toUpperCase());
+    if (newStock) {
+      const newPrice = (stockQuotes && stockQuotes[newStock.symbol.toUpperCase()]?.livePrice) ||
+        (newStock.symbol === selectedStock.symbol ? currentQuote?.livePrice : 0) ||
+        0;
+      if (newPrice > 0) {
+        setTargetPriceInput((newPrice * (direction === 'ABOVE' ? 1.03 : 0.97)).toFixed(2));
+      }
+    }
+    setErrorMsg(null);
+  };
 
   // Handle Preset Percentage Click
   const handleApplyPreset = (pct: number) => {
@@ -200,22 +219,13 @@ export default function XStockAlertModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Asset Selector */}
-              <div>
-                <label className="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">
-                  Target Tokenized Stock
-                </label>
-                <select
-                  value={targetStockSymbol}
-                  onChange={(e) => setTargetStockSymbol(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 focus:border-cyber-cyan rounded-xl px-3 py-2 text-xs text-white focus:outline-none cursor-pointer"
-                >
-                  {allStocks.map((stock) => (
-                    <option key={stock.symbol} value={stock.symbol}>
-                      {stock.symbol} — {stock.underlyingName} ({stock.underlyingTicker})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <XStockSelectDropdown
+                stocks={allStocks}
+                selectedSymbol={targetStockSymbol}
+                onSelect={handleStockSelect}
+                stockQuotes={stockQuotes}
+                label="Target Tokenized Stock"
+              />
 
               {/* Threshold Direction */}
               <div>

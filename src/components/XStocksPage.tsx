@@ -1054,6 +1054,7 @@ export default function XStocksPage() {
         onClose={() => setIsAlertModalOpen(false)}
         selectedStock={selectedStock}
         currentQuote={activeQuote}
+        stockQuotes={stockQuotes}
         allStocks={XSTOCKS_REGISTRY}
         alerts={alerts}
         onAddAlert={handleAddAlert}
