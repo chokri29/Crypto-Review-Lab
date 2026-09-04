@@ -456,20 +456,21 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   // NEVER manufacture a price with `... ?? sourcePrice ?? 0`!
   const isPriceDivergentOrMissing = priceRecon.status === 'UNRESOLVED_DIVERGENCE' || priceRecon.status === 'NO_DATA';
   const finalPrice: number | null = isPriceDivergentOrMissing ? null : (priceRecon.consensusValue ?? null);
-  const finalMarketCap = (mcapRecon.status === 'UNRESOLVED_DIVERGENCE' || mcapRecon.status === 'NO_DATA')
-    ? (mcapRecon.consensusValue ?? 0)
-    : (mcapRecon.consensusValue ?? (input.cgMarketCap ?? input.cmcMarketCap ?? 0));
-  const finalVolume = (volumeRecon.status === 'UNRESOLVED_DIVERGENCE' || volumeRecon.status === 'NO_DATA')
-    ? (volumeRecon.consensusValue ?? 0)
-    : (volumeRecon.consensusValue ?? (input.cgVolume ?? input.cmcVolume ?? 0));
-  const finalRank = rankRecon.consensusValue ?? 0;
+  const finalMarketCap: number | null = (mcapRecon.status === 'UNRESOLVED_DIVERGENCE' || mcapRecon.status === 'NO_DATA')
+    ? null
+    : (mcapRecon.consensusValue ?? (input.cgMarketCap ?? input.cmcMarketCap ?? null));
+  const finalVolume: number | null = (volumeRecon.status === 'UNRESOLVED_DIVERGENCE' || volumeRecon.status === 'NO_DATA')
+    ? null
+    : (volumeRecon.consensusValue ?? (input.cgVolume ?? input.cmcVolume ?? null));
+  const finalRank = rankRecon.consensusValue ?? (input.cgRank ?? input.cmcRank ?? 0);
 
   // Supply & Historical metrics derivation
   const hasValidPrice = typeof finalPrice === 'number' && finalPrice > 0;
-  const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (hasValidPrice && finalMarketCap > 0 ? Math.round(finalMarketCap / finalPrice) : 0);
+  const hasValidCap = typeof finalMarketCap === 'number' && finalMarketCap > 0;
+  const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (hasValidPrice && hasValidCap ? Math.round(finalMarketCap / finalPrice) : undefined);
   const maxSupply = input.cgMaxSupply;
-  const totalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply || (maxSupply ? Math.round(maxSupply * 0.95) : (estimatedCircSupply > 0 ? estimatedCircSupply : undefined));
-  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : (finalMarketCap > 0 ? Math.round(finalMarketCap * 1.15) : 0));
+  const totalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply || (maxSupply ? Math.round(maxSupply * 0.95) : (estimatedCircSupply && estimatedCircSupply > 0 ? estimatedCircSupply : undefined));
+  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : (hasValidCap ? Math.round(finalMarketCap * 1.15) : undefined));
 
   // ATH & ATL cross-validation
   const validAth = [input.cgAth, input.cmcAth, input.csAth].filter((v): v is number => typeof v === 'number' && v > 0);
@@ -543,7 +544,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     confidenceScore,
     confidenceLevel,
     dataEngine: input.isXStock
-      ? `CoinGecko RWA + CMC Market Data Cross-Check (${activeSourcesCount} Sources Active)`
+      ? `CoinGecko RWA + CMC Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`
       : `CoinGecko + CMC + CoinStats Tri-Oracle Sync (${activeSourcesCount} Sources Active)`,
     dataSources: dataSourcesList,
     syncRuleApplied,

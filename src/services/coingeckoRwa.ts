@@ -99,12 +99,15 @@ export interface CoinGeckoRwaIssuerDetail {
 }
 
 // Client-side in-memory cache to prevent redundant HTTP requests and handle rapid tab switches
-const clientRwaListCache: { data: CoinGeckoRwaListItem[]; timestamp: number } | null = null;
+let clientRwaListCache: { data: CoinGeckoRwaListItem[]; timestamp: number } | null = null;
 const clientRwaMarketsCache = new Map<string, { data: Record<string, CoinGeckoRwaMarketItem>; timestamp: number }>();
 const clientRwaDetailCache = new Map<string, { data: CoinGeckoRwaDetail; timestamp: number }>();
 const clientRwaIssuerCache = new Map<string, { data: CoinGeckoRwaIssuerDetail; timestamp: number }>();
 
 const DEFAULT_TIMEOUT_MS = 8000;
+const RWA_LIST_TTL_MS = 3 * 60 * 1000; // 3 minutes
+const RWA_MARKETS_TTL_MS = 20 * 1000;  // 20 seconds
+const RWA_DETAIL_TTL_MS = 45 * 1000;   // 45 seconds
 
 /**
  * Utility: fetch with timeout and json parsing
@@ -131,8 +134,8 @@ async function fetchWithTimeout<T>(url: string, timeoutMs: number = DEFAULT_TIME
  * Free/Demo CoinGecko endpoint.
  */
 export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGeckoRwaListItem[]> {
-  const cacheKey = assetType || 'all';
-  if (clientRwaListCache && Date.now() - clientRwaListCache.timestamp < 3 * 60 * 1000) {
+  const now = Date.now();
+  if (clientRwaListCache && (now - clientRwaListCache.timestamp < RWA_LIST_TTL_MS)) {
     return clientRwaListCache.data;
   }
 
@@ -142,6 +145,7 @@ export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGec
       : `/api/coingecko/rwas/list`;
     const data = await fetchWithTimeout<CoinGeckoRwaListItem[]>(url, 7000);
     if (Array.isArray(data)) {
+      clientRwaListCache = { data, timestamp: Date.now() };
       return data;
     }
     return [];
@@ -168,7 +172,7 @@ export async function fetchCoinGeckoRwaMarkets(
   const sortedKey = cleanIds.slice().sort().join(',');
 
   const cached = clientRwaMarketsCache.get(sortedKey);
-  if (cached && Date.now() - cached.timestamp < 20 * 1000) {
+  if (cached && Date.now() - cached.timestamp < RWA_MARKETS_TTL_MS) {
     return cached.data;
   }
 
@@ -189,10 +193,8 @@ export async function fetchCoinGeckoRwaMarkets(
     return resultMap;
   } catch (err) {
     console.warn('[CoinGecko RWA] Failed to fetch RWA markets:', err);
-    // Return stale cache if available, else empty map (Never fabricate synthetic quotes)
-    if (cached) {
-      return cached.data;
-    }
+    // Requirement 7: Do not introduce stale-cache fallback that can masquerade as LIVE data.
+    // Return empty map on failure so caller explicitly detects UNAVAILABLE state.
     return {};
   }
 }
@@ -206,7 +208,7 @@ export async function fetchCoinGeckoRwaDetail(rwaId: string): Promise<CoinGeckoR
   const cleanId = rwaId.trim().toLowerCase();
 
   const cached = clientRwaDetailCache.get(cleanId);
-  if (cached && Date.now() - cached.timestamp < 45 * 1000) {
+  if (cached && Date.now() - cached.timestamp < RWA_DETAIL_TTL_MS) {
     return cached.data;
   }
 
@@ -220,7 +222,7 @@ export async function fetchCoinGeckoRwaDetail(rwaId: string): Promise<CoinGeckoR
     return null;
   } catch (err) {
     console.warn(`[CoinGecko RWA] Failed to fetch RWA detail for ${rwaId}:`, err);
-    if (cached) return cached.data;
+    // Requirement 7: Do not introduce stale-cache fallback that can masquerade as LIVE data.
     return null;
   }
 }
@@ -280,18 +282,25 @@ export function convertRwaToMarketItem(
   const mkt = rwaItem.tokenized_market_data;
   const hasLivePrice = mkt && typeof mkt.current_price === 'number' && mkt.current_price > 0;
 
+  // Requirement 2: Strict numerical normalization - null/undefined remain null/undefined, never || 0
+  const normalizedPrice = hasLivePrice ? mkt.current_price : (typeof mkt?.current_price === 'number' ? mkt.current_price : null);
+  const normalizedMarketCap = typeof mkt?.market_cap === 'number' ? mkt.market_cap : null;
+  const normalizedRank = typeof rwaItem?.market_cap_rank === 'number' ? rwaItem.market_cap_rank : undefined;
+  const normalizedVolume = typeof mkt?.total_volume === 'number' ? mkt.total_volume : null;
+  const normalizedChange = typeof mkt?.price_change_percentage_24h === 'number' ? mkt.price_change_percentage_24h : null;
+
   return {
     id: canonicalRwaId,
     symbol: rwaItem.symbol?.toUpperCase() || canonicalRwaId.toUpperCase(),
     name: rwaItem.name || canonicalRwaId,
     image: rwaItem.image || '',
-    current_price: hasLivePrice ? mkt.current_price : 0,
-    market_cap: mkt?.market_cap || 0,
-    market_cap_rank: 0,
-    total_volume: mkt?.total_volume || 0,
-    price_change_percentage_24h: mkt?.price_change_percentage_24h || 0,
-    high_24h: mkt?.high_24h,
-    low_24h: mkt?.low_24h,
+    current_price: normalizedPrice as any,
+    market_cap: normalizedMarketCap as any,
+    market_cap_rank: normalizedRank as any,
+    total_volume: normalizedVolume as any,
+    price_change_percentage_24h: normalizedChange as any,
+    high_24h: typeof mkt?.high_24h === 'number' ? mkt.high_24h : undefined,
+    low_24h: typeof mkt?.low_24h === 'number' ? mkt.low_24h : undefined,
     dataEngine: 'CoinGecko RWA Tokenized Market Engine',
     dataSources: ['CoinGecko RWA Native (/rwas/markets)'],
     isFallback: !hasLivePrice,

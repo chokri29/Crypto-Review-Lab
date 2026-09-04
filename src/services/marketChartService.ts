@@ -84,7 +84,7 @@ export interface ChartDataResult {
   atlChangePct?: number;
   totalSupply?: number;
   circulatingSupply?: number;
-  source: 'Tri-Sync Engine' | 'CoinGecko Live' | 'CoinStats Live' | 'Algorithmic Multi-Source Synthesis';
+  source: 'Multi-Source Market Data Convergence' | 'Tri-Sync Engine' | 'CoinGecko Live' | 'CoinStats Live' | 'Algorithmic Multi-Source Synthesis';
   isLiveFeed: boolean;
   provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   isVerificationGrade: boolean;
