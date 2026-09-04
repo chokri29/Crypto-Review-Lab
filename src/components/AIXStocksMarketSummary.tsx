@@ -7,6 +7,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { XSTOCKS_REGISTRY, XStockRegistryItem } from '../data/xstocksRegistry';
 import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
+import { fetchCoinGeckoRwaMarkets } from '../services/coingeckoRwa';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
@@ -47,11 +48,13 @@ export default function AIXStocksMarketSummary({
 
     setIsLocalFetching(true);
     try {
+      const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
       const cgIds = XSTOCKS_REGISTRY.map(s => s.coingeckoId);
       const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      const [cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+      const [rwaMarketsMap, cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+        fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
         fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         Promise.all(
           cmcSymbols.map(sym => 
@@ -82,17 +85,24 @@ export default function AIXStocksMarketSummary({
       for (const item of XSTOCKS_REGISTRY) {
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
+        const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
         const cgData = cgMarkets[item.coingeckoId.toLowerCase()] || cgMarkets[sym.toLowerCase()];
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
+        // Check CoinGecko RWA Tokenized Market Data first
+        const rwaMkt = rwaMarketEntry?.tokenized_market_data;
+        const hasRwaLivePrice = rwaMkt && typeof rwaMkt.current_price === 'number' && rwaMkt.current_price > 0;
+
         // Check provenance: Must NEVER be synthetic or fallback
-        const isCgValid = cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number';
+        const isCgValid = hasRwaLivePrice
+          ? true
+          : (cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number');
         const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
-        const cgPrice = isCgValid ? cgData.current_price : undefined;
-        const cgVol = isCgValid ? cgData.total_volume : undefined;
-        const cgCap = isCgValid ? cgData.market_cap : undefined;
-        const cgChange = isCgValid ? cgData.price_change_percentage_24h : undefined;
+        const cgPrice = hasRwaLivePrice ? rwaMkt.current_price : (isCgValid ? cgData.current_price : undefined);
+        const cgVol = hasRwaLivePrice ? rwaMkt.total_volume : (isCgValid ? cgData.total_volume : undefined);
+        const cgCap = hasRwaLivePrice ? rwaMkt.market_cap : (isCgValid ? cgData.market_cap : undefined);
+        const cgChange = hasRwaLivePrice ? rwaMkt.price_change_percentage_24h : (isCgValid ? cgData.price_change_percentage_24h : undefined);
 
         const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
         const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';

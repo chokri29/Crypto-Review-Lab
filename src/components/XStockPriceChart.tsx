@@ -40,6 +40,7 @@ interface XStockPriceChartProps {
   name: string;
   underlyingTicker?: string;
   coingeckoId?: string;
+  coingeckoRwaId?: string;
   currentPrice?: number;
   change24h?: number;
   high24h?: number;
@@ -53,6 +54,7 @@ export default function XStockPriceChart({
   name,
   underlyingTicker,
   coingeckoId,
+  coingeckoRwaId,
   currentPrice: propCurrentPrice,
   change24h: propChange24h,
   volume24h: propVolume24h,
@@ -99,7 +101,7 @@ export default function XStockPriceChart({
       setIsLoading(true);
       try {
         const result = await fetchHistoricalMarketChart(
-          coingeckoId || symbol.toLowerCase(),
+          coingeckoRwaId || coingeckoId || symbol.toLowerCase(),
           symbol,
           name,
           propCurrentPrice,
@@ -122,7 +124,7 @@ export default function XStockPriceChart({
     return () => {
       isCancelled = true;
     };
-  }, [symbol, name, coingeckoId, timeframe, propCurrentPrice, propChange24h]);
+  }, [symbol, name, coingeckoId, coingeckoRwaId, timeframe, propCurrentPrice, propChange24h]);
 
   // Pre-load all 4 timeframes for instantaneous Multi-Timeframe Alignment
   useEffect(() => {
@@ -132,7 +134,7 @@ export default function XStockPriceChart({
     Promise.all(
       timeframes.map(tf =>
         fetchHistoricalMarketChart(
-          coingeckoId || symbol.toLowerCase(),
+          coingeckoRwaId || coingeckoId || symbol.toLowerCase(),
           symbol,
           name,
           propCurrentPrice || 100,
@@ -156,7 +158,7 @@ export default function XStockPriceChart({
     return () => {
       isMounted = false;
     };
-  }, [symbol, name, coingeckoId, propCurrentPrice, propChange24h]);
+  }, [symbol, name, coingeckoId, coingeckoRwaId, propCurrentPrice, propChange24h]);
 
   // Snap the terminal point of the price array to propCurrentPrice (consensus anchor)
   const activePrices = useMemo<PricePoint[]>(() => {
@@ -200,17 +202,31 @@ export default function XStockPriceChart({
     return activeIndicators.confluence || computeTechnicalConfluenceScore(currentPrice, activeIndicators);
   }, [activeIndicators, currentPrice]);
 
-  // Multi-Timeframe Alignment across 24H, 7D, 1M, 1Y
+  // Multi-Timeframe Alignment across 24H, 7D, 1M, 1Y (Strict: Zero Synthetic Fabrication)
   const mtfAlignment = useMemo(() => {
+    if (chartData?.isRwaHistoricalUnavailable || activePrices.length < 2) {
+      return undefined;
+    }
+
+    const map24H = timeframePricesMap['24H'] || (chartData?.timeframe === '24H' ? activePrices : undefined);
+    const map7D = timeframePricesMap['7D'] || (chartData?.timeframe === '7D' ? activePrices : undefined);
+    const map1M = timeframePricesMap['1M'] || (chartData?.timeframe === '1M' ? activePrices : undefined);
+    const map1Y = timeframePricesMap['1Y'] || (chartData?.timeframe === '1Y' ? activePrices : undefined);
+
+    // If no timeframe series exist without synthetic fabrication, return undefined
+    if (!map24H && !map7D && !map1M && !map1Y) {
+      return undefined;
+    }
+
     const fullMap: Record<ChartTimeframe, PricePoint[]> = {
-      '24H': timeframePricesMap['24H'] || (chartData?.timeframe === '24H' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, displayChangePct, '24H', symbol, name).prices),
-      '7D': timeframePricesMap['7D'] || (chartData?.timeframe === '7D' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, displayChangePct, '7D', symbol, name).prices),
-      '1M': timeframePricesMap['1M'] || (chartData?.timeframe === '1M' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, displayChangePct, '1M', symbol, name).prices),
-      '1Y': timeframePricesMap['1Y'] || (chartData?.timeframe === '1Y' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, displayChangePct, '1Y', symbol, name).prices),
+      '24H': map24H || activePrices,
+      '7D': map7D || activePrices,
+      '1M': map1M || activePrices,
+      '1Y': map1Y || activePrices,
     };
 
     return computeMultiTimeframeAlignment(fullMap, currentPrice, true);
-  }, [timeframePricesMap, chartData, activePrices, currentPrice, displayChangePct, symbol, name]);
+  }, [timeframePricesMap, chartData, activePrices, currentPrice]);
 
   const minPrice = useMemo(() => (rawPrices.length > 0 ? Math.min(...rawPrices) : 0), [rawPrices]);
   const maxPrice = useMemo(() => (rawPrices.length > 0 ? Math.max(...rawPrices) : 1), [rawPrices]);
@@ -612,12 +628,29 @@ export default function XStockPriceChart({
             ))}
           </svg>
         ) : !isLoading ? (
-          <div className="flex flex-col items-center justify-center text-center p-6 space-y-2 text-slate-500 font-mono text-xs">
-            <Activity className="w-8 h-8 text-slate-600 mb-1" />
-            <span className="text-slate-300 font-bold">Chart Telemetry Unavailable</span>
-            <span className="text-[11px] max-w-sm text-slate-500">
-              Live secondary market feeds for {symbol} are currently not reporting on connected market data aggregator endpoints.
-            </span>
+          <div className="flex flex-col items-center justify-center text-center p-8 space-y-3 text-slate-400 font-mono text-xs">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900/80 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shadow-[0_0_20px_rgba(0,229,255,0.12)]">
+              <Activity className="w-6 h-6" />
+            </div>
+            <div className="space-y-1 max-w-md">
+              <span className="text-white font-bold text-sm block">
+                {chartData?.isRwaHistoricalUnavailable 
+                  ? 'Historical RWA Data Unavailable' 
+                  : 'Chart Telemetry Unavailable'}
+              </span>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                {chartData?.rwaAdvisory || 
+                  (chartData?.isRwaHistoricalUnavailable
+                    ? 'CoinGecko RWA historical timeseries (/rwas/{id}/market_chart) requires a paid tier. To maintain zero synthetic data integrity, historical charts and indicators are disabled.'
+                    : `Live secondary market feeds for ${symbol} are currently not reporting on connected market data aggregator endpoints.`)}
+              </p>
+            </div>
+            {chartData?.isRwaHistoricalUnavailable && (
+              <div className="flex items-center gap-2 text-[10px] text-cyber-cyan bg-slate-950 px-3 py-1.5 rounded-lg border border-cyber-cyan/30">
+                <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse" />
+                <span>Zero Synthetic Policy Enforced • Real-time Quotes Live</span>
+              </div>
+            )}
           </div>
         ) : null}
 
@@ -651,7 +684,25 @@ export default function XStockPriceChart({
       </div>
 
       {/* Technical Indicators Panel */}
-      {showIndicators && activeIndicators && (
+      {showIndicators && (
+        chartData?.isRwaHistoricalUnavailable ? (
+          <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/20 space-y-2.5 font-mono text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-cyber-cyan" />
+                <span className="font-orbitron font-bold text-white uppercase tracking-wider text-[11px]">
+                  Technical Indicators ({timeframe})
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-900 text-slate-400 border border-slate-700">
+                Historical RWA Data Unavailable
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Historical timeseries and technical indicator charting for tokenized stocks require a paid CoinGecko subscription (<code className="text-cyber-cyan font-mono">/rwas/{'{id}'}/market_chart</code>). In strict adherence to our zero synthetic data policy, technical indicators are disabled rather than fabricated or simulated.
+            </p>
+          </div>
+        ) : activeIndicators ? (
         <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/20 space-y-3 font-mono text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2">
             <div className="flex items-center gap-2 flex-wrap">
@@ -1062,6 +1113,7 @@ export default function XStockPriceChart({
             </div>
           )}
         </div>
+        ) : null
       )}
     </div>
   );

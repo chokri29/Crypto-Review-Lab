@@ -88,6 +88,8 @@ export interface ChartDataResult {
   isLiveFeed: boolean;
   provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   isVerificationGrade: boolean;
+  isRwaHistoricalUnavailable?: boolean;
+  rwaAdvisory?: string;
   indicators?: TechnicalIndicators;
 }
 
@@ -743,6 +745,8 @@ export async function fetchHistoricalMarketChart(
   const effectiveCoinId = (coinId || symbol || '').toLowerCase().trim();
   const days = timeframeToDays(timeframe);
 
+  const isStock = isStockAsset(symbol, effectiveCoinId, name);
+
   if (effectiveCoinId && effectiveCoinId !== 'n/a' && currentPrice > 0) {
     try {
       const res = await fetch(`/api/coingecko/market_chart/${encodeURIComponent(effectiveCoinId)}?days=${days}&vs_currency=usd`);
@@ -777,7 +781,6 @@ export async function fetchHistoricalMarketChart(
           const athChangePct = allTimeHigh > 0 ? parseFloat((((liveCurPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
           const atlChangePct = allTimeLow > 0 ? parseFloat((((liveCurPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
 
-          const isStock = isStockAsset(symbol, effectiveCoinId, name);
           const seriesForIndicators = isStock ? filterNyseMarketHours(prices) : prices;
           const indicators = computeTechnicalIndicators(seriesForIndicators);
 
@@ -815,7 +818,40 @@ export async function fetchHistoricalMarketChart(
     }
   }
 
-  // Graceful fallback
+  // Requirement 8: For tokenized stocks and RWAs, NEVER fabricate synthetic market history or indicators.
+  // If historical RWA data is unavailable on the free plan (/rwas/{id}/market_chart requires Basic plan),
+  // return explicit UNAVAILABLE status without generating synthetic series or false technical indicators.
+  if (isStock) {
+    const unavailableResult: ChartDataResult = {
+      symbol: symbol.toUpperCase(),
+      name,
+      timeframe,
+      prices: [],
+      currentPrice: currentPrice > 0 ? currentPrice : 0,
+      startPrice: currentPrice > 0 ? currentPrice : 0,
+      priceChange: 0,
+      priceChangePct: change24h || 0,
+      highPrice: currentPrice > 0 ? currentPrice : 0,
+      lowPrice: currentPrice > 0 ? currentPrice : 0,
+      averageVolume: 0,
+      source: 'Tri-Sync Engine',
+      isLiveFeed: false,
+      provenance: 'UNAVAILABLE',
+      isVerificationGrade: false,
+      isRwaHistoricalUnavailable: true,
+      rwaAdvisory: 'Historical RWA data unavailable on free CoinGecko plan (/rwas/{id}/market_chart requires Basic plan). Artificial indicators and synthetic series are strictly suppressed to avoid fabricated telemetry.',
+      indicators: {
+        pivotHighs: [],
+        pivotLows: [],
+        isUnavailable: true,
+        unavailableReason: 'Historical RWA data unavailable on free CoinGecko plan'
+      }
+    };
+    chartCache.set(cacheKey, { data: unavailableResult, timestamp: Date.now() });
+    return unavailableResult;
+  }
+
+  // Graceful fallback for standard non-RWA crypto assets only
   const fallback = generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, timeframe, symbol, name);
   chartCache.set(cacheKey, { data: fallback, timestamp: Date.now() });
   return fallback;

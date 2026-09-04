@@ -483,8 +483,8 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
 
   const dataSourcesList = input.isXStock
     ? [
-        'CoinGecko API v3 (Live Feed)',
-        'CoinMarketCap Pro API (Liquidity & Depth)'
+        'CoinGecko RWA Native Engine (/rwas/markets)',
+        'CoinMarketCap Market Aggregator (Cross-Check)'
       ]
     : [
         'CoinGecko API v3 (Primary Feed)',
@@ -543,7 +543,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     confidenceScore,
     confidenceLevel,
     dataEngine: input.isXStock
-      ? `CoinGecko + CMC Dual-Oracle Sync (${activeSourcesCount} Sources Active)`
+      ? `CoinGecko RWA + CMC Market Data Cross-Check (${activeSourcesCount} Sources Active)`
       : `CoinGecko + CMC + CoinStats Tri-Oracle Sync (${activeSourcesCount} Sources Active)`,
     dataSources: dataSourcesList,
     syncRuleApplied,

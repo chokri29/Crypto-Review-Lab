@@ -3010,6 +3010,194 @@ ${dualSyncContext}`;
     }
   });
 
+  // --- CoinGecko Native RWA Proxy Endpoints (P2 Upgrade) ---
+  // In-memory server cache to mitigate demo API rate limits
+  const rwaServerCache = new Map<string, { data: any; timestamp: number }>();
+  const getRwaCache = (key: string, ttlMs: number) => {
+    const item = rwaServerCache.get(key);
+    if (item && Date.now() - item.timestamp < ttlMs) {
+      return item.data;
+    }
+    return null;
+  };
+  const setRwaCache = (key: string, data: any) => {
+    rwaServerCache.set(key, { data, timestamp: Date.now() });
+  };
+
+  const getCgRwaHeaders = () => {
+    const headers: Record<string, string> = {
+      "Accept": "application/json"
+    };
+    if (COINGECKO_KEY) {
+      headers["x-cg-demo-api-key"] = COINGECKO_KEY;
+    }
+    return headers;
+  };
+
+  // Explicit safety block: Disallowed paid endpoints (/rwas/{id}/tickers and /rwas/{id}/market_chart)
+  app.get("/api/coingecko/rwas/:id/tickers", (req, res) => {
+    return res.status(403).json({
+      error: "Forbidden: /rwas/{id}/tickers requires a paid CoinGecko Basic plan and is disallowed in this configuration."
+    });
+  });
+
+  app.get("/api/coingecko/rwas/:id/market_chart", (req, res) => {
+    return res.status(403).json({
+      error: "Forbidden: /rwas/{id}/market_chart requires a paid CoinGecko Basic plan and is disallowed in this configuration."
+    });
+  });
+
+  // 1. GET /api/coingecko/rwas/list - Discover all supported RWAs
+  app.get("/api/coingecko/rwas/list", async (req, res) => {
+    try {
+      const assetType = req.query.asset_type as string | undefined;
+      const cacheKey = `rwa_list_${assetType || 'all'}`;
+      const cached = getRwaCache(cacheKey, 5 * 60 * 1000); // 5 min cache
+      if (cached) {
+        return res.json(cached);
+      }
+
+      let url = "https://api.coingecko.com/api/v3/rwas/list";
+      if (assetType) {
+        url += `?asset_type=${encodeURIComponent(assetType)}`;
+      }
+
+      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: `CoinGecko RWA list API error HTTP ${response.status}`
+        });
+      }
+      const data = await response.json();
+      setRwaCache(cacheKey, data);
+      res.json(data);
+    } catch (error: any) {
+      console.error("CoinGecko RWA list proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch RWA list from CoinGecko" });
+    }
+  });
+
+  // 2. GET /api/coingecko/rwas/markets - Tokenized market data for RWA assets
+  app.get("/api/coingecko/rwas/markets", async (req, res) => {
+    try {
+      const ids = (req.query.ids as string) || "";
+      const assetType = req.query.asset_type as string | undefined;
+      const perPage = (req.query.per_page as string) || "100";
+      const page = (req.query.page as string) || "1";
+
+      const cacheKey = `rwa_markets_${ids}_${assetType || ''}_${perPage}_${page}`;
+      const cached = getRwaCache(cacheKey, 30 * 1000); // 30s cache
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const params = new URLSearchParams();
+      if (ids) params.set("ids", ids);
+      if (assetType) params.set("asset_type", assetType);
+      if (perPage) params.set("per_page", perPage);
+      if (page) params.set("page", page);
+
+      const url = `https://api.coingecko.com/api/v3/rwas/markets?${params.toString()}`;
+      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: `CoinGecko RWA markets API error HTTP ${response.status}`
+        });
+      }
+      const data = await response.json();
+      setRwaCache(cacheKey, data);
+      res.json(data);
+    } catch (error: any) {
+      console.error("CoinGecko RWA markets proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch RWA markets from CoinGecko" });
+    }
+  });
+
+  // 3. GET /api/coingecko/rwas/issuers/list - Supported RWA issuers
+  app.get("/api/coingecko/rwas/issuers/list", async (req, res) => {
+    try {
+      const cacheKey = "rwa_issuers_list";
+      const cached = getRwaCache(cacheKey, 10 * 60 * 1000); // 10 min cache
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const url = "https://api.coingecko.com/api/v3/rwas/issuers/list";
+      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: `CoinGecko RWA issuers list API error HTTP ${response.status}`
+        });
+      }
+      const data = await response.json();
+      setRwaCache(cacheKey, data);
+      res.json(data);
+    } catch (error: any) {
+      console.error("CoinGecko RWA issuers list proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch RWA issuers list from CoinGecko" });
+    }
+  });
+
+  // 4. GET /api/coingecko/rwas/issuers/:id - Issuer details & aggregate stats
+  app.get("/api/coingecko/rwas/issuers/:id", async (req, res) => {
+    try {
+      const issuerId = req.params.id;
+      if (!issuerId) {
+        return res.status(400).json({ error: "Missing issuer ID" });
+      }
+
+      const cacheKey = `rwa_issuer_${issuerId}`;
+      const cached = getRwaCache(cacheKey, 60 * 1000); // 60s cache
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const url = `https://api.coingecko.com/api/v3/rwas/issuers/${encodeURIComponent(issuerId)}`;
+      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: `CoinGecko RWA issuer API error HTTP ${response.status}`
+        });
+      }
+      const data = await response.json();
+      setRwaCache(cacheKey, data);
+      res.json(data);
+    } catch (error: any) {
+      console.error(`CoinGecko RWA issuer proxy error for ${req.params.id}:`, error);
+      res.status(500).json({ error: error.message || "Failed to fetch RWA issuer details" });
+    }
+  });
+
+  // 5. GET /api/coingecko/rwas/:id - Full RWA metadata, tokens, and tokenized market data
+  app.get("/api/coingecko/rwas/:id", async (req, res) => {
+    try {
+      const rwaId = req.params.id;
+      if (!rwaId) {
+        return res.status(400).json({ error: "Missing RWA ID" });
+      }
+
+      const cacheKey = `rwa_detail_${rwaId}`;
+      const cached = getRwaCache(cacheKey, 45 * 1000); // 45s cache
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const url = `https://api.coingecko.com/api/v3/rwas/${encodeURIComponent(rwaId)}?tokens=true&tokenized_market_data=true`;
+      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: `CoinGecko RWA detail API error HTTP ${response.status}`
+        });
+      }
+      const data = await response.json();
+      setRwaCache(cacheKey, data);
+      res.json(data);
+    } catch (error: any) {
+      console.error(`CoinGecko RWA detail proxy error for ${req.params.id}:`, error);
+      res.status(500).json({ error: error.message || "Failed to fetch RWA details from CoinGecko" });
+    }
+  });
+
   // API endpoint: Get coingecko-proxy.gs content for direct viewing or downloading
   app.get("/api/coingecko-proxy-content", (req, res) => {
     try {

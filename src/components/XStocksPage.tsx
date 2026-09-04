@@ -43,6 +43,13 @@ import XStockAlertBanner from './XStockAlertBanner';
 import XStockVerificationPanel from './XStockVerificationPanel';
 import { useCurrency } from '../context/CurrencyContext';
 import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
+import { 
+  fetchCoinGeckoRwaMarkets, 
+  fetchCoinGeckoRwaDetail, 
+  fetchCoinGeckoRwaIssuer, 
+  CoinGeckoRwaDetail, 
+  CoinGeckoRwaIssuerDetail 
+} from '../services/coingeckoRwa';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
@@ -56,6 +63,8 @@ export interface XStockQuoteState {
   status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE';
   provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cgPrice?: number;
+  rwaPrice?: number;
+  rwaVolume24h?: number;
   cmcPrice?: number;
   equityQuote?: FinnhubQuote | null;
   equityPrice?: number;
@@ -215,6 +224,45 @@ export default function XStocksPage() {
   // Multi-source Oracle Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
 
+  // CoinGecko Native RWA Metadata & Issuer State
+  const [activeRwaDetail, setActiveRwaDetail] = useState<CoinGeckoRwaDetail | null>(null);
+  const [activeRwaIssuer, setActiveRwaIssuer] = useState<CoinGeckoRwaIssuerDetail | null>(null);
+  const [isLoadingRwaMeta, setIsLoadingRwaMeta] = useState<boolean>(false);
+
+  // Sync CoinGecko RWA detail and issuer info for selected stock
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadRwaMeta() {
+      if (!selectedStock.coingeckoRwaId) {
+        setActiveRwaDetail(null);
+        setActiveRwaIssuer(null);
+        return;
+      }
+      setIsLoadingRwaMeta(true);
+      try {
+        const [rwaDetail, rwaIssuer] = await Promise.all([
+          fetchCoinGeckoRwaDetail(selectedStock.coingeckoRwaId).catch(() => null),
+          fetchCoinGeckoRwaIssuer(selectedStock.issuerId || 'backed').catch(() => null)
+        ]);
+        if (!isCancelled) {
+          setActiveRwaDetail(rwaDetail);
+          setActiveRwaIssuer(rwaIssuer);
+        }
+      } catch (e) {
+        console.warn('Failed to load RWA metadata:', e);
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingRwaMeta(false);
+        }
+      }
+    }
+
+    loadRwaMeta();
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedStock.coingeckoRwaId, selectedStock.issuerId]);
+
   // Persist Favorites
   useEffect(() => {
     try {
@@ -312,13 +360,16 @@ export default function XStocksPage() {
       const currentHours = getUsMarketHoursStatus();
       setMarketHours(currentHours);
 
-      // 1. Gather all CG IDs, CMC symbols, and Unique Underlying Tickers
+      // 1. Gather all RWA IDs, CG IDs, CMC symbols, and Unique Underlying Tickers
+      const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
       const cgIds = XSTOCKS_REGISTRY.map(s => s.coingeckoId);
       const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      // Execute on-chain oracles and Finnhub equity quote fetches in parallel
-      const [cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+      // Execute CoinGecko native RWA markets, verified fallback, CMC, and Finnhub equity quote fetches in parallel
+      const [rwaMarketsMap, cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+        // CoinGecko Native RWA Markets (/rwas/markets)
+        fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
         // CoinGecko On-Chain Market Quotes (Verification-grade live feed, no synthetic fallback)
         fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         // CoinMarketCap On-Chain Quotes
@@ -352,17 +403,26 @@ export default function XStocksPage() {
       for (const item of XSTOCKS_REGISTRY) {
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
+        const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
         const cgData = cgMarkets[item.coingeckoId.toLowerCase()] || cgMarkets[sym.toLowerCase()];
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
+        // Native CoinGecko RWA Tokenized-Market Data (strictly tokenized, not underlying)
+        const rwaMkt = rwaMarketEntry?.tokenized_market_data;
+        const hasRwaLivePrice = rwaMkt && typeof rwaMkt.current_price === 'number' && rwaMkt.current_price > 0;
+        const rwaPrice = hasRwaLivePrice ? rwaMkt.current_price : undefined;
+        const rwaVolume24h = hasRwaLivePrice ? rwaMkt.total_volume : undefined;
+
         // Check CoinGecko provenance: Must NEVER be synthetic or fallback
-        const isCgValid = cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number';
+        const isCgValid = hasRwaLivePrice
+          ? true
+          : (cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number');
         const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
-        const cgPrice = isCgValid ? cgData.current_price : undefined;
-        const cgVol = isCgValid ? cgData.total_volume : undefined;
-        const cgCap = isCgValid ? cgData.market_cap : undefined;
-        const cgChange = isCgValid ? cgData.price_change_percentage_24h : undefined;
+        const cgPrice = hasRwaLivePrice ? rwaMkt.current_price : (isCgValid ? cgData.current_price : undefined);
+        const cgVol = hasRwaLivePrice ? rwaMkt.total_volume : (isCgValid ? cgData.total_volume : undefined);
+        const cgCap = hasRwaLivePrice ? rwaMkt.market_cap : (isCgValid ? cgData.market_cap : undefined);
+        const cgChange = hasRwaLivePrice ? rwaMkt.price_change_percentage_24h : (isCgValid ? cgData.price_change_percentage_24h : undefined);
 
         // Check CoinMarketCap provenance
         const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
@@ -372,7 +432,7 @@ export default function XStocksPage() {
         const cmcCap = isCmcValid ? cmcData.marketCap : undefined;
         const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
-        // Converge on-chain feeds (CoinGecko + CMC only, no CoinStats)
+        // Converge on-chain feeds (CoinGecko RWA + CMC only, no CoinStats)
         const convergenceResult = computeMultiSourceConvergence({
           cgPrice,
           cgVolume: cgVol,
@@ -448,6 +508,8 @@ export default function XStocksPage() {
           status,
           provenance,
           cgPrice,
+          rwaPrice,
+          rwaVolume24h,
           cmcPrice,
           equityQuote: finnhubData,
           equityPrice,
@@ -954,6 +1016,7 @@ export default function XStocksPage() {
             name={selectedStock.name}
             underlyingTicker={selectedStock.underlyingTicker}
             coingeckoId={selectedStock.coingeckoId}
+            coingeckoRwaId={selectedStock.coingeckoRwaId}
             currentPrice={activeQuote?.livePrice}
             change24h={activeQuote?.change24h}
             volume24h={activeQuote?.volume24h}
@@ -967,6 +1030,9 @@ export default function XStocksPage() {
             marketHours={marketHours}
             isRefreshingQuotes={isRefreshing}
             onRefreshAll={syncXStocksData}
+            rwaDetail={activeRwaDetail}
+            rwaIssuerDetail={activeRwaIssuer}
+            isLoadingRwa={isLoadingRwaMeta}
           />
 
           {/* Market Data Cross-Check & Finnhub Equity Feeds Breakdown Box */}
@@ -998,42 +1064,26 @@ export default function XStocksPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-              {/* CoinMarketCap Aggregator */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              {/* CoinGecko Native RWA Feed (Tokenized Market Quote) */}
+              <div className="p-3 rounded-xl bg-slate-950 border border-cyan-500/30 space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span>CoinMarketCap (CMC)</span>
+                  <span className="text-cyan-300 font-bold">CoinGecko RWA (Tokenized Market)</span>
                   <span className={`w-2 h-2 rounded-full ${
-                    activeQuote?.cmcPrice ? 'bg-emerald-400' : 'bg-slate-600'
+                    (activeQuote?.rwaPrice || activeQuote?.cgPrice) ? 'bg-cyan-400' : 'bg-slate-600'
                   }`} />
                 </div>
                 <div className="text-sm font-bold text-white">
-                  {activeQuote?.cmcPrice ? formatPrice(activeQuote.cmcPrice) : 'No direct quote'}
+                  {(activeQuote?.rwaPrice || activeQuote?.cgPrice) ? formatPrice(activeQuote.rwaPrice || activeQuote.cgPrice!) : 'No direct quote'}
                 </div>
-                <div className="text-[9.5px] text-slate-500">
-                  Market Aggregator: {selectedStock.cmcSymbol}
-                </div>
-              </div>
-
-              {/* CoinGecko Aggregator */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span>CoinGecko (CG)</span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    activeQuote?.cgPrice ? 'bg-emerald-400' : 'bg-slate-600'
-                  }`} />
-                </div>
-                <div className="text-sm font-bold text-white">
-                  {activeQuote?.cgPrice ? formatPrice(activeQuote.cgPrice) : 'No direct quote'}
-                </div>
-                <div className="text-[9.5px] text-slate-500">
-                  Market Aggregator ID: {selectedStock.coingeckoId}
+                <div className="text-[9.5px] text-cyan-400/80">
+                  RWA ID: {selectedStock.coingeckoRwaId || selectedStock.coingeckoId} • Tokenized Price
                 </div>
               </div>
 
-              {/* Finnhub Equity Feed */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-purple-900/40 space-y-1">
+              {/* Finnhub Equity Reference (Underlying Equity Reference) */}
+              <div className="p-3 rounded-xl bg-slate-950 border border-purple-900/50 space-y-1">
                 <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span className="text-purple-300">Finnhub Equity Quote</span>
+                  <span className="text-purple-300 font-bold">Finnhub (Underlying Equity)</span>
                   <span className={`w-2 h-2 rounded-full ${
                     activeQuote?.equityPrice ? 'bg-purple-400' : 'bg-slate-600'
                   }`} />
@@ -1044,6 +1094,22 @@ export default function XStocksPage() {
                 <div className="text-[9.5px] text-purple-400/80 flex items-center justify-between">
                   <span>Ticker: {selectedStock.underlyingTicker}</span>
                   <span>{activeQuote?.equityQuote?.basisLabel || (marketHours.isOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis')}</span>
+                </div>
+              </div>
+
+              {/* CoinMarketCap Secondary Cross-Check */}
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                  <span>CoinMarketCap (CMC Cross-Check)</span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    activeQuote?.cmcPrice ? 'bg-emerald-400' : 'bg-slate-600'
+                  }`} />
+                </div>
+                <div className="text-sm font-bold text-white">
+                  {activeQuote?.cmcPrice ? formatPrice(activeQuote.cmcPrice) : 'No direct quote'}
+                </div>
+                <div className="text-[9.5px] text-slate-500">
+                  Market Cross-Check: {selectedStock.cmcSymbol}
                 </div>
               </div>
             </div>
