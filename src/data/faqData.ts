@@ -142,10 +142,10 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
 export const XSTOCKS_FAQ_ITEMS: FAQItem[] = [
   {
     category: 'xstocks',
-    question: 'What is the Multi-Oracle & Contract Verification Report for xStocks?',
+    question: 'What is the Market Data Cross-Check & Contract Verification Report for xStocks?',
     definition: 'A free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security & Risk Assessment product.',
-    tip: 'Checks 3 core signals: crypto aggregator consensus (CoinGecko, CoinMarketCap, CoinStats), real-time tracking accuracy against underlying equities via Finnhub, and bytecode security scans.',
-    answer: 'This is a free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security & Risk Assessment product. It checks three distinct things:\n1) Whether independent crypto price aggregators (CoinGecko, CoinMarketCap, and CoinStats where available) agree on the token\'s on-chain price.\n2) The real-time tracking accuracy between the on-chain token and its actual underlying equity price via Finnhub — the more meaningful signal for an xStock, since it measures whether the token is actually doing its one job.\n3) An on-chain contract security scan (GoPlus, RugCheck, or Blockscout, depending on the token\'s chain) for bytecode-level risks like mint authority or ownership concentration.'
+    tip: 'Checks 3 core signals: crypto market data aggregator cross-check (CoinGecko, CoinMarketCap), real-time tracking accuracy against underlying equities via Finnhub, and on-chain token security/bytecode scans.',
+    answer: 'This is a free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security & Risk Assessment product. It checks three distinct things:\n1) Whether independent crypto price aggregators (CoinGecko and CoinMarketCap) agree on the token\'s on-chain price (note: they are market data aggregators, not blockchain oracles).\n2) The real-time tracking accuracy between the on-chain token and its actual underlying equity price via Finnhub — measuring whether the token is tracking its underlying equity.\n3) An on-chain token security scan (GoPlus or RugCheck: on-chain token security & authority scan on Solana, contract bytecode security scan on EVM).'
   },
   {
     category: 'xstocks',
@@ -239,7 +239,7 @@ export function generateDualFaqJsonLd(activeTab?: string) {
 
   const xStocksSchema = generateSingleFaqJsonLd(
     XSTOCKS_FAQ_ITEMS,
-    'xStocks Multi-Oracle & Contract Verification FAQs',
+    'xStocks Market Data Cross-Check & Contract Verification FAQs',
     'https://www.cryptoreviewlab.com/?m=1#xstocks-verification-faq'
   );
 

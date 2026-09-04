@@ -168,7 +168,7 @@ export default function XStockAlertModal({
                   Price Alert Threshold System
                 </h3>
                 <span className="px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
-                  REAL-TIME ORACLE ALERTS
+                  REAL-TIME MARKET ALERTS
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-mono pt-0.5">
@@ -373,7 +373,7 @@ export default function XStockAlertModal({
                   No active price alerts set yet.
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Configure a target threshold above to receive instantaneous UI visual alerts whenever oracle prices cross your level.
+                  Configure a target threshold above to receive instantaneous UI visual alerts whenever market prices cross your level.
                 </p>
               </div>
             ) : (
@@ -485,7 +485,7 @@ export default function XStockAlertModal({
         <div className="p-4 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-[11px] font-mono text-slate-400">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Multi-oracle consensus alert engine active</span>
+            <span>Multi-source market data alert engine active</span>
           </div>
           <button
             type="button"

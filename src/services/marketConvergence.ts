@@ -57,7 +57,7 @@ export interface MultiSourceInput {
   csCirculatingSupply?: number;
   csTotalSupply?: number;
 
-  // Flag to indicate xStock convergence (CoinStats excluded, dual-oracle CG+CMC only)
+  // Flag to indicate xStock convergence (CoinStats excluded, dual aggregator CG+CMC Market Data Cross-Check)
   isXStock?: boolean;
 }
 
@@ -493,7 +493,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
       ];
 
   let syncRuleApplied = input.isXStock
-    ? 'Dual-Oracle Convergence (xStocks): Strict Cross-Validation (±1.0% Price, ±1.5% Cap, ±3.0% Vol)'
+    ? 'Market Data Cross-Check (xStocks): Strict Cross-Validation (±1.0% Price, ±1.5% Cap, ±3.0% Vol)'
     : 'Tri-Oracle Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)';
 
   if (overallStatus === 'FULL_CONSENSUS') {

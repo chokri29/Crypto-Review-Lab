@@ -336,7 +336,7 @@ export default function AIXStocksMarketSummary({
             {metrics.pegParity.toFixed(1)}%
           </div>
           <div className="font-mono text-[9px] text-slate-400">
-            oracle vs equity parity
+            on-chain vs equity parity
           </div>
         </div>
       </div>
