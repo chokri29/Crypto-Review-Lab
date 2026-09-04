@@ -715,7 +715,7 @@ export default function XStockVerificationPanel({
               <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
                 <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Buy / Sell Transfer Tax</div>
                 <div className="text-white font-bold">
-                  {scanData.buyTax ? scanData.buyTax : 'Not Reported'} Buy / {scanData.sellTax ? scanData.sellTax : 'Not Reported'} Sell
+                  {(scanData.buyTax && scanData.buyTax !== 'null' && scanData.buyTax !== 'undefined') ? scanData.buyTax : (scanData.buy_tax && scanData.buy_tax !== 'null' && scanData.buy_tax !== 'undefined') ? scanData.buy_tax : 'Not Reported'} Buy / {(scanData.sellTax && scanData.sellTax !== 'null' && scanData.sellTax !== 'undefined') ? scanData.sellTax : (scanData.sell_tax && scanData.sell_tax !== 'null' && scanData.sell_tax !== 'undefined') ? scanData.sell_tax : 'Not Reported'} Sell
                 </div>
               </div>
 

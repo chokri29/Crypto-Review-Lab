@@ -681,7 +681,7 @@ export default function XStockPriceChart({
           </div>
 
           {/* Prominent Synthetic / Demo Advisory */}
-          {isSynthetic && (
+          {isSynthetic && !activeIndicators.isUnavailable && (
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-300">
               <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div className="space-y-0.5 font-mono">
@@ -698,8 +698,26 @@ export default function XStockPriceChart({
             </div>
           )}
 
+          {/* Insufficient NYSE Data Advisory */}
+          {activeIndicators.isUnavailable && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-0.5 font-mono">
+                <div className="font-bold flex items-center gap-2 flex-wrap">
+                  <span className="bg-amber-500/25 px-1.5 py-0.5 rounded text-[10px] text-amber-200 border border-amber-500/40">
+                    INSUFFICIENT SESSION DATA
+                  </span>
+                  <span className="text-white">Technical Indicators Unavailable</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
+                  {activeIndicators.unavailableReason || 'Fewer than 3 valid NYSE regular-session points exist. Weekend and after-hours data are strictly excluded to prevent distorting stock technical indicators.'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Technical Confluence Score Gauge */}
-          {confluence && (
+          {!activeIndicators.isUnavailable && confluence && (
             <div className="bg-slate-900/90 border border-cyber-cyan/30 rounded-xl p-3 space-y-2.5 shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5">
@@ -945,102 +963,104 @@ export default function XStockPriceChart({
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* SMA 20 */}
-            <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                <span>SMA (20)</span>
-                <div className="flex items-center gap-1">
+          {!activeIndicators.isUnavailable && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* SMA 20 */}
+              <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                  <span>SMA (20)</span>
+                  <div className="flex items-center gap-1">
+                    {isSynthetic && (
+                      <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        DEMO
+                      </span>
+                    )}
+                    <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-white mt-1">
+                  {activeIndicators.sma20 ? formatPrice(activeIndicators.sma20) : 'N/A'}
+                </div>
+                <div className="text-[9.5px] mt-0.5 text-slate-400">
+                  Price is <span className={`font-bold ${
+                    activeIndicators.smaPosition === 'above' ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>{activeIndicators.smaPosition}</span> SMA
+                </div>
+              </div>
+
+              {/* EMA 20 */}
+              <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                  <span>EMA (20)</span>
+                  <div className="flex items-center gap-1">
+                    {isSynthetic && (
+                      <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        DEMO
+                      </span>
+                    )}
+                    <span className="w-2 h-2 rounded-full bg-purple-400"></span>
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-white mt-1">
+                  {activeIndicators.ema20 ? formatPrice(activeIndicators.ema20) : 'N/A'}
+                </div>
+                <div className="text-[9.5px] mt-0.5 text-slate-400">
+                  Price is <span className={`font-bold ${
+                    activeIndicators.emaPosition === 'above' ? 'text-emerald-400' : 'text-rose-400'
+                  }`}>{activeIndicators.emaPosition}</span> EMA
+                </div>
+              </div>
+
+              {/* 14-Period RSI */}
+              <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                  <span>RSI (14)</span>
+                  <div className="flex items-center gap-1">
+                    {isSynthetic && (
+                      <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        DEMO
+                      </span>
+                    )}
+                    <span className={`text-[9px] font-bold px-1 rounded ${
+                      activeIndicators.rsiCondition === 'overbought' ? 'bg-rose-500/20 text-rose-400' :
+                      activeIndicators.rsiCondition === 'oversold' ? 'bg-emerald-500/20 text-emerald-400' :
+                      'bg-slate-800 text-slate-300'
+                    }`}>
+                      {activeIndicators.rsiCondition || 'neutral'}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-white mt-1">
+                  {activeIndicators.rsi14 ?? 'N/A'}
+                </div>
+                <div className="text-[9.5px] mt-0.5 text-slate-400">
+                  {activeIndicators.rsi14 ? (
+                    activeIndicators.rsi14 >= 70 ? 'Overbought (>70)' :
+                    activeIndicators.rsi14 <= 30 ? 'Oversold (<30)' :
+                    'Neutral Band (30-70)'
+                  ) : 'Calculating...'}
+                </div>
+              </div>
+
+              {/* Support / Resistance */}
+              <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+                <div className="flex items-center justify-between text-slate-400 text-[10px]">
+                  <span>Pivot Key Levels</span>
                   {isSynthetic && (
                     <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
                       DEMO
                     </span>
                   )}
-                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                </div>
+                <div className="text-[11px] font-bold text-emerald-400 mt-1">
+                  Sup: {formatPrice(activeIndicators.keySupport)} {isSynthetic ? '(Demo)' : ''}
+                </div>
+                <div className="text-[11px] font-bold text-rose-400 mt-0.5">
+                  Res: {formatPrice(activeIndicators.keyResistance)} {isSynthetic ? '(Demo)' : ''}
                 </div>
               </div>
-              <div className="text-sm font-bold text-white mt-1">
-                {activeIndicators.sma20 ? formatPrice(activeIndicators.sma20) : 'N/A'}
-              </div>
-              <div className="text-[9.5px] mt-0.5 text-slate-400">
-                Price is <span className={`font-bold ${
-                  activeIndicators.smaPosition === 'above' ? 'text-emerald-400' : 'text-rose-400'
-                }`}>{activeIndicators.smaPosition}</span> SMA
-              </div>
             </div>
-
-            {/* EMA 20 */}
-            <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                <span>EMA (20)</span>
-                <div className="flex items-center gap-1">
-                  {isSynthetic && (
-                    <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                      DEMO
-                    </span>
-                  )}
-                  <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-                </div>
-              </div>
-              <div className="text-sm font-bold text-white mt-1">
-                {activeIndicators.ema20 ? formatPrice(activeIndicators.ema20) : 'N/A'}
-              </div>
-              <div className="text-[9.5px] mt-0.5 text-slate-400">
-                Price is <span className={`font-bold ${
-                  activeIndicators.emaPosition === 'above' ? 'text-emerald-400' : 'text-rose-400'
-                }`}>{activeIndicators.emaPosition}</span> EMA
-              </div>
-            </div>
-
-            {/* 14-Period RSI */}
-            <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                <span>RSI (14)</span>
-                <div className="flex items-center gap-1">
-                  {isSynthetic && (
-                    <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                      DEMO
-                    </span>
-                  )}
-                  <span className={`text-[9px] font-bold px-1 rounded ${
-                    activeIndicators.rsiCondition === 'overbought' ? 'bg-rose-500/20 text-rose-400' :
-                    activeIndicators.rsiCondition === 'oversold' ? 'bg-emerald-500/20 text-emerald-400' :
-                    'bg-slate-800 text-slate-300'
-                  }`}>
-                    {activeIndicators.rsiCondition || 'neutral'}
-                  </span>
-                </div>
-              </div>
-              <div className="text-sm font-bold text-white mt-1">
-                {activeIndicators.rsi14 ?? 'N/A'}
-              </div>
-              <div className="text-[9.5px] mt-0.5 text-slate-400">
-                {activeIndicators.rsi14 ? (
-                  activeIndicators.rsi14 >= 70 ? 'Overbought (>70)' :
-                  activeIndicators.rsi14 <= 30 ? 'Oversold (<30)' :
-                  'Neutral Band (30-70)'
-                ) : 'Calculating...'}
-              </div>
-            </div>
-
-            {/* Support / Resistance */}
-            <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                <span>Pivot Key Levels</span>
-                {isSynthetic && (
-                  <span className="text-[8px] font-mono px-1 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                    DEMO
-                  </span>
-                )}
-              </div>
-              <div className="text-[11px] font-bold text-emerald-400 mt-1">
-                Sup: {formatPrice(activeIndicators.keySupport)} {isSynthetic ? '(Demo)' : ''}
-              </div>
-              <div className="text-[11px] font-bold text-rose-400 mt-0.5">
-                Res: {formatPrice(activeIndicators.keyResistance)} {isSynthetic ? '(Demo)' : ''}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -62,6 +62,8 @@ export interface TechnicalIndicators {
   pivotHighs: PivotPoint[];
   pivotLows: PivotPoint[];
   confluence?: TechnicalConfluenceResult;
+  isUnavailable?: boolean;
+  unavailableReason?: string;
 }
 
 export interface ChartDataResult {
@@ -136,18 +138,48 @@ export function isNyseMarketHour(timestamp: number): boolean {
   return isNyseCalendarMarketHour(timestamp);
 }
 
+export type FilteredNysePoints = PricePoint[] & {
+  isInsufficient?: boolean;
+  unavailable?: boolean;
+  reason?: string;
+  sessionPointCount?: number;
+};
+
 /**
- * Filters out price data points outside NYSE hours (9:30–16:00 America/New_York, Mon–Fri)
+ * Filters out price data points outside NYSE regular trading hours (9:30–16:00 America/New_York, Mon–Fri)
  * so flat after-hours/weekend prices do not skew stock technical indicators.
+ *
+ * If insufficient valid NYSE-session data exists (< 3 points), returns an explicit insufficient/unavailable state.
+ * Strictly NEVER falls back to unfiltered prices or reintroduces weekend/after-hours data.
  */
-export function filterNyseMarketHours(prices: PricePoint[]): PricePoint[] {
-  if (!prices || prices.length === 0) return [];
-  const filtered = prices.filter(p => isNyseMarketHour(p.timestamp));
-  // If filtering left too few points (e.g. initial launch or over long weekends), keep all to prevent empty calculation
-  if (filtered.length < 3) {
-    return prices;
+export function filterNyseMarketHours(prices: PricePoint[]): FilteredNysePoints {
+  if (!prices || prices.length === 0) {
+    const empty: FilteredNysePoints = [];
+    empty.isInsufficient = true;
+    empty.unavailable = true;
+    empty.reason = 'No price history available';
+    empty.sessionPointCount = 0;
+    return empty;
   }
-  return filtered;
+
+  const filtered = prices.filter(p => isNyseMarketHour(p.timestamp));
+
+  // If fewer than 3 valid NYSE-session points exist, return explicit insufficient/unavailable state.
+  // NEVER reintroduce weekend or after-hours data.
+  if (filtered.length < 3) {
+    const insufficient: FilteredNysePoints = [...filtered];
+    insufficient.isInsufficient = true;
+    insufficient.unavailable = true;
+    insufficient.reason = `Insufficient valid NYSE-session data (${filtered.length}/3 minimum points required). Weekend and after-hours data strictly excluded.`;
+    insufficient.sessionPointCount = filtered.length;
+    return insufficient;
+  }
+
+  const result: FilteredNysePoints = filtered;
+  result.isInsufficient = false;
+  result.unavailable = false;
+  result.sessionPointCount = filtered.length;
+  return result;
 }
 
 /**
@@ -267,7 +299,7 @@ export function computeTimeframeSmaSlope(
   prices: PricePoint[],
   currentPrice?: number
 ): TimeframeSlopeInfo {
-  if (!prices || prices.length === 0) {
+  if (!prices || prices.length < 3 || (prices as FilteredNysePoints)?.isInsufficient) {
     return {
       timeframe,
       slope: 0,
@@ -275,7 +307,7 @@ export function computeTimeframeSmaSlope(
       direction: 'flat',
       latestSma: currentPrice || 0,
       pastSma: currentPrice || 0,
-      summary: `${timeframe}: neutral (insufficient data)`
+      summary: `${timeframe}: unavailable (insufficient session data)`
     };
   }
 
@@ -406,8 +438,14 @@ export function computeMultiTimeframeAlignment(
  * 5. Technical Confluence Score (0–100 composite)
  */
 export function computeTechnicalIndicators(prices: PricePoint[]): TechnicalIndicators {
-  if (!prices || prices.length === 0) {
-    return { pivotHighs: [], pivotLows: [] };
+  const isInsufficient = !prices || prices.length < 3 || (prices as FilteredNysePoints)?.isInsufficient;
+  if (isInsufficient) {
+    return {
+      pivotHighs: [],
+      pivotLows: [],
+      isUnavailable: true,
+      unavailableReason: (prices as FilteredNysePoints)?.reason || 'Insufficient valid session data (minimum 3 points required)'
+    };
   }
 
   const rawPrices = prices.map(p => p.price);

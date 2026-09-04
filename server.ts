@@ -354,8 +354,16 @@ function generateDeterministicFallbackReview(params: {
   const isHoneypot = Boolean(sec.is_honeypot);
   const isMintable = Boolean(sec.is_mintable);
   const isProxy = Boolean(sec.is_proxy);
-  const buyTax = Number(sec.buy_tax || 0);
-  const sellTax = Number(sec.sell_tax || 0);
+  const buyTax = (sec.buy_tax !== undefined && sec.buy_tax !== null && String(sec.buy_tax).trim() !== '' && !isNaN(Number(sec.buy_tax)))
+    ? Number(sec.buy_tax)
+    : (sec.buyTax !== undefined && sec.buyTax !== null && String(sec.buyTax).trim() !== '' && !isNaN(Number(String(sec.buyTax).replace('%', ''))))
+    ? Number(String(sec.buyTax).replace('%', '')) / 100
+    : null;
+  const sellTax = (sec.sell_tax !== undefined && sec.sell_tax !== null && String(sec.sell_tax).trim() !== '' && !isNaN(Number(sec.sell_tax)))
+    ? Number(sec.sell_tax)
+    : (sec.sellTax !== undefined && sec.sellTax !== null && String(sec.sellTax).trim() !== '' && !isNaN(Number(String(sec.sellTax).replace('%', ''))))
+    ? Number(String(sec.sellTax).replace('%', '')) / 100
+    : null;
   const holderCount = Number(sec.holder_count || 0);
   const cannotSellAll = Boolean(sec.cannot_sell_all);
   const canTakeBackOwnership = Boolean(sec.can_take_back_ownership);
@@ -370,8 +378,8 @@ function generateDeterministicFallbackReview(params: {
   } else {
     if (isMintable) security -= 1.2;
     if (isProxy) security -= 0.6;
-    if (buyTax > 0.1 || sellTax > 0.1) security -= 1.6;
-    else if (buyTax === 0 && sellTax === 0 && holderCount > 200) security += 0.8;
+    if ((buyTax !== null && buyTax > 0.1) || (sellTax !== null && sellTax > 0.1)) security -= 1.6;
+    else if (buyTax !== null && sellTax !== null && buyTax === 0 && sellTax === 0 && holderCount > 200) security += 0.8;
   }
   security = Math.max(1.0, Math.min(9.5, Math.round(security * 10) / 10));
 
@@ -1591,6 +1599,20 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     return str;
   }
 
+  function parseTaxRate(val: any): string | null {
+    if (val === undefined || val === null) return null;
+    const s = String(val).trim();
+    if (s === "" || s.toLowerCase() === "null" || s.toLowerCase() === "undefined" || s.toLowerCase() === "not reported" || s.toLowerCase() === "nan") {
+      return null;
+    }
+    const num = parseFloat(s);
+    if (isNaN(num)) return null;
+    // Only an explicitly reported numeric 0 may display as 0% (0.0%)
+    if (num === 0) return "0.0%";
+    const rate = (num > 0 && num < 1) ? num * 100 : num;
+    return `${rate.toFixed(1)}%`;
+  }
+
   function parseGoPlusTokenData(tokenData: any) {
     const ownerAddr = (tokenData.owner_address || tokenData.owner || "").toLowerCase().trim();
     const isRenounced =
@@ -1665,12 +1687,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       tokenName: tokenData.token_name || tokenData.name || "",
       tokenSymbol: tokenData.token_symbol || tokenData.symbol || "",
       ownerAddress: tokenData.owner_address || tokenData.owner || "",
-      buyTax: (tokenData.buy_tax !== undefined && tokenData.buy_tax !== null && String(tokenData.buy_tax).trim() !== "" && !isNaN(parseFloat(String(tokenData.buy_tax))))
-        ? `${(parseFloat(String(tokenData.buy_tax)) * (parseFloat(String(tokenData.buy_tax)) < 1 && parseFloat(String(tokenData.buy_tax)) > 0 ? 100 : 1)).toFixed(1)}%`
-        : null,
-      sellTax: (tokenData.sell_tax !== undefined && tokenData.sell_tax !== null && String(tokenData.sell_tax).trim() !== "" && !isNaN(parseFloat(String(tokenData.sell_tax))))
-        ? `${(parseFloat(String(tokenData.sell_tax)) * (parseFloat(String(tokenData.sell_tax)) < 1 && parseFloat(String(tokenData.sell_tax)) > 0 ? 100 : 1)).toFixed(1)}%`
-        : null,
+      buyTax: parseTaxRate(tokenData.buy_tax ?? tokenData.buyTax),
+      sellTax: parseTaxRate(tokenData.sell_tax ?? tokenData.sellTax),
+      buy_tax: parseTaxRate(tokenData.buy_tax ?? tokenData.buyTax),
+      sell_tax: parseTaxRate(tokenData.sell_tax ?? tokenData.sellTax),
       cannotSell
     };
   }
@@ -1808,12 +1828,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           tokenName: tokenMeta.name || "Solana Token",
           tokenSymbol: tokenMeta.symbol || contractAddress.slice(0, 6),
           ownerAddress: mintAuth || "",
-          buyTax: (rugData.transferFee?.pct !== undefined && rugData.transferFee?.pct !== null && !isNaN(parseFloat(rugData.transferFee.pct)))
-            ? `${parseFloat(rugData.transferFee.pct).toFixed(1)}%`
-            : null,
-          sellTax: (rugData.transferFee?.pct !== undefined && rugData.transferFee?.pct !== null && !isNaN(parseFloat(rugData.transferFee.pct)))
-            ? `${parseFloat(rugData.transferFee.pct).toFixed(1)}%`
-            : null,
+          buyTax: parseTaxRate(rugData.transferFee?.pct),
+          sellTax: parseTaxRate(rugData.transferFee?.pct),
+          buy_tax: parseTaxRate(rugData.transferFee?.pct),
+          sell_tax: parseTaxRate(rugData.transferFee?.pct),
           cannotSell,
           rugcheckScore: rugData.score,
           rugcheckRisks: risks
@@ -2139,6 +2157,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
             providers,
             data: {
               ...goplusResult.data,
+              buyTax: goplusResult.data?.buyTax ?? rugcheckResult.data?.buyTax ?? null,
+              sellTax: goplusResult.data?.sellTax ?? rugcheckResult.data?.sellTax ?? null,
+              buy_tax: goplusResult.data?.buy_tax ?? rugcheckResult.data?.buy_tax ?? null,
+              sell_tax: goplusResult.data?.sell_tax ?? rugcheckResult.data?.sell_tax ?? null,
               rugcheckScore: rugcheckResult.data.rugcheckScore,
               rugcheckRisks: rugcheckResult.data.rugcheckRisks
             }
