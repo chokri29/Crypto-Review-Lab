@@ -339,7 +339,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   atl?: number;
   athChangePct?: number;
   atlChangePct?: number;
-  fdvCalculated: number;
+  fdvCalculated?: number;
 } {
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -470,14 +470,13 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (hasValidPrice && hasValidCap ? Math.round(finalMarketCap / finalPrice) : undefined);
   const maxSupply = input.cgMaxSupply;
   const totalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply || (maxSupply ? Math.round(maxSupply * 0.95) : (estimatedCircSupply && estimatedCircSupply > 0 ? estimatedCircSupply : undefined));
-  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : (hasValidCap ? Math.round(finalMarketCap * 1.15) : undefined));
+  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : undefined);
 
-  // ATH & ATL cross-validation
   const validAth = [input.cgAth, input.cmcAth, input.csAth].filter((v): v is number => typeof v === 'number' && v > 0);
-  const allTimeHigh = validAth.length > 0 ? (validAth.reduce((a, b) => a + b, 0) / validAth.length) : (hasValidPrice ? parseFloat((finalPrice * 1.65).toFixed(finalPrice < 1 ? 4 : 2)) : undefined);
+  const allTimeHigh = validAth.length > 0 ? (validAth.reduce((a, b) => a + b, 0) / validAth.length) : undefined;
 
   const validAtl = [input.cgAtl, input.cmcAtl, input.csAtl].filter((v): v is number => typeof v === 'number' && v > 0);
-  const allTimeLow = validAtl.length > 0 ? (validAtl.reduce((a, b) => a + b, 0) / validAtl.length) : (hasValidPrice ? parseFloat((finalPrice * 0.22).toFixed(finalPrice < 1 ? 4 : 2)) : undefined);
+  const allTimeLow = validAtl.length > 0 ? (validAtl.reduce((a, b) => a + b, 0) / validAtl.length) : undefined;
 
   const athChangePct = allTimeHigh && hasValidPrice ? parseFloat((((finalPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
   const atlChangePct = allTimeLow && hasValidPrice ? parseFloat((((finalPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
@@ -560,3 +559,5 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     fdvCalculated
   };
 }
+
+export const calculateMultiSourceConvergence = computeMultiSourceConvergence;

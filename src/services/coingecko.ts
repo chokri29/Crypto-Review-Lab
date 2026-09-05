@@ -307,7 +307,7 @@ export interface DualEngineMetrics {
   atl?: number;
   athChangePct?: number;
   atlChangePct?: number;
-  fdvCalculated: number;
+  fdvCalculated?: number;
   priceDivergencePct: number;
   supplyDivergencePct: number;
   confidenceScore: number;

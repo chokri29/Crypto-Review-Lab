@@ -97,8 +97,8 @@ export async function fetchLiveFinnhubQuote(
         return null;
       }
 
-      const quoteTimestamp = typeof data.t === 'number' && data.t > 0 ? data.t : Math.floor(now / 1000);
-      const basisTimestampFormatted = new Intl.DateTimeFormat('en-US', {
+      const quoteTimestamp = typeof data.t === 'number' && data.t > 0 ? data.t : null;
+      const basisTimestampFormatted = quoteTimestamp !== null ? new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/New_York',
         month: 'short',
         day: 'numeric',
@@ -106,7 +106,7 @@ export async function fetchLiveFinnhubQuote(
         minute: '2-digit',
         second: '2-digit',
         hour12: false
-      }).format(new Date(quoteTimestamp * 1000)) + ' ET';
+      }).format(new Date(quoteTimestamp * 1000)) + ' ET' : undefined;
 
       const quote: FinnhubQuote = {
         symbol: cleanSymbol,
@@ -117,7 +117,7 @@ export async function fetchLiveFinnhubQuote(
         l: typeof data.l === 'number' ? data.l : undefined,
         o: typeof data.o === 'number' ? data.o : undefined,
         pc,
-        t: quoteTimestamp,
+        t: quoteTimestamp ?? undefined,
         effectivePrice,
         isLiveQuote,
         priceLabel,
