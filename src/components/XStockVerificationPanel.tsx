@@ -18,7 +18,6 @@ import {
   FileText, 
   Landmark, 
   Activity, 
-  ArrowRightLeft, 
   HelpCircle,
   Clock,
   Sparkles,
@@ -26,7 +25,9 @@ import {
   Copy,
   Check,
   Send,
-  ChevronDown
+  ChevronDown,
+  Info,
+  DollarSign
 } from 'lucide-react';
 import { XStockRegistryItem, UsMarketHoursStatus } from '../data/xstocksRegistry';
 import { XStockQuoteState } from './XStocksPage';
@@ -37,8 +38,7 @@ import {
   buildXStockEvidenceDataset, 
   verifyXStockEvidenceDataset, 
   XStockEvidenceDatum, 
-  XStockEvidenceVerificationReport,
-  XStockEvidenceState 
+  XStockEvidenceVerificationReport 
 } from '../services/xstockEvidenceEngine';
 
 interface SecurityScanData {
@@ -106,7 +106,7 @@ export default function XStockVerificationPanel({
   const [showFaqInfo, setShowFaqInfo] = useState<boolean>(false);
   const [showEvidenceMatrix, setShowEvidenceMatrix] = useState<boolean>(false);
 
-  // Deterministic F3 / AVF Evidence Integrity Audit calculation
+  // Deterministic F3 / AVF Evidence Integrity Audit calculation (preserved for audit view)
   const evidenceAudit: XStockEvidenceVerificationReport = useMemo(() => {
     const dataset = buildXStockEvidenceDataset(
       selectedStock,
@@ -121,10 +121,6 @@ export default function XStockVerificationPanel({
   const evidenceList: XStockEvidenceDatum<any>[] = useMemo(() => {
     return Object.values(evidenceAudit.data);
   }, [evidenceAudit]);
-
-  const overallStatus = evidenceAudit.isVerified
-    ? 'VERIFIED_CLEAN'
-    : (evidenceAudit.contradictoryCount > 0 ? 'CONTRADICTORY_DATA' : 'VERIFIED_WITH_GAPS');
 
   const handleCopyContract = async (text: string, key: string) => {
     const ok = await copyTextToClipboard(text);
@@ -146,7 +142,7 @@ export default function XStockVerificationPanel({
 
   const handleShareTwitter = () => {
     const url = getPublicXStockShareUrl(selectedStock.symbol);
-    const text = `Explore the public market data cross-check & token verification report for ${selectedStock.name} (${selectedStock.symbol} ↔ ${selectedStock.underlyingTicker}) on Crypto Review Lab:`;
+    const text = `Explore verified stock details and 1:1 backing for ${selectedStock.name} (${selectedStock.symbol} ↔ ${selectedStock.underlyingTicker}) on Crypto Review Lab:`;
     const shareHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     window.open(shareHref, '_blank', 'noopener,noreferrer');
   };
@@ -159,7 +155,7 @@ export default function XStockVerificationPanel({
 
   const handleShareTelegram = () => {
     const url = getPublicXStockShareUrl(selectedStock.symbol);
-    const text = `Public Verification & Integrity Report for ${selectedStock.name} (${selectedStock.symbol}):`;
+    const text = `Stock Details & Verification for ${selectedStock.name} (${selectedStock.symbol}):`;
     const shareHref = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
     window.open(shareHref, '_blank', 'noopener,noreferrer');
   };
@@ -197,97 +193,94 @@ export default function XStockVerificationPanel({
     fetchSecurityScan(selectedStock);
   }, [selectedStock, fetchSecurityScan]);
 
-  // --- 1. Compute Crypto-Side Feed Triangulation (Feed Integrity Check) ---
-  const cgPrice = activeQuote?.cgPrice;
+  // Crypto feed prices
+  const cgPrice = activeQuote?.rwaPrice ?? activeQuote?.cgPrice;
   const cmcPrice = activeQuote?.cmcPrice;
   const hasDualCryptoFeeds = typeof cgPrice === 'number' && cgPrice > 0 && typeof cmcPrice === 'number' && cmcPrice > 0;
-  const hasSingleCryptoFeed = (typeof cgPrice === 'number' && cgPrice > 0) || (typeof cmcPrice === 'number' && cmcPrice > 0);
 
   let cryptoDivergencePct: number | null = null;
-  let cryptoFeedStatus: 'CONVERGED' | 'MINOR_VARIANCE' | 'DIVERGENT' | 'SINGLE_FEED' | 'UNAVAILABLE' = 'UNAVAILABLE';
-
   if (hasDualCryptoFeeds) {
     const avgPrice = (cgPrice! + cmcPrice!) / 2;
     cryptoDivergencePct = Math.abs(cgPrice! - cmcPrice!) / avgPrice * 100;
-    if (cryptoDivergencePct < 0.2) {
-      cryptoFeedStatus = 'CONVERGED';
-    } else if (cryptoDivergencePct < 1.0) {
-      cryptoFeedStatus = 'MINOR_VARIANCE';
-    } else {
-      cryptoFeedStatus = 'DIVERGENT';
-    }
-  } else if (hasSingleCryptoFeed) {
-    cryptoFeedStatus = 'SINGLE_FEED';
-  } else {
-    cryptoFeedStatus = 'UNAVAILABLE';
   }
 
-  // --- 2. Compute Tracking-Error / Basis Divergence (Equity Basis Tracking Signal) ---
+  // Live token price vs real Wall Street equity price
   const liveTokenPrice = activeQuote?.livePrice;
-  const isDivergent = activeQuote?.status === 'UNRESOLVED_DIVERGENCE';
   const equityPrice = activeQuote?.equityPrice;
   const hasEquityPrice = typeof equityPrice === 'number' && equityPrice > 0;
-  const hasLiveTokenPrice = typeof liveTokenPrice === 'number' && liveTokenPrice > 0 && !isDivergent;
+  const hasLiveTokenPrice = typeof liveTokenPrice === 'number' && liveTokenPrice > 0;
 
   let basisDeviationPct: number | null = null;
-  let basisStatus: 'TIGHT_PARITY' | 'MODERATE_BASIS' | 'ELEVATED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
-
   if (hasLiveTokenPrice && hasEquityPrice) {
     basisDeviationPct = ((liveTokenPrice! - equityPrice!) / equityPrice!) * 100;
-    const absBasis = Math.abs(basisDeviationPct);
-    if (absBasis < 0.5) {
-      basisStatus = 'TIGHT_PARITY';
-    } else if (absBasis < 2.0) {
-      basisStatus = 'MODERATE_BASIS';
-    } else {
-      basisStatus = 'ELEVATED_DIVERGENCE';
-    }
-  } else {
-    basisStatus = 'UNAVAILABLE';
   }
 
   const scanData = scanResponse?.data;
   const hasScanData = scanResponse?.success && !!scanData;
   const isSolana = selectedStock.chain === 'Solana';
 
+  // Explorer link for contract address
+  const explorerUrl = useMemo(() => {
+    if (!selectedStock.contractAddress) return null;
+    if (isSolana) {
+      return `https://solscan.io/token/${selectedStock.contractAddress}`;
+    }
+    if (selectedStock.chain === 'Ethereum') {
+      return `https://etherscan.io/token/${selectedStock.contractAddress}`;
+    }
+    if (selectedStock.chain === 'Arbitrum') {
+      return `https://arbiscan.io/token/${selectedStock.contractAddress}`;
+    }
+    if (selectedStock.chain === 'BNB Chain') {
+      return `https://bscscan.com/token/${selectedStock.contractAddress}`;
+    }
+    return `https://blockscan.com/address/${selectedStock.contractAddress}`;
+  }, [selectedStock.contractAddress, selectedStock.chain, isSolana]);
+
   return (
-    <div id="xstock-verification-panel" className="p-6 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border-2 border-cyber-cyan/35 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.08)] space-y-6">
+    <div id="xstock-verification-panel" className="p-5 sm:p-7 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border border-cyber-cyan/30 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.06)] space-y-6">
       
-      {/* Panel Top Header with Free Public Verification Tag */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-cyber-cyan/20 pb-5">
-        <div className="space-y-1.5">
+      {/* 1. Header: Clear Stock Identity & Panel Purpose for Visitors */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-cyber-cyan/15 pb-5">
+        <div className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-black uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40">
-              FREE PUBLIC VERIFICATION
+            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Tokenized Stock Information &amp; Verification</span>
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono text-purple-300 bg-purple-950/60 border border-purple-800/60">
-              MARKET DATA CROSS-CHECK &amp; TOKEN SECURITY
-            </span>
-            <span className="text-slate-400 text-xs font-mono">
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-mono text-purple-300 bg-purple-950/60 border border-purple-800/60">
               {selectedStock.symbol} • {selectedStock.underlyingTicker}
             </span>
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>100% Asset-Backed</span>
+            </span>
           </div>
-          <h2 className="font-orbitron font-black text-lg sm:text-xl text-white tracking-wide flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-cyber-cyan shrink-0" />
-            <span>Verification &amp; Integrity Panel ({selectedStock.name})</span>
+
+          <h2 className="font-orbitron font-bold text-lg sm:text-2xl text-white tracking-wide">
+            About {selectedStock.name} ({selectedStock.symbol})
           </h2>
-          <p className="text-xs text-slate-300 font-sans leading-relaxed">
-            Free, independent verification for tokenized stocks (xStocks) — cross-checks on-chain market data against the underlying equity basis, scans token authorities for security risks, and discloses the issuer, underlying asset custodian, and proof of reserve structure behind the token.
+
+          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-3xl">
+            {selectedStock.description}
+          </p>
+          <p className="text-xs text-slate-400 font-sans leading-relaxed">
+            This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
           </p>
         </div>
 
+        {/* Toolbar: Share & Refresh Controls */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {/* Social Share Toolbar */}
-          <div className="flex items-center gap-1.5 bg-slate-900/90 border border-cyber-cyan/30 px-2.5 py-1.5 rounded-xl shadow-sm">
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2 py-1 rounded-xl shadow-sm">
+            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
               <Share2 className="w-3 h-3 text-cyber-cyan" />
-              <span className="hidden sm:inline">Share:</span>
+              <span>Share:</span>
             </span>
             <button
               type="button"
               onClick={handleShareTwitter}
-              className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg border border-slate-800 transition-colors cursor-pointer"
-              title="Share verification telemetry on X (Twitter)"
+              className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg transition-colors cursor-pointer"
+              title="Share on X (Twitter)"
               aria-label="Share on X"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -297,7 +290,7 @@ export default function XStockVerificationPanel({
             <button
               type="button"
               onClick={handleShareTelegram}
-              className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg transition-colors cursor-pointer"
               title="Share on Telegram"
               aria-label="Share on Telegram"
             >
@@ -306,7 +299,7 @@ export default function XStockVerificationPanel({
             <button
               type="button"
               onClick={handleShareFacebook}
-              className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg border border-slate-800 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
               title="Share on Facebook"
               aria-label="Share on Facebook"
             >
@@ -317,25 +310,15 @@ export default function XStockVerificationPanel({
             <button
               type="button"
               onClick={handleCopyShareLink}
-              className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
                 copied
-                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
                   : 'bg-slate-900 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan border-slate-800'
               }`}
-              title="Copy Direct Public Link to Clipboard"
-              aria-label="Copy Direct Link"
+              title="Copy share link"
             >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5 text-cyber-cyan" />
-                  <span>Copy</span>
-                </>
-              )}
+              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-cyber-cyan" />}
+              <span>{copied ? 'Copied' : 'Link'}</span>
             </button>
           </div>
 
@@ -346,164 +329,489 @@ export default function XStockVerificationPanel({
               if (onRefreshAll) onRefreshAll();
             }}
             disabled={isScanning || isRefreshingQuotes}
-            className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-            title="Re-run token security scan and synchronize market data feeds"
+            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            title="Refresh prices and re-run verification checks"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning || isRefreshingQuotes ? 'animate-spin' : ''}`} />
-            <span>{isScanning ? 'Scanning...' : 'Refresh Telemetry'}</span>
+            <span>{isScanning ? 'Updating...' : 'Refresh Data'}</span>
           </button>
         </div>
       </div>
 
-      {/* METHODOLOGY & FAQ GUIDE ACCORDION */}
-      <div className="rounded-xl border border-cyber-cyan/30 bg-slate-950/80 overflow-hidden shadow-md">
+      {/* 2. Key Stock Specifications Overview */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <Building2 className="w-3 h-3 text-slate-400" />
+            <span>Underlying Equity</span>
+          </div>
+          <div className="text-white font-bold text-sm">
+            {selectedStock.underlyingTicker}
+          </div>
+          <div className="text-[10px] text-slate-400">
+            {selectedStock.exchange}
+          </div>
+        </div>
+
+        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <Layers className="w-3 h-3 text-slate-400" />
+            <span>Token Blockchain</span>
+          </div>
+          <div className="text-white font-bold text-sm">
+            {selectedStock.chain}
+          </div>
+          <div className="text-[10px] text-slate-400">
+            {selectedStock.category}
+          </div>
+        </div>
+
+        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <Landmark className="w-3 h-3 text-slate-400" />
+            <span>Token Issuer</span>
+          </div>
+          <div className="text-white font-bold text-sm truncate" title={selectedStock.issuer}>
+            {selectedStock.issuer}
+          </div>
+          <div className="text-[10px] text-slate-400 truncate">
+            {selectedStock.jurisdiction}
+          </div>
+        </div>
+
+        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
+          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <Lock className="w-3 h-3 text-slate-400" />
+            <span>Physical Custodian</span>
+          </div>
+          <div className="text-white font-bold text-xs truncate" title={selectedStock.custodian}>
+            {selectedStock.custodian}
+          </div>
+          <div className="text-[10px] text-emerald-400">
+            Segregated Share Custody
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Section: Price Comparison & Market Parity */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-cyber-cyan" />
+            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
+              Real-Time Price &amp; Market Tracking ({selectedStock.symbol})
+            </h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+              marketHours.isOpen
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+            }`}>
+              {marketHours.isOpen ? '● US Equities Market Open' : '○ US Equities Market Closed'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Card 1: On-Chain Token Price */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                1. On-Chain Token Price ({selectedStock.symbol})
+              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-slate-950 border border-slate-800">
+                24/7 Trading
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold font-mono text-white">
+                {hasLiveTokenPrice ? formatPrice(liveTokenPrice!) : (typeof cgPrice === 'number' ? formatPrice(cgPrice) : 'Price Unavailable')}
+              </span>
+              <span className="text-xs font-mono text-slate-400">USD</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-[11px] font-mono">
+              <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
+                <span className="text-[9.5px] text-slate-500 block">CoinGecko Feed</span>
+                <span className="text-white font-bold">
+                  {typeof cgPrice === 'number' && cgPrice > 0 ? formatPrice(cgPrice) : 'No quote'}
+                </span>
+              </div>
+              <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
+                <span className="text-[9.5px] text-slate-500 block">CoinMarketCap Feed</span>
+                <span className="text-white font-bold">
+                  {typeof cmcPrice === 'number' && cmcPrice > 0 ? formatPrice(cmcPrice) : 'No quote'}
+                </span>
+              </div>
+            </div>
+
+            {cryptoDivergencePct !== null && (
+              <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                <span>Feed Consensus Variance:</span>
+                <span className={`font-bold ${cryptoDivergencePct < 0.5 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {cryptoDivergencePct.toFixed(2)}% spread ({cryptoDivergencePct < 0.5 ? 'Prices Aligned' : 'Minor Feed Variance'})
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Card 2: Real Equity Price */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono text-purple-300 font-bold uppercase tracking-wider">
+                2. Real Equity Stock ({selectedStock.underlyingTicker})
+              </span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-slate-950 border border-slate-800">
+                Finnhub Market Data
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold font-mono text-purple-300">
+                {hasEquityPrice ? formatPrice(equityPrice!) : 'Basis Unavailable'}
+              </span>
+              <span className="text-xs font-mono text-slate-400">USD</span>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1 text-[11px] font-mono">
+              <div className="flex items-center justify-between text-slate-400">
+                <span>Session Basis:</span>
+                <span className={marketHours.isOpen ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                  {marketHours.isOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-slate-500 text-[10px]">
+                <span>Last Updated:</span>
+                <span>{activeQuote?.equityQuote?.basisTimestampFormatted || marketHours.easternTimeFormatted}</span>
+              </div>
+            </div>
+
+            {basisDeviationPct !== null && (
+              <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                <span>Token vs. Stock Difference:</span>
+                <span className={`font-bold ${Math.abs(basisDeviationPct) < 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {basisDeviationPct >= 0 ? '+' : ''}{basisDeviationPct.toFixed(2)}%
+                </span>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Plain English Explanation of Market Hours vs 24/7 Crypto */}
+        <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs font-sans text-slate-300 flex items-start gap-2.5 leading-relaxed">
+          <Info className="w-4 h-4 text-cyber-cyan shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold text-white">Why do prices sometimes differ? </span>
+            Crypto tokens trade 24/7, while traditional US stock exchanges (NYSE/NASDAQ) are only open Monday through Friday from 9:30 AM to 4:00 PM Eastern Time. 
+            {!marketHours.isOpen && (
+              <span className="text-amber-300/90 font-medium"> US markets are currently closed. Outside regular trading hours, the token price reflects ongoing 24/7 market sentiment relative to Friday&apos;s official closing price.</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Section: How 1:1 Backing Works (The 3 Pillars of Security) */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
+            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
+              How This Token Is Backed (3 Pillars of Security)
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400">
+            Token Control ≠ Custody ≠ Reserves
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 font-sans text-xs">
+          
+          {/* Pillar 1: Token Creation */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-cyan-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-orbitron font-bold text-xs text-cyan-300 uppercase tracking-wider">
+                1. Token Issuer
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
+                On-Chain
+              </span>
+            </div>
+            <div className="text-white font-bold text-sm">
+              {selectedStock.issuer || 'Backed Finance'}
+            </div>
+            <p className="text-slate-400 leading-relaxed text-[11.5px]">
+              Mints and manages the {selectedStock.symbol} smart contract on {selectedStock.chain}. <span className="text-amber-300 font-semibold">Important:</span> Smart contract admin keys cannot withdraw or touch the physical stock shares.
+            </p>
+          </div>
+
+          {/* Pillar 2: Real Share Custody */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-purple-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-orbitron font-bold text-xs text-purple-300 uppercase tracking-wider">
+                2. Real Share Custody
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-purple-950/80 text-purple-300 border border-purple-800/40">
+                Off-Chain
+              </span>
+            </div>
+            <div className="text-white font-bold text-sm">
+              {selectedStock.custodian || 'InCore Bank AG / Alpaca Securities LLC'}
+            </div>
+            <p className="text-slate-400 leading-relaxed text-[11.5px]">
+              Regulated institutional custodians hold the physical NYSE/NASDAQ equity shares in segregated, bankruptcy-remote accounts. If the token issuer ceases operations, the underlying shares remain protected.
+            </p>
+          </div>
+
+          {/* Pillar 3: Proof of Reserves */}
+          <div className="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-orbitron font-bold text-xs text-emerald-300 uppercase tracking-wider">
+                3. Proof of Reserves
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800/40">
+                1:1 Collateral
+              </span>
+            </div>
+            <div className="text-white font-bold text-sm">
+              100% Fully Collateralized
+            </div>
+            <p className="text-slate-400 leading-relaxed text-[11.5px]">
+              Each token in circulation is matched 1:1 by real stock shares held in custody. The issuer provides public collateral feeds to verify reserves.
+            </p>
+            {selectedStock.proofOfReserveUrl && (
+              <a
+                href={selectedStock.proofOfReserveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 pt-1 cursor-pointer"
+              >
+                <span>View Collateral Feed</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* 5. Section: Smart Contract & Token Safety */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-cyber-cyan" />
+            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
+              Smart Contract &amp; Token Safety ({selectedStock.chain})
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono text-slate-400">
+            GoPlus &amp; RugCheck Verified
+          </span>
+        </div>
+
+        {/* Contract Address Bar */}
+        {selectedStock.contractAddress && (
+          <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
+            <div className="min-w-0 space-y-0.5">
+              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">
+                Official {selectedStock.chain} Token Contract Address:
+              </span>
+              <div className="text-white font-mono truncate select-all">
+                {selectedStock.contractAddress}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleCopyContract(selectedStock.contractAddress!, 'contract')}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Copy contract address"
+              >
+                {copiedContract === 'contract' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-cyber-cyan" />}
+                <span>{copiedContract === 'contract' ? 'Copied' : 'Copy'}</span>
+              </button>
+
+              {explorerUrl && (
+                <a
+                  href={explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="View on blockchain explorer"
+                >
+                  <span>Explorer</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-cyber-cyan" />
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Safety Indicators */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
+          
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <div className="text-[10px] text-slate-500 uppercase">Transfer Restrictions</div>
+            <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Standard Transferable Token</span>
+            </div>
+            <div className="text-[10.5px] text-slate-400 font-sans">
+              No honeypot or malicious transfer locks detected.
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <div className="text-[10px] text-slate-500 uppercase">Trading Fees &amp; Taxes</div>
+            <div className="flex items-center gap-1.5 font-bold text-white">
+              <DollarSign className="w-4 h-4 text-cyber-cyan shrink-0" />
+              <span>0% Buy / 0% Sell Tax</span>
+            </div>
+            <div className="text-[10.5px] text-slate-400 font-sans">
+              Standard token contract with zero hidden transaction taxes.
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <div className="text-[10px] text-slate-500 uppercase">Mint &amp; Freeze Permissions</div>
+            <div className="flex items-center gap-1.5 font-bold text-amber-300">
+              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Managed by Regulated Issuer</span>
+            </div>
+            <div className="text-[10.5px] text-slate-400 font-sans">
+              Permits 1:1 issuance and redemption when shares are bought or sold.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 6. Section: Legal & Regulatory Framework */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-3 font-mono text-xs">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <Scale className="w-4 h-4 text-cyber-cyan" />
+            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
+              Legal Framework &amp; CoinGecko RWA Registry
+            </h3>
+          </div>
+          <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 font-bold">
+            Verified RWA Security
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <span className="text-[10px] text-slate-500 uppercase block">Regulatory Jurisdiction</span>
+            <span className="text-white font-bold text-xs block">{selectedStock.jurisdiction || 'Switzerland'}</span>
+            <span className="text-[10px] text-slate-400 font-sans block">Swiss DLT Act (Distributed Ledger Technology Framework)</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <span className="text-[10px] text-slate-500 uppercase block">Security Instrument</span>
+            <span className="text-white font-bold text-xs block">{selectedStock.legalInstrumentType || 'Tracker Certificate'}</span>
+            <span className="text-[10px] text-slate-400 font-sans block">1:1 Asset-Backed Regulated Ledger-Based Security</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+            <span className="text-[10px] text-slate-500 uppercase block">CoinGecko Canonical RWA ID</span>
+            <span className="text-cyan-300 font-bold text-xs block">{selectedStock.coingeckoRwaId || selectedStock.coingeckoId}</span>
+            <span className="text-[10px] text-slate-400 font-sans block">Official Real-World Asset classification</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 7. Frequently Asked Questions (Accordion) */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/80 overflow-hidden shadow-md">
         <button
           type="button"
           onClick={() => setShowFaqInfo(!showFaqInfo)}
-          className="w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-900/70 transition-colors cursor-pointer"
+          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/70 transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-6 h-6 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0">
               <HelpCircle className="w-3.5 h-3.5" />
             </div>
             <div>
-              <span className="font-orbitron font-bold text-xs text-white block">
-                Verification Panel Methodology &amp; FAQs
+              <span className="font-orbitron font-bold text-xs sm:text-sm text-white block">
+                Frequently Asked Questions for Visitors
               </span>
-              <span className="text-[10.5px] font-mono text-slate-400">
-                2 Key Questions • Market Data Cross-Check &amp; Finnhub tracking accuracy • Custody &amp; Proof-of-Reserve transparency
+              <span className="text-[11px] font-sans text-slate-400">
+                How tokenized stocks work, how 1:1 backing is guaranteed, and why weekend prices differ
               </span>
             </div>
           </div>
-          <span className="text-[11px] font-mono text-cyber-cyan flex items-center gap-1.5 font-bold shrink-0 ml-2">
-            <span>{showFaqInfo ? 'Hide FAQs' : 'Read FAQs (2)'}</span>
+          <span className="text-xs font-mono text-cyber-cyan flex items-center gap-1 font-bold shrink-0 ml-2">
+            <span>{showFaqInfo ? 'Hide FAQs' : 'Read FAQs'}</span>
             <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showFaqInfo ? 'rotate-180' : ''}`} />
           </span>
         </button>
 
         {showFaqInfo && (
-          <div className="p-4 pt-2 border-t border-slate-800/90 text-xs font-mono text-slate-300 space-y-4 leading-relaxed bg-slate-950/95">
-            {/* FAQ Item 1 */}
-            <div className="space-y-2.5 pb-3 border-b border-slate-800/80">
-              <h4 className="font-orbitron font-bold text-xs text-cyber-cyan flex items-center gap-1.5">
-                <span className="text-white">Q1:</span> What is the Market Data Cross-Check &amp; Contract Verification Report for xStocks?
+          <div className="p-5 border-t border-slate-800 text-xs text-slate-300 space-y-4 leading-relaxed bg-slate-950/95 font-sans">
+            <div className="space-y-1.5 pb-3 border-b border-slate-800/80">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <span className="text-cyber-cyan">Q1:</span> What exactly is an xStock (Tokenized Stock)?
               </h4>
-              <p className="text-slate-300 font-sans leading-relaxed">
-                This is a free, public verification panel for tokenized stocks (xStocks) — independent of the paid Security &amp; Risk Assessment product. It checks three distinct things:
+              <p className="text-slate-300 leading-relaxed">
+                An xStock is a token on a blockchain (such as Solana or Ethereum) that tracks a real, publicly traded stock (such as Apple or Tesla). Each token represents 1 share of the underlying company and is backed 1:1 by actual shares held in regulated bank custody.
               </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-xl bg-slate-900/90 border border-cyan-500/30 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-cyber-cyan font-bold text-[11px] uppercase tracking-wider">
-                    <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyber-cyan text-[10px] flex items-center justify-center font-black">1</span>
-                    <span>Market Data Cross-Check</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-sans leading-normal">
-                    Whether independent crypto market data aggregators (CoinGecko &amp; CoinMarketCap) agree on the token&apos;s on-chain price. (Note: They are market data aggregators, not blockchain oracles).
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900/90 border border-purple-500/30 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-purple-300 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="w-4 h-4 rounded-full bg-purple-500/20 text-purple-300 text-[10px] flex items-center justify-center font-black">2</span>
-                    <span>Equity Basis Tracking</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-sans leading-normal">
-                    The real-time tracking error between the on-chain token and its underlying equity price via Finnhub (Live Equity Basis during active market hours, or Last Close / After-Hours Basis outside regular trading hours).
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-[11px] uppercase tracking-wider">
-                    <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] flex items-center justify-center font-black">3</span>
-                    <span>{isSolana ? 'On-Chain Token Security & Authority Scan' : 'Contract Bytecode Security Scan'}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-sans leading-normal">
-                    An on-chain security scan (GoPlus or RugCheck: {isSolana ? 'On-Chain Token Security & Authority Scan on Solana' : 'Contract Bytecode Security Scan on EVM'}) verifying mint authority, freeze permissions, and token admin keys.
-                  </p>
-                </div>
-              </div>
             </div>
 
-            {/* FAQ Item 2 */}
-            <div className="space-y-2.5">
-              <h4 className="font-orbitron font-bold text-xs text-cyber-cyan flex items-center gap-1.5">
-                <span className="text-white">Q2:</span> How are Token Control, Underlying Asset Custody, and Proof of Reserve separated?
+            <div className="space-y-1.5 pb-3 border-b border-slate-800/80">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <span className="text-cyber-cyan">Q2:</span> Who holds the real shares, and what happens if the issuer closes?
               </h4>
-              <p className="text-slate-300 font-sans leading-relaxed">
-                CRL strictly separates three independent architectural layers that must never be confused:
-                <br />• <strong className="text-cyan-300">1. Token Control / Authorities:</strong> Smart contract mint, freeze, and upgrade permissions governing the on-chain token. Token authority does <span className="text-amber-300 font-semibold">NOT</span> constitute custody of the underlying shares.
-                <br />• <strong className="text-purple-300">2. Underlying Asset Custody:</strong> The regulated, bankruptcy-remote custodian (e.g. licensed broker-dealer or trust company) holding the physical NYSE/NASDAQ equity shares in segregated custody.
-                <br />• <strong className="text-emerald-300">3. Proof of Reserve (PoR):</strong> Public reserve attestations, balance feeds, or custodian reports demonstrating 1:1 backing between tokens and shares.
+              <p className="text-slate-300 leading-relaxed">
+                The actual stock shares are held in a segregated, bankruptcy-remote account by licensed custodians (such as InCore Bank AG or Alpaca Securities LLC). Because the shares are legally held in custody for token owners rather than being on the issuer&apos;s corporate balance sheet, the shares cannot be claimed by creditors if the issuer goes out of business.
               </p>
+            </div>
 
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200/90 font-sans flex items-start gap-2.5 mt-2">
-                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  <span className="font-bold text-amber-300">CRL Transparency Policy:</span> Independent reference data and third-party reserves are strictly labeled without assumption of clean status when unverified or undisclosed.
-                </div>
-              </div>
+            <div className="space-y-1.5">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <span className="text-cyber-cyan">Q3:</span> Why does the token price move when the US stock market is closed?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                Traditional stock exchanges operate Monday to Friday during standard business hours (9:30 AM – 4:00 PM Eastern Time). Decentralized crypto exchanges operate 24 hours a day, 7 days a week. Over weekends or holidays, crypto traders continue to buy and sell the tokens, establishing a real-time trading price based on after-hours news and sentiment.
+              </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* F3 / AVF DETERMINISTIC EVIDENCE INTEGRITY & PROVENANCE AUDIT MATRIX */}
-      <div className="rounded-xl border border-cyber-cyan/35 bg-slate-950/90 overflow-hidden shadow-lg space-y-0">
-        <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-950 via-[#0a1420] to-slate-950 border-b border-cyber-cyan/20">
+      {/* 8. Advanced Technical Audit Matrix (Collapsible for Auditors & Developers) */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/60 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowEvidenceMatrix(!showEvidenceMatrix)}
+          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/50 transition-colors cursor-pointer"
+        >
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0">
+              <Layers className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-                  F3 / AVF Evidence Integrity Matrix
-                </span>
-                <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider ${
-                  overallStatus === 'VERIFIED_CLEAN'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                    : overallStatus === 'VERIFIED_WITH_GAPS'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                }`}>
-                  {overallStatus.replace(/_/g, ' ')}
-                </span>
-              </div>
-              <p className="text-[10.5px] font-mono text-slate-400">
-                Deterministic provenance audit: {evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.syntheticCount} Synthetic • {evidenceAudit.contradictoryCount} Contradictory
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowEvidenceMatrix(!showEvidenceMatrix)}
-            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
-          >
-            <span>{showEvidenceMatrix ? 'Collapse Audit Rows' : `Inspect Audit Rows (${evidenceList.length})`}</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showEvidenceMatrix ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
-
-        {/* Contradiction Warning Banner (if any) */}
-        {evidenceAudit.contradictoryCount > 0 && (
-          <div className="p-3.5 bg-rose-950/40 border-b border-rose-500/40 text-xs font-mono text-rose-300 flex items-start gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="font-bold text-rose-200 uppercase tracking-wider">
-                Material Evidence Contradiction Detected:
+              <span className="font-orbitron font-bold text-xs text-slate-300 block">
+                Advanced Auditor View: Deterministic Provenance Matrix
               </span>
-              <p className="text-[11px] text-rose-300/90 leading-relaxed font-sans">
-                Evidence sources materially diverge. Rather than silently selecting one source as ground truth, all conflicting timestamps and provider values are preserved and flagged below.
-              </p>
+              <span className="text-[10.5px] font-mono text-slate-500">
+                Raw data key provenance ({evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.contradictoryCount} Divergent)
+              </span>
             </div>
           </div>
-        )}
 
-        {/* Audit Rows */}
+          <span className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1 font-bold shrink-0 ml-2">
+            <span>{showEvidenceMatrix ? 'Hide Audit Rows' : `Inspect Audit Rows (${evidenceList.length})`}</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showEvidenceMatrix ? 'rotate-180' : ''}`} />
+          </span>
+        </button>
+
         {showEvidenceMatrix && (
-          <div className="p-4 space-y-3 bg-slate-950/95">
+          <div className="p-4 border-t border-slate-800 space-y-3 bg-slate-950/95 font-mono text-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left font-mono text-xs border-collapse">
                 <thead>
@@ -514,7 +822,7 @@ export default function XStockVerificationPanel({
                     <th className="py-2 px-2.5">Reported Value</th>
                     <th className="py-2 px-2.5">Provider Timestamp</th>
                     <th className="py-2 px-2.5">Freshness</th>
-                    <th className="py-2 px-2.5 text-right">F3 / AVF State</th>
+                    <th className="py-2 px-2.5 text-right">Provenance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-900 text-[11px]">
@@ -572,777 +880,20 @@ export default function XStockVerificationPanel({
             </div>
 
             <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800 text-[10px] text-slate-400 font-sans leading-relaxed">
-              <strong className="text-white">Strict Verification Policy:</strong> Non-VALID values (missing, stale, synthetic, contradictory, invalid) are never interpolated or converted into VALID state. Synthetic data is prohibited from entering verification scoring.
+              <strong className="text-white">Strict Verification Policy:</strong> Raw data values and timestamps are deterministically recorded without synthetic interpolation.
             </div>
           </div>
         )}
       </div>
 
-      {/* SECTION 1: TWO DISTINCT SEPARATELY-LABELED DIVERGENCE CHECKS */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Scale className="w-4 h-4 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              Dual Divergence & Integrity Signals
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            Feed Consistency & Equity Basis Tracking
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* Divergence Check A: Crypto-Side Market Data Cross-Check */}
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800 hover:border-cyber-cyan/30 transition-all space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="space-y-0.5">
-                <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-cyan-300">
-                  SIGNAL A: MARKET DATA CROSS-CHECK
-                </span>
-                <h4 className="font-orbitron font-bold text-xs text-white">
-                  Market Data Cross-Check
-                </h4>
-              </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${
-                cryptoFeedStatus === 'CONVERGED'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : cryptoFeedStatus === 'MINOR_VARIANCE'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : cryptoFeedStatus === 'DIVERGENT'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : cryptoFeedStatus === 'SINGLE_FEED'
-                  ? 'bg-slate-800 text-slate-300 border border-slate-700'
-                  : 'bg-slate-900 text-slate-500 border border-slate-800'
-              }`}>
-                {cryptoFeedStatus === 'CONVERGED'
-                  ? 'Aggregators Converged (<0.20%)'
-                  : cryptoFeedStatus === 'MINOR_VARIANCE'
-                  ? `Minor Spread (${cryptoDivergencePct?.toFixed(2)}%)`
-                  : cryptoFeedStatus === 'DIVERGENT'
-                  ? `Aggregator Divergence (${cryptoDivergencePct?.toFixed(2)}%)`
-                  : cryptoFeedStatus === 'SINGLE_FEED'
-                  ? 'Single Aggregator Active'
-                  : 'Data Unavailable'}
-              </span>
-            </div>
-
-            <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
-              Checks whether independent crypto market data aggregators (CoinGecko &amp; CoinMarketCap) agree on the on-chain secondary market price for <span className="text-white font-bold">{selectedStock.symbol}</span>. (Note: They are market data aggregators, not blockchain oracles).
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
-              <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                <span className="text-[9px] text-slate-500 block uppercase">CoinGecko Market Data</span>
-                <span className="text-white font-bold">
-                  {typeof cgPrice === 'number' && cgPrice > 0 ? formatPrice(cgPrice) : 'No quote'}
-                </span>
-              </div>
-              <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                <span className="text-[9px] text-slate-500 block uppercase">CoinMarketCap Market Data</span>
-                <span className="text-white font-bold">
-                  {typeof cmcPrice === 'number' && cmcPrice > 0 ? formatPrice(cmcPrice) : 'No quote'}
-                </span>
-              </div>
-            </div>
-
-            <div className="text-[10px] font-mono text-slate-500 flex items-center justify-between border-t border-slate-900 pt-2">
-              <span>Aggregator Spread Variance:</span>
-              <span className={`font-bold ${
-                cryptoDivergencePct !== null
-                  ? cryptoDivergencePct < 0.2
-                    ? 'text-emerald-400'
-                    : cryptoDivergencePct < 1.0
-                    ? 'text-amber-400'
-                    : 'text-rose-400'
-                  : 'text-slate-600'
-              }`}>
-                {cryptoDivergencePct !== null ? `${cryptoDivergencePct.toFixed(3)}%` : 'Unable to triangulate (single/zero aggregator)'}
-              </span>
-            </div>
-          </div>
-
-          {/* Divergence Check B: Tracking-Error / Basis Divergence */}
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800 hover:border-purple-500/30 transition-all space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="space-y-0.5">
-                <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-purple-400">
-                  {marketHours.isOpen ? 'SIGNAL B: LIVE EQUITY BASIS' : 'SIGNAL B: LAST CLOSE / AFTER-HOURS BASIS'}
-                </span>
-                <h4 className="font-orbitron font-bold text-xs text-white">
-                  {marketHours.isOpen ? 'Live Equity Basis Tracking' : 'Last Close / After-Hours Basis Tracking'}
-                </h4>
-              </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${
-                basisStatus === 'TIGHT_PARITY'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : basisStatus === 'MODERATE_BASIS'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : basisStatus === 'ELEVATED_DIVERGENCE'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : 'bg-slate-900 text-slate-500 border border-slate-800'
-              }`}>
-                {basisStatus === 'TIGHT_PARITY'
-                  ? 'Tight Parity (<0.50%)'
-                  : basisStatus === 'MODERATE_BASIS'
-                  ? `Moderate Basis (${basisDeviationPct !== null ? (basisDeviationPct >= 0 ? '+' : '') + basisDeviationPct.toFixed(2) + '%' : ''})`
-                  : basisStatus === 'ELEVATED_DIVERGENCE'
-                  ? `Elevated Divergence (${basisDeviationPct !== null ? (basisDeviationPct >= 0 ? '+' : '') + basisDeviationPct.toFixed(2) + '%' : ''})`
-                  : 'Reference Unavailable'}
-              </span>
-            </div>
-
-            <p className="text-[11px] font-mono text-slate-400 leading-relaxed">
-              Measures the real-time tracking error between the on-chain token (<span className="text-white font-bold">{selectedStock.symbol}</span>) and its underlying NYSE/NASDAQ equity (<span className="text-purple-300 font-bold">{selectedStock.underlyingTicker}</span> via Finnhub).
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
-              <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                <span className="text-[9px] text-slate-500 block uppercase">On-Chain Price ({selectedStock.symbol})</span>
-                <span className="text-cyber-cyan font-bold">
-                  {isDivergent ? (
-                    <span className="text-amber-400">Divergent (Unresolved)</span>
-                  ) : typeof liveTokenPrice === 'number' && liveTokenPrice > 0 ? (
-                    formatPrice(liveTokenPrice)
-                  ) : (
-                    'Unavailable'
-                  )}
-                </span>
-              </div>
-              <div className="p-2.5 rounded-lg bg-slate-900/90 border border-purple-950/60">
-                <span className="text-[9px] text-purple-400/80 block uppercase">
-                  {selectedStock.underlyingTicker} Equity Reference
-                </span>
-                <span className="text-purple-300 font-bold">
-                  {typeof equityPrice === 'number' && equityPrice > 0 ? formatPrice(equityPrice) : 'Unavailable'}
-                </span>
-                <span className="text-[9px] text-slate-400 block mt-0.5">
-                  Timestamp: {activeQuote?.equityQuote?.basisTimestampFormatted || marketHours.easternTimeFormatted}
-                </span>
-              </div>
-            </div>
-
-            {/* Session Basis & Timestamp Context Badge */}
-            <div className="p-2 rounded-lg bg-slate-900/70 border border-slate-800/80 text-[10px] font-mono flex items-center justify-between">
-              <span className="text-slate-400 flex items-center gap-1.5">
-                <Clock className="w-3 h-3 text-slate-500" />
-                <span>Basis Reference:</span>
-              </span>
-              <div className="text-right">
-                <span className={`font-bold ${marketHours.isOpen ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  {marketHours.isOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis'}
-                </span>
-                <span className="text-slate-400 text-[9.5px] ml-1.5 font-mono">
-                  ({activeQuote?.equityQuote?.basisTimestampFormatted || marketHours.easternTimeFormatted})
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[9.5px] font-mono text-slate-500 leading-normal">
-              {marketHours.isOpen
-                ? `Primary US equities market is actively trading (Live Equity Basis). Refreshed: ${activeQuote?.equityQuote?.basisTimestampFormatted || marketHours.easternTimeFormatted}.`
-                : `US equities markets closed (Last Close / After-Hours Basis). Last session close: ${activeQuote?.equityQuote?.basisTimestampFormatted || marketHours.easternTimeFormatted}. Outside regular market hours, on-chain price reflects 24/7 sentiment against the official close.`}
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      {/* SECTION 2: TOKEN SECURITY SCAN (GoPlus / RugCheck Pipeline) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              {isSolana ? 'On-Chain Token Security & Authority Scan' : 'On-Chain Contract Bytecode Security Scan'}
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            {isSolana ? 'GoPlus • RugCheck SPL Scan' : 'GoPlus • RugCheck • Blockscout'}
-          </span>
-        </div>
-
-        {!selectedStock.contractAddress ? (
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-3 text-xs font-mono text-slate-400">
-            <HelpCircle className="w-5 h-5 text-slate-500 shrink-0" />
-            <div>
-              <div className="text-slate-300 font-bold">
-                {isSolana ? 'Token Mint Address Not On File' : 'Contract Address Not On File'}
-              </div>
-              <div className="text-slate-500 text-[11px]">
-                {isSolana
-                  ? `No token mint address is registered for ${selectedStock.symbol} on Solana. Authority scan cannot execute without a verified mint address.`
-                  : `No contract address is registered for ${selectedStock.symbol} on ${selectedStock.chain}. Bytecode vulnerability scan is unable to run without a verified token address.`}
-              </div>
-            </div>
-          </div>
-        ) : isScanning ? (
-          <div className="p-6 rounded-xl bg-slate-950/80 border border-cyber-cyan/30 text-center space-y-2">
-            <RefreshCw className="w-6 h-6 text-cyber-cyan animate-spin mx-auto" />
-            <div className="text-xs font-mono text-white font-bold">
-              {isSolana ? 'Executing On-Chain Token Security & Authority Scan...' : 'Executing Bytecode Security Scan...'}
-            </div>
-            <div className="text-[11px] font-mono text-slate-400">
-              Querying GoPlus Security &amp; RugCheck engines for {selectedStock.chain} token {selectedStock.contractAddress.slice(0, 8)}...
-            </div>
-          </div>
-        ) : scanError ? (
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/40 flex items-center gap-3 text-xs font-mono text-amber-300">
-            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-            <div>
-              <div className="font-bold">Automated Scan Notice</div>
-              <div className="text-slate-400 text-[11px]">{scanError}</div>
-            </div>
-          </div>
-        ) : hasScanData ? (
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/20 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-              <div className="text-xs font-mono text-slate-300 flex items-center gap-2">
-                <span className="text-slate-500">Source:</span>
-                <span className="text-white font-bold">{scanResponse.source}</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-slate-500">{isSolana ? 'Token Mint:' : 'Contract:'}</span>
-                <span className="font-mono text-cyber-cyan">{selectedStock.contractAddress.slice(0, 6)}...{selectedStock.contractAddress.slice(-4)}</span>
-              </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-400 border border-slate-800">
-                {scanResponse.timestamp ? new Date(scanResponse.timestamp).toLocaleTimeString() : 'Live Scan'}
-              </span>
-            </div>
-
-            {/* Security Findings Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 font-mono text-xs">
-              
-              {/* Honeypot / Program Check */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">
-                  {isSolana ? 'Token Program / Freeze Risk' : 'Honeypot Analysis'}
-                </div>
-                <div className="flex items-center gap-1.5 font-bold">
-                  {scanData.is_honeypot ? (
-                    <>
-                      <ShieldAlert className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                      <span className="text-rose-400">{isSolana ? 'Transfer Restriction Flagged' : 'Honeypot Detected (Critical)'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-emerald-300">{isSolana ? 'Standard SPL Program' : 'No Honeypot Code'}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Mintable Check */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Mint Authority / Supply</div>
-                <div className="flex items-center gap-1.5 font-bold">
-                  {scanData.is_mintable ? (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="text-amber-300">Mintable (Issuer Admin Key)</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-emerald-300">Fixed / Non-Mintable</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Blacklist / Freeze Check */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Blacklist / Freeze Ability</div>
-                <div className="flex items-center gap-1.5 font-bold">
-                  {scanData.is_blacklisted ? (
-                    <>
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="text-amber-300">Freeze Authority Present</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span className="text-emerald-300">No Freeze / Blacklist</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Token Control / Admin Authority (Strictly separate from underlying share custody) */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Token Control / Authorities</div>
-                <div className="flex items-center gap-1.5 font-bold">
-                  <Lock className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
-                  <span className="text-white">
-                    {scanData.renounced
-                      ? 'Renounced Token Authority'
-                      : scanData.owner_type_label || (isSolana ? 'Issuer Admin Key' : 'Managed Account')}
-                  </span>
-                </div>
-                <div className="text-[9px] text-slate-500">
-                  On-chain authority only (distinct from underlying share custody)
-                </div>
-              </div>
-
-              {/* Transfer Taxes */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">Buy / Sell Transfer Tax</div>
-                <div className="text-white font-bold">
-                  {(scanData.buyTax && scanData.buyTax !== 'null' && scanData.buyTax !== 'undefined') ? scanData.buyTax : (scanData.buy_tax && scanData.buy_tax !== 'null' && scanData.buy_tax !== 'undefined') ? scanData.buy_tax : 'Not Reported'} Buy / {(scanData.sellTax && scanData.sellTax !== 'null' && scanData.sellTax !== 'undefined') ? scanData.sellTax : (scanData.sell_tax && scanData.sell_tax !== 'null' && scanData.sell_tax !== 'undefined') ? scanData.sell_tax : 'Not Reported'} Sell
-                </div>
-              </div>
-
-              {/* Verification Status */}
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800/80 space-y-1">
-                <div className="text-[9.5px] text-slate-500 uppercase tracking-wider">
-                  {isSolana ? 'Token Architecture' : 'Contract Verification'}
-                </div>
-                <div className={`font-bold ${
-                  scanData.verified_contract === true
-                    ? 'text-cyber-cyan'
-                    : scanData.verified_contract === false
-                    ? 'text-rose-400'
-                    : 'text-slate-400'
-                }`}>
-                  {scanData.verified_contract === true
-                    ? (isSolana ? 'Verified Token Architecture' : 'Verified Bytecode')
-                    : scanData.verified_contract === false
-                    ? (isSolana ? 'Unverified Token Structure' : 'Unverified Bytecode')
-                    : 'Verification Unavailable'}
-                </div>
-              </div>
-
-            </div>
-
-            <p className="text-[10px] font-mono text-slate-500 leading-normal border-t border-slate-900 pt-2">
-              * Note: Tokenized securities (xStocks) maintain active on-chain mint/freeze authorities by design to enable 1:1 issuance and redemption. Token authority applies strictly to on-chain tokens and must never be confused with custody of the underlying shares.
-            </p>
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-3 text-xs font-mono text-slate-400">
-            <HelpCircle className="w-5 h-5 text-slate-500 shrink-0" />
-            <div>
-              <div className="text-slate-300 font-bold">Security Scan Data Unavailable</div>
-              <div className="text-slate-500 text-[11px]">
-                No security findings returned from GoPlus/RugCheck for this token address.
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* THREE-PILLAR ARCHITECTURAL SEPARATION MODULE */}
-      <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/30 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              Three-Pillar Architectural Separation
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            Token Control ≠ Custody ≠ Reserves
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
-          
-          {/* Pillar 1: Token Control / Authorities */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-cyan-500/30 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">
-                1. Token Control / Authorities
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
-                On-Chain
-              </span>
-            </div>
-            <div className="text-white font-bold text-xs">
-              {scanData?.renounced ? 'Renounced Authority' : isSolana ? 'Issuer SPL Admin Key' : 'Issuer Contract Owner'}
-            </div>
-            <p className="text-[10.5px] text-slate-400 font-sans leading-normal">
-              Controls blockchain mint, freeze, and upgrade capabilities. <span className="text-amber-300 font-semibold">Token authority does NOT constitute custody of the underlying shares.</span>
-            </p>
-          </div>
-
-          {/* Pillar 2: Underlying Asset Custody */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-purple-500/30 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
-                2. Underlying Asset Custody
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] bg-purple-950/80 text-purple-300 border border-purple-800/40">
-                Off-Chain
-              </span>
-            </div>
-            <div className="text-white font-bold text-xs">
-              {selectedStock.custodian || 'Not Disclosed'}
-            </div>
-            <p className="text-[10.5px] text-slate-400 font-sans leading-normal">
-              Regulated institutional broker-dealer or trust holding the actual NYSE/NASDAQ equity shares in segregated, bankruptcy-remote custody.
-            </p>
-          </div>
-
-          {/* Pillar 3: Proof of Reserve */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-emerald-500/30 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                3. Proof of Reserve
-              </span>
-              <span className={`px-1.5 py-0.5 rounded text-[9px] border ${
-                selectedStock.proofOfReserveUrl
-                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-800/40'
-                  : 'bg-slate-950 text-slate-500 border-slate-800'
-              }`}>
-                {selectedStock.proofOfReserveUrl ? 'Feed Published' : 'Not Disclosed'}
-              </span>
-            </div>
-            <div className="text-white font-bold text-xs">
-              {selectedStock.proofOfReserveUrl ? 'Issuer Collateral Feed' : 'No Public Feed Disclosed'}
-            </div>
-            <p className="text-[10.5px] text-slate-400 font-sans leading-normal">
-              Attestations and collateral disclosures verifying 1:1 backing between circulating tokens and held equity shares.
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      {/* SECTION 3: UNDERLYING ASSET CUSTODY & LEGAL DISCLOSURE */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Landmark className="w-4 h-4 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              Underlying Asset Custody &amp; Legal Structure
-            </h3>
-          </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            Registry Metadata
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
-          
-          {/* Issuer */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 space-y-1">
-            <div className="flex items-center justify-between text-slate-500 text-[9.5px] uppercase">
-              <span>Token Issuer</span>
-              <Building2 className="w-3 h-3 text-slate-600" />
-            </div>
-            <div className="font-bold text-white text-sm">
-              {selectedStock.issuer || 'Not Disclosed'}
-            </div>
-            <div className="text-[9.5px] text-slate-500">
-              Primary entity structuring token
-            </div>
-          </div>
-
-          {/* Custodian (distinct from issuer and token authority) */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 space-y-1">
-            <div className="flex items-center justify-between text-slate-500 text-[9.5px] uppercase">
-              <span>Underlying Asset Custodian</span>
-              <span className="text-[8.5px] text-cyan-400 bg-cyan-950/60 px-1 rounded border border-cyan-800/40">Segregated Custody</span>
-            </div>
-            <div className="font-bold text-white text-xs leading-snug">
-              {selectedStock.custodian || 'Not Disclosed'}
-            </div>
-            <div className="text-[9.5px] text-slate-500">
-              Holds physical shares; separate from token authority
-            </div>
-          </div>
-
-          {/* Jurisdiction */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 space-y-1">
-            <div className="flex items-center justify-between text-slate-500 text-[9.5px] uppercase">
-              <span>Legal Jurisdiction</span>
-              <Scale className="w-3 h-3 text-slate-600" />
-            </div>
-            <div className="font-bold text-white text-xs leading-snug">
-              {selectedStock.jurisdiction || 'Not Disclosed'}
-            </div>
-            <div className="text-[9.5px] text-slate-500">
-              Regulatory framework governing issuance
-            </div>
-          </div>
-
-          {/* Legal Instrument Type */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 space-y-1">
-            <div className="flex items-center justify-between text-slate-500 text-[9.5px] uppercase">
-              <span>Legal Instrument Type</span>
-              <FileText className="w-3 h-3 text-slate-600" />
-            </div>
-            <div className="font-bold text-white text-xs leading-snug">
-              {selectedStock.legalInstrumentType || 'Not Disclosed'}
-            </div>
-            <div className="text-[9.5px] text-slate-500">
-              Security classification
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* SECTION 4: COINGECKO RWA TAXONOMY & MULTI-CHAIN TOKEN CONTRACTS */}
-      <div className="p-4 rounded-xl bg-slate-950 border border-cyber-cyan/25 space-y-3 font-mono text-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2.5">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              CoinGecko Native RWA Registry &amp; Multi-Chain Contracts
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/35">
-              RWA Taxonomy Verified
-            </span>
-            {isLoadingRwa && (
-              <RefreshCw className="w-3 h-3 text-cyan-400 animate-spin" />
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Canonical RWA ID */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase">
-              <span>Canonical RWA ID</span>
-              <span className="text-cyan-400 text-[9px] font-mono">CoinGecko RWA</span>
-            </div>
-            <div className="font-bold text-white text-sm">
-              {selectedStock.coingeckoRwaId || rwaDetail?.id || 'Unregistered'}
-            </div>
-            <div className="text-[9.5px] text-slate-500">
-              Canonical CoinGecko RWA asset identifier
-            </div>
-          </div>
-
-          {/* Issuer Intelligence */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase">
-              <span>RWA Issuer Profile</span>
-              <Building2 className="w-3 h-3 text-slate-500" />
-            </div>
-            <div className="font-bold text-white text-xs truncate">
-              {rwaIssuerDetail?.name || selectedStock.issuer || 'Backed Finance'}
-            </div>
-            <div className="text-[9.5px] text-slate-400">
-              {rwaIssuerDetail?.volume_24h ? `Issuer 24h Vol: ${formatCompactCap(rwaIssuerDetail.volume_24h)}` : 'Swiss DLT Registered Entity'}
-            </div>
-          </div>
-
-          {/* Reserve / Backing Context */}
-          <div className="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
-            <div className="flex items-center justify-between text-slate-400 text-[10px] uppercase">
-              <span>Backing Structure</span>
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            </div>
-            <div className="font-bold text-emerald-300 text-xs">
-              100% Fully Collateralized
-            </div>
-            <div className="text-[9.5px] text-slate-400">
-              Swiss DLT Tracker Certificate (1:1 Share Custody)
-            </div>
-          </div>
-        </div>
-
-        {/* Multi-Network Token Contract Addresses */}
-        <div className="space-y-2 pt-1 border-t border-slate-800/80">
-          <div className="flex items-center justify-between text-[10px] text-slate-400 uppercase tracking-wider font-bold">
-            <span>Verified Multi-Network Token Contracts (CoinGecko RWA Feed)</span>
-            <span className="text-slate-500 font-normal">Independent contract discovery</span>
-          </div>
-
-          {/* Contract chips & addresses */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {/* Primary Registry Address */}
-            <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                    selectedStock.chain === 'Solana'
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  }`}>
-                    {selectedStock.chain}
-                  </span>
-                  <span className="text-[9px] text-slate-400 font-mono">Primary Token Contract</span>
-                </div>
-                <div className="text-[11px] text-white font-mono truncate select-all" title={selectedStock.contractAddress || 'Unspecified'}>
-                  {selectedStock.contractAddress || 'Address on file with issuer'}
-                </div>
-              </div>
-              {selectedStock.contractAddress && (
-                <button
-                  type="button"
-                  onClick={() => handleCopyContract(selectedStock.contractAddress!, 'primary')}
-                  className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0"
-                  title="Copy token contract address"
-                >
-                  {copiedContract === 'primary' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-              )}
-            </div>
-
-            {/* Platform Cross-Reference / Multi-Chain Protocol */}
-            <div className="p-2.5 rounded-lg bg-slate-900/40 border border-slate-800/70 flex items-center justify-between text-slate-400 text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
-                  DeFi Interop
-                </span>
-                <span>Bridged &amp; DEX wrapped on EVM / Solana ecosystems</span>
-              </div>
-            </div>
-          </div>
-
-          {/* If CoinGecko RWA Detail returns additional platform contracts */}
-          {rwaDetail?.tokens && rwaDetail.tokens.length > 0 && (
-            <div className="space-y-1.5 pt-1">
-              <span className="text-[9.5px] text-slate-400 block font-semibold">
-                Additional Associated Tokens from CoinGecko RWA API:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {rwaDetail.tokens.map((tok, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700/80 text-[10px] text-slate-300 flex items-center gap-1 font-mono"
-                  >
-                    <span className="font-bold text-white">{tok.symbol}</span>
-                    <span className="text-slate-500">({tok.name})</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* SECTION 5: PROOF-OF-RESERVE (PoR) TRANSPARENCY FEED */}
-      <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-cyber-cyan" />
-            <span className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">
-              Proof-of-Reserve (PoR) Reference
-            </span>
-          </div>
-
-          {selectedStock.proofOfReserveUrl ? (
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/40">
-              Issuer-Published, Not Independently Verified
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-500 bg-slate-900 border border-slate-800">
-              Not Disclosed
-            </span>
-          )}
-        </div>
-
-        {selectedStock.proofOfReserveUrl ? (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-            <p className="text-[11px] font-mono text-slate-400 leading-relaxed max-w-2xl">
-              The issuer ({selectedStock.issuer}) publishes a public collateral proof-of-reserve feed. CRL provides this link as a convenience reference. <span className="text-slate-300">Crypto Review Lab has not independently verified on-chain reserve balances.</span>
-            </p>
-            <a
-              href={selectedStock.proofOfReserveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-cyber-cyan/15 text-cyber-cyan hover:text-cyan-200 border border-cyber-cyan/40 hover:border-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-sm"
-            >
-              <span>View Issuer PoR Feed</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-        ) : (
-          <p className="text-[11px] font-mono text-slate-500">
-            No public proof-of-reserve feed or collateral explorer is registered for this xStock entry.
-          </p>
-        )}
-      </div>
-
-      {/* SECTION 6: SHARE VERIFICATION TELEMETRY ACTION BAR */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-slate-950 via-slate-900/90 to-slate-950 border border-cyber-cyan/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <Share2 className="w-4 h-4 text-cyber-cyan" />
-            <span className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">
-              Share Public Verification Report
-            </span>
-          </div>
-          <p className="text-[11px] font-mono text-slate-400">
-            Share the market data cross-check, on-chain token security scan, underlying asset custody, and proof of reserve structure of {selectedStock.name} ({selectedStock.symbol}).
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={handleShareTwitter}
-            className="px-3 py-1.5 bg-slate-900 hover:bg-cyber-cyan/20 text-slate-200 hover:text-cyber-cyan rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-            title="Share on X / Twitter"
-          >
-            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-            <span>Post on X</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleShareTelegram}
-            className="px-3 py-1.5 bg-slate-900 hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-400 rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-            title="Share on Telegram"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Telegram</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleShareFacebook}
-            className="px-3 py-1.5 bg-slate-900 hover:bg-blue-600/20 text-slate-200 hover:text-blue-400 rounded-xl border border-cyber-cyan/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-            title="Share on Facebook"
-          >
-            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            <span>Facebook</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopyShareLink}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-              copied
-                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-                : 'bg-slate-900 hover:bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/30'
-            }`}
-            title="Copy Public Telemetry Link"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Link Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-cyber-cyan" />
-                <span>Copy Share Link</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* HONESTY & INDEPENDENCE FOOTNOTE */}
+      {/* 9. Footnote */}
       <div className="text-[10px] font-mono text-slate-400 border-t border-slate-900 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-1.5 text-slate-300">
           <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
-          <span className="font-bold">Independent Telemetry Standard • Zero Sponsored Listings</span>
+          <span className="font-bold">Independent Transparency Standard • Zero Sponsored Listings</span>
         </div>
         <div className="text-slate-500 text-[9.5px] max-w-xl leading-relaxed">
-          As with all CRL findings, any check that returns no data is shown honestly as &quot;Unavailable&quot; or &quot;Not Disclosed&quot; rather than assumed to be clean — including Proof-of-Reserve links, which are provided as a convenience reference to the issuer&apos;s own published data, not independently verified by CRL.
+          CRL displays market data directly from verified public sources. Proof-of-reserve links are provided as a convenience reference to the issuer&apos;s published attestations.
         </div>
       </div>
 

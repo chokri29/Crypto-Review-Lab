@@ -450,10 +450,10 @@ export default function XStocksPage() {
         });
 
         // Determine best verified tokenized market price
-        // STRICT P0 REQUIREMENT: If consensus is unresolved/divergent or missing, livePrice MUST BE null!
-        // NEVER select CoinGecko or CMC as fallback merely because consensus is unresolved!
-        const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
-        const livePrice = isDivergent ? null : convergenceResult.livePrice;
+        // STRICT P0 REQUIREMENT: If price consensus is unresolved/divergent or missing, livePrice MUST BE null!
+        const priceMetric = convergenceResult.report.metrics.price;
+        const isDivergent = priceMetric.status === 'UNRESOLVED_DIVERGENCE';
+        const livePrice = isDivergent ? null : (convergenceResult.livePrice ?? priceMetric.consensusValue ?? null);
         const change24h = typeof cmcChange === 'number' ? cmcChange : (typeof cgChange === 'number' ? cgChange : undefined);
         const volume24h = (typeof convergenceResult.liveVolume24h === 'number' && convergenceResult.liveVolume24h > 0) 
           ? convergenceResult.liveVolume24h 
@@ -1126,117 +1126,6 @@ export default function XStocksPage() {
             rwaIssuerDetail={activeRwaIssuer}
             isLoadingRwa={isLoadingRwaMeta}
           />
-
-          {/* Market Data Cross-Check & Finnhub Equity Feeds Breakdown Box */}
-          <div className="p-5 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-3">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-cyber-cyan" />
-                <span className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wide">
-                  Market Data Cross-Check &amp; Equity Feeds ({selectedStock.symbol})
-                </span>
-              </div>
-              <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${
-                activeQuote?.status === 'LIVE_DUAL_ORACLE'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : activeQuote?.status === 'SINGLE_ORACLE'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : activeQuote?.status === 'UNRESOLVED_DIVERGENCE'
-                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700'
-              }`}>
-                {activeQuote?.status === 'LIVE_DUAL_ORACLE' 
-                  ? 'Dual Source Cross-Checked' 
-                  : activeQuote?.status === 'SINGLE_ORACLE'
-                  ? 'Single Aggregator Feed'
-                  : activeQuote?.status === 'UNRESOLVED_DIVERGENCE'
-                  ? '⚠️ Unresolved Divergence'
-                  : 'Data Unavailable'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
-              {/* CoinGecko Native RWA Feed (Tokenized Market Quote) */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-cyan-500/30 space-y-1">
-                <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span className="text-cyan-300 font-bold">CoinGecko RWA (Tokenized Market)</span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    (activeQuote?.rwaPrice || activeQuote?.cgPrice) ? 'bg-cyan-400' : 'bg-slate-600'
-                  }`} />
-                </div>
-                <div className="text-sm font-bold text-white">
-                  {(activeQuote?.rwaPrice || activeQuote?.cgPrice) ? formatPrice(activeQuote.rwaPrice || activeQuote.cgPrice!) : 'No direct quote'}
-                </div>
-                <div className="text-[9.5px] text-cyan-400/80">
-                  RWA ID: {selectedStock.coingeckoRwaId || selectedStock.coingeckoId} • Tokenized Price
-                </div>
-              </div>
-
-              {/* Finnhub Equity Reference (Underlying Equity Reference) */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-purple-900/50 space-y-1">
-                <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span className="text-purple-300 font-bold">Finnhub (Underlying Equity)</span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    activeQuote?.equityPrice ? 'bg-purple-400' : 'bg-slate-600'
-                  }`} />
-                </div>
-                <div className="text-sm font-bold text-white">
-                  {activeQuote?.equityPrice ? formatPrice(activeQuote.equityPrice) : 'Basis check unavailable'}
-                </div>
-                <div className="text-[9.5px] text-purple-400/80 flex items-center justify-between">
-                  <span>Ticker: {selectedStock.underlyingTicker}</span>
-                  <span>{activeQuote?.equityQuote?.basisLabel || (marketHours.isOpen ? 'Live Equity Basis' : 'Last Close / After-Hours Basis')}</span>
-                </div>
-              </div>
-
-              {/* CoinMarketCap Secondary Cross-Check */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                <div className="flex items-center justify-between text-slate-400 text-[10px]">
-                  <span>CoinMarketCap (CMC Cross-Check)</span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    activeQuote?.cmcPrice ? 'bg-emerald-400' : 'bg-slate-600'
-                  }`} />
-                </div>
-                <div className="text-sm font-bold text-white">
-                  {activeQuote?.cmcPrice ? formatPrice(activeQuote.cmcPrice) : 'No direct quote'}
-                </div>
-                <div className="text-[9.5px] text-slate-500">
-                  Market Cross-Check: {selectedStock.cmcSymbol}
-                </div>
-              </div>
-            </div>
-
-            {/* Token Specifications */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800 text-[11px] font-mono text-slate-400">
-              <div>
-                <span className="text-[9px] text-slate-500 block">PRIMARY CHAIN</span>
-                <span className="text-white font-bold">{selectedStock.chain}</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-slate-500 block">UNDERLYING EXCHANGE</span>
-                <span className="text-white font-bold">{selectedStock.exchange}</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-slate-500 block">ISSUER</span>
-                <span className="text-white font-bold">{selectedStock.issuer}</span>
-              </div>
-              <div>
-                <span className="text-[9px] text-slate-500 block">CATEGORY</span>
-                <span className="text-white font-bold">{selectedStock.category}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Underlying Asset Information Box */}
-          <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/20 space-y-2">
-            <h4 className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">
-              About {selectedStock.name} ({selectedStock.symbol})
-            </h4>
-            <p className="text-xs text-slate-300 font-sans leading-relaxed">
-              {selectedStock.description}
-            </p>
-          </div>
-
         </div>
       </div>
 
