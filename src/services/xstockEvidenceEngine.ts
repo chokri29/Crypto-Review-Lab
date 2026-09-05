@@ -21,6 +21,8 @@ export type XStockEvidenceState =
 
 export type XStockEvidenceFreshness = 'LIVE' | 'STALE' | 'UNAVAILABLE';
 
+export type XStockEvidenceProvenanceCategory = 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+
 /**
  * 1. NORMALIZED EVIDENCE OBJECT
  * Lightweight common evidence structure for EVERY xStocks numerical datum:
@@ -53,6 +55,8 @@ export interface XStockNormalizedEvidence {
   providerTimestamp?: string | null;
   freshnessStatus?: XStockEvidenceFreshness;
   provenance?: XStockEvidenceState;
+  provenanceCategory?: XStockEvidenceProvenanceCategory; // 'SOURCE' | 'DERIVED' | 'UNAVAILABLE'
+  isVerificationGrade?: boolean;
   rawSourceValues?: Record<string, { value: any; timestamp?: string | number | null; source: string }>;
   details?: string;
 }
@@ -71,6 +75,9 @@ export interface XStockEvidenceVerificationReport {
   staleCount: number;
   syntheticCount: number;
   invalidCount: number;
+  sourceCount?: number;
+  derivedCount?: number;
+  verificationGradeCount?: number;
   data: Record<string, XStockNormalizedEvidence>;
   criticalContradictions: string[];
   criticalGaps: string[];
@@ -133,6 +140,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: rwaFreshness,
     state: rwaState,
     provenance: rwaState,
+    provenanceCategory: hasRwaPrice ? 'SOURCE' : 'UNAVAILABLE',
+    isVerificationGrade: hasRwaPrice && rwaState === 'VALID',
     rawSourceValues: hasRwaPrice ? {
       'coingecko_rwa': { value: rwaPrice, timestamp: rwaTimestamp, source: 'TOKENIZED_MARKET' }
     } : undefined,
@@ -164,6 +173,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: cmcFreshness,
     state: cmcState,
     provenance: cmcState,
+    provenanceCategory: hasCmcPrice ? 'SOURCE' : 'UNAVAILABLE',
+    isVerificationGrade: hasCmcPrice && cmcState === 'VALID',
     rawSourceValues: hasCmcPrice ? {
       'coinmarketcap': { value: cmcPrice, timestamp: cmcTimestamp, source: 'SECONDARY_TOKEN_MARKET' }
     } : undefined,
@@ -213,6 +224,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: spreadFreshness,
     state: convergenceState,
     provenance: convergenceState,
+    provenanceCategory: convergenceSpreadPct !== null ? 'DERIVED' : 'UNAVAILABLE',
+    isVerificationGrade: false,
     rawSourceValues: rawPairValues,
     details: convergenceState === 'CONTRADICTORY'
       ? `Material divergence (${convergenceSpreadPct?.toFixed(2)}% > 1.0% tolerance) between TOKENIZED_MARKET ($${rwaPrice?.toFixed(2)}) and SECONDARY_TOKEN_MARKET ($${cmcPrice?.toFixed(2)}). Original values preserved; consensus price suppressed.`
@@ -246,6 +259,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: equityFreshness,
     state: hasEquityPrice ? 'VALID' : 'MISSING',
     provenance: hasEquityPrice ? 'VALID' : 'MISSING',
+    provenanceCategory: hasEquityPrice ? 'SOURCE' : 'UNAVAILABLE',
+    isVerificationGrade: hasEquityPrice && Boolean(marketHours?.isOpen),
     rawSourceValues: hasEquityPrice ? {
       'UNDERLYING_EQUITY': { value: equityPrice, timestamp: equityTimestamp, source: 'UNDERLYING_EQUITY' }
     } : undefined,
@@ -298,6 +313,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: basisFreshness,
     state: basisState,
     provenance: basisState,
+    provenanceCategory: basisDeviationPct !== null ? 'DERIVED' : 'UNAVAILABLE',
+    isVerificationGrade: false,
     rawSourceValues: basisRawValues,
     details: basisState === 'CONTRADICTORY'
       ? `Material basis tracking deviation (${basisDeviationPct !== null ? `${basisDeviationPct.toFixed(2)}%` : 'Aggregators Divergent'}) between token and underlying equity.`
@@ -327,6 +344,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: volFreshness,
     state: hasVol ? 'VALID' : 'MISSING',
     provenance: hasVol ? 'VALID' : 'MISSING',
+    provenanceCategory: hasVol ? 'SOURCE' : 'UNAVAILABLE',
+    isVerificationGrade: hasVol,
     details: hasVol
       ? 'Combined secondary market volume across verified market venues.'
       : 'Trading volume unavailable or not reported. Zero values are never assumed.'
@@ -353,12 +372,92 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: mcapFreshness,
     state: hasMcap ? 'VALID' : 'MISSING',
     provenance: hasMcap ? 'VALID' : 'MISSING',
+    provenanceCategory: hasMcap ? (quote?.marketCapProvenance || 'SOURCE') : 'UNAVAILABLE',
+    isVerificationGrade: hasMcap,
     details: hasMcap
       ? 'Circulating market cap of tokenized supply.'
       : 'Market capitalization not reported on file. Value is preserved as unavailable without defaulting to zero.'
   };
 
-  // 8. Genuine Direct DEX / On-Chain Market Telemetry (Requirement 3)
+  // 8. Circulating Supply (Source vs Derived Provenance)
+  const circVal = quote?.circulatingSupply;
+  const hasCirc = typeof circVal === 'number' && !isNaN(circVal) && circVal > 0;
+  const circProvenance = quote?.circulatingSupplyProvenance || (hasCirc ? 'DERIVED' : 'UNAVAILABLE');
+  data['circulating_supply'] = {
+    id: 'circulating_supply',
+    name: 'Circulating Token Supply',
+    dataType: 'Circulating Supply (Tokens)',
+    source: circProvenance === 'SOURCE' ? 'TOKENIZED_MARKET' : 'MATHEMATICAL_DERIVATION',
+    assetId: stock.symbol,
+    value: hasCirc ? circVal : null,
+    formattedValue: hasCirc ? circVal.toLocaleString() : 'Unavailable',
+    timestamp: rwaTimestamp,
+    providerTimestamp: rwaTimestamp ? new Date(rwaTimestamp).toLocaleTimeString() : null,
+    freshness: hasCirc ? 'LIVE' : 'UNAVAILABLE',
+    freshnessStatus: hasCirc ? 'LIVE' : 'UNAVAILABLE',
+    state: hasCirc ? 'VALID' : 'MISSING',
+    provenance: hasCirc ? 'VALID' : 'MISSING',
+    provenanceCategory: circProvenance,
+    isVerificationGrade: circProvenance === 'SOURCE',
+    details: circProvenance === 'SOURCE'
+      ? 'Directly reported circulating token supply from primary RWA data provider.'
+      : (circProvenance === 'DERIVED'
+          ? 'Mathematically derived: Market Capitalization ÷ Converged Token Price.'
+          : 'Circulating supply data unavailable.')
+  };
+
+  // 9. Total Supply (Source vs Derived Provenance)
+  const totalVal = quote?.totalSupply;
+  const hasTotal = typeof totalVal === 'number' && !isNaN(totalVal) && totalVal > 0;
+  const totalProvenance = quote?.totalSupplyProvenance || (hasTotal ? 'DERIVED' : 'UNAVAILABLE');
+  data['total_supply'] = {
+    id: 'total_supply',
+    name: 'Total Token Supply',
+    dataType: 'Total Supply (Tokens)',
+    source: totalProvenance === 'SOURCE' ? 'TOKENIZED_MARKET' : 'MATHEMATICAL_DERIVATION',
+    assetId: stock.symbol,
+    value: hasTotal ? totalVal : null,
+    formattedValue: hasTotal ? totalVal.toLocaleString() : 'Unavailable',
+    timestamp: rwaTimestamp,
+    providerTimestamp: rwaTimestamp ? new Date(rwaTimestamp).toLocaleTimeString() : null,
+    freshness: hasTotal ? 'LIVE' : 'UNAVAILABLE',
+    freshnessStatus: hasTotal ? 'LIVE' : 'UNAVAILABLE',
+    state: hasTotal ? 'VALID' : 'MISSING',
+    provenance: hasTotal ? 'VALID' : 'MISSING',
+    provenanceCategory: totalProvenance,
+    isVerificationGrade: totalProvenance === 'SOURCE',
+    details: totalProvenance === 'SOURCE'
+      ? 'Directly reported total token supply from primary RWA data provider.'
+      : (totalProvenance === 'DERIVED'
+          ? 'Mathematically derived from reported max supply or circulating supply.'
+          : 'Total supply data unavailable.')
+  };
+
+  // 10. Fully Diluted Valuation (FDV) (Strictly DERIVED)
+  const fdvVal = quote?.fdv;
+  const hasFdv = typeof fdvVal === 'number' && !isNaN(fdvVal) && fdvVal > 0;
+  data['fully_diluted_valuation'] = {
+    id: 'fully_diluted_valuation',
+    name: 'Fully Diluted Valuation (FDV)',
+    dataType: 'Fully Diluted Valuation (USD)',
+    source: 'MATHEMATICAL_DERIVATION',
+    assetId: stock.symbol,
+    value: hasFdv ? fdvVal : null,
+    formattedValue: hasFdv ? `$${Math.round(fdvVal).toLocaleString()}` : 'Unavailable',
+    timestamp: rwaTimestamp,
+    providerTimestamp: rwaTimestamp ? new Date(rwaTimestamp).toLocaleTimeString() : null,
+    freshness: hasFdv ? 'LIVE' : 'UNAVAILABLE',
+    freshnessStatus: hasFdv ? 'LIVE' : 'UNAVAILABLE',
+    state: hasFdv ? 'VALID' : 'MISSING',
+    provenance: hasFdv ? 'VALID' : 'MISSING',
+    provenanceCategory: hasFdv ? 'DERIVED' : 'UNAVAILABLE',
+    isVerificationGrade: false, // Derived values are never independent raw verification-grade feeds
+    details: hasFdv
+      ? 'Mathematically derived: Converged Token Price × Total/Max Supply. Marked as DERIVED.'
+      : 'FDV calculation unavailable due to missing supply metrics.'
+  };
+
+  // 11. Genuine Direct DEX / On-Chain Market Telemetry (Requirement 3)
   // If genuine direct DEX/on-chain market telemetry is unavailable, explicitly expose ON_CHAIN/DEX_UNAVAILABLE rather than treating CG/CMC as direct on-chain telemetry.
   data['direct_dex_telemetry'] = {
     id: 'direct_dex_telemetry',
@@ -374,10 +473,12 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: 'UNAVAILABLE',
     state: 'MISSING',
     provenance: 'MISSING',
+    provenanceCategory: 'UNAVAILABLE',
+    isVerificationGrade: false,
     details: 'ON_CHAIN/DEX_UNAVAILABLE: Direct DEX on-chain liquidity/pool telemetry is unavailable. Token aggregators (CoinGecko RWA, CoinMarketCap) provide secondary market observations and are not direct on-chain telemetry.'
   };
 
-  // 9. On-Chain Security Bytecode / Token Authority Scan (ON_CHAIN)
+  // 12. On-Chain Security Bytecode / Token Authority Scan (ON_CHAIN)
   const hasContract = Boolean(stock.contractAddress && stock.contractAddress.trim().length > 4);
   const isScanSuccess = scanResponse?.success && Boolean(scanResponse?.data);
   const scanData = scanResponse?.data;
@@ -414,6 +515,8 @@ export function buildXStockEvidenceDataset(
     freshnessStatus: isScanSuccess ? 'LIVE' : 'UNAVAILABLE',
     state: scanState,
     provenance: scanState,
+    provenanceCategory: hasContract ? 'SOURCE' : 'UNAVAILABLE',
+    isVerificationGrade: Boolean(isScanSuccess && scanState === 'VALID'),
     details: isScanSuccess
       ? `On-chain scan verified (${scanResponse?.source || 'GoPlus/RugCheck'}). Token authority and mint permissions evaluated.`
       : hasContract
@@ -450,11 +553,18 @@ export function verifyXStockEvidenceDataset(
   let staleCount = 0;
   let syntheticCount = 0;
   let invalidCount = 0;
+  let sourceCount = 0;
+  let derivedCount = 0;
+  let verificationGradeCount = 0;
 
   const criticalContradictions: string[] = [];
   const criticalGaps: string[] = [];
 
   for (const datum of values) {
+    if (datum.provenanceCategory === 'SOURCE') sourceCount++;
+    if (datum.provenanceCategory === 'DERIVED') derivedCount++;
+    if (datum.isVerificationGrade) verificationGradeCount++;
+
     const currentState = datum.state;
     switch (currentState) {
       case 'VALID':
@@ -505,6 +615,9 @@ export function verifyXStockEvidenceDataset(
     staleCount,
     syntheticCount,
     invalidCount,
+    sourceCount,
+    derivedCount,
+    verificationGradeCount,
     data: evidenceMap,
     criticalContradictions,
     criticalGaps

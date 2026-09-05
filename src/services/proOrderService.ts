@@ -326,8 +326,15 @@ export async function fetchAndAttachLiveMarketData(
       review.cmcRank = convergence.cmcRank;
       review.csRank = convergence.csRank;
       review.circulatingSupply = review.circulatingSupply || convergence.circulatingSupply;
+      review.circulatingSupplyProvenance = convergence.circulatingSupplyProvenance;
       review.maxSupply = review.maxSupply || convergence.maxSupply;
+      review.maxSupplyProvenance = convergence.maxSupplyProvenance;
       review.totalSupply = review.totalSupply || convergence.totalSupply;
+      review.totalSupplyProvenance = convergence.totalSupplyProvenance;
+      review.fdvCalculated = review.fdvCalculated || convergence.fdvCalculated;
+      review.fdvProvenance = convergence.fdvProvenance;
+      review.marketCapProvenance = convergence.marketCapProvenance;
+      review.priceProvenance = convergence.priceProvenance;
       review.allTimeHigh = review.allTimeHigh || convergence.allTimeHigh;
       review.allTimeLow = review.allTimeLow || convergence.allTimeLow;
       review.dataEngine = convergence.dataEngine;

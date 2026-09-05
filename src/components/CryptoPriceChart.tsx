@@ -48,7 +48,9 @@ export interface CryptoPriceChartProps {
   atlChangePct?: number;
   athChangePct?: number;
   totalSupply?: number;
+  totalSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   circulatingSupply?: number;
+  circulatingSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   maxSupply?: number;
   high24h?: number;
   low24h?: number;
@@ -69,7 +71,9 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
   atlChangePct,
   athChangePct,
   totalSupply,
+  totalSupplyProvenance,
   circulatingSupply,
+  circulatingSupplyProvenance,
   maxSupply,
   high24h,
   low24h,
@@ -1227,11 +1231,24 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">Total Supply</span>
-                  {typeof effectiveTotalSupply === 'number' && maxSupply && (
-                    <span className="text-[9px] font-mono text-slate-500">
-                      Capped
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {totalSupplyProvenance && (
+                      <span className={`text-[8.5px] font-mono px-1 py-0.2 rounded font-bold border ${
+                        totalSupplyProvenance === 'SOURCE'
+                          ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/50'
+                          : totalSupplyProvenance === 'DERIVED'
+                          ? 'bg-amber-950/80 text-amber-300 border-amber-700/50'
+                          : 'bg-slate-900 text-slate-500 border-slate-800'
+                      }`}>
+                        {totalSupplyProvenance}
+                      </span>
+                    )}
+                    {typeof effectiveTotalSupply === 'number' && maxSupply && (
+                      <span className="text-[9px] font-mono text-slate-500">
+                        Capped
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveTotalSupply === 'number' && effectiveTotalSupply > 0 ? 'text-white' : 'text-slate-500'}`}>
                   {typeof effectiveTotalSupply === 'number' && effectiveTotalSupply > 0 ? formatSupply(effectiveTotalSupply) : 'Unavailable'}
@@ -1241,11 +1258,24 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">Circulating Supply</span>
-                  {supplyPercent && (
-                    <span className="text-[9px] font-mono text-cyan-400 font-bold">
-                      {supplyPercent}%
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {circulatingSupplyProvenance && (
+                      <span className={`text-[8.5px] font-mono px-1 py-0.2 rounded font-bold border ${
+                        circulatingSupplyProvenance === 'SOURCE'
+                          ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/50'
+                          : circulatingSupplyProvenance === 'DERIVED'
+                          ? 'bg-amber-950/80 text-amber-300 border-amber-700/50'
+                          : 'bg-slate-900 text-slate-500 border-slate-800'
+                      }`}>
+                        {circulatingSupplyProvenance}
+                      </span>
+                    )}
+                    {supplyPercent && (
+                      <span className="text-[9px] font-mono text-cyan-400 font-bold">
+                        {supplyPercent}%
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveCirculatingSupply === 'number' && effectiveCirculatingSupply > 0 ? 'text-slate-200' : 'text-slate-500'}`}>
                   {typeof effectiveCirculatingSupply === 'number' && effectiveCirculatingSupply > 0 ? formatSupply(effectiveCirculatingSupply) : 'Unavailable'}

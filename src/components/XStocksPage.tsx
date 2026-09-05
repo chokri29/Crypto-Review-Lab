@@ -73,6 +73,16 @@ export interface XStockQuoteState {
   pegDeviation?: number;
   pegDeviationPct?: number;
   pegStatus?: 'TIGHT_PEG' | 'MODERATE_VARIANCE' | 'DIVERGENT' | 'UNAVAILABLE';
+  circulatingSupply?: number;
+  circulatingSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+  maxSupply?: number;
+  maxSupplyProvenance?: 'SOURCE' | 'UNAVAILABLE';
+  totalSupply?: number;
+  totalSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+  fdv?: number;
+  fdvProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+  marketCapProvenance?: 'SOURCE' | 'UNAVAILABLE';
+  priceProvenance?: 'SOURCE' | 'UNAVAILABLE';
   report?: MultiSourceConvergenceReport;
   evidence?: Record<string, XStockNormalizedEvidence>;
 }
@@ -511,7 +521,9 @@ export default function XStocksPage() {
           rwaId: item.coingeckoRwaId || undefined,
           timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
           freshness: hasRwaLivePrice ? 'LIVE' : 'UNAVAILABLE',
-          state: hasRwaLivePrice ? 'VALID' : 'MISSING'
+          state: hasRwaLivePrice ? 'VALID' : 'MISSING',
+          provenanceCategory: hasRwaLivePrice ? 'SOURCE' : 'UNAVAILABLE',
+          isVerificationGrade: hasRwaLivePrice
         };
 
         const cmcEvidence: XStockNormalizedEvidence = {
@@ -521,7 +533,9 @@ export default function XStocksPage() {
           assetId: item.cmcSymbol,
           timestamp: (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null),
           freshness: isCmcValid ? 'LIVE' : 'UNAVAILABLE',
-          state: isCmcValid ? 'VALID' : 'MISSING'
+          state: isCmcValid ? 'VALID' : 'MISSING',
+          provenanceCategory: isCmcValid ? 'SOURCE' : 'UNAVAILABLE',
+          isVerificationGrade: isCmcValid
         };
 
         const livePriceEvidence: XStockNormalizedEvidence = {
@@ -532,7 +546,9 @@ export default function XStocksPage() {
           rwaId: item.coingeckoRwaId || undefined,
           timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null)),
           freshness: livePrice !== null ? 'LIVE' : 'UNAVAILABLE',
-          state: isDivergent ? 'CONTRADICTORY' : (livePrice !== null ? 'VALID' : 'MISSING')
+          state: isDivergent ? 'CONTRADICTORY' : (livePrice !== null ? 'VALID' : 'MISSING'),
+          provenanceCategory: livePrice !== null ? 'SOURCE' : 'UNAVAILABLE',
+          isVerificationGrade: livePrice !== null && !isDivergent
         };
 
         const equityEvidence: XStockNormalizedEvidence = {
@@ -542,7 +558,9 @@ export default function XStocksPage() {
           assetId: item.underlyingTicker,
           timestamp: (finnhubData?.t && finnhubData.t > 0) ? new Date(finnhubData.t * 1000).toISOString() : null,
           freshness: equityPrice ? (currentHours.isOpen ? 'LIVE' : 'STALE') : 'UNAVAILABLE',
-          state: equityPrice ? 'VALID' : 'MISSING'
+          state: equityPrice ? 'VALID' : 'MISSING',
+          provenanceCategory: equityPrice ? 'SOURCE' : 'UNAVAILABLE',
+          isVerificationGrade: equityPrice ? Boolean(currentHours.isOpen) : false
         };
 
         const volumeEvidence: XStockNormalizedEvidence = {
@@ -553,7 +571,9 @@ export default function XStocksPage() {
           rwaId: item.coingeckoRwaId || undefined,
           timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
           freshness: volume24h !== null ? 'LIVE' : 'UNAVAILABLE',
-          state: volume24h !== null ? 'VALID' : 'MISSING'
+          state: volume24h !== null ? 'VALID' : 'MISSING',
+          provenanceCategory: volume24h !== null ? 'SOURCE' : 'UNAVAILABLE',
+          isVerificationGrade: volume24h !== null
         };
 
         const marketCapEvidence: XStockNormalizedEvidence = {
@@ -564,7 +584,58 @@ export default function XStocksPage() {
           rwaId: item.coingeckoRwaId || undefined,
           timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
           freshness: marketCap !== null ? 'LIVE' : 'UNAVAILABLE',
-          state: marketCap !== null ? 'VALID' : 'MISSING'
+          state: marketCap !== null ? 'VALID' : 'MISSING',
+          provenanceCategory: marketCap !== null ? convergenceResult.marketCapProvenance : 'UNAVAILABLE',
+          isVerificationGrade: marketCap !== null
+        };
+
+        const circSupplyEvidence: XStockNormalizedEvidence = {
+          value: convergenceResult.circulatingSupply ?? null,
+          source: convergenceResult.circulatingSupplyProvenance === 'SOURCE' ? 'RWA_ISSUER_FEED' : 'MATHEMATICAL_DERIVATION',
+          dataType: 'Circulating Token Supply (Tokens)',
+          assetId: item.symbol,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: convergenceResult.circulatingSupply ? 'LIVE' : 'UNAVAILABLE',
+          state: convergenceResult.circulatingSupply ? 'VALID' : 'MISSING',
+          provenanceCategory: convergenceResult.circulatingSupplyProvenance,
+          isVerificationGrade: convergenceResult.circulatingSupplyProvenance === 'SOURCE',
+          details: convergenceResult.circulatingSupplyProvenance === 'SOURCE'
+            ? 'Reported circulating supply from primary RWA data provider.'
+            : (convergenceResult.circulatingSupplyProvenance === 'DERIVED'
+                ? 'Mathematically derived: Circulating Market Cap ÷ Converged Token Price.'
+                : 'Circulating supply unavailable.')
+        };
+
+        const totalSupplyEvidence: XStockNormalizedEvidence = {
+          value: convergenceResult.totalSupply ?? null,
+          source: convergenceResult.totalSupplyProvenance === 'SOURCE' ? 'RWA_ISSUER_FEED' : 'MATHEMATICAL_DERIVATION',
+          dataType: 'Total Token Supply (Tokens)',
+          assetId: item.symbol,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: convergenceResult.totalSupply ? 'LIVE' : 'UNAVAILABLE',
+          state: convergenceResult.totalSupply ? 'VALID' : 'MISSING',
+          provenanceCategory: convergenceResult.totalSupplyProvenance,
+          isVerificationGrade: convergenceResult.totalSupplyProvenance === 'SOURCE',
+          details: convergenceResult.totalSupplyProvenance === 'SOURCE'
+            ? 'Reported total supply from primary RWA data provider.'
+            : (convergenceResult.totalSupplyProvenance === 'DERIVED'
+                ? 'Mathematically derived from reported max supply or circulating supply.'
+                : 'Total supply unavailable.')
+        };
+
+        const fdvEvidence: XStockNormalizedEvidence = {
+          value: convergenceResult.fdvCalculated ?? null,
+          source: 'MATHEMATICAL_DERIVATION',
+          dataType: 'Fully Diluted Valuation (FDV) (USD)',
+          assetId: item.symbol,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: convergenceResult.fdvCalculated ? 'LIVE' : 'UNAVAILABLE',
+          state: convergenceResult.fdvCalculated ? 'VALID' : 'MISSING',
+          provenanceCategory: convergenceResult.fdvProvenance,
+          isVerificationGrade: false,
+          details: convergenceResult.fdvProvenance === 'DERIVED'
+            ? 'Mathematically derived: Converged Token Price × Total/Max Supply. Marked as DERIVED.'
+            : 'FDV calculation unavailable due to missing supply metrics.'
         };
 
         // Genuine Direct DEX / On-chain Market Telemetry
@@ -577,6 +648,8 @@ export default function XStocksPage() {
           timestamp: null,
           freshness: 'UNAVAILABLE',
           state: 'MISSING',
+          provenanceCategory: 'UNAVAILABLE',
+          isVerificationGrade: false,
           details: 'ON_CHAIN/DEX_UNAVAILABLE: Direct DEX on-chain liquidity/pool telemetry is unavailable. Token aggregators (CoinGecko RWA, CoinMarketCap) provide secondary market observations and are not direct on-chain telemetry.'
         };
 
@@ -587,6 +660,9 @@ export default function XStocksPage() {
           underlying_equity_price: equityEvidence,
           volume_24h: volumeEvidence,
           market_cap: marketCapEvidence,
+          circulating_supply: circSupplyEvidence,
+          total_supply: totalSupplyEvidence,
+          fully_diluted_valuation: fdvEvidence,
           direct_dex_telemetry: dexTelemetryEvidence
         };
 
@@ -607,6 +683,16 @@ export default function XStocksPage() {
           pegDeviation,
           pegDeviationPct,
           pegStatus,
+          circulatingSupply: convergenceResult.circulatingSupply,
+          circulatingSupplyProvenance: convergenceResult.circulatingSupplyProvenance,
+          maxSupply: convergenceResult.maxSupply,
+          maxSupplyProvenance: convergenceResult.maxSupplyProvenance,
+          totalSupply: convergenceResult.totalSupply,
+          totalSupplyProvenance: convergenceResult.totalSupplyProvenance,
+          fdv: convergenceResult.fdvCalculated,
+          fdvProvenance: convergenceResult.fdvProvenance,
+          marketCapProvenance: convergenceResult.marketCapProvenance,
+          priceProvenance: convergenceResult.priceProvenance,
           report: convergenceResult.report,
           evidence: itemEvidence
         };

@@ -1844,7 +1844,9 @@ export default function BlogPreviewer({
               atlChangePct={activeReview.atlChangePct}
               athChangePct={activeReview.athChangePct}
               totalSupply={activeReview.totalSupply}
+              totalSupplyProvenance={activeReview.totalSupplyProvenance}
               circulatingSupply={activeReview.circulatingSupply}
+              circulatingSupplyProvenance={activeReview.circulatingSupplyProvenance}
               maxSupply={activeReview.maxSupply}
             />
 

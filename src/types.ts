@@ -42,6 +42,8 @@ export interface CryptoAuditSignature {
   tier?: 'pro';
 }
 
+export type MetricProvenanceType = 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+
 export interface CryptoReview {
   id: string;
   coingeckoId?: string;
@@ -84,8 +86,11 @@ export interface CryptoReview {
   csRank?: number;
   csLastSyncedAt?: string;
   circulatingSupply?: number;
+  circulatingSupplyProvenance?: MetricProvenanceType;
   maxSupply?: number;
+  maxSupplyProvenance?: MetricProvenanceType;
   totalSupply?: number;
+  totalSupplyProvenance?: MetricProvenanceType;
   ath?: number;
   atl?: number;
   athChangePct?: number;
@@ -93,6 +98,9 @@ export interface CryptoReview {
   allTimeHigh?: number;
   allTimeLow?: number;
   fdvCalculated?: number;
+  fdvProvenance?: MetricProvenanceType;
+  marketCapProvenance?: MetricProvenanceType;
+  priceProvenance?: MetricProvenanceType;
   priceDivergencePct?: number;
   supplyDivergencePct?: number;
   confidenceScore?: number;
@@ -373,8 +381,15 @@ export interface PublicCryptoReviewReport {
   liveMarketCap?: number;
   liveVolume24h?: number;
   circulatingSupply?: number;
+  circulatingSupplyProvenance?: MetricProvenanceType;
   totalSupply?: number;
+  totalSupplyProvenance?: MetricProvenanceType;
   maxSupply?: number;
+  maxSupplyProvenance?: MetricProvenanceType;
+  fdvCalculated?: number;
+  fdvProvenance?: MetricProvenanceType;
+  marketCapProvenance?: MetricProvenanceType;
+  priceProvenance?: MetricProvenanceType;
   realTvl?: number | null;
   securityScan?: any;
   citations?: Record<string, string>;
@@ -422,6 +437,15 @@ export interface MultiSourceConvergenceReport {
   confidenceLevel: 'HIGH' | 'MODERATE' | 'DIVERGENT' | 'SINGLE_SOURCE';
   summary: string;
   reconciledAt: string;
+  metricProvenances?: {
+    price?: MetricProvenanceType;
+    marketCap?: MetricProvenanceType;
+    volume24h?: MetricProvenanceType;
+    circulatingSupply?: MetricProvenanceType;
+    totalSupply?: MetricProvenanceType;
+    maxSupply?: MetricProvenanceType;
+    fdv?: MetricProvenanceType;
+  };
 }
 
 

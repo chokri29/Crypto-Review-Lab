@@ -464,13 +464,53 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     : (volumeRecon.consensusValue ?? (input.cgVolume ?? input.cmcVolume ?? null));
   const finalRank = rankRecon.consensusValue ?? (input.cgRank ?? input.cmcRank ?? 0);
 
-  // Supply & Historical metrics derivation
+  // Supply & Historical metrics derivation with explicit provenance
   const hasValidPrice = typeof finalPrice === 'number' && finalPrice > 0;
   const hasValidCap = typeof finalMarketCap === 'number' && finalMarketCap > 0;
-  const estimatedCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply || (hasValidPrice && hasValidCap ? Math.round(finalMarketCap / finalPrice) : undefined);
-  const maxSupply = input.cgMaxSupply;
-  const totalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply || (maxSupply ? Math.round(maxSupply * 0.95) : (estimatedCircSupply && estimatedCircSupply > 0 ? estimatedCircSupply : undefined));
-  const fdvCalculated = maxSupply && hasValidPrice ? Math.round(finalPrice * maxSupply) : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : undefined);
+
+  const rawCircSupply = input.cgCirculatingSupply || input.cmcCirculatingSupply || input.csCirculatingSupply;
+  const hasRawCircSupply = typeof rawCircSupply === 'number' && rawCircSupply > 0;
+  const isCircSupplyDerived = !hasRawCircSupply && hasValidPrice && hasValidCap;
+  const estimatedCircSupply = hasRawCircSupply 
+    ? rawCircSupply 
+    : (isCircSupplyDerived ? Math.round(finalMarketCap / finalPrice) : undefined);
+  const circulatingSupplyProvenance: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE' = hasRawCircSupply
+    ? 'SOURCE'
+    : (isCircSupplyDerived ? 'DERIVED' : 'UNAVAILABLE');
+
+  const rawMaxSupply = input.cgMaxSupply;
+  const hasRawMaxSupply = typeof rawMaxSupply === 'number' && rawMaxSupply > 0;
+  const maxSupply = hasRawMaxSupply ? rawMaxSupply : undefined;
+  const maxSupplyProvenance: 'SOURCE' | 'UNAVAILABLE' = hasRawMaxSupply ? 'SOURCE' : 'UNAVAILABLE';
+
+  const rawTotalSupply = input.cgTotalSupply || input.cmcTotalSupply || input.csTotalSupply;
+  const hasRawTotalSupply = typeof rawTotalSupply === 'number' && rawTotalSupply > 0;
+  let isTotalSupplyDerived = false;
+  let derivedTotalSupply: number | undefined = undefined;
+  if (!hasRawTotalSupply) {
+    if (hasRawMaxSupply) {
+      derivedTotalSupply = Math.round(rawMaxSupply * 0.95);
+      isTotalSupplyDerived = true;
+    } else if (estimatedCircSupply && estimatedCircSupply > 0) {
+      derivedTotalSupply = estimatedCircSupply;
+      isTotalSupplyDerived = true;
+    }
+  }
+  const totalSupply = hasRawTotalSupply ? rawTotalSupply : derivedTotalSupply;
+  const totalSupplyProvenance: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE' = hasRawTotalSupply
+    ? 'SOURCE'
+    : (isTotalSupplyDerived ? 'DERIVED' : 'UNAVAILABLE');
+
+  const fdvCalculated = maxSupply && hasValidPrice 
+    ? Math.round(finalPrice * maxSupply) 
+    : (totalSupply && hasValidPrice ? Math.round(finalPrice * totalSupply) : undefined);
+  const fdvProvenance: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE' = (typeof fdvCalculated === 'number' && fdvCalculated > 0)
+    ? 'DERIVED'
+    : 'UNAVAILABLE';
+
+  const marketCapProvenance: 'SOURCE' | 'UNAVAILABLE' = hasValidCap ? 'SOURCE' : 'UNAVAILABLE';
+  const priceProvenance: 'SOURCE' | 'UNAVAILABLE' = hasValidPrice ? 'SOURCE' : 'UNAVAILABLE';
+  const volumeProvenance: 'SOURCE' | 'UNAVAILABLE' = (typeof finalVolume === 'number' && finalVolume > 0) ? 'SOURCE' : 'UNAVAILABLE';
 
   const validAth = [input.cgAth, input.cmcAth, input.csAth].filter((v): v is number => typeof v === 'number' && v > 0);
   const allTimeHigh = validAth.length > 0 ? (validAth.reduce((a, b) => a + b, 0) / validAth.length) : undefined;
@@ -521,7 +561,16 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     confidenceScore,
     confidenceLevel: confidenceLevel === 'HIGH' ? 'HIGH' : (confidenceLevel === 'DIVERGENT' ? 'DIVERGENT' : 'MODERATE'),
     summary: `${overallStatus} across ${activeSourcesCount} independent sources. Price: ${priceRecon.status} (Δ ${priceRecon.divergencePct}%), MCap: ${mcapRecon.status} (Δ ${mcapRecon.divergencePct}%), Vol: ${volumeRecon.status} (Δ ${volumeRecon.divergencePct}%), Rank: ${rankRecon.status}.`,
-    reconciledAt: `${timeStr} (TTL: 3m)`
+    reconciledAt: `${timeStr} (TTL: 3m)`,
+    metricProvenances: {
+      price: priceProvenance,
+      marketCap: marketCapProvenance,
+      volume24h: volumeProvenance,
+      circulatingSupply: circulatingSupplyProvenance,
+      totalSupply: totalSupplyProvenance,
+      maxSupply: maxSupplyProvenance,
+      fdv: fdvProvenance
+    }
   };
 
   return {
@@ -548,15 +597,22 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     dataSources: dataSourcesList,
     syncRuleApplied,
     circulatingSupply: estimatedCircSupply,
+    circulatingSupplyProvenance,
     maxSupply,
+    maxSupplyProvenance,
     totalSupply,
+    totalSupplyProvenance,
+    marketCapProvenance,
+    priceProvenance,
+    volumeProvenance,
     allTimeHigh,
     allTimeLow,
     ath: allTimeHigh,
     atl: allTimeLow,
     athChangePct,
     atlChangePct,
-    fdvCalculated
+    fdvCalculated,
+    fdvProvenance
   };
 }
 

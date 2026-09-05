@@ -43,9 +43,13 @@ export interface MarketMetricsData {
   atlChangePct?: number;
   athChangePct?: number;
   totalSupply?: number;
+  totalSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   circulatingSupply?: number;
+  circulatingSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   maxSupply?: number;
   fdvCalculated?: number;
+  fdvProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+  marketCapProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   priceDivergencePct?: number;
   supplyDivergencePct?: number;
   confidenceScore?: number;
@@ -142,9 +146,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
     : (resolvedAtl > 0 && livePrice > 0 ? parseFloat((((livePrice - resolvedAtl) / resolvedAtl) * 100).toFixed(2)) : 380.5);
 
   // Resolved supplies (no fabricated 1.25 multiplier or hardcoded 1B fallback)
+  const isCirculatingDerived = !data.circulatingSupply && Boolean(livePrice > 0 && liveMarketCap > 0);
   const resolvedCirculating = data.circulatingSupply || (livePrice > 0 && liveMarketCap > 0 ? Math.round(liveMarketCap / livePrice) : 0);
   const resolvedTotal = data.totalSupply || data.maxSupply || 0;
   const resolvedMax = data.maxSupply || (resolvedTotal > 0 ? resolvedTotal : undefined);
+  const isTotalDerived = !data.totalSupply && Boolean(data.maxSupply);
+
+  const effectiveCirculatingProvenance = data.circulatingSupplyProvenance || (data.circulatingSupply ? 'SOURCE' : (isCirculatingDerived ? 'DERIVED' : 'UNAVAILABLE'));
+  const effectiveTotalProvenance = data.totalSupplyProvenance || (data.totalSupply ? 'SOURCE' : (isTotalDerived ? 'DERIVED' : 'UNAVAILABLE'));
 
   const circulatingRatioPct = (resolvedTotal > 0 && resolvedCirculating > 0) 
     ? parseFloat(((resolvedCirculating / resolvedTotal) * 100).toFixed(1)) 
@@ -377,9 +386,20 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
               <Layers className="w-3 h-3 text-cyber-cyan" />
               Total Supply
             </span>
-            <span className="text-[8.5px] font-mono px-1 py-0.2 bg-cyber-cyan/10 text-cyber-cyan rounded border border-cyber-cyan/20">
-              {resolvedMax && resolvedTotal > 0 && resolvedMax === resolvedTotal ? 'Capped' : (resolvedTotal > 0 ? 'Uncapped' : 'N/A')}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className={`text-[8px] font-mono px-1 py-0.2 rounded border uppercase font-bold ${
+                effectiveTotalProvenance === 'SOURCE'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : effectiveTotalProvenance === 'DERIVED'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  : 'bg-slate-800 text-slate-500 border-slate-700'
+              }`}>
+                {effectiveTotalProvenance}
+              </span>
+              <span className="text-[8.5px] font-mono px-1 py-0.2 bg-cyber-cyan/10 text-cyber-cyan rounded border border-cyber-cyan/20">
+                {resolvedMax && resolvedTotal > 0 && resolvedMax === resolvedTotal ? 'Capped' : (resolvedTotal > 0 ? 'Uncapped' : 'N/A')}
+              </span>
+            </div>
           </div>
 
           <span className="text-base font-mono font-bold text-cyber-cyan block truncate">
@@ -396,7 +416,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           </span>
 
           <span className="text-[8.5px] font-mono text-slate-400 block mt-1 truncate">
-            Max: {resolvedMax ? `${formatSupplyNumber(resolvedMax)} ${symUpper}` : (resolvedTotal > 0 ? 'Infinite' : 'N/A')} • FDV: {formatLargeCurrency(fdvCalculated || (livePrice > 0 && resolvedTotal > 0 ? livePrice * resolvedTotal : 0)) !== 'N/A' ? `${formatLargeCurrency(fdvCalculated || (livePrice * resolvedTotal))}` : 'N/A'}
+            Max: {resolvedMax ? `${formatSupplyNumber(resolvedMax)} ${symUpper}` : (resolvedTotal > 0 ? 'Infinite' : 'N/A')} • FDV: {formatLargeCurrency(fdvCalculated || (livePrice > 0 && resolvedTotal > 0 ? livePrice * resolvedTotal : 0)) !== 'N/A' ? `${formatLargeCurrency(fdvCalculated || (livePrice * resolvedTotal))} (DERIVED)` : 'N/A'}
           </span>
         </motion.div>
 
@@ -413,9 +433,20 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
               <Coins className="w-3 h-3 text-slate-400 group-hover:text-cyber-cyan" />
               Circulating Supply
             </span>
-            <span className="text-[8.5px] font-mono px-1 py-0.2 bg-cyan-500/10 text-cyan-300 rounded border border-cyan-500/20 font-bold">
-              {circulatingRatioPct !== undefined ? `${circulatingRatioPct}%` : 'N/A'}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className={`text-[8px] font-mono px-1 py-0.2 rounded border uppercase font-bold ${
+                effectiveCirculatingProvenance === 'SOURCE'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : effectiveCirculatingProvenance === 'DERIVED'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  : 'bg-slate-800 text-slate-500 border-slate-700'
+              }`}>
+                {effectiveCirculatingProvenance}
+              </span>
+              <span className="text-[8.5px] font-mono px-1 py-0.2 bg-cyan-500/10 text-cyan-300 rounded border border-cyan-500/20 font-bold">
+                {circulatingRatioPct !== undefined ? `${circulatingRatioPct}%` : 'N/A'}
+              </span>
+            </div>
           </div>
 
           <span className="text-base font-mono font-bold text-white block truncate">
