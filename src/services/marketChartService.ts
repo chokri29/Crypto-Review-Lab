@@ -835,12 +835,12 @@ export async function fetchHistoricalMarketChart(
           const lowPrice = Math.min(...priceValues);
 
           const keyLookup = HISTORICAL_ATH_ATL_MAP[symbol.toLowerCase()] || HISTORICAL_ATH_ATL_MAP[effectiveCoinId] || HISTORICAL_ATH_ATL_MAP[name.toLowerCase()];
-          const allTimeHigh = keyLookup?.ath || parseFloat((Math.max(highPrice * 1.6, liveCurPrice * 1.5)).toFixed(liveCurPrice < 1 ? 4 : 2));
-          const allTimeLow = keyLookup?.atl || parseFloat((Math.min(lowPrice * 0.35, liveCurPrice * 0.25)).toFixed(liveCurPrice < 1 ? 4 : 2));
-          const totalSupply = keyLookup?.totalSupply || 1000000000;
-          const circulatingSupply = keyLookup?.circulatingSupply || 350000000;
-          const athChangePct = allTimeHigh > 0 ? parseFloat((((liveCurPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
-          const atlChangePct = allTimeLow > 0 ? parseFloat((((liveCurPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
+          const allTimeHigh = keyLookup?.ath;
+          const allTimeLow = keyLookup?.atl;
+          const totalSupply = keyLookup?.totalSupply;
+          const circulatingSupply = keyLookup?.circulatingSupply;
+          const athChangePct = typeof allTimeHigh === 'number' && allTimeHigh > 0 ? parseFloat((((liveCurPrice - allTimeHigh) / allTimeHigh) * 100).toFixed(2)) : undefined;
+          const atlChangePct = typeof allTimeLow === 'number' && allTimeLow > 0 ? parseFloat((((liveCurPrice - allTimeLow) / allTimeLow) * 100).toFixed(2)) : undefined;
 
           const seriesForIndicators = isStock ? filterNyseMarketHours(prices) : prices;
           const indicators = computeTechnicalIndicators(seriesForIndicators);
