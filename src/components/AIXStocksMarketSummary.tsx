@@ -49,13 +49,11 @@ export default function AIXStocksMarketSummary({
     setIsLocalFetching(true);
     try {
       const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const cgIds = XSTOCKS_REGISTRY.map(s => s.coingeckoId);
       const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      const [rwaMarketsMap, cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+      const [rwaMarketsMap, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
         fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
-        fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         Promise.all(
           cmcSymbols.map(sym => 
             fetchLiveCMCQuote(sym).then(q => ({ sym, q })).catch(() => ({ sym, q: null }))
@@ -86,7 +84,6 @@ export default function AIXStocksMarketSummary({
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
         const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
-        const cgData = cgMarkets[item.coingeckoId.toLowerCase()] || cgMarkets[sym.toLowerCase()];
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
@@ -95,20 +92,17 @@ export default function AIXStocksMarketSummary({
         const hasRwaLivePrice = rwaMkt && typeof rwaMkt.current_price === 'number' && rwaMkt.current_price > 0;
 
         // Check provenance: Must NEVER be synthetic or fallback
-        const isCgValid = hasRwaLivePrice
-          ? true
-          : (cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number');
-        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
-        const cgPrice = hasRwaLivePrice ? rwaMkt.current_price : (isCgValid ? cgData.current_price : undefined);
-        const cgVol = hasRwaLivePrice ? rwaMkt.total_volume : (isCgValid ? cgData.total_volume : undefined);
-        const cgCap = hasRwaLivePrice ? rwaMkt.market_cap : (isCgValid ? cgData.market_cap : undefined);
-        const cgChange = hasRwaLivePrice ? rwaMkt.price_change_percentage_24h : (isCgValid ? cgData.price_change_percentage_24h : undefined);
+        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = hasRwaLivePrice ? 'LIVE' : 'UNAVAILABLE';
+        const cgPrice = hasRwaLivePrice ? rwaMkt.current_price : undefined;
+        const cgVol = (typeof rwaMkt?.total_volume === 'number' && rwaMkt.total_volume > 0) ? rwaMkt.total_volume : undefined;
+        const cgCap = (typeof rwaMkt?.market_cap === 'number' && rwaMkt.market_cap > 0) ? rwaMkt.market_cap : undefined;
+        const cgChange = typeof rwaMkt?.price_change_percentage_24h === 'number' ? rwaMkt.price_change_percentage_24h : undefined;
 
         const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
         const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
         const cmcPrice = isCmcValid ? cmcData.price : undefined;
-        const cmcVol = isCmcValid ? cmcData.volume24h : undefined;
-        const cmcCap = isCmcValid ? cmcData.marketCap : undefined;
+        const cmcVol = (isCmcValid && typeof cmcData.volume24h === 'number' && cmcData.volume24h > 0) ? cmcData.volume24h : undefined;
+        const cmcCap = (isCmcValid && typeof cmcData.marketCap === 'number' && cmcData.marketCap > 0) ? cmcData.marketCap : undefined;
         const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
         const convergenceResult = computeMultiSourceConvergence({
@@ -116,7 +110,7 @@ export default function AIXStocksMarketSummary({
           cgVolume: cgVol,
           cgMarketCap: cgCap,
           cgChange24h: cgChange,
-          cgIsFallback: !isCgValid,
+          cgIsFallback: !hasRwaLivePrice,
           cgProvenance,
 
           cmcPrice,
@@ -132,8 +126,12 @@ export default function AIXStocksMarketSummary({
         const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
         const livePrice = isDivergent ? null : convergenceResult.livePrice;
         const change24h = typeof cmcChange === 'number' ? cmcChange : (typeof cgChange === 'number' ? cgChange : undefined);
-        const volume24h = convergenceResult.liveVolume24h > 0 ? convergenceResult.liveVolume24h : (cmcVol || cgVol || 0);
-        const marketCap = convergenceResult.liveMarketCap > 0 ? convergenceResult.liveMarketCap : (cmcCap || cgCap || 0);
+        const volume24h = (typeof convergenceResult.liveVolume24h === 'number' && convergenceResult.liveVolume24h > 0) 
+          ? convergenceResult.liveVolume24h 
+          : (cmcVol ?? cgVol ?? null);
+        const marketCap = (typeof convergenceResult.liveMarketCap === 'number' && convergenceResult.liveMarketCap > 0) 
+          ? convergenceResult.liveMarketCap 
+          : (cmcCap ?? cgCap ?? null);
 
         let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
         let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';

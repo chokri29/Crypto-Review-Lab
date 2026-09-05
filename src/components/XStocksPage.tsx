@@ -58,8 +58,8 @@ import { MultiSourceConvergenceReport } from '../types';
 export interface XStockQuoteState {
   livePrice: number | null; // On-chain converged price (null if divergent or unavailable)
   change24h?: number;
-  volume24h: number;
-  marketCap: number;
+  volume24h: number | null;
+  marketCap: number | null;
   status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE';
   provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cgPrice?: number;
@@ -360,18 +360,15 @@ export default function XStocksPage() {
       const currentHours = getUsMarketHoursStatus();
       setMarketHours(currentHours);
 
-      // 1. Gather all RWA IDs, CG IDs, CMC symbols, and Unique Underlying Tickers
+      // 1. Gather all RWA IDs, CMC symbols, and Unique Underlying Tickers
       const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const cgIds = XSTOCKS_REGISTRY.map(s => s.coingeckoId);
       const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      // Execute CoinGecko native RWA markets, verified fallback, CMC, and Finnhub equity quote fetches in parallel
-      const [rwaMarketsMap, cgMarkets, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
-        // CoinGecko Native RWA Markets (/rwas/markets)
+      // Execute CoinGecko native RWA markets (/rwas/markets), CMC, and Finnhub equity quote fetches in parallel
+      const [rwaMarketsMap, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+        // CoinGecko Native RWA Markets (/rwas/markets) - Authoritative CoinGecko source for xStocks
         fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
-        // CoinGecko On-Chain Market Quotes (Verification-grade live feed, no synthetic fallback)
-        fetchVerifiedCoinGeckoMarkets(cgIds).catch(() => ({})),
         // CoinMarketCap On-Chain Quotes
         Promise.all(
           cmcSymbols.map(sym => 
@@ -404,32 +401,30 @@ export default function XStocksPage() {
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
         const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
-        const cgData = cgMarkets[item.coingeckoId.toLowerCase()] || cgMarkets[sym.toLowerCase()];
         const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
-        // Native CoinGecko RWA Tokenized-Market Data (strictly tokenized, not underlying)
+        // Native CoinGecko RWA Tokenized-Market Data (strictly authoritative for xStocks)
         const rwaMkt = rwaMarketEntry?.tokenized_market_data;
         const hasRwaLivePrice = rwaMkt && typeof rwaMkt.current_price === 'number' && rwaMkt.current_price > 0;
         const rwaPrice = hasRwaLivePrice ? rwaMkt.current_price : undefined;
-        const rwaVolume24h = hasRwaLivePrice ? rwaMkt.total_volume : undefined;
+        const rwaVolume24h = (typeof rwaMkt?.total_volume === 'number' && rwaMkt.total_volume > 0) ? rwaMkt.total_volume : undefined;
+        const rwaMarketCap = (typeof rwaMkt?.market_cap === 'number' && rwaMkt.market_cap > 0) ? rwaMkt.market_cap : undefined;
+        const rwaChange = (typeof rwaMkt?.price_change_percentage_24h === 'number') ? rwaMkt.price_change_percentage_24h : undefined;
 
-        // Check CoinGecko provenance: Must NEVER be synthetic or fallback
-        const isCgValid = hasRwaLivePrice
-          ? true
-          : (cgData && !cgData.isFallback && cgData.provenance !== 'SYNTHETIC' && typeof cgData.current_price === 'number');
-        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = isCgValid ? 'LIVE' : 'UNAVAILABLE';
-        const cgPrice = hasRwaLivePrice ? rwaMkt.current_price : (isCgValid ? cgData.current_price : undefined);
-        const cgVol = hasRwaLivePrice ? rwaMkt.total_volume : (isCgValid ? cgData.total_volume : undefined);
-        const cgCap = hasRwaLivePrice ? rwaMkt.market_cap : (isCgValid ? cgData.market_cap : undefined);
-        const cgChange = hasRwaLivePrice ? rwaMkt.price_change_percentage_24h : (isCgValid ? cgData.price_change_percentage_24h : undefined);
+        // Check CoinGecko RWA provenance: Authoritative; never substitute generic CoinGecko data
+        const cgProvenance: 'LIVE' | 'UNAVAILABLE' = hasRwaLivePrice ? 'LIVE' : 'UNAVAILABLE';
+        const cgPrice = rwaPrice;
+        const cgVol = rwaVolume24h;
+        const cgCap = rwaMarketCap;
+        const cgChange = rwaChange;
 
         // Check CoinMarketCap provenance
         const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
         const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
         const cmcPrice = isCmcValid ? cmcData.price : undefined;
-        const cmcVol = isCmcValid ? cmcData.volume24h : undefined;
-        const cmcCap = isCmcValid ? cmcData.marketCap : undefined;
+        const cmcVol = (isCmcValid && typeof cmcData.volume24h === 'number' && cmcData.volume24h > 0) ? cmcData.volume24h : undefined;
+        const cmcCap = (isCmcValid && typeof cmcData.marketCap === 'number' && cmcData.marketCap > 0) ? cmcData.marketCap : undefined;
         const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
         // Converge on-chain feeds (CoinGecko RWA + CMC only, no CoinStats)
@@ -438,7 +433,7 @@ export default function XStocksPage() {
           cgVolume: cgVol,
           cgMarketCap: cgCap,
           cgChange24h: cgChange,
-          cgIsFallback: !isCgValid,
+          cgIsFallback: !hasRwaLivePrice,
           cgProvenance,
 
           cmcPrice,
@@ -457,8 +452,12 @@ export default function XStocksPage() {
         const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
         const livePrice = isDivergent ? null : convergenceResult.livePrice;
         const change24h = typeof cmcChange === 'number' ? cmcChange : (typeof cgChange === 'number' ? cgChange : undefined);
-        const volume24h = convergenceResult.liveVolume24h > 0 ? convergenceResult.liveVolume24h : (cmcVol || cgVol || 0);
-        const marketCap = convergenceResult.liveMarketCap > 0 ? convergenceResult.liveMarketCap : (cmcCap || cgCap || 0);
+        const volume24h = (typeof convergenceResult.liveVolume24h === 'number' && convergenceResult.liveVolume24h > 0) 
+          ? convergenceResult.liveVolume24h 
+          : (cmcVol ?? rwaVolume24h ?? null);
+        const marketCap = (typeof convergenceResult.liveMarketCap === 'number' && convergenceResult.liveMarketCap > 0) 
+          ? convergenceResult.liveMarketCap 
+          : (cmcCap ?? rwaMarketCap ?? null);
 
         let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
         let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';

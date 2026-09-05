@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   ShieldCheck, 
   ShieldAlert, 
@@ -33,6 +33,13 @@ import { XStockQuoteState } from './XStocksPage';
 import { useCurrency } from '../context/CurrencyContext';
 import { getPublicXStockShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 import { CoinGeckoRwaDetail, CoinGeckoRwaIssuerDetail } from '../services/coingeckoRwa';
+import { 
+  buildXStockEvidenceDataset, 
+  verifyXStockEvidenceDataset, 
+  XStockEvidenceDatum, 
+  XStockEvidenceVerificationReport,
+  XStockEvidenceState 
+} from '../services/xstockEvidenceEngine';
 
 interface SecurityScanData {
   is_honeypot?: boolean;
@@ -97,6 +104,27 @@ export default function XStockVerificationPanel({
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedContract, setCopiedContract] = useState<string | null>(null);
   const [showFaqInfo, setShowFaqInfo] = useState<boolean>(false);
+  const [showEvidenceMatrix, setShowEvidenceMatrix] = useState<boolean>(false);
+
+  // Deterministic F3 / AVF Evidence Integrity Audit calculation
+  const evidenceAudit: XStockEvidenceVerificationReport = useMemo(() => {
+    const dataset = buildXStockEvidenceDataset(
+      selectedStock,
+      activeQuote,
+      marketHours,
+      rwaDetail,
+      scanResponse
+    );
+    return verifyXStockEvidenceDataset(dataset, selectedStock.symbol, selectedStock.underlyingTicker);
+  }, [selectedStock, activeQuote, marketHours, rwaDetail, scanResponse]);
+
+  const evidenceList: XStockEvidenceDatum<any>[] = useMemo(() => {
+    return Object.values(evidenceAudit.data);
+  }, [evidenceAudit]);
+
+  const overallStatus = evidenceAudit.isVerified
+    ? 'VERIFIED_CLEAN'
+    : (evidenceAudit.contradictoryCount > 0 ? 'CONTRADICTORY_DATA' : 'VERIFIED_WITH_GAPS');
 
   const handleCopyContract = async (text: string, key: string) => {
     const ok = await copyTextToClipboard(text);
@@ -415,6 +443,134 @@ export default function XStockVerificationPanel({
                   <span className="font-bold text-amber-300">CRL Transparency Policy:</span> Independent reference data and third-party reserves are strictly labeled without assumption of clean status when unverified or undisclosed.
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* F3 / AVF DETERMINISTIC EVIDENCE INTEGRITY & PROVENANCE AUDIT MATRIX */}
+      <div className="rounded-xl border border-cyber-cyan/35 bg-slate-950/90 overflow-hidden shadow-lg space-y-0">
+        <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-slate-950 via-[#0a1420] to-slate-950 border-b border-cyber-cyan/20">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
+                  F3 / AVF Evidence Integrity Matrix
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold uppercase tracking-wider ${
+                  overallStatus === 'VERIFIED_CLEAN'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : overallStatus === 'VERIFIED_WITH_GAPS'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }`}>
+                  {overallStatus.replace(/_/g, ' ')}
+                </span>
+              </div>
+              <p className="text-[10.5px] font-mono text-slate-400">
+                Deterministic provenance audit: {evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.syntheticCount} Synthetic • {evidenceAudit.contradictoryCount} Contradictory
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowEvidenceMatrix(!showEvidenceMatrix)}
+            className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/30 text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer"
+          >
+            <span>{showEvidenceMatrix ? 'Collapse Audit Rows' : `Inspect Audit Rows (${evidenceList.length})`}</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showEvidenceMatrix ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {/* Contradiction Warning Banner (if any) */}
+        {evidenceAudit.contradictoryCount > 0 && (
+          <div className="p-3.5 bg-rose-950/40 border-b border-rose-500/40 text-xs font-mono text-rose-300 flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <span className="font-bold text-rose-200 uppercase tracking-wider">
+                Material Evidence Contradiction Detected:
+              </span>
+              <p className="text-[11px] text-rose-300/90 leading-relaxed font-sans">
+                Evidence sources materially diverge. Rather than silently selecting one source as ground truth, all conflicting timestamps and provider values are preserved and flagged below.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Audit Rows */}
+        {showEvidenceMatrix && (
+          <div className="p-4 space-y-3 bg-slate-950/95">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-mono text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider">
+                    <th className="py-2 px-2.5">Evidence Key</th>
+                    <th className="py-2 px-2.5">Provider / Source</th>
+                    <th className="py-2 px-2.5">Data Type</th>
+                    <th className="py-2 px-2.5">Reported Value</th>
+                    <th className="py-2 px-2.5">Provider Timestamp</th>
+                    <th className="py-2 px-2.5">Freshness</th>
+                    <th className="py-2 px-2.5 text-right">F3 / AVF State</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-900 text-[11px]">
+                  {evidenceList.map((item) => {
+                    const stateBadgeStyle = {
+                      VALID: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+                      MISSING: 'bg-slate-800/80 text-slate-400 border-slate-700',
+                      STALE: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                      SYNTHETIC: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+                      CONTRADICTORY: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+                      INVALID: 'bg-red-500/25 text-red-200 border-red-500/50'
+                    }[item.provenance];
+
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-900/50 transition-colors">
+                        <td className="py-2 px-2.5 font-bold text-white">
+                          <div>{item.name}</div>
+                          <div className="text-[9px] text-slate-500">{item.assetId}</div>
+                        </td>
+                        <td className="py-2 px-2.5 text-slate-300">
+                          {item.source}
+                        </td>
+                        <td className="py-2 px-2.5 text-cyan-400/90 text-[10px]">
+                          {item.dataType}
+                        </td>
+                        <td className="py-2 px-2.5 font-bold text-slate-200">
+                          {item.formattedValue}
+                        </td>
+                        <td className="py-2 px-2.5 text-slate-400 text-[10px]">
+                          {item.providerTimestamp ? new Date(item.providerTimestamp).toLocaleTimeString() : 'N/A'}
+                        </td>
+                        <td className="py-2 px-2.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
+                            item.freshnessStatus === 'LIVE' || item.freshnessStatus === 'FRESH'
+                              ? 'text-cyan-300'
+                              : item.freshnessStatus === 'STALE'
+                              ? 'text-amber-400'
+                              : 'text-slate-500'
+                          }`}>
+                            {item.freshnessStatus}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2.5 text-right">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${stateBadgeStyle}`}>
+                            {item.provenance}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-2.5 rounded-lg bg-slate-900/70 border border-slate-800 text-[10px] text-slate-400 font-sans leading-relaxed">
+              <strong className="text-white">Strict Verification Policy:</strong> Non-VALID values (missing, stale, synthetic, contradictory, invalid) are never interpolated or converted into VALID state. Synthetic data is prohibited from entering verification scoring.
             </div>
           </div>
         )}

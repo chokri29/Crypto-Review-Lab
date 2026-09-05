@@ -1227,7 +1227,7 @@ export default function App() {
         keywords = "AI contract auditor, crypto security chat, smart contract checker, crypto AI assistant, vulnerability audit";
       } else if (activeTab === 'xstocks' || activeTab === 'academy') {
         title = "Tokenized Stocks (xStocks) & Real-time Market Intelligence | Crypto Review Lab";
-        descriptionText = "24/7 on-chain secondary market quoting, tri-oracle price consensus, and technical indicator analytics for tokenized US equities (AAPLX, TSLAX, NVDAX, QQQX).";
+        descriptionText = "24/7 on-chain secondary market quoting, multi-source market data convergence, and technical indicator analytics for tokenized US equities (AAPLX, TSLAX, NVDAX, QQQX).";
         keywords = "tokenized stocks, xstocks, backed finance, AAPLX, TSLAX, NVDAX, crypto equities, tokenized US stocks";
       } else if (activeTab === 'orders') {
         title = "Verify Order & Audit Dispatch Portal | Crypto Review Lab";

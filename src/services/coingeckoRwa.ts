@@ -40,6 +40,7 @@ export interface CoinGeckoRwaMarketItem {
   name: string;
   asset_type: string;
   image?: string;
+  market_cap_rank?: number;
   tokenized_market_data?: CoinGeckoRwaTokenizedMarketData;
 }
 
