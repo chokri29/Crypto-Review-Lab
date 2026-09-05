@@ -128,6 +128,62 @@ const HISTORICAL_ATH_ATL_MAP: Record<string, { ath: number; atl: number; totalSu
   starknet: { ath: 3.66, atl: 0.34, totalSupply: 10000000000, circulatingSupply: 2090000000 },
 };
 
+/**
+ * Mapping table to ensure canonical CoinGecko Coin IDs are used for historical market charts (/coins/{id}/market_chart)
+ * resolving symbols, underlying tickers, and CoinGecko RWA category IDs to their valid CoinGecko Coin identifiers.
+ */
+const XSTOCK_COINGECKO_ID_MAP: Record<string, string> = {
+  // Symbols
+  'aaplx': 'apple-xstock',
+  'tslax': 'tesla-xstock',
+  'nvdax': 'nvidia-xstock',
+  'metax': 'meta-xstock',
+  'googlx': 'alphabet-xstock',
+  'msftx': 'microsoft-xstock',
+  'amznx': 'amazon-xstock',
+  'coinx': 'coinbase-xstock',
+  'hoodx': 'robinhood-xstock',
+  'qqqx': 'nasdaq-xstock',
+  'spyx': 'sp500-xstock',
+  // CoinGecko RWA IDs
+  'apple': 'apple-xstock',
+  'tesla': 'tesla-xstock',
+  'nvidia': 'nvidia-xstock',
+  'meta-platforms': 'meta-xstock',
+  'alphabet-class-a': 'alphabet-xstock',
+  'microsoft': 'microsoft-xstock',
+  'amazon': 'amazon-xstock',
+  'coinbase': 'coinbase-xstock',
+  'robinhood-markets': 'robinhood-xstock',
+  'invesco-qqq-etf': 'nasdaq-xstock',
+  'spdr-s-p-500-etf-trust': 'sp500-xstock',
+  // Underlying tickers
+  'aapl': 'apple-xstock',
+  'tsla': 'tesla-xstock',
+  'nvda': 'nvidia-xstock',
+  'meta': 'meta-xstock',
+  'googl': 'alphabet-xstock',
+  'goog': 'alphabet-xstock',
+  'msft': 'microsoft-xstock',
+  'amzn': 'amazon-xstock',
+  'coin': 'coinbase-xstock',
+  'hood': 'robinhood-xstock',
+  'qqq': 'nasdaq-xstock',
+  'spy': 'sp500-xstock',
+  // Direct coin IDs
+  'apple-xstock': 'apple-xstock',
+  'tesla-xstock': 'tesla-xstock',
+  'nvidia-xstock': 'nvidia-xstock',
+  'meta-xstock': 'meta-xstock',
+  'alphabet-xstock': 'alphabet-xstock',
+  'microsoft-xstock': 'microsoft-xstock',
+  'amazon-xstock': 'amazon-xstock',
+  'coinbase-xstock': 'coinbase-xstock',
+  'robinhood-xstock': 'robinhood-xstock',
+  'nasdaq-xstock': 'nasdaq-xstock',
+  'sp500-xstock': 'sp500-xstock',
+};
+
 const chartCache = new Map<string, { data: ChartDataResult; timestamp: number }>();
 const CACHE_TTL_MS = 90 * 1000; // 90s cache
 
@@ -732,7 +788,7 @@ export async function fetchHistoricalMarketChart(
   coinId: string,
   symbol: string,
   name: string,
-  currentPrice: number,
+  currentPrice?: number,
   change24h: number = 0,
   timeframe: '24H' | '7D' | '1M' | '1Y' = '24H'
 ): Promise<ChartDataResult> {
@@ -742,12 +798,15 @@ export async function fetchHistoricalMarketChart(
     return cached.data;
   }
 
-  const effectiveCoinId = (coinId || symbol || '').toLowerCase().trim();
+  const rawCoinId = (coinId || symbol || '').toLowerCase().trim();
+  const rawSymbol = (symbol || '').toLowerCase().trim();
+  // Resolve known xStock CoinGecko coin IDs if symbol, RWA category ID, or underlying ticker was passed
+  const effectiveCoinId = XSTOCK_COINGECKO_ID_MAP[rawCoinId] || XSTOCK_COINGECKO_ID_MAP[rawSymbol] || rawCoinId;
   const days = timeframeToDays(timeframe);
 
   const isStock = isStockAsset(symbol, effectiveCoinId, name);
 
-  if (effectiveCoinId && effectiveCoinId !== 'n/a' && currentPrice > 0) {
+  if (effectiveCoinId && effectiveCoinId !== 'n/a') {
     try {
       const res = await fetch(`/api/coingecko/market_chart/${encodeURIComponent(effectiveCoinId)}?days=${days}&vs_currency=usd`);
       if (res.ok) {
@@ -765,7 +824,9 @@ export async function fetchHistoricalMarketChart(
             };
           });
 
-          const liveCurPrice = prices[prices.length - 1].price || currentPrice;
+          const liveCurPrice = (typeof currentPrice === 'number' && currentPrice > 0)
+            ? currentPrice
+            : (prices[prices.length - 1]?.price || 0);
           const startPrice = prices[0].price;
           const priceChange = liveCurPrice - startPrice;
           const priceChangePct = startPrice > 0 ? ((liveCurPrice - startPrice) / startPrice) * 100 : change24h;
@@ -822,17 +883,18 @@ export async function fetchHistoricalMarketChart(
   // If historical RWA data is unavailable on the free plan (/rwas/{id}/market_chart requires Basic plan),
   // return explicit UNAVAILABLE status without generating synthetic series or false technical indicators.
   if (isStock) {
+    const numPrice = (typeof currentPrice === 'number' && currentPrice > 0) ? currentPrice : 0;
     const unavailableResult: ChartDataResult = {
       symbol: symbol.toUpperCase(),
       name,
       timeframe,
       prices: [],
-      currentPrice: currentPrice > 0 ? currentPrice : 0,
-      startPrice: currentPrice > 0 ? currentPrice : 0,
+      currentPrice: numPrice,
+      startPrice: numPrice,
       priceChange: 0,
       priceChangePct: change24h || 0,
-      highPrice: currentPrice > 0 ? currentPrice : 0,
-      lowPrice: currentPrice > 0 ? currentPrice : 0,
+      highPrice: numPrice,
+      lowPrice: numPrice,
       averageVolume: 0,
       source: 'Tri-Sync Engine',
       isLiveFeed: false,
@@ -852,7 +914,7 @@ export async function fetchHistoricalMarketChart(
   }
 
   // Graceful fallback for standard non-RWA crypto assets only
-  const fallback = generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, timeframe, symbol, name);
+  const fallback = generateSyntheticChart((typeof currentPrice === 'number' && currentPrice > 0) ? currentPrice : 100, change24h, timeframe, symbol, name);
   chartCache.set(cacheKey, { data: fallback, timestamp: Date.now() });
   return fallback;
 }

@@ -93,7 +93,8 @@ export default function XStockPriceChart({
   useEffect(() => {
     let isCancelled = false;
     async function loadData() {
-      if (!propCurrentPrice || propCurrentPrice <= 0) {
+      const targetCoinId = coingeckoId || coingeckoRwaId || symbol.toLowerCase();
+      if (!targetCoinId) {
         setChartData(null);
         setIsLoading(false);
         return;
@@ -101,7 +102,7 @@ export default function XStockPriceChart({
       setIsLoading(true);
       try {
         const result = await fetchHistoricalMarketChart(
-          coingeckoRwaId || coingeckoId || symbol.toLowerCase(),
+          targetCoinId,
           symbol,
           name,
           propCurrentPrice,
@@ -130,14 +131,16 @@ export default function XStockPriceChart({
   useEffect(() => {
     let isMounted = true;
     const timeframes: ChartTimeframe[] = ['24H', '7D', '1M', '1Y'];
+    const targetCoinId = coingeckoId || coingeckoRwaId || symbol.toLowerCase();
+    if (!targetCoinId) return;
 
     Promise.all(
       timeframes.map(tf =>
         fetchHistoricalMarketChart(
-          coingeckoRwaId || coingeckoId || symbol.toLowerCase(),
+          targetCoinId,
           symbol,
           name,
-          propCurrentPrice || 100,
+          propCurrentPrice,
           propChange24h || 0,
           tf
         )
@@ -158,7 +161,7 @@ export default function XStockPriceChart({
     return () => {
       isMounted = false;
     };
-  }, [symbol, name, coingeckoId, coingeckoRwaId, propCurrentPrice, propChange24h]);
+  }, [symbol, name, coingeckoId, coingeckoRwaId]);
 
   // Snap the terminal point of the price array to propCurrentPrice (consensus anchor)
   const activePrices = useMemo<PricePoint[]>(() => {

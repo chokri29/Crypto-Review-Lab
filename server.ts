@@ -2980,11 +2980,19 @@ ${dualSyncContext}`;
   });
 
   // API endpoint: CoinGecko Proxy for Market Chart (Historical Prices & Volumes)
+  const chartServerCache = new Map<string, { data: any; timestamp: number }>();
   app.get("/api/coingecko/market_chart/:id", async (req, res) => {
     try {
       const coinId = req.params.id;
       const days = (req.query.days as string) || "1";
       const vsCurrency = (req.query.vs_currency as string) || "usd";
+      const cacheKey = `${coinId}-${days}-${vsCurrency}`.toLowerCase();
+
+      const cached = chartServerCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 60000) {
+        return res.json(cached.data);
+      }
+
       const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coinId)}/market_chart?vs_currency=${encodeURIComponent(vsCurrency)}&days=${encodeURIComponent(days)}`;
 
       let response = await fetch(url, {
@@ -3000,9 +3008,18 @@ ${dualSyncContext}`;
       }
 
       if (!response.ok) {
+        if (cached) {
+          return res.json(cached.data);
+        }
         return res.status(response.status).json({ error: `CoinGecko market chart API error HTTP ${response.status}` });
       }
       const data = await response.json();
+      if (data && Array.isArray(data.prices) && data.prices.length > 0) {
+        chartServerCache.set(cacheKey, { data, timestamp: Date.now() });
+        return res.json(data);
+      } else if (cached) {
+        return res.json(cached.data);
+      }
       res.json(data);
     } catch (error: any) {
       console.error("CoinGecko market chart proxy error:", error);
