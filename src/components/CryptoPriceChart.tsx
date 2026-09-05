@@ -357,7 +357,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
   const { formatPrice: formatPriceVal, formatCompactCap: formatLargeNum, selectedCurrency } = useCurrency();
 
   const formatSupply = (num?: number) => {
-    if (!num || num <= 0) return 'Data unavailable';
+    if (!num || num <= 0) return 'Unavailable';
     if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B ${symbol}`;
     if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M ${symbol}`;
     return `${num.toLocaleString()} ${symbol}`;
@@ -1183,65 +1183,61 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
         </div>
 
         {(() => {
-          const effectiveAtl = allTimeLow || chartData?.allTimeLow || (chartData && chartData.lowPrice > 0 ? chartData.lowPrice * 0.4 : (currentPrice > 0 ? currentPrice * 0.25 : 0));
-          const effectiveAth = allTimeHigh || chartData?.allTimeHigh || (chartData && chartData.highPrice > 0 ? chartData.highPrice * 1.5 : (currentPrice > 0 ? currentPrice * 1.45 : 0));
-          const effectiveTotalSupply = totalSupply || chartData?.totalSupply || undefined;
-          const effectiveCirculatingSupply = circulatingSupply || chartData?.circulatingSupply || undefined;
+          const effectiveAtl = allTimeLow || chartData?.allTimeLow;
+          const effectiveAth = allTimeHigh || chartData?.allTimeHigh;
+          const effectiveTotalSupply = totalSupply || chartData?.totalSupply;
+          const effectiveCirculatingSupply = circulatingSupply || chartData?.circulatingSupply;
 
-          const effectiveAtlPct = atlChangePct ?? (effectiveAtl > 0 && currentPrice > 0 ? ((currentPrice - effectiveAtl) / effectiveAtl) * 100 : undefined);
-          const effectiveAthPct = athChangePct ?? (effectiveAth > 0 && currentPrice > 0 ? ((currentPrice - effectiveAth) / effectiveAth) * 100 : undefined);
-          const supplyPercent = (effectiveTotalSupply && effectiveCirculatingSupply && effectiveTotalSupply > 0 && effectiveCirculatingSupply > 0)
+          const effectiveAtlPct = atlChangePct ?? (typeof effectiveAtl === 'number' && effectiveAtl > 0 && currentPrice > 0 ? ((currentPrice - effectiveAtl) / effectiveAtl) * 100 : undefined);
+          const effectiveAthPct = athChangePct ?? (typeof effectiveAth === 'number' && effectiveAth > 0 && currentPrice > 0 ? ((currentPrice - effectiveAth) / effectiveAth) * 100 : undefined);
+          const supplyPercent = (typeof effectiveTotalSupply === 'number' && typeof effectiveCirculatingSupply === 'number' && effectiveTotalSupply > 0 && effectiveCirculatingSupply > 0)
             ? Math.min(100, (effectiveCirculatingSupply / effectiveTotalSupply) * 100).toFixed(1)
             : undefined;
 
           return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {/* All-Time Low */}
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">All-Time Low</span>
-                  {effectiveAtlPct !== undefined && (
+                  {typeof effectiveAtl === 'number' && effectiveAtlPct !== undefined && (
                     <span className="text-[9px] font-mono text-emerald-400 font-bold">
                       +{effectiveAtlPct.toFixed(1)}%
                     </span>
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-mono font-bold text-emerald-400 block mt-0.5 truncate">
-                  {formatPriceVal(effectiveAtl)}
+                <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveAtl === 'number' && effectiveAtl > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  {typeof effectiveAtl === 'number' && effectiveAtl > 0 ? formatPriceVal(effectiveAtl) : 'Unavailable'}
                 </span>
               </div>
 
-              {/* All-Time High */}
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">All-Time High</span>
-                  {effectiveAthPct !== undefined && (
+                  {typeof effectiveAth === 'number' && effectiveAthPct !== undefined && (
                     <span className="text-[9px] font-mono text-rose-400 font-bold">
                       {effectiveAthPct.toFixed(1)}%
                     </span>
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-mono font-bold text-purple-300 block mt-0.5 truncate">
-                  {formatPriceVal(effectiveAth)}
+                <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveAth === 'number' && effectiveAth > 0 ? 'text-purple-300' : 'text-slate-500'}`}>
+                  {typeof effectiveAth === 'number' && effectiveAth > 0 ? formatPriceVal(effectiveAth) : 'Unavailable'}
                 </span>
               </div>
 
-              {/* Total Supply */}
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">Total Supply</span>
-                  {maxSupply && (
+                  {typeof effectiveTotalSupply === 'number' && maxSupply && (
                     <span className="text-[9px] font-mono text-slate-500">
                       Capped
                     </span>
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-mono font-bold text-white block mt-0.5 truncate">
-                  {formatSupply(effectiveTotalSupply)}
+                <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveTotalSupply === 'number' && effectiveTotalSupply > 0 ? 'text-white' : 'text-slate-500'}`}>
+                  {typeof effectiveTotalSupply === 'number' && effectiveTotalSupply > 0 ? formatSupply(effectiveTotalSupply) : 'Unavailable'}
                 </span>
               </div>
 
-              {/* Circulating Supply */}
               <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">Circulating Supply</span>
@@ -1251,8 +1247,8 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                     </span>
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-mono font-bold text-slate-200 block mt-0.5 truncate">
-                  {formatSupply(effectiveCirculatingSupply)}
+                <span className={`text-xs sm:text-sm font-mono font-bold block mt-0.5 truncate ${typeof effectiveCirculatingSupply === 'number' && effectiveCirculatingSupply > 0 ? 'text-slate-200' : 'text-slate-500'}`}>
+                  {typeof effectiveCirculatingSupply === 'number' && effectiveCirculatingSupply > 0 ? formatSupply(effectiveCirculatingSupply) : 'Unavailable'}
                 </span>
               </div>
             </div>
