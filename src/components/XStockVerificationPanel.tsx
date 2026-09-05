@@ -519,6 +519,7 @@ export default function XStockVerificationPanel({
                 </thead>
                 <tbody className="divide-y divide-slate-900 text-[11px]">
                   {evidenceList.map((item) => {
+                    const datumState = item.state || item.provenance || 'MISSING';
                     const stateBadgeStyle = {
                       VALID: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
                       MISSING: 'bg-slate-800/80 text-slate-400 border-slate-700',
@@ -526,7 +527,8 @@ export default function XStockVerificationPanel({
                       SYNTHETIC: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
                       CONTRADICTORY: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
                       INVALID: 'bg-red-500/25 text-red-200 border-red-500/50'
-                    }[item.provenance];
+                    }[datumState];
+                    const datumFreshness = item.freshness || item.freshnessStatus || 'UNAVAILABLE';
 
                     return (
                       <tr key={item.id} className="hover:bg-slate-900/50 transition-colors">
@@ -544,22 +546,22 @@ export default function XStockVerificationPanel({
                           {item.formattedValue}
                         </td>
                         <td className="py-2 px-2.5 text-slate-400 text-[10px]">
-                          {item.providerTimestamp ? new Date(item.providerTimestamp).toLocaleTimeString() : 'N/A'}
+                          {item.providerTimestamp || (item.timestamp ? String(item.timestamp) : 'Unknown')}
                         </td>
                         <td className="py-2 px-2.5">
                           <span className={`px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
-                            item.freshnessStatus === 'LIVE' || item.freshnessStatus === 'FRESH'
+                            datumFreshness === 'LIVE'
                               ? 'text-cyan-300'
-                              : item.freshnessStatus === 'STALE'
+                              : datumFreshness === 'STALE'
                               ? 'text-amber-400'
                               : 'text-slate-500'
                           }`}>
-                            {item.freshnessStatus}
+                            {datumFreshness}
                           </span>
                         </td>
                         <td className="py-2 px-2.5 text-right">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${stateBadgeStyle}`}>
-                            {item.provenance}
+                            {datumState}
                           </span>
                         </td>
                       </tr>

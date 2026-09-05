@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { XSTOCKS_REGISTRY, XStockRegistryItem } from '../data/xstocksRegistry';
-import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
 import { fetchCoinGeckoRwaMarkets } from '../services/coingeckoRwa';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
@@ -133,17 +132,17 @@ export default function AIXStocksMarketSummary({
           ? convergenceResult.liveMarketCap 
           : (cmcCap ?? cgCap ?? null);
 
-        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
+        let status: 'LIVE_MULTI_SOURCE' | 'SINGLE_SOURCE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
         let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';
 
         if (isDivergent) {
           status = 'UNRESOLVED_DIVERGENCE';
           provenance = 'UNAVAILABLE';
         } else if (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS') {
-          status = 'LIVE_DUAL_ORACLE';
+          status = 'LIVE_MULTI_SOURCE';
           provenance = 'LIVE';
         } else if (convergenceResult.status === 'SINGLE_SOURCE_DEGRADED' || (livePrice !== null && livePrice > 0)) {
-          status = 'SINGLE_ORACLE';
+          status = 'SINGLE_SOURCE';
           provenance = 'LIVE';
         } else {
           status = 'UNAVAILABLE';

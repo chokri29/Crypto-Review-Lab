@@ -15,6 +15,7 @@ export interface CMCQuoteItem {
   circulatingSupply?: number;
   totalSupply?: number;
   maxSupply?: number;
+  lastUpdated?: string;
   dataEngine?: string;
   dataSources?: string[];
 }
@@ -69,7 +70,8 @@ export async function fetchLiveCMCQuote(symbol: string, forceRefresh = false): P
           circulatingSupply: typeof entry.circulating_supply === 'number' ? entry.circulating_supply : undefined,
           totalSupply: typeof entry.total_supply === 'number' ? entry.total_supply : undefined,
           maxSupply: typeof entry.max_supply === 'number' ? entry.max_supply : undefined,
-          dataEngine: 'CoinMarketCap Pro API Proxy (Live External Oracle)',
+          lastUpdated: typeof usd.last_updated === 'string' ? usd.last_updated : (typeof entry.last_updated === 'string' ? entry.last_updated : undefined),
+          dataEngine: 'CoinMarketCap Pro API Proxy (Live Market Data Feed)',
           dataSources: ['CoinMarketCap Apps Script Web App Proxy Feed']
         };
 

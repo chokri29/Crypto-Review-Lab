@@ -54,24 +54,27 @@ import { fetchLiveCMCQuote } from '../services/cmc';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { MultiSourceConvergenceReport } from '../types';
+import { XStockNormalizedEvidence } from '../services/xstockEvidenceEngine';
 
 export interface XStockQuoteState {
-  livePrice: number | null; // On-chain converged price (null if divergent or unavailable)
+  livePrice: number | null; // Converged tokenized price (null if divergent or unavailable)
   change24h?: number;
   volume24h: number | null;
   marketCap: number | null;
-  status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE';
+  status: 'LIVE_MULTI_SOURCE' | 'SINGLE_SOURCE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' | 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE';
   provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE';
   cgPrice?: number;
   rwaPrice?: number;
   rwaVolume24h?: number;
   cmcPrice?: number;
+  cmcLastUpdated?: string;
   equityQuote?: FinnhubQuote | null;
   equityPrice?: number;
   pegDeviation?: number;
   pegDeviationPct?: number;
   pegStatus?: 'TIGHT_PEG' | 'MODERATE_VARIANCE' | 'DIVERGENT' | 'UNAVAILABLE';
   report?: MultiSourceConvergenceReport;
+  evidence?: Record<string, XStockNormalizedEvidence>;
 }
 
 const FAVORITES_STORAGE_KEY = 'crl_xstocks_favorites';
@@ -221,7 +224,7 @@ export default function XStocksPage() {
   // Modal open state
   const [isAlertModalOpen, setIsAlertModalOpen] = useState<boolean>(false);
 
-  // Multi-source Oracle Data Maps
+  // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
 
   // CoinGecko Native RWA Metadata & Issuer State
@@ -353,7 +356,7 @@ export default function XStocksPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch On-chain Oracles (CG + CMC) and Finnhub Underlying Equity Quote
+  // Fetch Secondary Market Feeds (CoinGecko RWA + CMC) and Finnhub Underlying Equity Quote
   const syncXStocksData = async () => {
     setIsRefreshing(true);
     try {
@@ -427,7 +430,7 @@ export default function XStocksPage() {
         const cmcCap = (isCmcValid && typeof cmcData.marketCap === 'number' && cmcData.marketCap > 0) ? cmcData.marketCap : undefined;
         const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
 
-        // Converge on-chain feeds (CoinGecko RWA + CMC only, no CoinStats)
+        // Converge secondary market feeds (CoinGecko RWA + CMC only, no CoinStats)
         const convergenceResult = computeMultiSourceConvergence({
           cgPrice,
           cgVolume: cgVol,
@@ -446,7 +449,7 @@ export default function XStocksPage() {
           isXStock: true
         });
 
-        // Determine best verified on-chain price
+        // Determine best verified tokenized market price
         // STRICT P0 REQUIREMENT: If consensus is unresolved/divergent or missing, livePrice MUST BE null!
         // NEVER select CoinGecko or CMC as fallback merely because consensus is unresolved!
         const isDivergent = convergenceResult.status === 'UNRESOLVED_DIVERGENCE';
@@ -459,17 +462,17 @@ export default function XStocksPage() {
           ? convergenceResult.liveMarketCap 
           : (cmcCap ?? rwaMarketCap ?? null);
 
-        let status: 'LIVE_DUAL_ORACLE' | 'SINGLE_ORACLE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
+        let status: 'LIVE_MULTI_SOURCE' | 'SINGLE_SOURCE' | 'UNRESOLVED_DIVERGENCE' | 'UNAVAILABLE' = 'UNAVAILABLE';
         let provenance: 'LIVE' | 'STALE' | 'SYNTHETIC' | 'UNAVAILABLE' = 'UNAVAILABLE';
 
         if (isDivergent) {
           status = 'UNRESOLVED_DIVERGENCE';
           provenance = 'UNAVAILABLE';
         } else if (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS') {
-          status = 'LIVE_DUAL_ORACLE';
+          status = 'LIVE_MULTI_SOURCE';
           provenance = 'LIVE';
         } else if (convergenceResult.status === 'SINGLE_SOURCE_DEGRADED' || (livePrice !== null && livePrice > 0)) {
-          status = 'SINGLE_ORACLE';
+          status = 'SINGLE_SOURCE';
           provenance = 'LIVE';
         } else {
           status = 'UNAVAILABLE';
@@ -484,7 +487,7 @@ export default function XStocksPage() {
 
         if (finnhubData && typeof finnhubData.effectivePrice === 'number' && finnhubData.effectivePrice > 0) {
           equityPrice = finnhubData.effectivePrice;
-          // STRICT RULE: If divergence is unresolved or on-chain price is missing, peg calculation is SUPPRESSED
+          // STRICT RULE: If divergence is unresolved or token price is missing, peg calculation is SUPPRESSED
           if (livePrice !== null && livePrice > 0 && status !== 'UNRESOLVED_DIVERGENCE') {
             pegDeviation = (livePrice - equityPrice) / equityPrice;
             pegDeviationPct = pegDeviation * 100;
@@ -499,6 +502,94 @@ export default function XStocksPage() {
           }
         }
 
+        // Build Normalized Evidence Objects for each individual datum (P2-FINAL Requirement 1 & 2)
+        const rwaEvidence: XStockNormalizedEvidence = {
+          value: hasRwaLivePrice ? rwaPrice! : null,
+          source: 'TOKENIZED_MARKET',
+          dataType: 'Tokenized Secondary Market Price (USD)',
+          assetId: item.symbol,
+          rwaId: item.coingeckoRwaId || undefined,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: hasRwaLivePrice ? 'LIVE' : 'UNAVAILABLE',
+          state: hasRwaLivePrice ? 'VALID' : 'MISSING'
+        };
+
+        const cmcEvidence: XStockNormalizedEvidence = {
+          value: isCmcValid ? cmcPrice! : null,
+          source: 'SECONDARY_TOKEN_MARKET',
+          dataType: 'Secondary Token Market Price (USD)',
+          assetId: item.cmcSymbol,
+          timestamp: (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null),
+          freshness: isCmcValid ? 'LIVE' : 'UNAVAILABLE',
+          state: isCmcValid ? 'VALID' : 'MISSING'
+        };
+
+        const livePriceEvidence: XStockNormalizedEvidence = {
+          value: livePrice,
+          source: 'TOKENIZED_MARKET',
+          dataType: 'Converged Tokenized Market Price (USD)',
+          assetId: item.symbol,
+          rwaId: item.coingeckoRwaId || undefined,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null)),
+          freshness: livePrice !== null ? 'LIVE' : 'UNAVAILABLE',
+          state: isDivergent ? 'CONTRADICTORY' : (livePrice !== null ? 'VALID' : 'MISSING')
+        };
+
+        const equityEvidence: XStockNormalizedEvidence = {
+          value: equityPrice ?? null,
+          source: 'UNDERLYING_EQUITY',
+          dataType: currentHours.isOpen ? 'Live Equity Basis Price (USD)' : 'Official Close / After-Hours Price (USD)',
+          assetId: item.underlyingTicker,
+          timestamp: (finnhubData?.t && finnhubData.t > 0) ? new Date(finnhubData.t * 1000).toISOString() : null,
+          freshness: equityPrice ? (currentHours.isOpen ? 'LIVE' : 'STALE') : 'UNAVAILABLE',
+          state: equityPrice ? 'VALID' : 'MISSING'
+        };
+
+        const volumeEvidence: XStockNormalizedEvidence = {
+          value: volume24h,
+          source: 'TOKENIZED_MARKET',
+          dataType: 'Secondary Market 24h Volume (USD)',
+          assetId: item.symbol,
+          rwaId: item.coingeckoRwaId || undefined,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: volume24h !== null ? 'LIVE' : 'UNAVAILABLE',
+          state: volume24h !== null ? 'VALID' : 'MISSING'
+        };
+
+        const marketCapEvidence: XStockNormalizedEvidence = {
+          value: marketCap,
+          source: 'TOKENIZED_MARKET',
+          dataType: 'Circulating Market Capitalization (USD)',
+          assetId: item.symbol,
+          rwaId: item.coingeckoRwaId || undefined,
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : null),
+          freshness: marketCap !== null ? 'LIVE' : 'UNAVAILABLE',
+          state: marketCap !== null ? 'VALID' : 'MISSING'
+        };
+
+        // Genuine Direct DEX / On-chain Market Telemetry
+        // If genuine direct DEX/on-chain market telemetry is unavailable, explicitly expose ON_CHAIN/DEX_UNAVAILABLE
+        const dexTelemetryEvidence: XStockNormalizedEvidence = {
+          value: null,
+          source: 'ON_CHAIN',
+          dataType: 'Direct DEX Orderbook / Pool Telemetry (USD)',
+          assetId: item.contractAddress || item.symbol,
+          timestamp: null,
+          freshness: 'UNAVAILABLE',
+          state: 'MISSING',
+          details: 'ON_CHAIN/DEX_UNAVAILABLE: Direct DEX on-chain liquidity/pool telemetry is unavailable. Token aggregators (CoinGecko RWA, CoinMarketCap) provide secondary market observations and are not direct on-chain telemetry.'
+        };
+
+        const itemEvidence: Record<string, XStockNormalizedEvidence> = {
+          coingecko_rwa_price: rwaEvidence,
+          cmc_cross_check_price: cmcEvidence,
+          live_price: livePriceEvidence,
+          underlying_equity_price: equityEvidence,
+          volume_24h: volumeEvidence,
+          market_cap: marketCapEvidence,
+          direct_dex_telemetry: dexTelemetryEvidence
+        };
+
         newQuotes[sym] = {
           livePrice,
           change24h,
@@ -510,12 +601,14 @@ export default function XStocksPage() {
           rwaPrice,
           rwaVolume24h,
           cmcPrice,
+          cmcLastUpdated: typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : undefined,
           equityQuote: finnhubData,
           equityPrice,
           pegDeviation,
           pegDeviationPct,
           pegStatus,
-          report: convergenceResult.report
+          report: convergenceResult.report,
+          evidence: itemEvidence
         };
       }
 
