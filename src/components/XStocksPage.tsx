@@ -22,13 +22,7 @@ import {
   AlertTriangle,
   Globe,
   Scale,
-  ArrowRightLeft,
-  Star,
-  Bell,
-  BellRing,
-  Volume2,
-  VolumeX,
-  Play
+  ArrowRightLeft
 } from 'lucide-react';
 import { 
   XSTOCKS_REGISTRY, 
@@ -38,8 +32,6 @@ import {
 } from '../data/xstocksRegistry';
 import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
-import XStockAlertModal, { XStockPriceAlert } from './XStockAlertModal';
-import XStockAlertBanner from './XStockAlertBanner';
 import XStockVerificationPanel from './XStockVerificationPanel';
 import { useCurrency } from '../context/CurrencyContext';
 import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
@@ -87,49 +79,6 @@ export interface XStockQuoteState {
   evidence?: Record<string, XStockNormalizedEvidence>;
 }
 
-const FAVORITES_STORAGE_KEY = 'crl_xstocks_favorites';
-const ALERTS_STORAGE_KEY = 'crl_xstocks_price_alerts';
-const SOUND_STORAGE_KEY = 'crl_xstocks_alert_sound';
-
-// Synthesize pleasant cyber audio chime for price alert triggers
-function playCyberAlertChime() {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-    
-    const now = ctx.currentTime;
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(880, now); // A5
-    osc1.frequency.exponentialRampToValueAtTime(1320, now + 0.15); // E6
-
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(1760, now + 0.08); // A6
-    osc2.frequency.exponentialRampToValueAtTime(2640, now + 0.25);
-
-    gainNode.gain.setValueAtTime(0.25, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-
-    osc1.connect(gainNode);
-    osc2.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    osc1.start(now);
-    osc1.stop(now + 0.45);
-    osc2.start(now + 0.08);
-    osc2.stop(now + 0.45);
-  } catch (e) {
-    console.debug('Audio chime policy notice:', e);
-  }
-}
-
 export default function XStocksPage() {
   const [selectedStock, setSelectedStock] = useState<XStockRegistryItem>(() => {
     try {
@@ -173,67 +122,6 @@ export default function XStocksPage() {
     }
   }, [selectedStock.symbol]);
 
-  // Favorites state persisted in localStorage
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem(FAVORITES_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.warn('Error loading favorites from storage:', e);
-    }
-    // Default favorites
-    return ['TSLAX', 'NVDAX', 'AAPLX', 'SPYX'];
-  });
-
-  // Price Alerts state persisted in localStorage
-  const [alerts, setAlerts] = useState<XStockPriceAlert[]>(() => {
-    try {
-      const saved = localStorage.getItem(ALERTS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.warn('Error loading alerts from storage:', e);
-    }
-    return [
-      {
-        id: 'alert-default-1',
-        symbol: 'TSLAX',
-        name: 'Tesla Inc (xStock)',
-        targetPrice: 360.00,
-        direction: 'ABOVE',
-        createdPrice: 345.32,
-        createdAt: new Date().toISOString(),
-        active: true,
-        triggered: false,
-        note: 'Breakout above $360 resistance'
-      },
-      {
-        id: 'alert-default-2',
-        symbol: 'COINX',
-        name: 'Coinbase Global Inc (xStock)',
-        targetPrice: 175.00,
-        direction: 'ABOVE',
-        createdPrice: 172.43,
-        createdAt: new Date().toISOString(),
-        active: true,
-        triggered: false,
-        note: 'Crypto market momentum target'
-      }
-    ];
-  });
-
-  // Sound chime toggle
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(SOUND_STORAGE_KEY);
-      return saved !== null ? JSON.parse(saved) : true;
-    } catch {
-      return true;
-    }
-  });
-
-  // Modal open state
-  const [isAlertModalOpen, setIsAlertModalOpen] = useState<boolean>(false);
-
   // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
 
@@ -275,88 +163,6 @@ export default function XStocksPage() {
       isCancelled = true;
     };
   }, [selectedStock.coingeckoRwaId, selectedStock.issuerId]);
-
-  // Persist Favorites
-  useEffect(() => {
-    try {
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
-    } catch (e) {
-      console.warn('Error saving favorites:', e);
-    }
-  }, [favorites]);
-
-  // Persist Alerts
-  useEffect(() => {
-    try {
-      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(alerts));
-    } catch (e) {
-      console.warn('Error saving alerts:', e);
-    }
-  }, [alerts]);
-
-  // Persist Sound Setting
-  useEffect(() => {
-    try {
-      localStorage.setItem(SOUND_STORAGE_KEY, JSON.stringify(soundEnabled));
-    } catch (e) {
-      console.warn('Error saving sound setting:', e);
-    }
-  }, [soundEnabled]);
-
-  // Toggle Favorite Handler
-  const toggleFavorite = (symbol: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setFavorites(prev => {
-      const symUpper = symbol.toUpperCase();
-      if (prev.includes(symUpper)) {
-        return prev.filter(s => s !== symUpper);
-      } else {
-        return [...prev, symUpper];
-      }
-    });
-  };
-
-  const isFavorite = (symbol: string) => favorites.includes(symbol.toUpperCase());
-
-  // Evaluate Price Alerts against Live Price Feeds
-  const evaluateAlerts = useCallback((quotes: Record<string, XStockQuoteState>) => {
-    setAlerts(prevAlerts => {
-      let newlyTriggered = false;
-      const updated = prevAlerts.map(alert => {
-        if (!alert.active || alert.triggered) return alert;
-
-        const quote = quotes[alert.symbol.toUpperCase()];
-        const livePrice = quote?.livePrice;
-        // Do not trigger automated alert execution on divergent, synthetic, or unavailable feeds
-        if (!livePrice || livePrice <= 0 || quote?.status === 'UNRESOLVED_DIVERGENCE' || quote?.provenance !== 'LIVE') return alert;
-
-        let shouldTrigger = false;
-        if (alert.direction === 'ABOVE' && livePrice >= alert.targetPrice) {
-          shouldTrigger = true;
-        } else if (alert.direction === 'BELOW' && livePrice <= alert.targetPrice) {
-          shouldTrigger = true;
-        }
-
-        if (shouldTrigger) {
-          newlyTriggered = true;
-          return {
-            ...alert,
-            triggered: true,
-            triggeredAt: new Date().toISOString(),
-            triggeredPrice: livePrice
-          };
-        }
-
-        return alert;
-      });
-
-      if (newlyTriggered && soundEnabled) {
-        playCyberAlertChime();
-      }
-
-      return updated;
-    });
-  }, [soundEnabled]);
 
   // Regular clock ticker for Market Hours status (every 30 seconds)
   useEffect(() => {
@@ -699,7 +505,6 @@ export default function XStocksPage() {
       }
 
       setStockQuotes(newQuotes);
-      evaluateAlerts(newQuotes);
     } catch (err) {
       console.warn('Error loading xStocks data:', err);
     } finally {
@@ -711,18 +516,16 @@ export default function XStocksPage() {
     syncXStocksData();
   }, []);
 
-  // Filter Categories with Favorites tab
+  // Filter Categories
   const categories = useMemo(() => {
     const set = new Set<string>();
     XSTOCKS_REGISTRY.forEach(s => set.add(s.category));
-    return ['All', '★ Favorites', ...Array.from(set)];
+    return ['All', ...Array.from(set)];
   }, []);
 
   const filteredStocks = useMemo(() => {
     return XSTOCKS_REGISTRY.filter(item => {
-      if (categoryFilter === '★ Favorites') {
-        if (!isFavorite(item.symbol)) return false;
-      } else if (categoryFilter !== 'All' && item.category !== categoryFilter) {
+      if (categoryFilter !== 'All' && item.category !== categoryFilter) {
         return false;
       }
 
@@ -735,80 +538,14 @@ export default function XStocksPage() {
         item.underlyingName.toLowerCase().includes(q);
       return matchesSearch;
     });
-  }, [categoryFilter, searchQuery, favorites]);
-
-  // Alert Management Handlers
-  const handleAddAlert = (newAlertData: Omit<XStockPriceAlert, 'id' | 'createdAt' | 'triggered'>) => {
-    const newAlert: XStockPriceAlert = {
-      ...newAlertData,
-      id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      createdAt: new Date().toISOString(),
-      triggered: false
-    };
-    setAlerts(prev => [newAlert, ...prev]);
-  };
-
-  const handleDeleteAlert = (id: string) => {
-    setAlerts(prev => prev.filter(a => a.id !== id));
-  };
-
-  const handleToggleAlert = (id: string) => {
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, active: !a.active } : a));
-  };
-
-  const handleResetAlert = (id: string) => {
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, triggered: false, triggeredAt: undefined, triggeredPrice: undefined, active: true } : a));
-  };
-
-  const handleDismissTriggeredAlert = (id: string) => {
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, triggered: false } : a));
-  };
-
-  // Test Trigger Alert to immediately demonstrate visual UI alert & chime
-  const handleTestTriggerAlert = (targetStock: XStockRegistryItem) => {
-    const quote = stockQuotes[targetStock.symbol.toUpperCase()];
-    const curPrice = quote?.livePrice || 350.00;
-    const testAlert: XStockPriceAlert = {
-      id: `alert-test-${Date.now()}`,
-      symbol: targetStock.symbol,
-      name: targetStock.name,
-      targetPrice: curPrice,
-      direction: 'ABOVE',
-      createdPrice: curPrice * 0.98,
-      createdAt: new Date().toISOString(),
-      active: true,
-      triggered: true,
-      triggeredAt: new Date().toISOString(),
-      triggeredPrice: curPrice,
-      note: 'Simulated Threshold Cross Test'
-    };
-
-    setAlerts(prev => [testAlert, ...prev.filter(a => a.id !== testAlert.id)]);
-    if (soundEnabled) {
-      playCyberAlertChime();
-    }
-  };
+  }, [categoryFilter, searchQuery]);
 
   const activeQuote = stockQuotes[selectedStock.symbol.toUpperCase()];
-  const triggeredAlerts = alerts.filter(a => a.triggered);
-  const activeAlertsCount = alerts.filter(a => a.active && !a.triggered).length;
   const { formatPrice, selectedCurrency } = useCurrency();
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Visual Live UI Triggered Alert Banner */}
-      <XStockAlertBanner 
-        triggeredAlerts={triggeredAlerts}
-        onDismissAlert={handleDismissTriggeredAlert}
-        onSelectStock={(sym) => {
-          const item = XSTOCKS_REGISTRY.find(s => s.symbol.toUpperCase() === sym.toUpperCase());
-          if (item) setSelectedStock(item);
-        }}
-        onResetAlert={handleResetAlert}
-        onOpenAlertsModal={() => setIsAlertModalOpen(true)}
-      />
-
-      {/* 1. Header Banner with US Market Hours Telemetry Badge & Price Alerts Button */}
+      {/* 1. Header Banner with US Market Hours Telemetry Badge */}
       <div className="rounded-2xl bg-gradient-to-br from-cyber-bg-card via-slate-950/90 to-cyber-bg-primary border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] p-6 sm:p-8 relative overflow-hidden">
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/70 to-transparent" />
         <div className="absolute -top-24 -right-24 w-60 h-60 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
@@ -831,54 +568,6 @@ export default function XStocksPage() {
             <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
               24/7 on-chain secondary market quoting for tokenized US equities with Market Data Cross-Check (CoinGecko &amp; CoinMarketCap aggregators) and real-time underlying equity basis verification via Finnhub.
             </p>
-
-            {/* Quick Action Pills: Favorites Count & Price Alert Manager & Currency Selector */}
-            <div className="flex items-center gap-2.5 pt-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('★ Favorites')}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  categoryFilter === '★ Favorites'
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
-                    : 'bg-slate-950/80 text-slate-300 border-slate-800 hover:border-amber-500/40 hover:text-white'
-                }`}
-              >
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>Favorites ({favorites.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsAlertModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl bg-slate-950/80 hover:bg-slate-900 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm group"
-              >
-                <BellRing className="w-3.5 h-3.5 group-hover:animate-bounce" />
-                <span>Price Alerts</span>
-                {alerts.length > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black ${
-                    triggeredAlerts.length > 0
-                      ? 'bg-amber-500 text-slate-950 animate-pulse'
-                      : 'bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40'
-                  }`}>
-                    {triggeredAlerts.length > 0 ? `${triggeredAlerts.length} Triggered` : alerts.length}
-                  </span>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`px-2.5 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1 transition-all cursor-pointer ${
-                  soundEnabled 
-                    ? 'bg-slate-950/80 text-slate-300 border-slate-800 hover:text-white' 
-                    : 'bg-slate-950/40 text-slate-500 border-slate-800'
-                }`}
-                title={soundEnabled ? 'Alert audio sound chime is on' : 'Alert audio sound chime is muted'}
-              >
-                {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-cyber-cyan" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
-                <span className="text-[10px]">{soundEnabled ? 'Chime ON' : 'Chime MUTED'}</span>
-              </button>
-            </div>
           </div>
 
           {/* Market Hours Telemetry Status Card */}
@@ -934,14 +623,6 @@ export default function XStocksPage() {
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => setIsAlertModalOpen(true)}
-                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyber-cyan/15 border border-slate-800 hover:border-cyber-cyan/40 text-cyber-cyan cursor-pointer transition-all"
-                  title="Configure Price Alerts"
-                >
-                  <Bell className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
                   onClick={syncXStocksData}
                   disabled={isRefreshing}
                   className="p-1.5 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan cursor-pointer transition-all disabled:opacity-50"
@@ -967,7 +648,6 @@ export default function XStocksPage() {
             {/* Category Filter Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[10px] font-mono">
               {categories.map((cat) => {
-                const isFavCat = cat === '★ Favorites';
                 const isSelected = categoryFilter === cat;
                 return (
                   <button
@@ -976,16 +656,11 @@ export default function XStocksPage() {
                     onClick={() => setCategoryFilter(cat)}
                     className={`px-2.5 py-1 rounded-lg shrink-0 transition-all font-bold cursor-pointer flex items-center gap-1 ${
                       isSelected
-                        ? isFavCat
-                          ? 'bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]'
-                          : 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
-                        : isFavCat
-                        ? 'bg-slate-950 text-amber-400 hover:text-amber-300 hover:bg-slate-900 border border-amber-500/30'
+                        ? 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
                         : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
                     }`}
                   >
-                    {isFavCat && <Star className={`w-3 h-3 ${isSelected ? 'fill-slate-950' : 'fill-amber-400'}`} />}
-                    <span>{isFavCat ? `Favorites (${favorites.length})` : cat}</span>
+                    <span>{cat}</span>
                   </button>
                 );
               })}
@@ -995,34 +670,18 @@ export default function XStocksPage() {
             <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
               {filteredStocks.length === 0 ? (
                 <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
-                  <Star className="w-7 h-7 text-amber-400/40 mx-auto" />
                   <p className="text-slate-300 text-xs font-mono font-bold">
-                    {categoryFilter === '★ Favorites' ? 'No favorites added yet' : 'No matching xStocks found'}
+                    No matching xStocks found
                   </p>
                   <p className="text-slate-500 text-[11px] font-mono">
-                    {categoryFilter === '★ Favorites'
-                      ? 'Click the star icon on any asset card to save it to your quick-access favorites list.'
-                      : 'Try adjusting your search query or category filter.'}
+                    Try adjusting your search query or category filter.
                   </p>
-                  {categoryFilter === '★ Favorites' && (
-                    <button
-                      type="button"
-                      onClick={() => setCategoryFilter('All')}
-                      className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyber-cyan text-xs font-mono font-bold transition-all cursor-pointer border border-cyber-cyan/30 mt-2"
-                    >
-                      Browse All xStocks
-                    </button>
-                  )}
                 </div>
               ) : (
                 filteredStocks.map((item) => {
                   const quote = stockQuotes[item.symbol.toUpperCase()];
                   const isSelected = selectedStock.symbol === item.symbol;
                   const isPos = (quote?.change24h ?? 0) >= 0;
-                  const itemIsFav = isFavorite(item.symbol);
-                  const stockAlerts = alerts.filter(a => a.symbol.toUpperCase() === item.symbol.toUpperCase());
-                  const hasTriggeredAlert = stockAlerts.some(a => a.triggered);
-                  const hasActiveAlert = stockAlerts.some(a => a.active && !a.triggered);
 
                   return (
                     <div
@@ -1035,16 +694,6 @@ export default function XStocksPage() {
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Favorite Star Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => toggleFavorite(item.symbol, e)}
-                          className="p-1 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-amber-400 transition-colors cursor-pointer shrink-0"
-                          title={itemIsFav ? 'Remove from favorites' : 'Add to favorites'}
-                        >
-                          <Star className={`w-3.5 h-3.5 ${itemIsFav ? 'fill-amber-400 text-amber-400' : 'text-slate-600 group-hover:text-slate-400'}`} />
-                        </button>
-
                         {item.logoUrl ? (
                           <img 
                             src={item.logoUrl} 
@@ -1067,12 +716,6 @@ export default function XStocksPage() {
                             <span className="text-[9px] font-mono text-purple-300 bg-purple-500/15 px-1 rounded">
                               {item.underlyingTicker}
                             </span>
-                            {/* Alert Indicator Badge */}
-                            {hasTriggeredAlert ? (
-                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" title="Price alert triggered!" />
-                            ) : hasActiveAlert ? (
-                              <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan" title="Active price alert configured" />
-                            ) : null}
                           </div>
                           <span className="text-[10px] text-slate-400 truncate">
                             {item.underlyingName}
@@ -1139,55 +782,6 @@ export default function XStocksPage() {
 
         {/* Right Column (8 cols): Active xStock Terminal View */}
         <div className="lg:col-span-8 space-y-6">
-          
-          {/* Active Stock Quick Header Toolbar (Favorites & Price Alert Controls) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-cyber-bg-card to-slate-950 border border-cyber-cyan/35 shadow-xl flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => toggleFavorite(selectedStock.symbol)}
-                className={`p-2 rounded-xl border flex items-center gap-1.5 text-xs font-mono font-bold transition-all cursor-pointer ${
-                  isFavorite(selectedStock.symbol)
-                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                    : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white hover:border-amber-400/50'
-                }`}
-                title={isFavorite(selectedStock.symbol) ? 'Remove from favorites' : 'Pin to favorites list'}
-              >
-                <Star className={`w-4 h-4 ${isFavorite(selectedStock.symbol) ? 'fill-amber-400 text-amber-400' : ''}`} />
-                <span>{isFavorite(selectedStock.symbol) ? 'Favorited' : 'Add to Favorites'}</span>
-              </button>
-
-              <div className="h-5 w-[1px] bg-slate-800" />
-
-              <div className="font-mono text-xs text-slate-400 flex items-center gap-1.5">
-                <span className="text-white font-bold">{selectedStock.symbol}</span>
-                <span>•</span>
-                <span className="text-purple-300 font-bold">{selectedStock.underlyingTicker}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleTestTriggerAlert(selectedStock)}
-                className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/40 hover:border-purple-400 text-purple-300 font-mono text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                title="Send a sample simulated UI alert for this stock"
-              >
-                <Play className="w-3.5 h-3.5 text-purple-400" />
-                <span>Test Alert</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsAlertModalOpen(true)}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyber-cyan to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-orbitron font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all cursor-pointer"
-              >
-                <Bell className="w-3.5 h-3.5" />
-                <span>Set Price Alert</span>
-              </button>
-            </div>
-          </div>
-
           {/* Active Stock Interactive Price Chart */}
           <XStockPriceChart 
             symbol={selectedStock.symbol}
@@ -1214,24 +808,6 @@ export default function XStocksPage() {
           />
         </div>
       </div>
-
-      {/* Price Alert Configuration & Management Modal */}
-      <XStockAlertModal
-        isOpen={isAlertModalOpen}
-        onClose={() => setIsAlertModalOpen(false)}
-        selectedStock={selectedStock}
-        currentQuote={activeQuote}
-        stockQuotes={stockQuotes}
-        allStocks={XSTOCKS_REGISTRY}
-        alerts={alerts}
-        onAddAlert={handleAddAlert}
-        onDeleteAlert={handleDeleteAlert}
-        onToggleAlert={handleToggleAlert}
-        onResetAlert={handleResetAlert}
-        onTestTriggerAlert={handleTestTriggerAlert}
-        soundEnabled={soundEnabled}
-        onToggleSound={() => setSoundEnabled(!soundEnabled)}
-      />
     </div>
   );
 }
