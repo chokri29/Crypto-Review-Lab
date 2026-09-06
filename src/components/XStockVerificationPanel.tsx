@@ -799,7 +799,7 @@ export default function XStockVerificationPanel({
                 Advanced Auditor View: Deterministic Provenance Matrix
               </span>
               <span className="text-[10.5px] font-mono text-slate-500">
-                Raw data key provenance ({evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.contradictoryCount} Divergent)
+                Raw data key provenance ({evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.contradictoryCount} Divergent • {evidenceAudit.sourceCount ?? 0} Source • {evidenceAudit.derivedCount ?? 0} Derived)
               </span>
             </div>
           </div>
@@ -818,11 +818,11 @@ export default function XStockVerificationPanel({
                   <tr className="border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider">
                     <th className="py-2 px-2.5">Evidence Key</th>
                     <th className="py-2 px-2.5">Provider / Source</th>
-                    <th className="py-2 px-2.5">Data Type</th>
+                    <th className="py-2 px-2.5">Type & Provenance</th>
                     <th className="py-2 px-2.5">Reported Value</th>
                     <th className="py-2 px-2.5">Provider Timestamp</th>
                     <th className="py-2 px-2.5">Freshness</th>
-                    <th className="py-2 px-2.5 text-right">Provenance</th>
+                    <th className="py-2 px-2.5 text-right">Audit Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-900 text-[11px]">
@@ -837,6 +837,7 @@ export default function XStockVerificationPanel({
                       INVALID: 'bg-red-500/25 text-red-200 border-red-500/50'
                     }[datumState];
                     const datumFreshness = item.freshness || item.freshnessStatus || 'UNAVAILABLE';
+                    const provenanceCategory = item.provenanceCategory || (item.state === 'VALID' ? 'SOURCE' : 'UNAVAILABLE');
 
                     return (
                       <tr key={item.id} className="hover:bg-slate-900/50 transition-colors">
@@ -847,8 +848,30 @@ export default function XStockVerificationPanel({
                         <td className="py-2 px-2.5 text-slate-300">
                           {item.source}
                         </td>
-                        <td className="py-2 px-2.5 text-cyan-400/90 text-[10px]">
-                          {item.dataType}
+                        <td className="py-2 px-2.5 text-[10px]">
+                          <div className="text-cyan-400/90">{item.dataType}</div>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className={`px-1 py-0.2 rounded text-[8.5px] font-bold border uppercase ${
+                              provenanceCategory === 'SOURCE'
+                                ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/50'
+                                : provenanceCategory === 'DERIVED'
+                                ? 'bg-amber-950/80 text-amber-300 border-amber-700/50'
+                                : 'bg-slate-900 text-slate-500 border-slate-800'
+                            }`}>
+                              {provenanceCategory}
+                            </span>
+                            {item.isVerificationGrade ? (
+                              <span className="text-[8px] text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20">
+                                VERIFIED
+                              </span>
+                            ) : (
+                              provenanceCategory === 'DERIVED' && (
+                                <span className="text-[8px] text-amber-400/90 bg-amber-500/10 px-1 py-0.2 rounded border border-amber-500/20">
+                                  DERIVED
+                                </span>
+                              )
+                            )}
+                          </div>
                         </td>
                         <td className="py-2 px-2.5 font-bold text-slate-200">
                           {item.formattedValue}

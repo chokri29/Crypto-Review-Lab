@@ -331,8 +331,14 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   dataSources: string[];
   syncRuleApplied: string;
   circulatingSupply: number;
+  circulatingSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
   maxSupply?: number;
+  maxSupplyProvenance?: 'SOURCE' | 'UNAVAILABLE';
   totalSupply?: number;
+  totalSupplyProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
+  marketCapProvenance?: 'SOURCE' | 'UNAVAILABLE';
+  priceProvenance?: 'SOURCE' | 'UNAVAILABLE';
+  volumeProvenance?: 'SOURCE' | 'UNAVAILABLE';
   allTimeHigh?: number;
   allTimeLow?: number;
   ath?: number;
@@ -340,6 +346,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   athChangePct?: number;
   atlChangePct?: number;
   fdvCalculated?: number;
+  fdvProvenance?: 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
 } {
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
