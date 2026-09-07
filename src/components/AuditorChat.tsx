@@ -712,129 +712,134 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
         </div>
       </a>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 lg:gap-6 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 lg:gap-6 w-full items-stretch">
         {/* Suggestions and intro left column */}
-        <div className="lg:col-span-4 space-y-5">
-          <div className="bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 shadow-xl hover:shadow-[0_12px_36px_rgba(0,229,255,0.2)] relative overflow-hidden transition-all duration-300 group flex flex-col">
+        <div className="lg:col-span-4 flex flex-col">
+          <div className="bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 shadow-xl hover:shadow-[0_12px_36px_rgba(0,229,255,0.2)] relative overflow-hidden transition-all duration-300 group flex flex-col h-full justify-between">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-cyber-cyan/[0.03] rounded-full blur-2xl pointer-events-none"></div>
             
-            {/* Header */}
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <h2 className="font-sans font-semibold text-base text-slate-100 flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.2)]">
-                  <Terminal className="w-4 h-4" />
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <h2 className="font-sans font-semibold text-base text-slate-100 flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.2)]">
+                    <Terminal className="w-4 h-4" />
+                  </div>
+                  <span>Lab Auditor Console</span>
+                </h2>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span>READY</span>
                 </div>
-                <span>Lab Auditor Console</span>
-              </h2>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>READY</span>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              Direct intelligence console for smart contract bytecode verification, real-time GoPlus &amp; RugCheck telemetry, and locked Evaluation Blueprint scoring.
-            </p>
-
-            {/* Prompt Categories Filter Pills */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-cyber-cyan" />
-                  <span>Audit Diagnostic Presets</span>
-                </span>
-                <span className="text-[9px] font-mono text-slate-500">
-                  {filteredPromptPresets.length} Enquiries
-                </span>
               </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {promptCategories.map((cat) => {
-                  const isSelected = selectedPromptCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedPromptCategory(cat)}
-                      type="button"
-                      className={`text-[9.5px] font-mono px-2.5 py-1 rounded-lg shrink-0 transition-all cursor-pointer ${
-                        isSelected 
-                          ? 'bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold shadow-[0_0_10px_rgba(0,229,255,0.15)]' 
-                          : 'bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  );
-                })}
-              </div>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                Direct intelligence console for smart contract bytecode verification, real-time GoPlus &amp; RugCheck telemetry, and locked Evaluation Blueprint scoring.
+              </p>
 
-              {/* Interactive Presets List */}
-              <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
-                {filteredPromptPresets.map((preset) => {
-                  return (
-                    <motion.div
-                      key={preset.id}
-                      whileHover={{ scale: 1.015, x: 2 }}
-                      transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                      className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/[0.04] hover:shadow-[0_4px_20px_rgba(0,229,255,0.12)] transition-all duration-200 group/card flex flex-col gap-1.5 relative"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-start gap-2 flex-1 min-w-0">
-                          <div className="mt-0.5 w-5 h-5 rounded-md bg-slate-900 border border-slate-800 group-hover/card:border-cyber-cyan/40 group-hover/card:text-cyber-cyan flex items-center justify-center text-slate-400 shrink-0 transition-colors">
-                            {preset.iconType === 'shield' && <ShieldCheck className="w-3 h-3" />}
-                            {preset.iconType === 'zap' && <Zap className="w-3 h-3" />}
-                            {preset.iconType === 'coins' && <Coins className="w-3 h-3" />}
-                            {preset.iconType === 'cpu' && <Cpu className="w-3 h-3" />}
-                            {preset.iconType === 'scale' && <Scale className="w-3 h-3" />}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-[8px] font-mono uppercase px-1.5 py-0.2 rounded font-bold tracking-wider bg-slate-900 text-slate-400 border border-slate-800 group-hover/card:border-cyber-cyan/30 group-hover/card:text-cyber-cyan transition-colors">
-                                {preset.category}
-                              </span>
+              {/* Prompt Categories Filter Pills */}
+              <div className="space-y-3 flex-1 flex flex-col min-h-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-cyber-cyan" />
+                    <span>Audit Diagnostic Presets</span>
+                  </span>
+                  <span className="text-[9px] font-mono text-slate-500">
+                    {filteredPromptPresets.length} Enquiries
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none shrink-0">
+                  {promptCategories.map((cat) => {
+                    const isSelected = selectedPromptCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setSelectedPromptCategory(cat)}
+                        type="button"
+                        className={`text-[9.5px] font-mono px-2.5 py-1 rounded-lg shrink-0 transition-all cursor-pointer ${
+                          isSelected 
+                            ? 'bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold shadow-[0_0_10px_rgba(0,229,255,0.15)]' 
+                            : 'bg-slate-950 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Interactive Presets List */}
+                <div className="space-y-2 overflow-y-auto pr-1 scrollbar-thin flex-1 min-h-[240px] max-h-[440px]">
+                  {filteredPromptPresets.map((preset) => {
+                    return (
+                      <motion.div
+                        key={preset.id}
+                        whileHover={{ scale: 1.015, x: 2 }}
+                        transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+                        className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/[0.04] hover:shadow-[0_4px_20px_rgba(0,229,255,0.12)] transition-all duration-200 group/card flex flex-col gap-1.5 relative"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 flex-1 min-w-0">
+                            <div className="mt-0.5 w-5 h-5 rounded-md bg-slate-900 border border-slate-800 group-hover/card:border-cyber-cyan/40 group-hover/card:text-cyber-cyan flex items-center justify-center text-slate-400 shrink-0 transition-colors">
+                              {preset.iconType === 'shield' && <ShieldCheck className="w-3 h-3" />}
+                              {preset.iconType === 'zap' && <Zap className="w-3 h-3" />}
+                              {preset.iconType === 'coins' && <Coins className="w-3 h-3" />}
+                              {preset.iconType === 'cpu' && <Cpu className="w-3 h-3" />}
+                              {preset.iconType === 'scale' && <Scale className="w-3 h-3" />}
                             </div>
-                            <h4 className="text-xs font-semibold text-slate-200 group-hover/card:text-white transition-colors leading-tight">
-                              {preset.title}
-                            </h4>
-                            <p className="text-[10.5px] text-slate-400 leading-snug mt-0.5 line-clamp-2">
-                              {preset.subtitle}
-                            </p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="text-[8px] font-mono uppercase px-1.5 py-0.2 rounded font-bold tracking-wider bg-slate-900 text-slate-400 border border-slate-800 group-hover/card:border-cyber-cyan/30 group-hover/card:text-cyber-cyan transition-colors">
+                                  {preset.category}
+                                </span>
+                              </div>
+                              <h4 className="text-xs font-semibold text-slate-200 group-hover/card:text-white transition-colors leading-tight">
+                                {preset.title}
+                              </h4>
+                              <p className="text-[10.5px] text-slate-400 leading-snug mt-0.5 line-clamp-2">
+                                {preset.subtitle}
+                              </p>
+                            </div>
                           </div>
-                        </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleSend(preset.query)}
-                          disabled={isSending}
-                          title="Run this diagnostic enquiry with AI Auditor"
-                          className="shrink-0 text-[10px] font-mono text-cyan-400 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 hover:border-cyan-400 px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer shadow-sm group/btn"
-                        >
-                          <Sparkles className="w-2.5 h-2.5 group-hover/btn:rotate-12 transition-transform" />
-                          <span>Run</span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                          <button
+                            type="button"
+                            onClick={() => handleSend(preset.query)}
+                            disabled={isSending}
+                            title="Run this diagnostic enquiry with AI Auditor"
+                            className="shrink-0 text-[10px] font-mono text-cyan-400 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 hover:border-cyan-400 px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer shadow-sm group/btn"
+                          >
+                            <Sparkles className="w-2.5 h-2.5 group-hover/btn:rotate-12 transition-transform" />
+                            <span>Run</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Clear chat command box */}
-          {messages.length > 0 && (
-            <button
-              onClick={handleClearHistory}
-              className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-rose-500/30 text-xs text-slate-400 hover:text-rose-400 py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Format Session History</span>
-            </button>
-          )}
+            {/* Clear chat command box inside card bottom */}
+            {messages.length > 0 && (
+              <div className="pt-3 mt-3 border-t border-slate-800/80 shrink-0">
+                <button
+                  onClick={handleClearHistory}
+                  className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-rose-500/30 text-xs text-slate-400 hover:text-rose-400 py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Format Session History</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-      {/* Main chat window */}
-      <div className="lg:col-span-8 flex flex-col h-[520px] bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl overflow-hidden shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] transition-all duration-300 relative group">
+        {/* Main chat window */}
+        <div className="lg:col-span-8 flex flex-col">
+          <div className="flex flex-col h-full min-h-[520px] bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl overflow-hidden shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] transition-all duration-300 relative group">
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent z-20"></div>
         {/* Terminal Header */}
         <div className="bg-slate-950 px-3 sm:px-5 py-3 border-b border-slate-800/80 flex justify-between items-center gap-2 shrink-0">
@@ -999,6 +1004,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
         </div>
       </div>
     </div>
+  </div>
 
     {/* Recent Audit Verdicts Section - Placed at the bottom */}
     <div 
