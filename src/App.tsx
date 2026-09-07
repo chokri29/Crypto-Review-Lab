@@ -1561,92 +1561,12 @@ export default function App() {
         {/* Real-time Ticker banner displayed on Lab Home */}
         {activeTab === 'lab' && (
           <div className="space-y-8 md:space-y-10">
-            {/* Desktop View Layout: Modern Financial Analytics Dashboard & Terminal */}
-            <div className="hidden lg:flex flex-col gap-6 lg:gap-8">
-              
-              {/* 1. Institutional KPI Telemetry Bar */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-between group hover:border-cyber-cyan/60 transition-all">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-orbitron font-bold text-cyber-text-muted uppercase tracking-widest block">
-                      VERIFIED AUDITS
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-orbitron font-black text-white tracking-wide">
-                        {savedReviews.length + 18}+
-                      </span>
-                      <span className="text-[10px] font-mono font-bold text-emerald-400">
-                        100% VERIFIED
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan group-hover:scale-110 transition-transform">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-between group hover:border-cyber-cyan/60 transition-all">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-orbitron font-bold text-cyber-text-muted uppercase tracking-widest block">
-                      SECURITY RATING
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-orbitron font-black text-cyan-300 tracking-wide">
-                        A+
-                      </span>
-                      <span className="text-[10px] font-mono font-bold text-cyan-400">
-                        92.4 COMPOSITE
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-between group hover:border-cyber-cyan/60 transition-all">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-orbitron font-bold text-cyber-text-muted uppercase tracking-widest block">
-                      MONITORED TVL
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-orbitron font-black text-emerald-300 tracking-wide">
-                        $14.8B
-                      </span>
-                      <span className="text-[10px] font-mono font-bold text-emerald-400">
-                        ON-CHAIN SYNC
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 group-hover:scale-110 transition-transform">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-between group hover:border-cyber-cyan/60 transition-all">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-orbitron font-bold text-cyber-text-muted uppercase tracking-widest block">
-                      ENGINE STATUS
-                    </span>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-orbitron font-black text-purple-300 tracking-wide">
-                        AVF PRO
-                      </span>
-                      <span className="text-[10px] font-mono font-bold text-purple-400">
-                        v3.2 ONLINE
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 group-hover:scale-110 transition-transform">
-                    <Cpu className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Main Terminal Hero Grid */}
-              <div className="grid grid-cols-12 gap-6 lg:gap-8 items-stretch">
-                {/* Left Column (8 cols): Command & Analytics Console Card */}
-                <div className="col-span-8 p-6 lg:p-7 rounded-2xl bg-gradient-to-br from-cyber-bg-card via-slate-950/90 to-cyber-bg-primary border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col justify-between group">
+            {/* Streamlined Unified Responsive Hero Section */}
+            <div className="flex flex-col gap-6 lg:gap-8">
+              {/* Terminal Hero Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+                {/* Left Column (8 cols desktop, full width mobile): Command & Analytics Console Card */}
+                <div className="col-span-12 lg:col-span-8 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-cyber-bg-card via-slate-950/90 to-cyber-bg-primary border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] relative overflow-hidden flex flex-col justify-between group">
                   {/* Subtle top glow highlight */}
                   <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/70 to-transparent" />
                   <div className="absolute -top-20 -right-20 w-48 h-48 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
@@ -1655,112 +1575,43 @@ export default function App() {
                     <div className="flex items-center justify-between border-b border-cyber-cyan/20 pb-3">
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-                        <span className="font-orbitron font-bold text-[10px] text-cyan-300 uppercase tracking-[2px]">
+                        <span className="font-orbitron font-bold text-[9px] sm:text-[10px] text-cyan-300 uppercase tracking-[2px]">
                           CRYPTO REVIEW LAB — INSTITUTIONAL SECURITY TERMINAL
                         </span>
                       </div>
-                      <span className="text-[9px] font-mono text-slate-400 border border-slate-800 px-2 py-0.5 rounded bg-slate-900">
+                      <span className="text-[9px] font-mono text-slate-400 border border-slate-800 px-2.5 py-0.5 rounded bg-slate-900/80">
                         SECURE NODE 01
                       </span>
                     </div>
 
-                    <h2 className="font-orbitron font-extrabold text-3xl lg:text-4xl text-white tracking-wide leading-tight">
-                      AVF Security & <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Risk Assessment</span>
+                    <h2 className="font-orbitron font-extrabold text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide leading-tight">
+                      AVF Security &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Risk Assessment</span>
                     </h2>
 
-                    <p className="text-sm text-slate-300 font-sans leading-relaxed max-w-3xl">
-                      Algorithmic Verification Framework (AVF Engine) performing symbolic execution, flash-loan drain simulation, TVL stress analysis, and live multi-exchange market surveillance.
+                    <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
+                      Algorithmic Verification Framework (AVF Engine) performing symbolic execution, flash-loan drain simulation, TVL stress analysis, and live multi-exchange market surveillance. An institutional crypto intelligence and verification suite for digital assets.
                     </p>
                   </div>
 
-                  {/* Terminal Quick-Launch Action Console Grid */}
-                  <div className="grid grid-cols-4 gap-3 pt-6 mt-4 border-t border-cyber-cyan/15">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('lab');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="p-3.5 rounded-xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/40 hover:border-cyber-cyan transition-all duration-300 text-left flex flex-col justify-between gap-2 group/btn cursor-pointer shadow-[0_0_15px_rgba(0,229,255,0.1)]"
-                    >
-                      <div className="flex items-center justify-between text-cyber-cyan">
-                        <Zap className="w-4 h-4" />
-                        <span className="text-[9px] font-mono font-bold opacity-75">01</span>
-                      </div>
-                      <div>
-                        <div className="font-orbitron font-bold text-xs text-white group-hover/btn:text-cyber-cyan transition-colors">
-                          Instant Audit
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          AVF Rapid Evaluation
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleLaunchProEvaluation()}
-                      className="p-3.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/40 hover:border-purple-400 transition-all duration-300 text-left flex flex-col justify-between gap-2 group/btn cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.1)]"
-                    >
-                      <div className="flex items-center justify-between text-purple-400">
-                        <Crown className="w-4 h-4" />
-                        <span className="text-[9px] font-mono font-bold opacity-75">02</span>
-                      </div>
-                      <div>
-                        <div className="font-orbitron font-bold text-xs text-white group-hover/btn:text-purple-300 transition-colors">
-                          Security Assessment
-                        </div>
-                        <div className="text-[10px] text-purple-300/70 font-mono">
-                          In-Depth Verification
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsCoinGeckoModalOpen(true)}
-                      className="p-3.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/40 hover:border-emerald-400 transition-all duration-300 text-left flex flex-col justify-between gap-2 group/btn cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                    >
-                      <div className="flex items-center justify-between text-emerald-400">
-                        <Globe className="w-4 h-4" />
-                        <span className="text-[9px] font-mono font-bold opacity-75">03</span>
-                      </div>
-                      <div>
-                        <div className="font-orbitron font-bold text-xs text-white group-hover/btn:text-emerald-300 transition-colors">
-                          CG + CMC Explorer
-                        </div>
-                        <div className="text-[10px] text-emerald-300/70 font-mono">
-                          Tri-Sync Engine
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab('chat');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="p-3.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 hover:border-amber-400 transition-all duration-300 text-left flex flex-col justify-between gap-2 group/btn cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-                    >
-                      <div className="flex items-center justify-between text-amber-400">
-                        <Terminal className="w-4 h-4" />
-                        <span className="text-[9px] font-mono font-bold opacity-75">04</span>
-                      </div>
-                      <div>
-                        <div className="font-orbitron font-bold text-xs text-white group-hover/btn:text-amber-300 transition-colors">
-                          AI Contract Auditor
-                        </div>
-                        <div className="text-[10px] text-amber-300/70 font-mono">
-                          Live Security Desk
-                        </div>
-                      </div>
-                    </button>
+                  {/* Feature Telemetry Badges */}
+                  <div className="flex flex-wrap items-center gap-2 pt-4 mt-4 border-t border-cyber-cyan/15 font-orbitron text-[9px] sm:text-[10px] uppercase tracking-wider">
+                    <span className="px-3 py-1.5 rounded-xl bg-cyber-cyan/10 text-cyan-300 border border-cyber-cyan/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
+                      AVF Security Assessment
+                    </span>
+                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                      Real-Time Intelligence
+                    </span>
+                    <span className="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-300 border border-purple-500/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                      Multi-Source Sync
+                    </span>
                   </div>
                 </div>
 
-                {/* Right Column (4 cols): 3D Core Telemetry & Status Monitor Card */}
-                <div className="col-span-4 p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between relative overflow-hidden">
+                {/* Right Column (4 cols desktop, full width mobile): 3D Core Telemetry & Status Monitor Card */}
+                <div className="col-span-12 lg:col-span-4 p-4 sm:p-5 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between relative overflow-hidden h-[320px] sm:h-[350px] lg:h-full min-h-[300px]">
                   <div className="flex items-center justify-between pb-2 border-b border-cyber-cyan/15">
                     <span className="text-[10px] font-orbitron font-bold text-cyber-cyan uppercase tracking-wider flex items-center gap-1.5">
                       <Cpu className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />
@@ -1771,7 +1622,7 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="w-full h-[180px] my-2 relative">
+                  <div className="w-full flex-1 my-2 relative min-h-[180px]">
                     <React.Suspense fallback={null}>
                       <ThreeCore />
                     </React.Suspense>
@@ -1784,82 +1635,8 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 3. Lower Grid: Audited Projects Showcase */}
+              {/* Lower Section: Audited Projects Showcase */}
               <div className="w-full">
-                <MarketTicker 
-                  mode="showcase"
-                  reviews={savedReviews}
-                  onSelectReview={(id) => {
-                    setSelectedReviewId(id);
-                    setActiveTab('blog');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                />
-              </div>
-
-            </div>
-
-            {/* Mobile View Layout: Single Column Stack */}
-            <div className="flex lg:hidden flex-col gap-7 sm:gap-9 pt-2">
-              {/* 1. Header description */}
-              <div className="space-y-4 pb-1">
-                <div>
-                  <span className="inline-flex items-center gap-2 font-orbitron font-bold text-[8px] sm:text-[9px] text-cyan-300 bg-cyan-500/10 border border-cyan-400/40 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full uppercase tracking-[1.5px] sm:tracking-[2px] shadow-[0_0_12px_rgba(0,229,255,0.18)] max-w-full truncate">
-                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
-                    Live Crypto Markets Stream Active
-                  </span>
-                </div>
-                <h2 className="font-orbitron font-extrabold text-[21px] sm:text-2xl md:text-3xl text-slate-100 tracking-tight sm:tracking-wide leading-tight pt-1 break-words">
-                  AVF Security &amp;{' '}
-                  <span className="font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 drop-shadow-[0_0_22px_rgba(0,229,255,0.5)] inline-block">
-                    Risk Assessment
-                  </span>
-                </h2>
-                
-                {/* Redesigned Cyber Description Block */}
-                <div className="relative p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-cyber-bg-card via-cyber-bg-card/90 to-cyber-bg-primary border border-cyber-cyan/30 backdrop-blur-md space-y-3 shadow-[0_8px_30px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.08)] overflow-hidden transition-all duration-300 ease-out hover:border-cyber-cyan/50 hover:scale-[1.018] hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(0,229,255,0.22),inset_0_1px_1px_rgba(255,255,255,0.15)] group cursor-pointer">
-                  {/* Ambient glowing accent orb in background */}
-                  <div className="absolute -top-10 -right-10 w-28 h-28 bg-cyber-cyan/15 rounded-full blur-2xl pointer-events-none group-hover:bg-cyber-cyan/25 transition-all duration-500" />
-                  
-                  {/* Glowing top accent highlight line */}
-                  <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/50 to-transparent" />
-
-                  {/* Header bar inside card */}
-                  <div className="flex items-center gap-2 border-b border-cyber-cyan/15 pb-2.5">
-                    <div className="flex items-center gap-2 text-cyber-cyan font-orbitron text-[10px] sm:text-xs font-black uppercase tracking-[2px]">
-                      <div className="p-1 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.2)]">
-                        <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-                      </div>
-                      <span>CRYPTO SECURITY & AUDIT STREAM</span>
-                    </div>
-                  </div>
-
-                  {/* Description Text */}
-                  <p className="text-xs sm:text-sm text-slate-200 font-sans font-medium leading-relaxed pt-0.5 tracking-wide">
-                    An Interactive Crypto Intelligence and Verification AI Platform — Powered by <span className="font-orbitron font-bold text-cyan-300">AVF Engine</span> (Algorithmic Verification Framework)
-                  </p>
-
-                  {/* Creative Feature Badges */}
-                  <div className="flex flex-wrap gap-2 pt-1 font-orbitron text-[9px] sm:text-[10px] uppercase tracking-wider">
-                    <span className="px-3 py-1 rounded-lg bg-cyber-cyan/10 text-cyan-300 border border-cyber-cyan/30 font-bold shadow-sm backdrop-blur-sm">
-                      AVF Security Assessment
-                    </span>
-                    <span className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold shadow-sm backdrop-blur-sm">
-                      Real-Time Intelligence
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Logo 3D */}
-              <div className="h-[320px] xs:h-[350px] sm:h-[380px] shrink-0 my-1 p-1 bg-transparent rounded-2xl">
-                <React.Suspense fallback={null}>
-                  <ThreeCore />
-                </React.Suspense>
-              </div>
-
-              {/* 3. Audited Projects showcase card */}
-              <div className="pt-1">
                 <MarketTicker 
                   mode="showcase"
                   reviews={savedReviews}
