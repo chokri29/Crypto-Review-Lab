@@ -1403,29 +1403,29 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
         {/* Configuration & Inputs panel (Terminal) */}
-        <div className="lg:col-span-6 space-y-6 md:space-y-7">
-          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] relative overflow-hidden transition-all duration-300 group">
+        <div className="lg:col-span-6 flex flex-col h-full">
+          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] relative overflow-hidden transition-all duration-300 group flex flex-col flex-1 h-full">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
             <div className="absolute top-0 right-0 w-44 h-44 bg-cyber-cyan/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0">
                     <Terminal className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h2 className="font-orbitron font-extrabold text-base md:text-xl text-slate-100 tracking-wider leading-tight flex items-center gap-2">
-                      <span>Evaluation Blueprint Terminal</span>
+                  <div className="min-w-0">
+                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-wider leading-tight flex items-center gap-2">
+                      <span className="truncate">Evaluation Blueprint Terminal</span>
                     </h2>
-                    <p className="text-[10px] font-orbitron text-cyber-cyan font-bold tracking-widest">ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE</p>
+                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-widest truncate">ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-1 rounded-full shadow-sm tracking-wider">
+                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0">
                   <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
                   <span>LIVE CONSOLE</span>
                 </div>
@@ -1447,48 +1447,49 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 </div>
               )}
 
-              {/* Dedicated B2B Security & Risk Assessment Advisory Banner */}
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-purple-950/80 via-slate-950 to-slate-950 border border-purple-500/40 rounded-xl sm:rounded-2xl shadow-lg relative overflow-hidden space-y-3">
+              {/* Dedicated B2B Security & Risk Assessment Advisory Banner - Optimized for Desktop & Mobile */}
+              <div className="p-3.5 sm:p-4 bg-gradient-to-r from-purple-950/80 via-slate-950 to-slate-950 border border-purple-500/40 rounded-xl sm:rounded-2xl shadow-lg relative overflow-hidden space-y-3">
                 <div className="absolute top-0 right-0 w-36 h-36 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
                 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                <div className="flex flex-col gap-3 relative z-10">
                   <div className="flex items-start gap-2.5">
-                    <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 shrink-0">
+                    <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 shrink-0 mt-0.5">
                       <Crown className="w-5 h-5 fill-amber-400/30 text-amber-400" />
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 uppercase tracking-wide">
                           Security & Risk Assessment
                         </span>
-                        <span className="text-[9px] font-orbitron font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        <span className="text-[9px] font-orbitron font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
                           Security Diagnostic Check
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 font-sans mt-0.5 leading-snug">
+                      <p className="text-[11px] text-slate-400 font-sans mt-1 leading-relaxed">
                         Actionable diagnostic check: Bytecode scans, tokenomics overhang, and remediation guidance — conducted prior to launch, contract upgrades, or whenever detailed security verification is required.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-orbitron font-bold uppercase bg-slate-900 border border-cyan-400/50 text-cyan-300 shadow-sm">
-                      <Cpu className="w-3 h-3 text-cyan-400 animate-pulse" />
+                  {/* Clean Action & Status Row */}
+                  <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 border-t border-purple-500/20 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-orbitron font-bold uppercase bg-slate-900 border border-cyan-400/50 text-cyan-300 shadow-sm shrink-0">
+                      <Cpu className="w-3 h-3 text-cyan-400 animate-pulse shrink-0" />
                       <span>AVF Active</span>
                     </span>
                     {isProUnlocked ? (
-                      <span className="text-[10px] bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 px-2 py-1 rounded-lg font-orbitron uppercase font-bold flex items-center gap-1 shadow-sm">
-                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span className="text-[10px] bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 px-2.5 py-1 rounded-lg font-orbitron uppercase font-bold flex items-center gap-1.5 shadow-sm shrink-0">
+                        <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
                         <span>Assessment Active</span>
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={() => setShowProModal(true)}
-                        className="text-[10px] bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-orbitron uppercase font-extrabold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-md transition-all cursor-pointer"
+                        className="text-[10px] bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-orbitron uppercase font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md transition-all cursor-pointer shrink-0"
                       >
-                        <Lock className="w-3 h-3 text-slate-950" />
-                        <span>Order Security Check</span>
+                        <Lock className="w-3 h-3 text-slate-950 shrink-0" />
+                        <span className="whitespace-nowrap">Order Security Check</span>
                       </button>
                     )}
                   </div>
@@ -1497,7 +1498,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             </div>
             
             {/* Form Inputs */}
-            <form onSubmit={handleGenerate} className="space-y-4">
+            <form onSubmit={handleGenerate} className="space-y-4 flex-1 flex flex-col justify-between">
               <div>
                 <label className="block text-xs font-orbitron font-bold uppercase tracking-wider text-slate-300 mb-2">Project Name</label>
                 <input
@@ -1911,17 +1912,19 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         </div>
 
         {/* Output Panel */}
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-6 flex flex-col h-full">
           {/* Loading Skeleton */}
           {isLoading && (
-            <ProEvaluationTerminalLoader
-              auditMode="pro"
-              symbol={symbol.toUpperCase().trim() || 'TARGET'}
-              name={name.trim() || 'Protocol'}
-              category={category}
-              compareProtocol={isCompareEnabled ? compareProtocol : undefined}
-              stepIndex={loadingStep}
-            />
+            <div className="flex-1 flex flex-col h-full">
+              <ProEvaluationTerminalLoader
+                auditMode="pro"
+                symbol={symbol.toUpperCase().trim() || 'TARGET'}
+                name={name.trim() || 'Protocol'}
+                category={category}
+                compareProtocol={isCompareEnabled ? compareProtocol : undefined}
+                stepIndex={loadingStep}
+              />
+            </div>
           )}
 
           {/* Pending Human Auditor Review (< 24h Delivery) State */}
@@ -2069,24 +2072,124 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             </motion.div>
           )}
 
-          {/* Empty state */}
+          {/* Empty state / Security Check Screen Standby - Aligned to match Terminal height */}
           {!isLoading && !generatedReview && !pendingProOrder && !error && (
-            <div className="bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-8 min-h-[480px] flex flex-col items-center justify-center text-center shadow-xl hover:shadow-[0_12px_36px_rgba(0,229,255,0.2)] transition-all duration-300 relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 sm:p-6 md:p-7 flex flex-col justify-between text-center shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] transition-all duration-300 relative overflow-hidden group flex-1 h-full w-full">
               {/* Top Cyber Glow Line */}
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
-              <div className="w-12 h-12 bg-cyber-cyan/10 border border-cyber-cyan/30 rounded-xl flex items-center justify-center text-cyber-cyan mb-4 shadow-[0_0_15px_rgba(0,229,255,0.15)] group-hover:bg-cyber-cyan/20 transition-colors">
-                <FileCheck className="w-6 h-6 text-cyber-cyan" />
+              <div className="absolute top-0 right-0 w-44 h-44 bg-cyber-cyan/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+              {/* Status Header */}
+              <div className="w-full flex items-center justify-between pb-3.5 mb-2 border-b border-slate-800/80 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
+                    <span className="text-[9px] font-orbitron font-bold text-cyber-cyan uppercase tracking-wider">
+                      RADAR STANDBY
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-orbitron text-slate-400 font-bold hidden sm:inline tracking-wider">
+                    SCREEN SANDBOX
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] font-mono text-slate-400 bg-slate-900/90 border border-slate-800 px-2.5 py-0.5 rounded-full">
+                  <Activity className="w-2.5 h-2.5 text-emerald-400" />
+                  <span>TELEMETRY READY</span>
+                </div>
               </div>
-              <h3 className="font-orbitron font-extrabold text-slate-100 text-base mb-1.5 tracking-wide">Security Check Screen Standby</h3>
-              <p className="text-xs text-slate-400 max-w-sm leading-relaxed font-sans">
-                Define a project in the Blueprint configuration or click one of our Sandbox accelerators to run a comprehensive crypto security check.
-              </p>
+
+              {/* Center Screen Sandbox Hero */}
+              <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-6 space-y-4">
+                <div className="relative">
+                  <div className="absolute -inset-2 bg-cyber-cyan/20 rounded-2xl blur-lg group-hover:bg-cyber-cyan/30 transition-all"></div>
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-cyber-cyan/20 via-slate-900 to-slate-950 border border-cyber-cyan/40 rounded-2xl flex items-center justify-center text-cyber-cyan shadow-[0_0_25px_rgba(0,229,255,0.2)] group-hover:scale-105 transition-all relative z-10">
+                    <FileCheck className="w-8 h-8 sm:w-10 sm:h-10 text-cyber-cyan animate-pulse" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 max-w-md px-2">
+                  <h3 className="font-orbitron font-extrabold text-slate-100 text-base sm:text-lg md:text-xl tracking-wide">
+                    Security Check Screen Standby
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
+                    Define a project in the Blueprint configuration or click one of our Sandbox accelerators to run a comprehensive crypto security check.
+                  </p>
+                </div>
+
+                {/* Quick-Load Sandbox Accelerators Section */}
+                <div className="w-full max-w-md pt-2 space-y-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[10px] font-orbitron font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-cyber-cyan" />
+                      Sandbox Accelerators
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-500">Quick-load into Terminal</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                    {displayedAccelerators.slice(0, 4).map((accel) => (
+                      <button
+                        key={accel.symbol}
+                        type="button"
+                        onClick={() => handleSuggestionClick(accel)}
+                        className="bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/90 hover:border-cyber-cyan/50 rounded-xl p-2.5 transition-all text-left group/accel cursor-pointer flex items-center justify-between shadow-sm hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]"
+                        title={`Click to load ${accel.name} into Evaluation Blueprint`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-orbitron font-bold text-xs text-slate-100 group-hover/accel:text-cyber-cyan transition-colors">
+                              {accel.symbol}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 truncate">
+                              {accel.name}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 truncate font-sans mt-0.5">
+                            {accel.category}
+                          </p>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover/accel:text-cyber-cyan shrink-0 transition-transform group-hover/accel:translate-x-0.5" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Pipeline Modules */}
+              <div className="w-full pt-3.5 mt-2 border-t border-slate-800/80 shrink-0 space-y-2">
+                <div className="grid grid-cols-3 gap-2 text-left">
+                  <div className="bg-slate-900/70 border border-slate-800/80 rounded-lg p-2">
+                    <div className="text-[9px] font-orbitron font-bold text-cyber-cyan flex items-center gap-1">
+                      <Cpu className="w-2.5 h-2.5" />
+                      F1 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Bytecode Scanner</p>
+                  </div>
+                  <div className="bg-slate-900/70 border border-slate-800/80 rounded-lg p-2">
+                    <div className="text-[9px] font-orbitron font-bold text-amber-400 flex items-center gap-1">
+                      <ShieldCheck className="w-2.5 h-2.5" />
+                      F2 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Cross-Validation</p>
+                  </div>
+                  <div className="bg-slate-900/70 border border-slate-800/80 rounded-lg p-2">
+                    <div className="text-[9px] font-orbitron font-bold text-emerald-400 flex items-center gap-1">
+                      <Activity className="w-2.5 h-2.5" />
+                      F3 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Deterministic Risk</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500 font-mono">
+                  Cryptographic diagnostic telemetry active • Algorithmic Verification Framework
+                </p>
+              </div>
             </div>
           )}
 
           {/* Error State */}
           {!isLoading && error && (
-            <div className="bg-slate-900 border border-rose-950/40 rounded-2xl p-8 min-h-[480px] flex flex-col items-center justify-center text-center">
+            <div className="bg-slate-900 border border-rose-950/40 rounded-2xl p-8 min-h-[480px] flex flex-col items-center justify-center text-center flex-1 h-full w-full">
               <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-center text-rose-400 mb-4">
                 <ShieldAlert className="w-6 h-6 animate-bounce" />
               </div>

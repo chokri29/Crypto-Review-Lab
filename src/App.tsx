@@ -1597,9 +1597,6 @@ export default function App() {
                           CRYPTO REVIEW LAB — INSTITUTIONAL SECURITY TERMINAL
                         </span>
                       </div>
-                      <span className="text-[9px] font-mono text-slate-400 border border-slate-800 px-2.5 py-0.5 rounded bg-slate-900/80">
-                        SECURE NODE 01
-                      </span>
                     </div>
 
                     <h2 className="font-orbitron font-extrabold text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide leading-tight">
@@ -1635,20 +1632,12 @@ export default function App() {
                       <Cpu className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />
                       3D CORE MATRIX
                     </span>
-                    <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30 font-bold">
-                      LATENCY &lt;12MS
-                    </span>
                   </div>
 
                   <div className="w-full flex-1 my-2 relative min-h-[180px]">
                     <React.Suspense fallback={null}>
                       <ThreeCore />
                     </React.Suspense>
-                  </div>
-
-                  <div className="pt-2 border-t border-cyber-cyan/15 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                    <span>NODE: EU-CENTRAL-1</span>
-                    <span className="text-cyan-300 font-bold">AVF PRO v3.2</span>
                   </div>
                 </div>
               </div>

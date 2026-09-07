@@ -249,12 +249,6 @@ export default function ThreeCore() {
 
   return (
     <div className="w-full h-full min-h-[175px] md:min-h-[190px] flex items-center justify-center relative overflow-hidden bg-transparent rounded-2xl">
-      {/* Top Right AVF Engine HUD Overlay Badge */}
-      <div className="absolute top-3 right-4 z-20 flex items-center gap-1.5 font-mono text-[9px] text-cyan-300 font-bold tracking-wider uppercase select-none bg-slate-950/70 border border-cyan-500/30 px-2.5 py-1 rounded-full backdrop-blur-md shadow-sm">
-        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-        <span>AVF ENGINE • MATRIX</span>
-      </div>
-
       {/* Bottom Left AI x Crypto Label */}
       <div className="absolute bottom-3 left-4 z-20 font-mono text-[9px] sm:text-xs text-[#00e5ff]/90 tracking-[3px] uppercase select-none font-bold drop-shadow-[0_0_6px_rgba(0,229,255,0.4)] flex items-center gap-2">
         <span>AI x CRYPTO</span>
