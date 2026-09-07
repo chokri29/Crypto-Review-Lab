@@ -241,39 +241,26 @@ export default function XStockVerificationPanel({
     <div id="xstock-verification-panel" className="p-5 sm:p-7 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border border-cyber-cyan/30 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.06)] space-y-6">
       
       {/* 1. Header: Clear Stock Identity & Panel Purpose for Visitors */}
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 border-b border-cyber-cyan/15 pb-5">
-        <div className="space-y-2 flex-1 min-w-0">
+      <div className="space-y-4 border-b border-cyber-cyan/15 pb-5">
+        {/* Top utility row: Badges on left, Sharing and Actions on right */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Tokenized Stock Information &amp; Verification</span>
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[11px] font-mono text-purple-300 bg-purple-950/60 border border-purple-800/60">
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold text-purple-300 bg-purple-950/60 border border-purple-800/60">
               {selectedStock.symbol} • {selectedStock.underlyingTicker}
             </span>
-            <span className="px-2 py-0.5 rounded-md text-[11px] font-mono text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>100% Asset-Backed</span>
             </span>
           </div>
 
-          <h2 className="font-orbitron font-bold text-lg sm:text-2xl text-white tracking-wide">
-            About {selectedStock.name} ({selectedStock.symbol})
-          </h2>
-
-          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-4xl">
-            {selectedStock.description}
-          </p>
-          <p className="text-xs text-slate-400 font-sans leading-relaxed max-w-4xl">
-            This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
-          </p>
-        </div>
-
-        {/* Right side: Toolbar & 1:1 Collateralized Architecture Card */}
-        <div className="flex flex-col items-start lg:items-end gap-3 shrink-0 w-full lg:w-auto lg:max-w-md">
           {/* Toolbar: Share & Refresh Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2 py-1 rounded-xl shadow-sm">
+            <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-xl shadow-sm">
               <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
                 <Share2 className="w-3 h-3 text-cyber-cyan" />
                 <span>Share:</span>
@@ -331,23 +318,83 @@ export default function XStockVerificationPanel({
                 if (onRefreshAll) onRefreshAll();
               }}
               disabled={isScanning || isRefreshingQuotes}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
               title="Refresh prices and re-run verification checks"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isScanning || isRefreshingQuotes ? 'animate-spin' : ''}`} />
               <span>{isScanning ? 'Updating...' : 'Refresh Data'}</span>
             </button>
           </div>
+        </div>
 
-          {/* 1:1 Collateralized Architecture Card moved to empty space below social sharing buttons */}
-          <div className="w-full p-3.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 space-y-1 text-[11px] font-mono text-slate-300 shadow-md">
-            <div className="flex items-center gap-2 text-cyber-cyan font-bold text-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
-              <span className="font-orbitron text-[10.5px] uppercase tracking-wider text-white">1:1 Collateralized Architecture</span>
+        {/* Main Identity & Architecture Balanced Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch pt-1">
+          {/* Left Column (7 cols): Stock Identity & Purpose Statement */}
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-3">
+            <div className="space-y-2">
+              <h2 className="font-orbitron font-bold text-xl sm:text-2xl text-white tracking-wide">
+                About {selectedStock.name} ({selectedStock.symbol})
+              </h2>
+
+              <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+                {selectedStock.description}
+              </p>
+              <p className="text-xs text-slate-400 font-sans leading-relaxed">
+                This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
+              </p>
             </div>
-            <p className="leading-relaxed text-[10.5px] text-slate-400">
-              xStocks are tokenized tracker certificates issued under the Swiss DLT Act. Underlying stocks are held in custody by regulated Swiss custodians.
-            </p>
+
+            {/* Quick Trust Highlights */}
+            <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] font-mono text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
+                <span>Regulated Swiss Issuance</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Real-Time Price Parity</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-purple-400" />
+                <span>Bankruptcy-Remote Custody</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column (5 cols): 1:1 Collateralized Architecture Card filling full column */}
+          <div className="lg:col-span-5 flex flex-col">
+            <div className="w-full h-full p-4 sm:p-5 rounded-xl bg-slate-950/90 border border-cyber-cyan/30 shadow-lg flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5">
+                <div className="flex items-center gap-2 text-cyber-cyan font-bold text-xs">
+                  <ShieldCheck className="w-4 h-4 text-cyber-cyan shrink-0" />
+                  <span className="font-orbitron text-xs uppercase tracking-wider text-white">1:1 Collateralized Architecture</span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 shrink-0">
+                  Swiss DLT Act
+                </span>
+              </div>
+
+              <p className="text-xs font-mono text-slate-300 leading-relaxed">
+                xStocks are tokenized tracker certificates issued under Swiss law. Each token is 100% collateralized with underlying shares held in regulated bankruptcy-remote custody.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2.5 pt-1 text-[11px] font-mono">
+                <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-300 space-y-0.5">
+                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Custody Parity</div>
+                  <div className="text-emerald-400 font-bold flex items-center gap-1 text-xs">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span>1 Token = 1 Share</span>
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-300 space-y-0.5">
+                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Legal Protection</div>
+                  <div className="text-cyber-cyan font-bold flex items-center gap-1 text-xs">
+                    <Lock className="w-3 h-3 text-cyber-cyan shrink-0" />
+                    <span>FINMA Regulated</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
