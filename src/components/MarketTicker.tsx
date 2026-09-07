@@ -22,9 +22,10 @@ interface CoinIconProps {
   logoUrl?: string;
   coingeckoId?: string;
   name?: string;
+  size?: 'sm' | 'md';
 }
 
-const CoinIcon: React.FC<CoinIconProps> = ({ symbol, logoUrl, coingeckoId, name }) => {
+const CoinIcon: React.FC<CoinIconProps> = ({ symbol, logoUrl, coingeckoId, name, size = 'md' }) => {
   const cleanSymbol = (symbol || 'BTC').toUpperCase().trim();
   const resolvedLogo = getCoinLogoUrl(symbol, logoUrl, coingeckoId);
   const [imgError, setImgError] = useState(false);
@@ -34,6 +35,20 @@ const CoinIcon: React.FC<CoinIconProps> = ({ symbol, logoUrl, coingeckoId, name 
   }, [resolvedLogo, symbol, coingeckoId]);
 
   if (resolvedLogo && !imgError) {
+    if (size === 'sm') {
+      return (
+        <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-cyber-cyan/40 bg-slate-900/90 flex items-center justify-center shadow-[0_0_10px_rgba(0,229,255,0.25)] overflow-hidden p-1 shrink-0">
+          <img 
+            src={resolvedLogo} 
+            alt={name || symbol} 
+            className="w-full h-full object-contain rounded-lg"
+            referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 select-none group/icon">
         <div className="absolute inset-0 rounded-2xl bg-cyber-cyan/20 blur-md group-hover/icon:bg-cyber-cyan/35 transition-all animate-pulse"></div>
@@ -53,6 +68,14 @@ const CoinIcon: React.FC<CoinIconProps> = ({ symbol, logoUrl, coingeckoId, name 
   }
 
   // Fallback badge if image fails to load or is missing
+  if (size === 'sm') {
+    return (
+      <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-cyber-cyan/40 bg-slate-900/95 flex items-center justify-center font-display font-black text-[10px] text-cyber-cyan tracking-wider shrink-0 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
+        {cleanSymbol.length > 4 ? cleanSymbol.substring(0, 3) : cleanSymbol}
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center shrink-0 select-none group/icon">
       <div className="absolute inset-0 rounded-2xl bg-cyber-cyan/20 blur-md group-hover/icon:bg-cyber-cyan/35 transition-all animate-pulse"></div>
@@ -141,6 +164,15 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
     return 'text-rose-400 border-rose-400/20 bg-rose-500/10 font-bold';
   };
 
+  const getGradeTextColor = (grade: string) => {
+    if (grade === 'AAA') return 'text-cyber-cyan drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]';
+    if (grade === 'AA') return 'text-emerald-400';
+    if (grade?.charAt(0) === 'A') return 'text-cyber-cyan';
+    if (grade?.charAt(0) === 'B') return 'text-slate-100';
+    if (grade?.charAt(0) === 'C') return 'text-amber-400';
+    return 'text-rose-400';
+  };
+
   const getRiskStyles = (risk: string) => {
     switch (risk) {
       case 'Low': return 'text-cyber-green bg-cyber-green/5 border-cyber-green/20';
@@ -159,159 +191,201 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
   }
 
   return (
-    <TiltCard className="h-full bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] relative overflow-hidden group">
+    <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] relative overflow-hidden group flex flex-col justify-between h-full select-none transition-all duration-300">
+      {/* Top Cyber Glow Line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
       <div className="absolute top-0 right-0 w-36 h-36 bg-cyber-cyan/10 rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none"></div>
-      <div className="p-5 sm:p-6 relative flex flex-col justify-between min-h-[190px] md:min-h-[210px] h-full">
 
-        {/* Header containing Audited Projects Showcase */}
-        <div className="flex justify-between items-center mb-4 pb-3 border-b border-cyber-cyan/15 flex-wrap gap-2">
+      {/* Header */}
+      <div className="flex justify-between items-center pb-3.5 border-b border-slate-800/80 mb-4 relative z-10 flex-wrap gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
+            <Award className="w-4 h-4 stroke-[2.5]" />
+          </div>
+          <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] flex items-center gap-2">
+            <span>Audited Projects Showcase</span>
+          </h3>
           <button 
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               if (onSelectReview) onSelectReview('');
             }}
-            className="font-orbitron font-extrabold text-xs uppercase tracking-[2px] text-cyber-cyan flex items-center gap-2 hover:text-white transition-colors cursor-pointer group"
+            className="text-[10px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/35 px-2.5 py-0.5 rounded-full hover:bg-cyber-cyan hover:text-slate-950 transition-all cursor-pointer"
             title="Click to view all audited projects in registry"
           >
-            <Award className="w-4 h-4 text-cyber-cyan animate-pulse group-hover:scale-110 transition-transform" />
-            <span>Audited Projects Showcase</span>
-            <span className="text-[10px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/35 px-2 py-0.5 rounded-full hover:bg-cyber-cyan hover:text-slate-950 transition-all">
-              View All ({allAudits.length})
-            </span>
+            View All ({allAudits.length})
           </button>
-          
-          {/* Control buttons */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button 
-              onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
-              className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/5 cursor-pointer flex items-center justify-center shrink-0"
-              title={isPlaying ? "Pause Showcase rotation" : "Play Showcase rotation"}
-            >
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            </button>
-            <span className="text-[10px] font-mono text-cyber-cyan/80 bg-cyber-cyan/5 px-2 py-0.5 rounded border border-cyber-cyan/10 whitespace-nowrap shrink-0">
-              {activeAuditIdx + 1} / {allAudits.length}
-            </span>
-          </div>
         </div>
 
-        {/* Cycling Content Container with smooth fade */}
+        <div className="flex items-center gap-2">
+          {/* Previous / Next buttons */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); handlePrevAudit(); }}
+            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
+            title="Previous Audited Project"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleNextAudit(); }}
+            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
+            title="Next Audited Project"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Pause / Play button */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
+            title={isPlaying ? "Pause rotation" : "Play rotation"}
+          >
+            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Counter Badge */}
+          <span className="font-mono text-[9px] text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/35 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm">
+            {activeAuditIdx + 1} / {allAudits.length}
+          </span>
+        </div>
+      </div>
+
+      {/* 5-Column Grid matching AI Market Summary and AI XStocks Market Summary */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 transition-opacity duration-150 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+        {/* Metric 1: Audited Asset */}
         <div 
           onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
-          className={`flex-1 flex flex-col justify-between gap-4 transition-opacity duration-150 cursor-pointer group py-2 ${
-            isFading ? 'opacity-0' : 'opacity-100'
-          }`}
+          className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-inner hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile"
+          title={`Click to view ${activeAudit.name} audit report`}
         >
-          {/* Top Row: Coin Icon, Name/Category, and Grade/Index badge */}
-          <div className="flex items-center gap-3.5 w-full">
-            {/* Advanced custom coin render */}
-            <div className="shrink-0">
-              <CoinIcon symbol={activeAudit.symbol} logoUrl={activeAudit.logoUrl} coingeckoId={activeAudit.coingeckoId} name={activeAudit.name} />
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              AUDITED ASSET
             </div>
-
-            {/* Name and Meta details */}
+            <span className="font-mono text-[10px] text-cyber-cyan font-black bg-cyber-cyan/15 border border-cyber-cyan/30 px-1.5 py-0.5 rounded uppercase shrink-0">
+              {activeAudit.symbol}
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 py-1 min-w-0">
+            <CoinIcon 
+              symbol={activeAudit.symbol} 
+              logoUrl={activeAudit.logoUrl} 
+              coingeckoId={activeAudit.coingeckoId} 
+              name={activeAudit.name}
+              size="sm"
+            />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-display font-black text-base sm:text-lg lg:text-xl text-white group-hover:text-cyber-cyan group-hover:drop-shadow-[0_0_12px_rgba(0,229,255,0.6)] transition-all break-words leading-tight">
-                  {activeAudit.name}
-                </span>
-                <span className="font-mono text-xs text-cyber-cyan font-black bg-cyber-cyan/15 border border-cyber-cyan/30 px-2 py-0.5 rounded-md uppercase shrink-0">
-                  {activeAudit.symbol}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="text-xs font-mono text-slate-300 font-bold uppercase tracking-wider">
-                  {activeAudit.category}
-                </span>
-                <span className="text-cyber-cyan/40 text-[10px] font-mono select-none">•</span>
-                <span className={`text-xs font-mono px-2 py-0.5 rounded-md border uppercase font-extrabold tracking-wider ${getRiskStyles(activeAudit.riskLevel)}`}>
-                  {activeAudit.riskLevel} Risk
-                </span>
-              </div>
-            </div>
-
-            {/* High Contrast Index & Grade Badge */}
-            <div className="shrink-0 flex items-center gap-3 bg-slate-950/80 px-3.5 py-2.5 rounded-2xl border-2 border-cyber-cyan/30 shadow-md select-none">
-              <div className="text-center">
-                <div className="text-[9px] font-mono text-slate-400 font-bold uppercase tracking-wider">INDEX</div>
-                <div className="text-base sm:text-lg font-display font-black text-cyber-cyan mt-0.5 drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">
-                  {activeAudit.overallScore}%
-                </div>
-              </div>
-              <div className="w-[1.5px] h-7 bg-cyber-cyan/25"></div>
-              <div className="text-center">
-                <div className="text-[9px] font-mono text-slate-400 font-bold uppercase tracking-wider">GRADE</div>
-                <div className={`text-base sm:text-lg font-mono font-black mt-0.5 ${getGradeColor(activeAudit.grade)}`}>
-                  {activeAudit.grade}
-                </div>
+              <div className="font-display font-black text-base sm:text-lg text-white group-hover/tile:text-cyber-cyan transition-colors truncate">
+                {activeAudit.name}
               </div>
             </div>
           </div>
-
-          {/* Middle Row: Bento-style Compartmentalized Audit Metrics */}
-          <div className="grid grid-cols-3 gap-2 bg-slate-950/80 border border-cyber-cyan/30 p-3 rounded-2xl select-none font-mono">
-            <div className="flex flex-col items-center sm:items-start px-1">
-              <span className="text-slate-400 text-[9px] font-bold tracking-wider uppercase">STABILITY</span>
-              <span className="text-emerald-400 text-xs sm:text-sm font-black flex items-center gap-1.5 mt-0.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-                PASS
-              </span>
-            </div>
-            <div className="flex flex-col items-center sm:items-start border-l border-r border-cyber-cyan/20 px-1">
-              <span className="text-slate-400 text-[9px] font-bold tracking-wider uppercase">SECURITY</span>
-              <span className="text-cyber-cyan text-xs sm:text-sm font-black mt-0.5">EXTREME</span>
-            </div>
-            <div className="flex flex-col items-center sm:items-start px-1">
-              <span className="text-slate-400 text-[9px] font-bold tracking-wider uppercase">MONITORING</span>
-              <span className="text-amber-300 text-xs sm:text-sm font-black mt-0.5">REAL-TIME</span>
-            </div>
-          </div>
-
-          {/* Interactive Footer element */}
-          <div className="flex justify-between items-center pt-2.5 border-t border-cyber-cyan/15">
-            <span className="text-[10px] font-mono text-slate-300 font-medium tracking-wider uppercase select-none hidden sm:inline">
-              Click card to view complete smart contract audit blueprint
-            </span>
-            <span className="text-[10px] font-mono text-slate-300 font-medium tracking-wider uppercase select-none sm:hidden">
-              Tap card to view complete blueprint
-            </span>
-            <span className="font-display text-xs font-black uppercase text-cyber-cyan flex items-center gap-1 group-hover:translate-x-1.5 transition-transform select-none">
-              View Report
-              <ChevronRight className="w-4 h-4 text-cyber-cyan animate-pulse" />
-            </span>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            {activeAudit.category}
           </div>
         </div>
 
-        {/* Navigation Controls and Timer Progress Bar */}
-        <div className="mt-4 pt-3 border-t border-cyber-cyan/15 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={(e) => { e.stopPropagation(); handlePrevAudit(); }}
-              className="p-1.5 rounded-lg border border-cyber-cyan/10 hover:border-cyber-cyan/30 text-cyber-text-secondary hover:text-cyber-cyan transition-colors bg-cyber-bg-primary/40 cursor-pointer shadow-sm hover:shadow-[0_0_8px_rgba(0,229,255,0.2)]"
-              title="Previous Project"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); handleNextAudit(); }}
-              className="p-1.5 rounded-lg border border-cyber-cyan/10 hover:border-cyber-cyan/30 text-cyber-text-secondary hover:text-cyber-cyan transition-colors bg-cyber-bg-primary/40 cursor-pointer shadow-sm hover:shadow-[0_0_8px_rgba(0,229,255,0.2)]"
-              title="Next Project"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+        {/* Metric 2: Audit Index */}
+        <div 
+          onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
+          className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile"
+          title={`Click to view ${activeAudit.name} audit report`}
+        >
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              AUDIT INDEX
+            </div>
+            <span className="font-mono text-[10px] font-black text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/30 px-1.5 py-0.5 rounded shrink-0">
+              VERIFIED
+            </span>
           </div>
+          <div className="font-display font-black text-xl sm:text-2xl text-cyber-cyan tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)] py-1">
+            {activeAudit.overallScore}%
+          </div>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            algorithmic security score
+          </div>
+        </div>
 
-          {/* Cycle timer bar */}
-          <div className="flex-1 max-w-[200px] ml-4 bg-cyber-cyan/5 rounded-full h-1 overflow-hidden relative">
-            <div 
-              className="h-full bg-gradient-to-r from-cyber-blue to-cyber-cyan rounded-full transition-all duration-75 shadow-[0_0_8px_rgba(0,229,255,0.6)]"
-              style={{ width: `${progressPercent}%` }}
-            ></div>
+        {/* Metric 3: Security Grade */}
+        <div 
+          onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
+          className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile"
+          title={`Click to view ${activeAudit.name} audit report`}
+        >
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              SECURITY GRADE
+            </div>
+            <span className={`font-mono text-[9.5px] font-extrabold px-1.5 py-0.5 rounded border uppercase shrink-0 ${getRiskStyles(activeAudit.riskLevel)}`}>
+              {activeAudit.riskLevel} Risk
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2 py-1">
+            <span className={`font-display font-black text-xl sm:text-2xl tracking-tight ${getGradeTextColor(activeAudit.grade)}`}>
+              {activeAudit.grade}
+            </span>
+            <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">
+              Tier Rating
+            </span>
+          </div>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            smart contract rating
+          </div>
+        </div>
+
+        {/* Metric 4: System Stability */}
+        <div 
+          onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
+          className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile"
+          title={`Click to view ${activeAudit.name} audit report`}
+        >
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              SYSTEM STABILITY
+            </div>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse shrink-0" />
+          </div>
+          <div className="font-display font-black text-xl sm:text-2xl text-emerald-400 tracking-tight flex items-center gap-1.5 py-1">
+            PASS
+          </div>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            consensus &amp; state verified
+          </div>
+        </div>
+
+        {/* Metric 5: Audit Blueprint */}
+        <div 
+          onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
+          className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile hover:bg-cyber-cyan/5"
+          title={`Click to view ${activeAudit.name} audit report`}
+        >
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              AUDIT BLUEPRINT
+            </div>
+            <span className="font-mono text-[9px] font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded shrink-0">
+              REAL-TIME
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 py-1 font-orbitron font-extrabold text-sm sm:text-base text-cyber-cyan group-hover/tile:text-white group-hover/tile:translate-x-1 transition-all">
+            <span>VIEW REPORT</span>
+            <ChevronRight className="w-4 h-4 text-cyber-cyan animate-pulse" />
+          </div>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            inspect full findings →
           </div>
         </div>
       </div>
-    </TiltCard>
+
+      {/* Cycle timer progress bar */}
+      <div className="w-full bg-slate-900/60 rounded-full h-1 overflow-hidden mt-3.5 relative">
+        <div 
+          className="h-full bg-gradient-to-r from-cyber-blue via-cyber-cyan to-emerald-400 rounded-full transition-all duration-75 shadow-[0_0_8px_rgba(0,229,255,0.6)]"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+    </div>
   );
 }
