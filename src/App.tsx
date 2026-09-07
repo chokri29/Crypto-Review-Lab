@@ -52,7 +52,7 @@ import MarketTicker from './components/MarketTicker';
 import CookieBanner from './components/CookieBanner';
 import FaqJsonLd from './components/FaqJsonLd';
 import CurrencyDropdown from './components/CurrencyDropdown';
-import { fetchLiveCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
+import { fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
 import { F3VerificationProvider } from './context/F3VerificationContext';
@@ -791,7 +791,7 @@ export default function App() {
         .filter(Boolean);
 
       const [marketDataMap, coinstatsMap] = await Promise.all([
-        fetchLiveCoinGeckoMarkets(ids),
+        fetchVerifiedCoinGeckoMarkets(ids),
         fetchLiveCoinStatsMarkets().catch(() => ({}))
       ]);
 

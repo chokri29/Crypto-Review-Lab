@@ -60,7 +60,7 @@ import { PhaseTwoReControlView } from './PhaseTwoReControlView';
 import MarketMetricsTable from './MarketMetricsTable';
 import { ProTierBadge } from './ProTierBadge';
 import { ProEvaluationTerminalLoader } from './ProEvaluationTerminalLoader';
-import { fetchLiveCoinGeckoMarkets, applyDualSyncArchitecture } from '../services/coingecko';
+import { fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from '../services/coingecko';
 import { fetchLiveCoinStatsMarkets } from '../services/coinstats';
 import { fetchLiveCMCQuote } from '../services/cmc';
 import { enrichReviewWithDefiLlamaTvl, formatDefiLlamaTvl } from '../services/defillama';
@@ -422,7 +422,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             const searchCgId = updatedReview.coingeckoId || cleanSymbol.toLowerCase();
 
             const [marketMap, coinstatsMap, cmcRes] = await Promise.all([
-              fetchLiveCoinGeckoMarkets([searchCgId, cleanSymbol.toLowerCase()]).catch(() => ({})),
+              fetchVerifiedCoinGeckoMarkets([searchCgId, cleanSymbol.toLowerCase()]).catch(() => ({})),
               fetchLiveCoinStatsMarkets().catch(() => ({})),
               fetchLiveCMCQuote(cleanSymbol).catch(() => null)
             ]);
@@ -716,7 +716,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     try {
       const searchCgId = generatedReview.coingeckoId || generatedReview.symbol.toLowerCase();
       const [marketMap, coinstatsMap, cmcData] = await Promise.all([
-        fetchLiveCoinGeckoMarkets([searchCgId, generatedReview.symbol.toLowerCase()]),
+        fetchVerifiedCoinGeckoMarkets([searchCgId, generatedReview.symbol.toLowerCase()]),
         fetchLiveCoinStatsMarkets().catch(() => ({})),
         fetchLiveCMCQuote(generatedReview.symbol).catch(() => null)
       ]);
@@ -858,7 +858,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
               .then(r => r.ok ? r.json() : null)
               .catch(() => null)
           : Promise.resolve(null),
-        fetchLiveCoinGeckoMarkets([searchCgId, cleanSymbol.toLowerCase()]).catch(() => ({})),
+        fetchVerifiedCoinGeckoMarkets([searchCgId, cleanSymbol.toLowerCase()]).catch(() => ({})),
         fetchLiveCoinStatsMarkets().catch(() => ({})),
         fetchLiveCMCQuote(cleanSymbol).catch(() => null)
       ]);
@@ -1110,7 +1110,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           // Fallback fetch if pre-fetch was completely empty
           const searchCgId = completeReview.coingeckoId || completeReview.symbol.toLowerCase();
           const [marketMap, coinstatsMap, cmcRes] = await Promise.all([
-            fetchLiveCoinGeckoMarkets([searchCgId, completeReview.symbol.toLowerCase()]),
+            fetchVerifiedCoinGeckoMarkets([searchCgId, completeReview.symbol.toLowerCase()]),
             fetchLiveCoinStatsMarkets().catch(() => ({})),
             fetchLiveCMCQuote(completeReview.symbol).catch(() => null)
           ]);

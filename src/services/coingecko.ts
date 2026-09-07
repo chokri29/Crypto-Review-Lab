@@ -48,121 +48,6 @@ export interface CoinGeckoSearchResult {
   large: string;
 }
 
-/**
- * Baseline price & market metrics map for fallback if CoinGecko API throttles or returns 429
- */
-const BASELINE_COIN_METRICS: Record<string, { price: number; rank: number; cap: number; vol: number; ath?: number; atl?: number; total_supply?: number; circulating_supply?: number }> = {
-  hyperliquid: { price: 42.85, rank: 18, cap: 14200000000, vol: 850000000, ath: 48.50, atl: 3.80, total_supply: 1000000000, circulating_supply: 333900000 },
-  zama: { price: 1.45, rank: 62, cap: 1150000000, vol: 180000000, ath: 4.80, atl: 0.35, total_supply: 1000000000, circulating_supply: 250000000 },
-  berachain: { price: 8.50, rank: 35, cap: 3200000000, vol: 450000000, ath: 12.50, atl: 3.20, total_supply: 500000000, circulating_supply: 120000000 },
-  monad: { price: 4.20, rank: 28, cap: 4200000000, vol: 520000000, ath: 6.80, atl: 1.10, total_supply: 1000000000, circulating_supply: 200000000 },
-  movement: { price: 0.92, rank: 74, cap: 920000000, vol: 140000000, ath: 1.80, atl: 0.45, total_supply: 10000000000, circulating_supply: 1200000000 },
-  eigenlayer: { price: 3.85, rank: 40, cap: 2850000000, vol: 310000000, ath: 4.53, atl: 2.40, total_supply: 1680000000, circulating_supply: 186000000 },
-  ethena: { price: 0.68, rank: 52, cap: 1950000000, vol: 240000000, ath: 1.52, atl: 0.194, total_supply: 15000000000, circulating_supply: 2800000000 },
-  celestia: { price: 5.40, rank: 48, cap: 2100000000, vol: 220000000, ath: 20.91, atl: 2.03, total_supply: 1080000000, circulating_supply: 220000000 },
-  ondo: { price: 1.15, rank: 42, cap: 2600000000, vol: 290000000, ath: 1.48, atl: 0.082, total_supply: 10000000000, circulating_supply: 1430000000 },
-  sui: { price: 3.25, rank: 14, cap: 9400000000, vol: 950000000, ath: 3.93, atl: 0.36, total_supply: 10000000000, circulating_supply: 2850000000 },
-  bittensor: { price: 480.00, rank: 26, cap: 4500000000, vol: 280000000, ath: 774.95, atl: 30.40, total_supply: 21000000, circulating_supply: 7380000 },
-  pyth: { price: 0.42, rank: 68, cap: 1250000000, vol: 160000000, ath: 1.15, atl: 0.22, total_supply: 10000000000, circulating_supply: 3620000000 },
-  wormhole: { price: 0.35, rank: 82, cap: 880000000, vol: 110000000, ath: 1.61, atl: 0.18, total_supply: 10000000000, circulating_supply: 2740000000 },
-  starknet: { price: 0.52, rank: 78, cap: 1050000000, vol: 130000000, ath: 3.66, atl: 0.34, total_supply: 10000000000, circulating_supply: 2090000000 },
-  arbitrum: { price: 0.58, rank: 45, cap: 2450000000, vol: 180000000, ath: 2.40, atl: 0.43, total_supply: 10000000000, circulating_supply: 4200000000 },
-  uniswap: { price: 7.95, rank: 22, cap: 4780000000, vol: 320000000, ath: 44.97, atl: 0.41, total_supply: 1000000000, circulating_supply: 600000000 },
-  'render-token': { price: 5.35, rank: 38, cap: 2800000000, vol: 210000000, ath: 13.60, atl: 0.036, total_supply: 532000000, circulating_supply: 518000000 },
-  render: { price: 5.35, rank: 38, cap: 2800000000, vol: 210000000, ath: 13.60, atl: 0.036, total_supply: 532000000, circulating_supply: 518000000 },
-  solana: { price: 188.50, rank: 5, cap: 88500000000, vol: 4200000000, ath: 260.06, atl: 0.50, total_supply: 580000000, circulating_supply: 470000000 },
-  chainlink: { price: 14.60, rank: 16, cap: 8900000000, vol: 410000000, ath: 52.88, atl: 0.126, total_supply: 1000000000, circulating_supply: 608000000 },
-  kaspa: { price: 0.125, rank: 32, cap: 3100000000, vol: 110000000, ath: 0.207, atl: 0.00017, total_supply: 28700000000, circulating_supply: 25200000000 },
-  ethereum: { price: 3450.00, rank: 2, cap: 415000000000, vol: 18500000000, ath: 4891.70, atl: 0.42, total_supply: 120400000, circulating_supply: 120400000 },
-  bitcoin: { price: 91500.00, rank: 1, cap: 1800000000000, vol: 38000000000, ath: 108900.00, atl: 0.048, total_supply: 19800000, circulating_supply: 19800000 },
-};
-
-/**
- * Fetch live market data (price, 24h change, market cap, rank, volume) for a list of CoinGecko coin IDs
- */
-export async function fetchLiveCoinGeckoMarkets(ids: string[]): Promise<Record<string, CoinGeckoMarketItem>> {
-  if (!ids || ids.length === 0) return {};
-
-  const map: Record<string, CoinGeckoMarketItem> = {};
-
-  try {
-    const cleanIds = Array.from(new Set(ids.filter(Boolean))).join(',');
-    // Try server proxy first (which sends the CoinGecko API Key x-cg-demo-api-key)
-    let response = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(cleanIds)}`);
-    if (!response.ok) {
-      // Direct API fallback
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(cleanIds)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
-      response = await fetch(url);
-    }
-
-    if (response.ok) {
-      const data: CoinGeckoMarketItem[] = await response.json();
-      if (Array.isArray(data)) {
-        data.forEach(item => {
-          if (item && item.id) {
-            map[item.id] = item;
-            if (item.symbol) {
-              map[item.symbol.toLowerCase()] = item;
-            }
-          }
-        });
-      }
-    } else {
-      console.warn(`CoinGecko API returned HTTP ${response.status}. Using fallback market calculator.`);
-    }
-  } catch (error) {
-    console.warn('CoinGecko API markets fetch error:', error);
-  }
-
-  // Ensure every requested coin ID has data (using fallback generator with live micro-fluctuations)
-  ids.forEach((id) => {
-    const lowerId = id.toLowerCase();
-    if (!map[lowerId] && !map[id]) {
-      const baseline = BASELINE_COIN_METRICS[lowerId] || {
-        price: Math.max(0.01, parseFloat((Math.sin(id.length * 13) * 15 + 20).toFixed(2))),
-        rank: Math.floor(Math.abs(Math.cos(id.length * 7)) * 120 + 10),
-        cap: 1200000000,
-        vol: 85000000,
-      };
-
-      // Add realistic live micro jitter on every manual refresh
-      const jitter = (Math.random() - 0.48) * 0.03; // ~ ±1.5%
-      const current_price = parseFloat((baseline.price * (1 + jitter)).toFixed(baseline.price < 1 ? 4 : 2));
-      const price_change_percentage_24h = parseFloat((jitter * 100 * 3.5).toFixed(2));
-
-      const fallbackItem: CoinGeckoMarketItem = {
-        id: lowerId,
-        symbol: lowerId,
-        name: id.charAt(0).toUpperCase() + id.slice(1),
-        image: '',
-        current_price,
-        market_cap: Math.round(baseline.cap * (1 + jitter)),
-        market_cap_rank: baseline.rank,
-        total_volume: Math.round(baseline.vol * (1 + jitter * 0.5)),
-        price_change_percentage_24h,
-        ath: baseline.ath || parseFloat((current_price * 1.65).toFixed(current_price < 1 ? 4 : 2)),
-        atl: baseline.atl || parseFloat((current_price * 0.22).toFixed(current_price < 1 ? 4 : 2)),
-        total_supply: baseline.total_supply,
-        circulating_supply: baseline.circulating_supply,
-        dataEngine: 'UI Fallback Generator (Synthetic)',
-        dataSources: ['Synthetic UI Baseline Demo Engine (Not Verified External API)'],
-        isFallback: true,
-        provenance: 'SYNTHETIC'
-      };
-
-      map[lowerId] = fallbackItem;
-      map[id] = fallbackItem;
-    }
-  });
-
-  return map;
-}
-
-/**
- * Strictly authentic market fetcher for F3 / verification pipelines.
- * Never generates mock, baseline, random, or synthetic market items.
- * If external API fails or throttles, returns only authenticated items or empty map.
- */
 export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Record<string, CoinGeckoMarketItem>> {
   if (!ids || ids.length === 0) return {};
 
@@ -203,20 +88,6 @@ export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Reco
   return map;
 }
 
-const MOCK_TRENDING_FALLBACK: CoinGeckoSearchResult[] = [
-  { id: 'hyperliquid', name: 'Hyperliquid', symbol: 'HYPE', market_cap_rank: 18, thumb: 'https://assets.coingecko.com/coins/images/52018/small/Hype.png', large: 'https://assets.coingecko.com/coins/images/52018/large/Hype.png' },
-  { id: 'solana', name: 'Solana', symbol: 'SOL', market_cap_rank: 5, thumb: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', large: 'https://assets.coingecko.com/coins/images/4128/large/solana.png' },
-  { id: 'sui', name: 'Sui Network', symbol: 'SUI', market_cap_rank: 14, thumb: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png', large: 'https://assets.coingecko.com/coins/images/26375/large/sui-ocean-square.png' },
-  { id: 'bittensor', name: 'Bittensor', symbol: 'TAO', market_cap_rank: 35, thumb: 'https://assets.coingecko.com/coins/images/29165/small/bittensor.png', large: 'https://assets.coingecko.com/coins/images/29165/large/bittensor.png' },
-  { id: 'arbitrum', name: 'Arbitrum', symbol: 'ARB', market_cap_rank: 45, thumb: 'https://assets.coingecko.com/coins/images/16547/small/arbitrum.png', large: 'https://assets.coingecko.com/coins/images/16547/large/arbitrum.png' },
-  { id: 'render-token', name: 'Render Network', symbol: 'RENDER', market_cap_rank: 38, thumb: 'https://assets.coingecko.com/coins/images/11636/small/rndr.png', large: 'https://assets.coingecko.com/coins/images/11636/large/rndr.png' },
-  { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', market_cap_rank: 16, thumb: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', large: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png' },
-  { id: 'kaspa', name: 'Kaspa', symbol: 'KAS', market_cap_rank: 32, thumb: 'https://assets.coingecko.com/coins/images/25751/small/kaspa-icon.png', large: 'https://assets.coingecko.com/coins/images/25751/large/kaspa-icon.png' },
-];
-
-/**
- * Search coins on CoinGecko
- */
 export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchResult[]> {
   if (!query || query.trim().length < 2) return [];
 
@@ -245,15 +116,9 @@ export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchRes
     console.warn('CoinGecko search error:', error);
   }
 
-  // Local matching fallback if API returned 429 or empty
-  return MOCK_TRENDING_FALLBACK.filter(
-    c => c.name.toLowerCase().includes(cleanQuery) || c.symbol.toLowerCase().includes(cleanQuery) || c.id.toLowerCase().includes(cleanQuery)
-  );
+  return [];
 }
 
-/**
- * Fetch trending coins on CoinGecko
- */
 export async function fetchTrendingCoinGecko(): Promise<CoinGeckoSearchResult[]> {
   try {
     let response = await fetch('/api/coingecko/trending');
@@ -281,7 +146,7 @@ export async function fetchTrendingCoinGecko(): Promise<CoinGeckoSearchResult[]>
     console.warn('CoinGecko trending error:', error);
   }
 
-  return MOCK_TRENDING_FALLBACK;
+  return [];
 }
 
 export interface DualEngineMetrics {
@@ -500,14 +365,11 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     console.warn('Could not fetch coin detail for', cleanId, err);
   }
 
-  // Check baseline metrics if not returned by detail
-  const baseline = BASELINE_COIN_METRICS[cleanId.toLowerCase()] || BASELINE_COIN_METRICS[symbol.toLowerCase()];
-  const finalAth = liveAth || baseline?.ath;
-  const finalAtl = liveAtl || baseline?.atl;
-  const finalCirculating = liveCirculatingSupply || baseline?.circulating_supply;
-  const finalTotalSupply = liveTotalSupply || baseline?.total_supply;
+  const finalAth = liveAth;
+  const finalAtl = liveAtl;
+  const finalCirculating = liveCirculatingSupply;
+  const finalTotalSupply = liveTotalSupply;
 
-  // Check if this token matches a canonical master review in INITIAL_REVIEWS (e.g. Hyperliquid, Arbitrum, Uniswap)
   const masterMatch = INITIAL_REVIEWS.find((r) => {
     const rCgId = (r.coingeckoId || '').toLowerCase();
     const rSymbol = (r.symbol || '').toLowerCase();
@@ -524,10 +386,10 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
 
   const finalLogo = getCoinLogoUrl(symbol, logoUrl, cleanId);
   const dualMetrics = await applyDualSyncArchitecture(
-    livePrice || baseline?.price || 0,
-    liveMarketCap || baseline?.cap || 0,
-    liveVolume24h || baseline?.vol || 0,
-    liveRank || baseline?.rank || 9999,
+    livePrice || 0,
+    liveMarketCap || 0,
+    liveVolume24h || 0,
+    liveRank || 9999,
     liveChange24h ?? 0,
     finalCirculating,
     liveMaxSupply,
