@@ -299,87 +299,88 @@ export default function AIXStocksMarketSummary({
         </div>
       </div>
 
-      {/* Main Top Stat: Total xStocks Market Cap */}
-      <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1 mb-3.5 shadow-inner relative group/sub hover:border-cyber-cyan/65 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-            TOTAL xSTOCKS MARKET CAP
+      {/* Live Market Metrics Grid: 1 col on mobile, 2 cols on sm, 5 cols on lg desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        {/* Metric 1: Total xStocks Market Cap */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-inner hover:border-cyber-cyan/65 transition-colors">
+          <div className="flex items-center justify-between gap-1">
+            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+              TOTAL MARKET CAP
+            </div>
+            <span className={`font-mono text-[11px] font-black px-1.5 py-0.5 rounded border shrink-0 flex items-center ${
+              metrics.capChange >= 0 
+                ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' 
+                : 'text-rose-300 bg-rose-500/15 border-rose-500/30'
+            }`}>
+              {metrics.capChange >= 0 ? '+' : ''}{metrics.capChange.toFixed(2)}%
+            </span>
           </div>
-          <span className={`font-mono text-xs font-black px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-            metrics.capChange >= 0 
-              ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' 
-              : 'text-rose-300 bg-rose-500/15 border-rose-500/30'
-          }`}>
-            {metrics.capChange >= 0 ? '+' : ''}{metrics.capChange.toFixed(2)}%
-          </span>
+          <div className="font-display font-black text-xl sm:text-2xl text-white tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)] py-1">
+            {formatCompactCap(metrics.totalCap, 'M')}
+          </div>
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+            24h aggregate valuation
+          </div>
         </div>
-        <div className="font-display font-black text-2xl sm:text-3xl text-white tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]">
-          {formatCompactCap(metrics.totalCap, 'M')}
-        </div>
-        <div className="font-mono text-[10px] text-slate-400 pt-0.5">
-          24h aggregate valuation across tokenized equities
-        </div>
-      </div>
 
-      {/* Row 2: 24h Volume & Avg Peg Parity (Grid 2 cols) */}
-      <div className="grid grid-cols-2 gap-3 mb-3.5">
-        <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1 shadow-sm hover:border-cyber-cyan/65 transition-colors">
-          <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest font-bold">
+        {/* Metric 2: 24h Volume */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors">
+          <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
             24H VOLUME
           </div>
-          <div className="font-display font-black text-base sm:text-lg text-cyber-cyan tracking-tight">
+          <div className="font-display font-black text-xl sm:text-2xl text-cyber-cyan tracking-tight py-1">
             {formatCompactCap(metrics.totalVolume, 'M')}
           </div>
-          <div className="font-mono text-[9px] text-slate-400">
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
             on-chain secondary vol
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1 shadow-sm hover:border-cyber-cyan/65 transition-colors">
-          <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest font-bold">
+        {/* Metric 3: Avg Peg Parity */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors">
+          <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
             AVG PEG PARITY
           </div>
-          <div className="font-display font-black text-base sm:text-lg text-amber-300 tracking-tight">
+          <div className="font-display font-black text-xl sm:text-2xl text-amber-300 tracking-tight py-1">
             {metrics.pegParity.toFixed(1)}%
           </div>
-          <div className="font-mono text-[9px] text-slate-400">
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
             on-chain vs equity parity
           </div>
         </div>
-      </div>
 
-      {/* Row 3: Top Gainer (24h) & Top Loser (24h) */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1 shadow-sm hover:border-cyber-cyan/65 transition-colors">
-          <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest font-bold">
+        {/* Metric 4: Top Gainer (24h) */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors">
+          <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
             TOP GAINER (24H)
           </div>
-          <div className="flex items-baseline gap-1.5 pt-0.5">
-            <span className="font-mono font-black text-sm sm:text-base text-white">
+          <div className="flex items-baseline gap-1.5 py-1">
+            <span className="font-mono font-black text-base sm:text-lg text-white">
               {metrics.topGainer.symbol}
             </span>
             <span className="font-mono font-black text-xs text-emerald-400">
               +{metrics.topGainer.change.toFixed(2)}%
             </span>
           </div>
-          <div className="font-mono text-[9px] text-slate-400">
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
             active market leader
           </div>
         </div>
 
-        <div className="p-3 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1 shadow-sm hover:border-cyber-cyan/65 transition-colors">
-          <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest font-bold">
+        {/* Metric 5: Top Loser (24h) */}
+        <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors">
+          <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
             TOP LOSER (24H)
           </div>
-          <div className="flex items-baseline gap-1.5 pt-0.5">
-            <span className="font-mono font-black text-sm sm:text-base text-white">
+          <div className="flex items-baseline gap-1.5 py-1">
+            <span className="font-mono font-black text-base sm:text-lg text-white">
               {metrics.topLoser.symbol}
             </span>
             <span className="font-mono font-black text-xs text-rose-400">
               {metrics.topLoser.change.toFixed(2)}%
             </span>
           </div>
-          <div className="font-mono text-[9px] text-slate-400">
+          <div className="font-mono text-[9.5px] text-slate-400 truncate">
             24h drawdown stock
           </div>
         </div>

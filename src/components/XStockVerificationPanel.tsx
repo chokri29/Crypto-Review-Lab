@@ -261,10 +261,10 @@ export default function XStockVerificationPanel({
             About {selectedStock.name} ({selectedStock.symbol})
           </h2>
 
-          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-3xl">
+          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-5xl">
             {selectedStock.description}
           </p>
-          <p className="text-xs text-slate-400 font-sans leading-relaxed">
+          <p className="text-xs text-slate-400 font-sans leading-relaxed max-w-5xl">
             This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
           </p>
         </div>
@@ -339,56 +339,57 @@ export default function XStockVerificationPanel({
       </div>
 
       {/* 2. Key Stock Specifications Overview */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Building2 className="w-3 h-3 text-slate-400" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 font-mono text-xs">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+            <Building2 className="w-3.5 h-3.5 text-cyber-cyan" />
             <span>Underlying Equity</span>
           </div>
-          <div className="text-white font-bold text-sm">
+          <div className="text-white font-bold text-base sm:text-lg">
             {selectedStock.underlyingTicker}
           </div>
-          <div className="text-[10px] text-slate-400">
+          <div className="text-[10.5px] text-slate-400">
             {selectedStock.exchange}
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Layers className="w-3 h-3 text-slate-400" />
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+            <Layers className="w-3.5 h-3.5 text-cyber-cyan" />
             <span>Token Blockchain</span>
           </div>
-          <div className="text-white font-bold text-sm">
+          <div className="text-white font-bold text-base sm:text-lg">
             {selectedStock.chain}
           </div>
-          <div className="text-[10px] text-slate-400">
+          <div className="text-[10.5px] text-slate-400">
             {selectedStock.category}
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Landmark className="w-3 h-3 text-slate-400" />
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+            <Landmark className="w-3.5 h-3.5 text-cyber-cyan" />
             <span>Token Issuer</span>
           </div>
-          <div className="text-white font-bold text-sm truncate" title={selectedStock.issuer}>
+          <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.issuer}>
             {selectedStock.issuer}
           </div>
-          <div className="text-[10px] text-slate-400 truncate">
+          <div className="text-[10.5px] text-slate-400 truncate">
             {selectedStock.jurisdiction}
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Lock className="w-3 h-3 text-slate-400" />
+        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
+          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+            <Lock className="w-3.5 h-3.5 text-cyber-cyan" />
             <span>Physical Custodian</span>
           </div>
-          <div className="text-white font-bold text-xs truncate" title={selectedStock.custodian}>
+          <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.custodian}>
             {selectedStock.custodian}
           </div>
-          <div className="text-[10px] text-emerald-400">
-            Segregated Share Custody
+          <div className="text-[10.5px] text-emerald-400 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 shrink-0" />
+            <span>Segregated Share Custody</span>
           </div>
         </div>
       </div>

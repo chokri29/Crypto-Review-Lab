@@ -550,8 +550,8 @@ export default function XStocksPage() {
         <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/70 to-transparent" />
         <div className="absolute -top-24 -right-24 w-60 h-60 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-3xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="lg:col-span-7 xl:col-span-8 space-y-2.5 flex flex-col justify-center">
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
                 TOKENIZED STOCKS (xSTOCKS)
@@ -561,37 +561,37 @@ export default function XStocksPage() {
               </span>
             </div>
 
-            <h1 className="font-orbitron font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide">
-              Tokenized Equities & <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Market Intelligence</span>
+            <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">
+              Tokenized Equities &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Market Intelligence</span>
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
               24/7 on-chain secondary market quoting for tokenized US equities with Market Data Cross-Check (CoinGecko &amp; CoinMarketCap aggregators) and real-time underlying equity basis verification via Finnhub.
             </p>
           </div>
 
           {/* Market Hours Telemetry Status Card */}
-          <div className="p-4 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 shrink-0 min-w-[280px] space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${
+          <div className="lg:col-span-5 xl:col-span-4 p-4.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 flex flex-col justify-between space-y-2.5 shadow-lg">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                   marketHours.isOpen ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'
                 }`} />
-                <span className="text-[11px] font-orbitron font-bold text-white uppercase">
+                <span className="text-[11px] font-orbitron font-bold text-white uppercase truncate">
                   {marketHours.statusLabel}
                 </span>
               </div>
-              <span className="text-[9.5px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+              <span className="text-[9.5px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
                 {marketHours.easternTimeFormatted}
               </span>
             </div>
 
-            <p className="text-[10px] font-mono text-slate-300 leading-relaxed border-t border-slate-800/80 pt-2">
+            <p className="text-[10.5px] font-mono text-slate-300 leading-relaxed border-t border-slate-800/80 pt-2">
               {marketHours.detail}
             </p>
 
-            <div className="flex items-center justify-between text-[9px] font-mono text-cyber-cyan pt-1">
-              <span>Next Session Event:</span>
+            <div className="flex items-center justify-between text-[9.5px] font-mono text-cyber-cyan pt-1.5 border-t border-slate-800/60">
+              <span className="text-slate-400">Next Session Event:</span>
               <span className="font-bold text-white">{marketHours.nextEventLabel}</span>
             </div>
           </div>
@@ -794,19 +794,21 @@ export default function XStocksPage() {
             volume24h={activeQuote?.volume24h}
             isMarketOpen={marketHours.isOpen}
           />
-
-          {/* Dedicated Free Public Verification & Telemetry Panel */}
-          <XStockVerificationPanel
-            selectedStock={selectedStock}
-            activeQuote={activeQuote}
-            marketHours={marketHours}
-            isRefreshingQuotes={isRefreshing}
-            onRefreshAll={syncXStocksData}
-            rwaDetail={activeRwaDetail}
-            rwaIssuerDetail={activeRwaIssuer}
-            isLoadingRwa={isLoadingRwaMeta}
-          />
         </div>
+      </div>
+
+      {/* 4. Dedicated Full-Width Verification & Telemetry Panel (12-col layout, eliminates empty left space) */}
+      <div className="w-full">
+        <XStockVerificationPanel
+          selectedStock={selectedStock}
+          activeQuote={activeQuote}
+          marketHours={marketHours}
+          isRefreshingQuotes={isRefreshing}
+          onRefreshAll={syncXStocksData}
+          rwaDetail={activeRwaDetail}
+          rwaIssuerDetail={activeRwaIssuer}
+          isLoadingRwa={isLoadingRwaMeta}
+        />
       </div>
     </div>
   );
