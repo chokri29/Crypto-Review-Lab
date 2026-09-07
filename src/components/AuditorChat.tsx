@@ -1221,7 +1221,92 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
                         className="overflow-hidden"
                       >
                         <div className="px-4 pb-4 pt-1 border-t border-slate-800/80 bg-slate-900/40 text-xs text-slate-300 leading-relaxed font-sans space-y-3">
-                          <p>{faq.answer}</p>
+                          <div className="space-y-3">
+                            {faq.answer.split('\n\n').map((paragraph, pIdx) => {
+                              const trimmed = paragraph.trim();
+
+                              // Case 1: Numbered dimension or gate or stage cards (e.g. "1. Title — Desc", "Gate 0 — ...", "F1 — ...")
+                              const cardMatch = trimmed.match(/^(?:(\d+)[\.\)]|(Gate \d+)|(Stage \d+)|(F[1-3]))\s*(?:[:—-])?\s*(.*)$/is);
+                              if (cardMatch) {
+                                const badge = cardMatch[1] || cardMatch[2] || cardMatch[3] || cardMatch[4];
+                                const rest = cardMatch[5] || '';
+                                
+                                let title = '';
+                                let desc = rest;
+                                if (rest.includes(' — ')) {
+                                  const parts = rest.split(' — ');
+                                  title = parts[0].trim();
+                                  desc = parts.slice(1).join(' — ').trim();
+                                } else if (rest.includes(': ') && !rest.startsWith('http')) {
+                                  const parts = rest.split(': ');
+                                  title = parts[0].trim();
+                                  desc = parts.slice(1).join(': ').trim();
+                                }
+
+                                return (
+                                  <div key={pIdx} className="p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1.5 shadow-sm">
+                                    <div className="flex items-center gap-2 text-white font-semibold text-xs sm:text-[13px]">
+                                      <span className="px-2 py-0.5 rounded-md bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                                        {badge}
+                                      </span>
+                                      {title && <span className="text-cyber-cyan font-bold">{title}</span>}
+                                    </div>
+                                    <p className={`text-slate-300 leading-relaxed text-xs sm:text-[12.5px] ${title ? 'pl-2' : ''}`}>
+                                      {desc || rest}
+                                    </p>
+                                  </div>
+                                );
+                              }
+
+                              // Case 2: Formatted bullet lists
+                              if (trimmed.includes('\n- ') || trimmed.startsWith('- ') || trimmed.includes('\n• ') || trimmed.startsWith('• ')) {
+                                const lines = trimmed.split('\n');
+                                return (
+                                  <div key={pIdx} className="space-y-2 my-1">
+                                    {lines.map((line, lIdx) => {
+                                      const lineTrim = line.trim();
+                                      if (lineTrim.startsWith('- ') || lineTrim.startsWith('• ')) {
+                                        const cleanText = lineTrim.replace(/^[-•]\s*/, '');
+                                        const [bulletTitle, ...bulletRest] = cleanText.split(' — ');
+                                        const hasBulletTitle = bulletRest.length > 0;
+
+                                        return (
+                                          <div key={lIdx} className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-start gap-2.5 shadow-sm">
+                                            <span className="w-4 h-4 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                              •
+                                            </span>
+                                            <div className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px]">
+                                              {hasBulletTitle ? (
+                                                <>
+                                                  <span className="font-semibold text-white">{bulletTitle}</span>
+                                                  {' — '}
+                                                  <span>{bulletRest.join(' — ')}</span>
+                                                </>
+                                              ) : (
+                                                <span>{cleanText}</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <p key={lIdx} className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px]">
+                                          {line}
+                                        </p>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              }
+
+                              // Case 3: Standard structured paragraph
+                              return (
+                                <p key={pIdx} className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px]">
+                                  {paragraph}
+                                </p>
+                              );
+                            })}
+                          </div>
                           
                           {faq.definition && (
                             <div className="p-2.5 rounded-lg bg-slate-950/90 border border-cyber-cyan/20 font-mono text-[11px] text-slate-300 shadow-inner">

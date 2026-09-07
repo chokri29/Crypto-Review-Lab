@@ -330,33 +330,42 @@ export default function XStockVerificationPanel({
         {/* Main Identity & Architecture Balanced Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch pt-1">
           {/* Left Column (7 cols): Stock Identity & Purpose Statement */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-3">
-            <div className="space-y-2">
-              <h2 className="font-orbitron font-bold text-xl sm:text-2xl text-white tracking-wide">
-                About {selectedStock.name} ({selectedStock.symbol})
-              </h2>
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-orbitron font-bold text-xl sm:text-2xl text-white tracking-wide">
+                  About {selectedStock.name} ({selectedStock.symbol})
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700/80">
+                  {selectedStock.exchange}:{selectedStock.underlyingTicker}
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30">
+                  {selectedStock.category}
+                </span>
+              </div>
 
-              <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+              <p className="text-sm sm:text-[14.5px] text-slate-200 font-sans leading-relaxed">
                 {selectedStock.description}
               </p>
-              <p className="text-xs text-slate-400 font-sans leading-relaxed">
-                This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
-              </p>
+
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800/90 space-y-2 text-xs font-sans text-slate-300 leading-relaxed shadow-sm">
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-cyber-cyan flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
+                  <span>Public Verification &amp; Transparency Scope</span>
+                </div>
+                <p className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px]">
+                  This panel provides real-time, independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> on <span className="text-white font-semibold">{selectedStock.chain}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingName} • {selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
+                </p>
+              </div>
             </div>
 
-            {/* Quick Trust Highlights */}
-            <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] font-mono text-slate-400">
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
-                <span>Regulated Swiss Issuance</span>
+            <div className="pt-2 text-[11px] font-mono text-slate-400 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80">
+              <span className="text-slate-400 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
+                <span>Instrument: <strong className="text-slate-200">{selectedStock.legalInstrumentType || '1:1 Asset-Backed Tracker'}</strong></span>
               </span>
-              <span className="flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Real-Time Price Parity</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-purple-400" />
-                <span>Bankruptcy-Remote Custody</span>
+              <span className="text-slate-400">
+                Primary Market: <strong className="text-slate-200">{selectedStock.exchange} (9:30–16:00 ET)</strong>
               </span>
             </div>
           </div>
@@ -800,10 +809,10 @@ export default function XStockVerificationPanel({
             </div>
             <div>
               <span className="font-orbitron font-bold text-xs sm:text-sm text-white block">
-                Frequently Asked Questions for Visitors
+                Frequently Asked Questions — Verification &amp; Integrity Panel
               </span>
               <span className="text-[11px] font-sans text-slate-400">
-                How tokenized stocks work, how 1:1 backing is guaranteed, and why weekend prices differ
+                Understanding verification dimensions, data consistency, tracking, and safety boundaries
               </span>
             </div>
           </div>
@@ -814,31 +823,116 @@ export default function XStockVerificationPanel({
         </button>
 
         {showFaqInfo && (
-          <div className="p-5 border-t border-slate-800 text-xs text-slate-300 space-y-4 leading-relaxed bg-slate-950/95 font-sans">
-            <div className="space-y-1.5 pb-3 border-b border-slate-800/80">
-              <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <span className="text-cyber-cyan">Q1:</span> What exactly is an xStock (Tokenized Stock)?
+          <div className="p-5 border-t border-slate-800 text-xs text-slate-300 space-y-6 leading-relaxed bg-slate-950/95 font-sans">
+            {/* Q1 */}
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-900/40 border border-slate-800 space-y-3">
+              <h4 className="font-bold text-white text-sm sm:text-base flex items-start gap-2.5">
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 shrink-0">
+                  Q1
+                </span>
+                <span>What is the xStocks Verification &amp; Integrity Panel?</span>
               </h4>
               <p className="text-slate-300 leading-relaxed">
-                An xStock is a token on a blockchain (such as Solana or Ethereum) that tracks a real, publicly traded stock (such as Apple or Tesla). Each token represents 1 share of the underlying company and is backed 1:1 by actual shares held in regulated bank custody.
+                The xStocks Verification &amp; Integrity Panel is a free, public verification layer for tokenized stocks (xStocks), independent from Crypto Review Lab’s paid Security &amp; Risk Assessment product.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                It is designed to provide transparent, real-time integrity checks across three distinct dimensions:
+              </p>
+              <div className="space-y-3 my-3">
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-white font-semibold text-xs sm:text-sm">
+                    <span className="w-5 h-5 rounded-md bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                      1
+                    </span>
+                    <span className="text-cyber-cyan font-bold">Market-Price Consistency</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px] pl-7">
+                    Compares the token’s on-chain market price across independent crypto market-data aggregators such as CoinGecko and CoinMarketCap. These services are market-data aggregators, not blockchain oracles; the check measures whether independent market-data sources report consistent pricing.
+                  </p>
+                </div>
+
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-white font-semibold text-xs sm:text-sm">
+                    <span className="w-5 h-5 rounded-md bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                      2
+                    </span>
+                    <span className="text-cyber-cyan font-bold">Underlying-Equity Tracking</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px] pl-7">
+                    Compares the tokenized stock’s real-time market price with the price of its underlying equity, using Finnhub as the equity-market reference. The panel measures how closely the token tracks its underlying equity price and identifies potential pricing divergence.
+                  </p>
+                </div>
+
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-cyber-cyan/30 space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-2 text-white font-semibold text-xs sm:text-sm">
+                    <span className="w-5 h-5 rounded-md bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 font-mono text-[11px] font-bold flex items-center justify-center shrink-0">
+                      3
+                    </span>
+                    <span className="text-cyber-cyan font-bold">On-Chain Security &amp; Authority</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px] pl-7">
+                    Performs an automated security scan of the token contract and/or token authorities using the appropriate on-chain security provider, such as GoPlus or RugCheck. For Solana assets, this includes token security and authority analysis; for EVM assets, it includes smart-contract/bytecode security analysis.
+                  </p>
+                </div>
+              </div>
+              <p className="text-slate-400 text-[11.5px] leading-relaxed pt-1">
+                The panel therefore evaluates data consistency, underlying-equity tracking, and observable on-chain security signals as separate verification dimensions.
               </p>
             </div>
 
-            <div className="space-y-1.5 pb-3 border-b border-slate-800/80">
-              <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <span className="text-cyber-cyan">Q2:</span> Who holds the real shares, and what happens if the issuer closes?
+            {/* Q2 */}
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-900/40 border border-slate-800 space-y-3">
+              <h4 className="font-bold text-white text-sm sm:text-base flex items-start gap-2.5">
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 shrink-0">
+                  Q2
+                </span>
+                <span>What exactly does the panel verify?</span>
               </h4>
               <p className="text-slate-300 leading-relaxed">
-                The actual stock shares are held in a segregated, bankruptcy-remote account by licensed custodians (such as InCore Bank AG or Alpaca Securities LLC). Because the shares are legally held in custody for token owners rather than being on the issuer&apos;s corporate balance sheet, the shares cannot be claimed by creditors if the issuer goes out of business.
+                The panel does not produce a single generic “safe” or “verified” claim. Each verification dimension is evaluated independently and reports its own status and supporting data.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                Depending on the asset and available data, the panel can identify:
+              </p>
+              <div className="space-y-2 my-3">
+                {[
+                  'Whether independent crypto market-data sources are consistent.',
+                  'Whether the token is tracking its underlying equity within the observed market conditions.',
+                  'Whether the token contract or token authorities present identifiable on-chain security or control risks.',
+                  'Whether required verification inputs are available, valid, and sufficiently current.'
+                ].map((item, idx) => (
+                  <div key={idx} className="p-2.5 sm:p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-start gap-2.5 shadow-sm">
+                    <span className="w-4 h-4 rounded-full bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                      ✓
+                    </span>
+                    <span className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px]">{item}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-slate-400 text-[11.5px] leading-relaxed pt-1">
+                This separation is intentional: price agreement, equity tracking, and token security are different properties and must not be conflated.
               </p>
             </div>
 
-            <div className="space-y-1.5">
-              <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                <span className="text-cyber-cyan">Q3:</span> Why does the token price move when the US stock market is closed?
+            {/* Q3 */}
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-900/40 border border-slate-800 space-y-3">
+              <h4 className="font-bold text-white text-sm sm:text-base flex items-start gap-2.5">
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 shrink-0">
+                  Q3
+                </span>
+                <span>Does a verification result mean that an xStock is safe or officially verified?</span>
               </h4>
               <p className="text-slate-300 leading-relaxed">
-                Traditional stock exchanges operate Monday to Friday during standard business hours (9:30 AM – 4:00 PM Eastern Time). Decentralized crypto exchanges operate 24 hours a day, 7 days a week. Over weekends or holidays, crypto traders continue to buy and sell the tokens, establishing a real-time trading price based on after-hours news and sentiment.
+                <span className="font-bold text-rose-400">No.</span> A positive panel result does not constitute an investment recommendation, legal certification, proof of reserves, or a guarantee that an xStock is safe.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                The panel verifies specific, observable conditions using independent data sources and on-chain security telemetry. A successful check means that the relevant verification criteria were satisfied at the time and under the data conditions observed.
+              </p>
+              <p className="text-slate-300 leading-relaxed">
+                It also does not replace the deeper Security &amp; Risk Assessment performed by Crypto Review Lab.
+              </p>
+              <p className="text-amber-300/90 font-mono text-[11px] leading-relaxed pt-1 border-t border-slate-800/80">
+                The purpose of the panel is verification and transparency — not certification.
               </p>
             </div>
           </div>
