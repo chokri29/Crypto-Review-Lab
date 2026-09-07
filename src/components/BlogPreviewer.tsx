@@ -232,6 +232,25 @@ export default function BlogPreviewer({
   const [isLoading, setIsLoading] = useState(true);
   const [scrollProgress, setScrollProgress] = useState(0);
 
+  // Live UTC formatted clock for crypto markets telemetry
+  const [liveCryptoTime, setLiveCryptoTime] = useState<string>(() => {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false });
+    const day = now.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short' });
+    return `${time} UTC (${day})`;
+  });
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false });
+      const day = now.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short' });
+      setLiveCryptoTime(`${time} UTC (${day})`);
+    };
+    const timer = setInterval(updateTime, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Search Focus & Click Outside Listener
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -604,24 +623,60 @@ export default function BlogPreviewer({
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
-      {/* Market Intelligence Hero Heading */}
-      <div className="mb-6 space-y-2.5 sm:space-y-3">
-        <div>
-          <span className="inline-flex items-center gap-2 font-orbitron font-bold text-[8px] sm:text-[9.5px] text-cyan-300 bg-cyan-500/10 border border-cyan-400/40 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full uppercase tracking-[1.5px] sm:tracking-[2px] shadow-[0_0_12px_rgba(0,229,255,0.18)] max-w-full truncate">
-            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
-            Live Crypto Markets Stream Active
-          </span>
+      {/* Master Decentralized Economy Hero Card */}
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-cyber-bg-card via-slate-950/90 to-cyber-bg-primary border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] p-6 sm:p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/70 to-transparent" />
+        <div className="absolute -top-24 -right-24 w-60 h-60 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <div className="lg:col-span-7 xl:col-span-8 space-y-2.5 flex flex-col justify-center">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping shrink-0" />
+                LIVE CRYPTO MARKETS STREAM
+              </span>
+              <span className="text-slate-400 text-xs font-mono">
+                Multi-Chain Surveillance &amp; Dual-Oracle Feed
+              </span>
+            </div>
+
+            <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">
+              Master the{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">
+                Decentralized
+              </span>{' '}
+              Economy
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
+              Real-time global crypto market surveillance, algorithmic cross-chain metrics, and dual-oracle intelligence powered by the AVF Engine.
+            </p>
+          </div>
+
+          {/* Real-time Crypto Telemetry Card on Right */}
+          <div className="lg:col-span-5 xl:col-span-4 p-4.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 flex flex-col justify-between space-y-2.5 shadow-lg">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-400 animate-ping" />
+                <span className="text-[11px] font-orbitron font-bold text-white uppercase truncate">
+                  MARKET STREAM ACTIVE
+                </span>
+              </div>
+              <span className="text-[9.5px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+                {liveCryptoTime}
+              </span>
+            </div>
+
+            <p className="text-[10.5px] font-mono text-slate-300 leading-relaxed border-t border-slate-800/80 pt-2">
+              Global cryptocurrency markets operate 24/7/365 without exchange holidays. Dual-oracle feeds stream continuous real-time liquidity and pricing data.
+            </p>
+
+            <div className="flex items-center justify-between text-[9.5px] font-mono text-cyber-cyan pt-1.5 border-t border-slate-800/60">
+              <span className="text-slate-400">Oracle Synchronization:</span>
+              <span className="font-bold text-white">Dual-Feed Real-Time</span>
+            </div>
+          </div>
         </div>
-        <h1 className="font-orbitron font-extrabold text-[21px] sm:text-2xl md:text-3xl lg:text-4xl text-slate-100 tracking-tight sm:tracking-wide leading-tight pt-1 break-words">
-          Master the{' '}
-          <span className="font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 drop-shadow-[0_0_22px_rgba(0,229,255,0.5)] inline-block">
-            Decentralized
-          </span>{' '}
-          Economy
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-3xl">
-          Real-time global crypto market surveillance, algorithmic cross-chain metrics, and dual-oracle intelligence powered by the AVF Engine.
-        </p>
       </div>
 
       {/* AI Market Summary Widget at top before search bar */}
