@@ -266,7 +266,7 @@ export interface CategorySpecificModule {
   additionalDetails: string[];
 }
 
-export function getCategorySpecificModule(categoryType: ProtocolCategoryType, realTvl?: number | null): CategorySpecificModule {
+export function getCategorySpecificModule(categoryType: ProtocolCategoryType, realTvl?: number | null, securityScan?: any): CategorySpecificModule {
   const hasTvl = realTvl !== undefined && realTvl !== null && realTvl > 0;
   const tvlStr = hasTvl ? formatDefiLlamaTvl(realTvl) : 'TVL data not available';
 
@@ -277,12 +277,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'TVL_STRESS',
         subtitle: `RESTAKING LIQUIDITY & SHARED SECURITY QUORUM MATRIX (REAL TVL: ${tvlStr.toUpperCase()})`,
         items: [
-          { target: 'Intersubjective Slashing Model', check: 'Slashing Dispute Window & Committee', status: 'Dual-Quorum Guard', verdict: '[VERIFIED]' },
-          { target: 'AVS Operator Quorum Diversity', check: 'Operator Stake Concentration Cap', status: 'Top 5 Stake < 45%', verdict: '[BALANCED]' },
-          { target: 'LRT Liquidity & Depeg Buffer', check: 'Collateral Parity & Unbonding Timelock', status: 'Reserve Buffer 100%', verdict: '[SOLVENT]' },
-          { target: 'Dual-Staking Reward Equilibrium', check: 'AVS Reward & Collateral Sinks', status: 'Yield Sustainable', verdict: '[EQUILIBRIUM]' },
-          { target: 'Unbonding Queue Delay Mechanism', check: '7-Day Withdrawal Timelock', status: 'Queue Guard Active', verdict: '[ENFORCED]' },
-          { target: 'Multi-AVS Slashing Cascades', check: 'Correlated Slashing Protection', status: 'Cap at 33% Total Stake', verdict: '[BOUNDED]' }
+          { target: 'Intersubjective Slashing Model', check: 'Slashing Dispute Window & Committee', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'AVS Operator Quorum Diversity', check: 'Operator Stake Concentration Cap', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'LRT Liquidity & Depeg Buffer', check: 'Collateral Parity & Unbonding Timelock', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Dual-Staking Reward Equilibrium', check: 'AVS Reward & Collateral Sinks', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Unbonding Queue Delay Mechanism', check: '7-Day Withdrawal Timelock', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Multi-AVS Slashing Cascades', check: 'Correlated Slashing Protection', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           `• Real Restaked TVL: ${tvlStr} tracked via on-chain asset escrow.`,
@@ -297,12 +297,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'FORMAL_VERIFICATION',
         subtitle: 'CRYPTOGRAPHIC SOUNDNESS & FORMAL PROOF VERIFICATION MATRIX',
         items: [
-          { target: 'Circuit Constraint Completeness', check: 'R1CS/PlonK Under-Constrained Signals', status: '0 Open Flaws', verdict: '[PASSED]' },
-          { target: 'Zero-Knowledge Soundness Setup', check: 'Toxic Waste Destruction Attestation', status: 'Non-Custodial', verdict: '[VERIFIED]' },
-          { target: 'FHE Noise Growth & Malleability', check: 'Ciphertext Noise Accumulation Cap', status: 'Bounded (< 2^128)', verdict: '[BOUNDED]' },
-          { target: 'MPC Threshold Decryption', check: 't-of-n Key Shard Reconstruction', status: 'Quorum Protected', verdict: '[SECURE]' },
-          { target: 'Side-Channel Gas / Timing', check: 'Constant-Time Precompile Execution', status: 'Timing Attack Safe', verdict: '[PROTECTED]' },
-          { target: 'Nullifier Set & Replay Guards', check: 'Domain Separation & Replay Mitigation', status: 'Invariants Verified', verdict: '[INVARIANT MET]' }
+          { target: 'Circuit Constraint Completeness', check: 'R1CS/PlonK Under-Constrained Signals', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Zero-Knowledge Soundness Setup', check: 'Toxic Waste Destruction Attestation', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'FHE Noise Growth & Malleability', check: 'Ciphertext Noise Accumulation Cap', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'MPC Threshold Decryption', check: 't-of-n Key Shard Reconstruction', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Side-Channel Gas / Timing', check: 'Constant-Time Precompile Execution', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Nullifier Set & Replay Guards', check: 'Domain Separation & Replay Mitigation', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• Computational Noise Bound: Evaluates ciphertext noise growth accumulation cap under multi-depth operations.',
@@ -318,18 +318,18 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         subtitle: `MULTI-VECTOR LIQUIDITY SHOCK MATRIX (REAL DEFILLAMA TVL: ${tvlStr.toUpperCase()})`,
         items: hasTvl ? [
           { target: `DefiLlama TVL Anchor (${tvlStr})`, check: 'On-Chain Total Value Locked', status: tvlStr, verdict: '[VERIFIED]' },
-          { target: `Scenario A (10% Liquidity Unwind - ${formatDefiLlamaTvl(realTvl * 0.1)})`, check: 'Pool Depth & Slippage Impact', status: '-1.2% Price Delta', verdict: '[SOLVENT]' },
-          { target: `Scenario B (25% Volatility Shock - ${formatDefiLlamaTvl(realTvl * 0.25)})`, check: 'Vault Collateralization Buffer', status: 'Health Factor 1.65', verdict: '[STABLE]' },
-          { target: `Scenario C (50% Systemic Stress - ${formatDefiLlamaTvl(realTvl * 0.5)})`, check: 'Liquidation Cascade & Breaker', status: 'Auto Sentinel Active', verdict: '[ACTIVE BREAKER]' },
-          { target: 'Flash-Loan Oracle Manipulation', check: 'Multi-Block TWAP Fallback', status: 'Medianizer Shield', verdict: '[RESISTANT]' },
-          { target: 'De-pegging & Slippage Threshold', check: 'Dynamic Fee Dampening Model', status: 'Arbitrage Controlled', verdict: '[BOUNDED]' }
+          { target: `Scenario A (10% Liquidity Unwind - ${formatDefiLlamaTvl(realTvl * 0.1)})`, check: 'Pool Depth & Slippage Impact', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: `Scenario B (25% Volatility Shock - ${formatDefiLlamaTvl(realTvl * 0.25)})`, check: 'Vault Collateralization Buffer', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: `Scenario C (50% Systemic Stress - ${formatDefiLlamaTvl(realTvl * 0.5)})`, check: 'Liquidation Cascade & Breaker', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Flash-Loan Oracle Manipulation', check: 'Multi-Block TWAP Fallback', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'De-pegging & Slippage Threshold', check: 'Dynamic Fee Dampening Model', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ] : [
           { target: 'DefiLlama TVL Status', check: 'DefiLlama Protocol Listing', status: 'TVL data not available', verdict: '[N/A]' },
-          { target: 'Scenario A (10% Liquidity Unwind)', check: 'Pool Depth & Slippage Impact', status: 'TVL data not available', verdict: '[UNCHECKED]' },
-          { target: 'Scenario B (25% Volatility Shock)', check: 'Vault Collateralization Buffer', status: 'TVL data not available', verdict: '[UNCHECKED]' },
-          { target: 'Scenario C (50% Systemic Stress)', check: 'Liquidation Cascade & Breaker', status: 'TVL data not available', verdict: '[UNCHECKED]' },
-          { target: 'Flash-Loan Oracle Manipulation', check: 'Multi-Block TWAP Fallback', status: 'Medianizer Shield', verdict: '[RESISTANT]' },
-          { target: 'De-pegging & Slippage Threshold', check: 'Dynamic Fee Dampening Model', status: 'Arbitrage Controlled', verdict: '[BOUNDED]' }
+          { target: 'Scenario A (10% Liquidity Unwind)', check: 'Pool Depth & Slippage Impact', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Scenario B (25% Volatility Shock)', check: 'Vault Collateralization Buffer', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Scenario C (50% Systemic Stress)', check: 'Liquidation Cascade & Breaker', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Flash-Loan Oracle Manipulation', check: 'Multi-Block TWAP Fallback', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'De-pegging & Slippage Threshold', check: 'Dynamic Fee Dampening Model', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           `• Real Total Value Locked: ${tvlStr} verified via DefiLlama public API.`,
@@ -344,12 +344,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'SEQUENCER_DA',
         subtitle: 'L1 FALLBACK, DA THROUGHPUT & PROOF SOUNDNESS MATRIX',
         items: [
-          { target: 'Sequencer Fallback & Force Exit', check: 'Emergency Force Escape Hatch', status: 'L1 Escrow Active', verdict: '[INVARIANT MET]' },
-          { target: 'Validity / Fraud Proof Soundness', check: 'ZK/STARK State Transition Engine', status: '0 Proof Forgeries', verdict: '[VERIFIED SOUND]' },
-          { target: 'Data Availability Throughput', check: 'Calldata / EIP-4844 Blob Compression', status: 'Fee Spike Resilient', verdict: '[OPTIMIZED]' },
-          { target: 'Cross-Layer Escrow Lock', check: 'L1<->L2 Timelock Escrow Storage', status: '1:1 Asset Collateral', verdict: '[BOUNDED]' },
-          { target: 'L1 Reorg & Settlement Finality', check: 'Finality Delay Invariant Check', status: 'Reorg Safe', verdict: '[FINALITY SECURED]' },
-          { target: 'Bridge Escrow Solvency', check: 'Timelock Withdrawal Escrow Proof', status: 'Solvent Vaults', verdict: '[CHECKED]' }
+          { target: 'Sequencer Fallback & Force Exit', check: 'Emergency Force Escape Hatch', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Validity / Fraud Proof Soundness', check: 'ZK/STARK State Transition Engine', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Data Availability Throughput', check: 'Calldata / EIP-4844 Blob Compression', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Cross-Layer Escrow Lock', check: 'L1<->L2 Timelock Escrow Storage', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'L1 Reorg & Settlement Finality', check: 'Finality Delay Invariant Check', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Bridge Escrow Solvency', check: 'Timelock Withdrawal Escrow Proof', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• L1 Fallback Escape Hatch: Verifies force inclusion mechanism on L1 during sequencer downtime.',
@@ -364,12 +364,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'CONSENSUS_SHOCK',
         subtitle: 'VALIDATOR PARTITION, MEMPOOL SPAM & STATE TRIE MATRIX',
         items: [
-          { target: '33% Validator Partition Shock', check: 'Offline Partition Simulation', status: 'No Chain Fork Split', verdict: '[LIVENESS MET]' },
-          { target: 'Mempool Spam & Fee Surge', check: 'High Transaction Volatility', status: 'Dynamic Base Fee', verdict: '[DAMPENED]' },
-          { target: 'State Trie Pruning & Storage', check: 'State Growth Bloat Model', status: 'RPC Latency < 100ms', verdict: '[PRUNED]' },
-          { target: 'Bridge Lock Escrow Solvency', check: 'Cross-Chain Lock Collateral', status: 'Solvency Ratio 100%', verdict: '[COLLATERALIZED]' },
-          { target: 'Validator Slashing Enforcement', check: 'Double-Sign Slash Conditions', status: 'Automated Jailing', verdict: '[ACTIVE SLASH]' },
-          { target: 'P2P Gossip Network Propagation', check: 'Peer Partition Latency Bound', status: 'Sub-second Sync', verdict: '[RESILIENT]' }
+          { target: '33% Validator Partition Shock', check: 'Offline Partition Simulation', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Mempool Spam & Fee Surge', check: 'High Transaction Volatility', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'State Trie Pruning & Storage', check: 'State Growth Bloat Model', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Bridge Lock Escrow Solvency', check: 'Cross-Chain Lock Collateral', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Validator Slashing Enforcement', check: 'Double-Sign Slash Conditions', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'P2P Gossip Network Propagation', check: 'Peer Partition Latency Bound', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• Sybil Resistance & Quorum Safety: Evaluates BFT quorum resilience against malicious validator collusions.',
@@ -384,12 +384,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'INFRA_RELAY',
         subtitle: 'RELAYER QUORUM, PRICE LAG & SENTINEL FREEZE MATRIX',
         items: [
-          { target: 'Oracle Data Feed Lag', check: 'Stale Price & Outlier Shock', status: 'Fallback TWAP Trigger', verdict: '[GUARDED]' },
-          { target: 'Bridge Lock/Mint Asset Parity', check: 'Vault Collateral & Delay', status: '1:1 Equivalence Proof', verdict: '[PARITY VERIFIED]' },
-          { target: 'Relayer Quorum Disruption', check: 'Relayer Node Downtime', status: 'Multi-Sig Threshold', verdict: '[QUORUM MET]' },
-          { target: 'Key Shard Management', check: 'Relayer Access Control', status: 'Multi-Party Computation', verdict: '[ACCESS BOUNDED]' },
-          { target: 'Emergency Circuit Breaker', check: 'Cross-Chain Proof Anomaly', status: 'Instant Sentinel Freeze', verdict: '[ACTIVE SENTINEL]' },
-          { target: 'Header Attestation Guard', check: 'Merkle Proof Light Client', status: '0 Invalid Relay Proofs', verdict: '[CHECKED]' }
+          { target: 'Oracle Data Feed Lag', check: 'Stale Price & Outlier Shock', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Bridge Lock/Mint Asset Parity', check: 'Vault Collateral & Delay', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Relayer Quorum Disruption', check: 'Relayer Node Downtime', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Key Shard Management', check: 'Relayer Access Control', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Emergency Circuit Breaker', check: 'Cross-Chain Proof Anomaly', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Header Attestation Guard', check: 'Merkle Proof Light Client', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• Outlier Price Filtering: Multi-source medianization algorithm filters single-feed price anomalies.',
@@ -398,18 +398,86 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         ]
       };
 
-    case 'Memecoin / Speculative':
+    case 'Memecoin / Speculative': {
+      const scan = securityScan?.data || securityScan;
+
+      const whalePct = scan?.top10HolderConcentrationPct;
+      const hasWhale = whalePct !== undefined && whalePct !== null && !isNaN(Number(whalePct));
+      const whaleStatus = hasWhale ? `${whalePct}%` : 'Data unavailable';
+      const whaleVerdict = hasWhale
+        ? (Number(whalePct) > 50 ? '[HIGH CONCENTRATION]' : '[MONITORED]')
+        : '[UNAVAILABLE]';
+
+      const rawMint = scan?.isMintable ?? scan?.is_mintable;
+      const hasMint = rawMint !== undefined && rawMint !== null;
+      const isMint = hasMint && (rawMint === true || rawMint === '1' || rawMint === 1 || rawMint === 'true');
+      const mintStatus = !hasMint
+        ? 'Data unavailable'
+        : (isMint ? 'Mint Active' : 'Mint Disabled');
+      const mintVerdict = !hasMint
+        ? '[UNAVAILABLE]'
+        : (isMint ? '[MINTABLE]' : '[MINT DISABLED]');
+
+      const rawHp = scan?.isHoneypot ?? scan?.is_honeypot ?? scan?.cannotSell ?? scan?.cannot_sell;
+      const rawBuy = scan?.buyTax ?? scan?.buy_tax;
+      const rawSell = scan?.sellTax ?? scan?.sell_tax;
+      const hasTaxOrHp = rawHp !== undefined || rawBuy !== undefined || rawSell !== undefined;
+      let taxHpStatus = 'Data unavailable';
+      let taxHpVerdict = '[UNAVAILABLE]';
+      if (hasTaxOrHp) {
+        const isHp = rawHp === true || rawHp === '1' || rawHp === 1 || rawHp === 'true';
+        if (isHp) {
+          taxHpStatus = 'Honeypot Detected';
+          taxHpVerdict = '[HONEYPOT DETECTED]';
+        } else {
+          const buyNum = parseFloat(String(rawBuy ?? 0)) || 0;
+          const sellNum = parseFloat(String(rawSell ?? 0)) || 0;
+          const totalTax = buyNum + sellNum;
+          taxHpStatus = `Buy ${buyNum}% / Sell ${sellNum}%`;
+          taxHpVerdict = totalTax <= 5 ? '[TRADABLE]' : '[HIGH TAX]';
+        }
+      }
+
+      let custodyRisk = scan?.custodyRisk;
+      if (!custodyRisk) {
+        if (scan?.renounced === true) {
+          custodyRisk = 'RENOUNCED';
+        } else if (scan?.owner_is_contract === true || scan?.owner_type === 'contract') {
+          custodyRisk = 'CONTRACT_OWNER';
+        } else if (scan?.owner_address || scan?.ownerAddress || scan?.is_open_source !== undefined) {
+          custodyRisk = 'EOA_OWNER';
+        }
+      }
+
+      let ownershipStatus = 'Data unavailable';
+      let ownershipVerdict = '[UNAVAILABLE]';
+      if (custodyRisk) {
+        if (custodyRisk === 'RENOUNCED') {
+          ownershipStatus = 'Renounced';
+          ownershipVerdict = '[RENOUNCED]';
+        } else if (custodyRisk === 'CONTRACT_OWNER') {
+          ownershipStatus = 'Contract Owner';
+          ownershipVerdict = '[CONTRACT_OWNER]';
+        } else if (custodyRisk === 'EOA_OWNER') {
+          ownershipStatus = 'EOA Owner';
+          ownershipVerdict = '[EOA_OWNER]';
+        } else {
+          ownershipStatus = String(custodyRisk);
+          ownershipVerdict = `[${String(custodyRisk).toUpperCase()}]`;
+        }
+      }
+
       return {
         title: '2. LIQUIDITY POOL LOCK, DUMP PRESSURE & HONEYPOT AUDIT CHECKLIST',
         moduleType: 'MEME_SAFETY',
         subtitle: 'LP LOCK, HOLDER CONCENTRATION & TAX HOOK AUDIT MATRIX',
         items: [
-          { target: 'Liquidity Pool Lock', check: 'LP Token Vault Lock / Burn', status: 'Permanent Unlocked = 0', verdict: '[VERIFIED LOCKED]' },
-          { target: 'Whale Concentration', check: 'Top 10 Holder Supply Share', status: 'Controlled Allocation', verdict: '[MONITORED]' },
-          { target: 'Mint Authority Lock', check: 'Mint Function Code Inspection', status: 'Mint Disabled Invariant', verdict: '[MINT DISABLED]' },
-          { target: 'Tax Hook & Honeypot Trap', check: 'Max Buy/Sell Tax Bytecode', status: 'Tax Capped <= 5%', verdict: '[TRADABLE]' },
-          { target: 'Contract Ownership', check: 'Owner Storage Slot', status: 'Null Address (0x0)', verdict: '[RENOUNCED]' },
-          { target: 'Anti-Whale Transfer Boundaries', check: 'Max Wallet / TX Bytecode', status: 'Limits Enforced', verdict: '[ACTIVE]' }
+          { target: 'Liquidity Pool Lock', check: 'LP Token Vault Lock / Burn', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Whale Concentration', check: 'Top 10 Holder Supply Share', status: whaleStatus, verdict: whaleVerdict },
+          { target: 'Mint Authority Lock', check: 'Mint Function Code Inspection', status: mintStatus, verdict: mintVerdict },
+          { target: 'Tax Hook & Honeypot Trap', check: 'Max Buy/Sell Tax Bytecode', status: taxHpStatus, verdict: taxHpVerdict },
+          { target: 'Contract Ownership', check: 'Owner Storage Slot', status: ownershipStatus, verdict: ownershipVerdict },
+          { target: 'Anti-Whale Transfer Boundaries', check: 'Max Wallet / TX Bytecode', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• Dump Pressure Simulation: Model simulates large holder exits to assess price impact resilience.',
@@ -417,6 +485,7 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           '• Liquidity Lock Verification: Evaluates LP token lock contract parameters and burn status.'
         ]
       };
+    }
 
     case 'Specialized / Experimental':
     default:
@@ -425,12 +494,12 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
         moduleType: 'RESOURCE_SAFETY',
         subtitle: 'RESOURCE SAFETY, ACCESS CONTROL & CALL GRAPH MATRIX',
         items: [
-          { target: 'Resource Borrow Safety', check: 'Single-Owner Storage Borrows', status: '0 Dangling Borrows', verdict: '[MEMORY SAFE]' },
-          { target: 'Role-Based Capabilities', check: 'Privileged Access Pattern', status: 'Role Locks Active', verdict: '[CAPABILITY MET]' },
-          { target: 'Integer Overflow / Math', check: 'Checked Arithmetic (Sol 0.8+)', status: 'Panic Sinks Clean', verdict: '[CHECKED MATH]' },
-          { target: 'Upgrade Timelock', check: 'Proxy Upgrade Delays', status: '72h Timelock Active', verdict: '[TIMELOCK MET]' },
-          { target: 'Call Graph Depth', check: 'External Call Stack Recursion', status: 'Reentrancy Shield', verdict: '[CLEAN CALL GRAPH]' },
-          { target: 'Cross-Contract Composability', check: 'Contract Boundary Locks', status: 'Isolated Call Sinks', verdict: '[EVALUATED]' }
+          { target: 'Resource Borrow Safety', check: 'Single-Owner Storage Borrows', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Role-Based Capabilities', check: 'Privileged Access Pattern', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Integer Overflow / Math', check: 'Checked Arithmetic (Sol 0.8+)', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Upgrade Timelock', check: 'Proxy Upgrade Delays', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Call Graph Depth', check: 'External Call Stack Recursion', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: 'Cross-Contract Composability', check: 'Contract Boundary Locks', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
           '• Memory & Borrow Checker: AST analysis verifies resource isolation across execution contexts.',

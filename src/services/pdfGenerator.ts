@@ -1306,7 +1306,7 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
   y += 8;
 
   // 2. Category-Specific Modular Section (Dynamically updates based on categoryType / protocolType)
-  const categoryModule = getCategorySpecificModule(categoryType, data.realTvl);
+  const categoryModule = getCategorySpecificModule(categoryType, data.realTvl, secScan);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
