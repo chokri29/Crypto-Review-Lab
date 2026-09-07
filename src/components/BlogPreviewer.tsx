@@ -654,15 +654,21 @@ export default function BlogPreviewer({
           </div>
 
           {/* Real-time Crypto Telemetry Card on Right */}
-          <div className="lg:col-span-5 xl:col-span-4 p-4.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 flex flex-col justify-between space-y-2.5 shadow-lg">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-400 animate-ping" />
-                <span className="text-[11px] font-orbitron font-bold text-white uppercase truncate">
-                  MARKET STREAM ACTIVE
+          <div className="lg:col-span-5 xl:col-span-4 p-3.5 sm:p-4.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 flex flex-col justify-between space-y-2.5 shadow-lg">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+                </span>
+                <span className="text-[10px] sm:text-[11px] font-orbitron font-bold text-white uppercase tracking-wider whitespace-nowrap">
+                  MARKET STREAM
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[8.5px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+                  ACTIVE
                 </span>
               </div>
-              <span className="text-[9.5px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+              <span className="text-[9.5px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0 ml-auto sm:ml-0">
                 {liveCryptoTime}
               </span>
             </div>

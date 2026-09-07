@@ -801,25 +801,27 @@ export default function XStockVerificationPanel({
         <button
           type="button"
           onClick={() => setShowFaqInfo(!showFaqInfo)}
-          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/70 transition-colors cursor-pointer"
+          className="w-full p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left hover:bg-slate-900/70 transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0">
-              <HelpCircle className="w-3.5 h-3.5" />
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/40 text-cyber-cyan flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <HelpCircle className="w-4 h-4" />
             </div>
-            <div>
-              <span className="font-orbitron font-bold text-xs sm:text-sm text-white block">
+            <div className="min-w-0 flex-1">
+              <span className="font-orbitron font-bold text-xs sm:text-sm text-white block group-hover:text-cyber-cyan transition-colors">
                 Frequently Asked Questions — Verification &amp; Integrity Panel
               </span>
-              <span className="text-[11px] font-sans text-slate-400">
+              <span className="text-[11px] font-sans text-slate-400 block mt-0.5 leading-relaxed">
                 Understanding verification dimensions, data consistency, tracking, and safety boundaries
               </span>
             </div>
           </div>
-          <span className="text-xs font-mono text-cyber-cyan flex items-center gap-1 font-bold shrink-0 ml-2">
-            <span>{showFaqInfo ? 'Hide FAQs' : 'Read FAQs'}</span>
-            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showFaqInfo ? 'rotate-180' : ''}`} />
-          </span>
+          <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80 w-full sm:w-auto shrink-0">
+            <span className="text-xs font-mono text-cyber-cyan flex items-center gap-1.5 font-bold">
+              <span>{showFaqInfo ? 'Hide FAQs' : 'Read FAQs'}</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showFaqInfo ? 'rotate-180' : ''}`} />
+            </span>
+          </div>
         </button>
 
         {showFaqInfo && (
@@ -944,26 +946,44 @@ export default function XStockVerificationPanel({
         <button
           type="button"
           onClick={() => setShowEvidenceMatrix(!showEvidenceMatrix)}
-          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-900/50 transition-colors cursor-pointer"
+          className="w-full p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left hover:bg-slate-900/50 transition-colors cursor-pointer group"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0">
-              <Layers className="w-3.5 h-3.5" />
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 group-hover:border-cyber-cyan/40 group-hover:text-cyber-cyan transition-colors">
+              <Layers className="w-4 h-4" />
             </div>
-            <div>
-              <span className="font-orbitron font-bold text-xs text-slate-300 block">
-                Advanced Auditor View: Deterministic Provenance Matrix
-              </span>
-              <span className="text-[10.5px] font-mono text-slate-500">
-                Raw data key provenance ({evidenceAudit.validCount} Valid • {evidenceAudit.missingCount} Missing • {evidenceAudit.staleCount} Stale • {evidenceAudit.contradictoryCount} Divergent • {evidenceAudit.sourceCount ?? 0} Source • {evidenceAudit.derivedCount ?? 0} Derived)
-              </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-orbitron font-bold text-xs sm:text-sm text-slate-200 group-hover:text-white transition-colors">
+                  Advanced Auditor View: Deterministic Provenance Matrix
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                  {evidenceList.length} KEYS
+                </span>
+              </div>
+              <div className="text-[10px] sm:text-[11px] font-mono text-slate-400 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-slate-500 font-semibold">Provenance:</span>
+                <span className="text-emerald-400 font-medium">{evidenceAudit.validCount} Valid</span>
+                <span className="text-slate-600">•</span>
+                <span className={evidenceAudit.missingCount > 0 ? "text-rose-400 font-medium" : "text-slate-400"}>{evidenceAudit.missingCount} Missing</span>
+                <span className="text-slate-600">•</span>
+                <span className={evidenceAudit.staleCount > 0 ? "text-amber-400 font-medium" : "text-slate-400"}>{evidenceAudit.staleCount} Stale</span>
+                <span className="text-slate-600">•</span>
+                <span className={evidenceAudit.contradictoryCount > 0 ? "text-purple-400 font-medium" : "text-slate-400"}>{evidenceAudit.contradictoryCount} Divergent</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-cyan-400 font-medium">{evidenceAudit.sourceCount ?? 0} Source</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400">{evidenceAudit.derivedCount ?? 0} Derived</span>
+              </div>
             </div>
           </div>
 
-          <span className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1 font-bold shrink-0 ml-2">
-            <span>{showEvidenceMatrix ? 'Hide Audit Rows' : `Inspect Audit Rows (${evidenceList.length})`}</span>
-            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showEvidenceMatrix ? 'rotate-180' : ''}`} />
-          </span>
+          <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80 w-full sm:w-auto shrink-0">
+            <span className="text-xs font-mono text-slate-400 group-hover:text-cyber-cyan flex items-center gap-1.5 font-bold transition-colors">
+              <span>{showEvidenceMatrix ? 'Hide Audit Rows' : `Inspect Audit Rows (${evidenceList.length})`}</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showEvidenceMatrix ? 'rotate-180 text-cyber-cyan' : ''}`} />
+            </span>
+          </div>
         </button>
 
         {showEvidenceMatrix && (
