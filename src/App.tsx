@@ -1345,213 +1345,231 @@ export default function App() {
       <FaqJsonLd activeTab={activeTab} />
       
       {/* 1. Cyber Header */}
-      <header className="sticky top-0 z-50 w-full bg-cyber-bg-primary/95 border-b border-cyber-cyan/20 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-3 shrink-0 shadow-sm flex justify-center">
-        <div className="max-w-7xl w-full mx-auto flex flex-col lg:flex-row items-center justify-between gap-3 sm:gap-4 lg:gap-6 min-w-0">
+      <header className="sticky top-0 z-50 w-full bg-cyber-bg-primary/95 border-b border-cyber-cyan/20 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-2.5 shrink-0 shadow-sm flex justify-center">
+        <div className="max-w-7xl w-full mx-auto flex flex-col gap-2.5">
           
-          {/* Logo Brand with custom rotating nested Hex design */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 relative flex-shrink-0">
-              <svg fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] animate-pulse">
-                <polygon fill="none" points="20,2 38,11 38,29 20,38 2,29 2,11" stroke="#00e5ff" strokeWidth="1.5"/>
-                <polygon fill="none" opacity="0.3" points="20,8 32,14 32,26 20,32 8,26 8,14" stroke="#00e5ff" strokeWidth="0.8"/>
-                <circle cx="17.5" cy="17.5" r="5.5" stroke="#00e5ff" strokeWidth="1.8" fill="none" />
-                <path d="M15 15.5 a 2.5 2.5 0 0 1 2.5 -2.5" stroke="#00e5ff" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-                <line x1="21.5" y1="21.5" x2="28" y2="28" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-300 to-cyan-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
-                CRYPTO REVIEW LAB
-              </h1>
-              <span className="text-[7.5px] sm:text-[9px] font-orbitron font-semibold text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-1">
-                Algorithmic Security Intelligence for Digital Assets
-              </span>
-            </div>
-          </div>
-
-          {/* Core Tab Navigators - Responsive horizontal scroll container */}
-          <nav className="flex items-center bg-cyber-bg-card/90 p-1.5 border-2 border-cyber-cyan/25 rounded-xl w-full lg:w-auto min-w-0 max-w-full overflow-x-auto flex-nowrap scrollbar-thin scrollbar-thumb-cyber-cyan/40 scrollbar-track-cyber-bg-primary gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.08)] touch-pan-x select-none">
-            <button
-              onClick={() => handleTabChange('lab')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-orbitron font-black flex items-center gap-2 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border relative ${
-                activeTab === 'lab'
-                  ? 'bg-gradient-to-r from-purple-600 via-cyber-cyan to-purple-600 text-slate-950 border-purple-300 shadow-[0_0_24px_rgba(168,85,247,0.7)] scale-[1.04]'
-                  : 'bg-gradient-to-r from-purple-950/80 to-slate-900 text-purple-200 border-purple-500/40 hover:border-purple-400 hover:text-white hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.25)] font-bold'
-              }`}
+          {/* Top Row: Brand Logo + Header Controls (Currency & Search) */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+            {/* Logo Brand with custom rotating nested Hex design */}
+            <div 
+              onClick={() => {
+                handleTabChange('lab');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-3 shrink-0 cursor-pointer group"
+              title="Return to AVF Review Lab Home"
             >
-              <Cpu className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${activeTab === 'lab' ? 'text-slate-950 animate-spin' : 'text-purple-400 animate-pulse'}`} />
-              <span className="tracking-widest whitespace-nowrap">AVF REVIEW LAB</span>
-              <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-extrabold uppercase ${
-                activeTab === 'lab' ? 'bg-slate-950 text-purple-300' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-              }`}>
-                ENGINE
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleTabChange('blog')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                activeTab === 'blog'
-                  ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                  : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Market Intelligence</span>
-            </button>
-
-            <button
-              onClick={() => handleTabChange('xstocks')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                activeTab === 'xstocks' || activeTab === 'academy'
-                  ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                  : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
-              }`}
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Tokenized Stocks</span>
-            </button>
-
-            <button
-              onClick={() => handleTabChange('chat')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                activeTab === 'chat'
-                  ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                  : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
-              }`}
-            >
-              <Terminal className="w-3.5 h-3.5" />
-              <span>Auditor Chat</span>
-            </button>
-
-            {/* Public Client Order Verification Tab */}
-            <button
-              onClick={() => handleTabChange('orders')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                activeTab === 'orders'
-                  ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.5)] scale-[1.02]'
-                  : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:border-amber-400 hover:text-amber-200 hover:bg-amber-500/20'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Verify Order</span>
-            </button>
-
-            {/* Admin Auditor Desk & F3 Dashboard - Master Auditor Only */}
-            {isAdminMaster && (
-              <>
-                <button
-                  onClick={() => handleTabChange('auditor')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-display font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                    activeTab === 'auditor'
-                      ? 'bg-emerald-400 text-slate-950 border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.5)] scale-[1.02]'
-                      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:border-emerald-400 hover:text-emerald-200 hover:bg-emerald-500/20 font-bold'
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Auditor Desk</span>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange('f3')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-orbitron font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
-                    activeTab === 'f3'
-                      ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 border-cyan-300 shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                      : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30 hover:border-cyan-400 hover:text-cyan-200 hover:bg-cyan-500/20 font-bold'
-                  }`}
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>F3 Dashboard</span>
-                </button>
-              </>
-            )}
-          </nav>
-
-          {/* Quick header controls & global currency selector */}
-          <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 text-xs font-orbitron uppercase tracking-wider w-full lg:w-auto flex-wrap sm:flex-nowrap shrink-0 pt-0.5 lg:pt-0">
-            {/* Unified Sleek Fiat Currency Dropdown */}
-            <CurrencyDropdown />
-
-            {/* Header Search Input with Real-time Autocomplete Dropdown */}
-            <div ref={searchContainerRef} className="relative w-40 sm:w-48 md:w-56">
-              <div className="relative w-full">
-                <Search className="w-3.5 h-3.5 text-cyber-cyan absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={headerSearchQuery}
-                  onFocus={() => setIsSearchFocused(true)}
-                  onChange={(e) => {
-                    setHeaderSearchQuery(e.target.value);
-                    setIsSearchFocused(true);
-                  }}
-                  placeholder="Quick search project..."
-                  className="w-full bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-8 pr-8 py-1.5 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_12px_rgba(0,229,255,0.3)] transition-all font-mono"
-                  aria-label="Quick search projects in header"
-                />
-                <button
-                  type="button"
-                  onClick={handleVoiceSearch}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all cursor-pointer ${
-                    micPermissionDenied
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50 animate-bounce'
-                      : isListening
-                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 animate-pulse'
-                      : 'text-cyber-cyan/70 hover:text-cyber-cyan hover:bg-cyber-cyan/15'
-                  }`}
-                  title={
-                    micPermissionDenied
-                      ? 'Microphone permission blocked or denied (Click to retry)'
-                      : isListening
-                      ? 'Listening for voice command...'
-                      : 'Voice Search (Click to speak)'
-                  }
-                  aria-label="Voice Search"
-                >
-                  {micPermissionDenied ? <MicOff className="w-3.5 h-3.5 text-amber-400" /> : isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
-                </button>
+              <div className="w-9 h-9 sm:w-10 sm:h-10 relative flex-shrink-0">
+                <svg fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] group-hover:scale-105 transition-transform animate-pulse">
+                  <polygon fill="none" points="20,2 38,11 38,29 20,38 2,29 2,11" stroke="#00e5ff" strokeWidth="1.5"/>
+                  <polygon fill="none" opacity="0.3" points="20,8 32,14 32,26 20,32 8,26 8,14" stroke="#00e5ff" strokeWidth="0.8"/>
+                  <circle cx="17.5" cy="17.5" r="5.5" stroke="#00e5ff" strokeWidth="1.8" fill="none" />
+                  <path d="M15 15.5 a 2.5 2.5 0 0 1 2.5 -2.5" stroke="#00e5ff" strokeWidth="0.8" strokeLinecap="round" fill="none" />
+                  <line x1="21.5" y1="21.5" x2="28" y2="28" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
               </div>
+              <div className="flex flex-col">
+                <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-300 to-cyan-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
+                  CRYPTO REVIEW LAB
+                </h1>
+                <span className="text-[7.5px] sm:text-[9px] font-orbitron font-semibold text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-0.5">
+                  Algorithmic Security Intelligence for Digital Assets
+                </span>
+              </div>
+            </div>
 
-              {/* Real-time Autocomplete Dropdown */}
-              {isSearchFocused && headerSearchQuery.trim() !== '' && (
-                <div className="absolute left-0 right-0 top-full mt-2 bg-slate-950 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto p-1.5 space-y-1 font-mono">
-                  {searchResults.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-slate-400">
-                      No matching projects found
-                    </div>
-                  ) : (
-                    searchResults.slice(0, 6).map(review => (
-                      <button
-                        key={review.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('blog');
-                          setSelectedReviewId(review.id);
-                          setHeaderSearchQuery('');
-                          setIsSearchFocused(false);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        className="w-full text-left p-2 rounded-lg hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded bg-cyber-cyan/20 text-cyber-cyan font-bold text-[9px] flex items-center justify-center shrink-0">
-                            {review.symbol ? review.symbol.slice(0, 3) : 'REV'}
-                          </span>
-                          <div className="flex flex-col truncate">
-                            <span className="text-xs font-bold text-slate-200 group-hover:text-cyber-cyan truncate">{review.name}</span>
-                            <span className="text-[9px] text-slate-400 truncate">{review.category || 'Protocol'}</span>
-                          </div>
-                        </div>
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                          {review.grade || 'A+'}
-                        </span>
-                      </button>
-                    ))
-                  )}
+            {/* Quick header controls & global currency selector */}
+            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 text-xs font-orbitron uppercase tracking-wider w-full sm:w-auto shrink-0">
+              {/* Unified Sleek Fiat Currency Dropdown */}
+              <CurrencyDropdown />
+
+              {/* Header Search Input with Real-time Autocomplete Dropdown */}
+              <div ref={searchContainerRef} className="relative flex-1 sm:w-48 md:w-56">
+                <div className="relative w-full">
+                  <Search className="w-3.5 h-3.5 text-cyber-cyan absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={headerSearchQuery}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onChange={(e) => {
+                      setHeaderSearchQuery(e.target.value);
+                      setIsSearchFocused(true);
+                    }}
+                    placeholder="Quick search project..."
+                    className="w-full bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-8 pr-8 py-1.5 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_12px_rgba(0,229,255,0.3)] transition-all font-mono"
+                    aria-label="Quick search projects in header"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVoiceSearch}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-all cursor-pointer ${
+                      micPermissionDenied
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50 animate-bounce'
+                        : isListening
+                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/50 animate-pulse'
+                        : 'text-cyber-cyan/70 hover:text-cyber-cyan hover:bg-cyber-cyan/15'
+                    }`}
+                    title={
+                      micPermissionDenied
+                        ? 'Microphone permission blocked or denied (Click to retry)'
+                        : isListening
+                        ? 'Listening for voice command...'
+                        : 'Voice Search (Click to speak)'
+                    }
+                    aria-label="Voice Search"
+                  >
+                    {micPermissionDenied ? <MicOff className="w-3.5 h-3.5 text-amber-400" /> : isListening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
-              )}
+
+                {/* Real-time Autocomplete Dropdown */}
+                {isSearchFocused && headerSearchQuery.trim() !== '' && (
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-slate-950 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto p-1.5 space-y-1 font-mono">
+                    {searchResults.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-slate-400">
+                        No matching projects found
+                      </div>
+                    ) : (
+                      searchResults.slice(0, 6).map(review => (
+                        <button
+                          key={review.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('blog');
+                            setSelectedReviewId(review.id);
+                            setHeaderSearchQuery('');
+                            setIsSearchFocused(false);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="w-full text-left p-2 rounded-lg hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-5 h-5 rounded bg-cyber-cyan/20 text-cyber-cyan font-bold text-[9px] flex items-center justify-center shrink-0">
+                              {review.symbol ? review.symbol.slice(0, 3) : 'REV'}
+                            </span>
+                            <div className="flex flex-col truncate">
+                              <span className="text-xs font-bold text-slate-200 group-hover:text-cyber-cyan truncate">{review.name}</span>
+                              <span className="text-[9px] text-slate-400 truncate">{review.category || 'Protocol'}</span>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                            {review.grade || 'A+'}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
+          {/* Navigation Bar: Core Tab Navigators (Full Width / Centered Row) */}
+          <div className="w-full flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar py-0.5">
+            <nav className="flex items-center bg-cyber-bg-card/90 p-1.5 border border-cyber-cyan/30 rounded-xl max-w-full overflow-x-auto no-scrollbar flex-nowrap gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.08)] touch-pan-x select-none shrink-0">
+              <button
+                type="button"
+                onClick={() => handleTabChange('lab')}
+                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-orbitron font-black flex items-center gap-2 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border relative ${
+                  activeTab === 'lab'
+                    ? 'bg-gradient-to-r from-purple-600 via-cyber-cyan to-purple-600 text-slate-950 border-purple-300 shadow-[0_0_24px_rgba(168,85,247,0.7)] scale-[1.02]'
+                    : 'bg-gradient-to-r from-purple-950/80 to-slate-900 text-purple-200 border-purple-500/40 hover:border-purple-400 hover:text-white hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.25)] font-bold'
+                }`}
+              >
+                <Cpu className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'lab' ? 'text-slate-950 animate-spin' : 'text-purple-400 animate-pulse'}`} />
+                <span className="tracking-widest whitespace-nowrap">AVF REVIEW LAB</span>
+                <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-extrabold uppercase shrink-0 ${
+                  activeTab === 'lab' ? 'bg-slate-950 text-purple-300' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                }`}>
+                  ENGINE
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('blog')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                  activeTab === 'blog'
+                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
+                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                <span>Market Intelligence</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('xstocks')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                  activeTab === 'xstocks' || activeTab === 'academy'
+                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
+                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+                <span>Tokenized Stocks</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('chat')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                  activeTab === 'chat'
+                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
+                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                }`}
+              >
+                <Terminal className="w-3.5 h-3.5 shrink-0" />
+                <span>Auditor Chat</span>
+              </button>
+
+              {/* Public Client Order Verification Tab */}
+              <button
+                type="button"
+                onClick={() => handleTabChange('orders')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                  activeTab === 'orders'
+                    ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.5)] scale-[1.02]'
+                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:border-amber-400 hover:text-amber-200 hover:bg-amber-500/20'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Verify Order</span>
+              </button>
+
+              {/* Admin Auditor Desk & F3 Dashboard - Master Auditor Only */}
+              {isAdminMaster && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('auditor')}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-display font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                      activeTab === 'auditor'
+                        ? 'bg-emerald-400 text-slate-950 border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.5)] scale-[1.02]'
+                        : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:border-emerald-400 hover:text-emerald-200 hover:bg-emerald-500/20 font-bold'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Auditor Desk</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange('f3')}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                      activeTab === 'f3'
+                        ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 border-cyan-300 shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
+                        : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30 hover:border-cyan-400 hover:text-cyan-200 hover:bg-cyan-500/20 font-bold'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span>F3 Dashboard</span>
+                  </button>
+                </>
+              )}
+            </nav>
+          </div>
         </div>
       </header>
 
