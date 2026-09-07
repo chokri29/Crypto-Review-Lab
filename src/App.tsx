@@ -1626,7 +1626,7 @@ export default function App() {
                 </div>
 
                 {/* Right Column (4 cols desktop, full width mobile): 3D Core Telemetry & Status Monitor Card */}
-                <div className="col-span-12 lg:col-span-4 p-4 sm:p-5 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between relative overflow-hidden h-[320px] sm:h-[350px] lg:h-full min-h-[300px]">
+                <div className="col-span-12 lg:col-span-4 p-4 sm:p-5 rounded-2xl bg-black border border-cyber-cyan/35 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex flex-col justify-between relative overflow-hidden h-[320px] sm:h-[350px] lg:h-full min-h-[300px]">
                   <div className="flex items-center justify-between pb-2 border-b border-cyber-cyan/15">
                     <span className="text-[10px] font-orbitron font-bold text-cyber-cyan uppercase tracking-wider flex items-center gap-1.5">
                       <Cpu className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />

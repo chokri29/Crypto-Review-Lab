@@ -241,8 +241,8 @@ export default function XStockVerificationPanel({
     <div id="xstock-verification-panel" className="p-5 sm:p-7 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border border-cyber-cyan/30 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.06)] space-y-6">
       
       {/* 1. Header: Clear Stock Identity & Panel Purpose for Visitors */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 border-b border-cyber-cyan/15 pb-5">
-        <div className="space-y-2">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 border-b border-cyber-cyan/15 pb-5">
+        <div className="space-y-2 flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/40 flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -261,80 +261,94 @@ export default function XStockVerificationPanel({
             About {selectedStock.name} ({selectedStock.symbol})
           </h2>
 
-          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-5xl">
+          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-4xl">
             {selectedStock.description}
           </p>
-          <p className="text-xs text-slate-400 font-sans leading-relaxed max-w-5xl">
+          <p className="text-xs text-slate-400 font-sans leading-relaxed max-w-4xl">
             This panel provides independent transparency into how <span className="text-white font-semibold">{selectedStock.symbol}</span> tracks the real US equity (<span className="text-purple-300 font-semibold">{selectedStock.underlyingTicker}</span>), who holds the underlying shares, and the smart contract safety of the token.
           </p>
         </div>
 
-        {/* Toolbar: Share & Refresh Controls */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2 py-1 rounded-xl shadow-sm">
-            <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
-              <Share2 className="w-3 h-3 text-cyber-cyan" />
-              <span>Share:</span>
-            </span>
+        {/* Right side: Toolbar & 1:1 Collateralized Architecture Card */}
+        <div className="flex flex-col items-start lg:items-end gap-3 shrink-0 w-full lg:w-auto lg:max-w-md">
+          {/* Toolbar: Share & Refresh Controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2 py-1 rounded-xl shadow-sm">
+              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                <Share2 className="w-3 h-3 text-cyber-cyan" />
+                <span>Share:</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleShareTwitter}
+                className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg transition-colors cursor-pointer"
+                title="Share on X (Twitter)"
+                aria-label="Share on X"
+              >
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={handleShareTelegram}
+                className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg transition-colors cursor-pointer"
+                title="Share on Telegram"
+                aria-label="Share on Telegram"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleShareFacebook}
+                className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
+                title="Share on Facebook"
+                aria-label="Share on Facebook"
+              >
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={handleCopyShareLink}
+                className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  copied
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                    : 'bg-slate-900 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan border-slate-800'
+                }`}
+                title="Copy share link"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-cyber-cyan" />}
+                <span>{copied ? 'Copied' : 'Link'}</span>
+              </button>
+            </div>
+
             <button
               type="button"
-              onClick={handleShareTwitter}
-              className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg transition-colors cursor-pointer"
-              title="Share on X (Twitter)"
-              aria-label="Share on X"
+              onClick={() => {
+                fetchSecurityScan(selectedStock);
+                if (onRefreshAll) onRefreshAll();
+              }}
+              disabled={isScanning || isRefreshingQuotes}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              title="Refresh prices and re-run verification checks"
             >
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleShareTelegram}
-              className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg transition-colors cursor-pointer"
-              title="Share on Telegram"
-              aria-label="Share on Telegram"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleShareFacebook}
-              className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
-              title="Share on Facebook"
-              aria-label="Share on Facebook"
-            >
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyShareLink}
-              className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                copied
-                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                  : 'bg-slate-900 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan border-slate-800'
-              }`}
-              title="Copy share link"
-            >
-              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-cyber-cyan" />}
-              <span>{copied ? 'Copied' : 'Link'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isScanning || isRefreshingQuotes ? 'animate-spin' : ''}`} />
+              <span>{isScanning ? 'Updating...' : 'Refresh Data'}</span>
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              fetchSecurityScan(selectedStock);
-              if (onRefreshAll) onRefreshAll();
-            }}
-            disabled={isScanning || isRefreshingQuotes}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-            title="Refresh prices and re-run verification checks"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isScanning || isRefreshingQuotes ? 'animate-spin' : ''}`} />
-            <span>{isScanning ? 'Updating...' : 'Refresh Data'}</span>
-          </button>
+          {/* 1:1 Collateralized Architecture Card moved to empty space below social sharing buttons */}
+          <div className="w-full p-3.5 rounded-xl bg-slate-950/90 border border-cyber-cyan/25 space-y-1 text-[11px] font-mono text-slate-300 shadow-md">
+            <div className="flex items-center gap-2 text-cyber-cyan font-bold text-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+              <span className="font-orbitron text-[10.5px] uppercase tracking-wider text-white">1:1 Collateralized Architecture</span>
+            </div>
+            <p className="leading-relaxed text-[10.5px] text-slate-400">
+              xStocks are tokenized tracker certificates issued under the Swiss DLT Act. Underlying stocks are held in custody by regulated Swiss custodians.
+            </p>
+          </div>
         </div>
       </div>
 

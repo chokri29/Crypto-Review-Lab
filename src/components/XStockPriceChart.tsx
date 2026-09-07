@@ -387,7 +387,7 @@ export default function XStockPriceChart({
   const fillGradientId = `xstock-grad-${symbol}-${isPositive ? 'pos' : 'neg'}`;
 
   return (
-    <div className="rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl overflow-hidden p-5 sm:p-6 space-y-5">
+    <div className="rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl overflow-hidden p-5 sm:p-6 space-y-5 h-full flex flex-col justify-between">
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cyber-cyan/15 pb-4">
         <div>
@@ -483,7 +483,7 @@ export default function XStockPriceChart({
       </div>
 
       {/* SVG Interactive Chart Canvas */}
-      <div ref={containerRef} className="relative w-full h-[260px] select-none flex items-center justify-center">
+      <div ref={containerRef} className="relative w-full min-h-[260px] flex-1 select-none flex items-center justify-center">
         {isLoading && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/70 backdrop-blur-sm rounded-xl text-cyber-cyan font-mono text-xs">
             <RefreshCw className="w-5 h-5 animate-spin mb-2" />

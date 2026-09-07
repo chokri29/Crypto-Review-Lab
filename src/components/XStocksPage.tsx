@@ -12,7 +12,6 @@ import {
   RefreshCw, 
   Search, 
   Activity, 
-  ShieldCheck, 
   ExternalLink,
   Layers,
   ChevronRight,
@@ -608,11 +607,11 @@ export default function XStocksPage() {
       </div>
 
       {/* 3. Main Terminal Content Grid: Left Selector List & Right Chart View */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Left Column (4 cols): Configurable Ticker Selector & Search */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl space-y-3">
+        <div className="lg:col-span-4 flex flex-col">
+          <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl flex flex-col h-full space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-cyber-cyan" />
@@ -667,7 +666,7 @@ export default function XStocksPage() {
             </div>
 
             {/* Tickers Scrollable List */}
-            <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
+            <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 min-h-[380px] max-h-[560px] lg:max-h-none">
               {filteredStocks.length === 0 ? (
                 <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
                   <p className="text-slate-300 text-xs font-mono font-bold">
@@ -767,21 +766,10 @@ export default function XStocksPage() {
               )}
             </div>
           </div>
-
-          {/* Backed Token Collateralization Notice */}
-          <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2 text-[11px] font-mono text-slate-400">
-            <div className="flex items-center gap-2 text-cyber-cyan font-bold text-xs">
-              <ShieldCheck className="w-4 h-4" />
-              <span>1:1 Collateralized Architecture</span>
-            </div>
-            <p className="leading-relaxed">
-              xStocks are tokenized tracker certificates issued under the Swiss DLT Act. Underlying stocks are held in custody by regulated Swiss custodians.
-            </p>
-          </div>
         </div>
 
         {/* Right Column (8 cols): Active xStock Terminal View */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 flex flex-col">
           {/* Active Stock Interactive Price Chart */}
           <XStockPriceChart 
             symbol={selectedStock.symbol}
