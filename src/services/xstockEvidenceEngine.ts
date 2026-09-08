@@ -59,6 +59,7 @@ export interface XStockNormalizedEvidence {
   isVerificationGrade?: boolean;
   rawSourceValues?: Record<string, { value: any; timestamp?: string | number | null; source: string }>;
   details?: string;
+  verificationStatus?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
 }
 
 export type XStockEvidenceDatum<T = number | null> = XStockNormalizedEvidence;
@@ -68,6 +69,8 @@ export interface XStockEvidenceVerificationReport {
   underlyingTicker: string;
   verifiedAt: string;
   isVerified: boolean;
+  status?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
+  multiSourcePriceStatus?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
   totalDataPoints: number;
   validCount: number;
   contradictoryCount: number;
@@ -113,11 +116,13 @@ export function buildXStockEvidenceDataset(
   // 1. CoinGecko RWA Native Tokenized Secondary Market Price
   const rwaPrice = quote?.rwaPrice ?? (quote as any)?.cgPrice;
   const hasRwaPrice = typeof rwaPrice === 'number' && !isNaN(rwaPrice) && rwaPrice > 0;
+  const existingRwaState: XStockEvidenceState | undefined = quote?.evidence?.coingecko_rwa_price?.state;
   const rwaState: XStockEvidenceState = hasRwaPrice 
-    ? (quote?.provenance === 'STALE' ? 'STALE' : quote?.provenance === 'SYNTHETIC' ? 'SYNTHETIC' : 'VALID')
+    ? (existingRwaState && existingRwaState !== 'MISSING' ? existingRwaState : (quote?.provenance === 'STALE' ? 'STALE' : quote?.provenance === 'SYNTHETIC' ? 'SYNTHETIC' : 'VALID'))
     : 'MISSING';
+  const existingRwaFreshness: XStockEvidenceFreshness | undefined = quote?.evidence?.coingecko_rwa_price?.freshness;
   const rwaFreshness: XStockEvidenceFreshness = hasRwaPrice
-    ? (quote?.provenance === 'STALE' ? 'STALE' : 'LIVE')
+    ? (existingRwaFreshness || (quote?.provenance === 'STALE' ? 'STALE' : 'LIVE'))
     : 'UNAVAILABLE';
   
   // Real provider timestamp if supplied, otherwise null (never invent timestamps)
@@ -153,8 +158,14 @@ export function buildXStockEvidenceDataset(
   // 2. CoinMarketCap Cross-Check Price (SECONDARY_TOKEN_MARKET)
   const cmcPrice = quote?.cmcPrice;
   const hasCmcPrice = typeof cmcPrice === 'number' && !isNaN(cmcPrice) && cmcPrice > 0;
-  const cmcState: XStockEvidenceState = hasCmcPrice ? 'VALID' : 'MISSING';
-  const cmcFreshness: XStockEvidenceFreshness = hasCmcPrice ? 'LIVE' : 'UNAVAILABLE';
+  const existingCmcState: XStockEvidenceState | undefined = quote?.evidence?.cmc_cross_check_price?.state;
+  const cmcState: XStockEvidenceState = hasCmcPrice 
+    ? (existingCmcState && existingCmcState !== 'MISSING' ? existingCmcState : 'VALID')
+    : 'MISSING';
+  const existingCmcFreshness: XStockEvidenceFreshness | undefined = quote?.evidence?.cmc_cross_check_price?.freshness;
+  const cmcFreshness: XStockEvidenceFreshness = hasCmcPrice 
+    ? (existingCmcFreshness || 'LIVE')
+    : 'UNAVAILABLE';
   const cmcTimestamp: string | null = (quote as any)?.cmcLastUpdated 
     ? String((quote as any).cmcLastUpdated)
     : (quote?.evidence?.cmc_cross_check_price?.timestamp ? String(quote.evidence.cmc_cross_check_price.timestamp) : null);
@@ -189,6 +200,9 @@ export function buildXStockEvidenceDataset(
   let convergenceState: XStockEvidenceState = 'MISSING';
   const rawPairValues: Record<string, { value: any; timestamp: string | null; source: string }> = {};
 
+  const isRwaValid = hasRwaPrice && rwaState === 'VALID';
+  const isCmcValid = hasCmcPrice && cmcState === 'VALID';
+
   if (hasRwaPrice && hasCmcPrice) {
     rawPairValues['TOKENIZED_MARKET'] = { value: rwaPrice, timestamp: rwaTimestamp, source: 'TOKENIZED_MARKET' };
     rawPairValues['SECONDARY_TOKEN_MARKET'] = { value: cmcPrice, timestamp: cmcTimestamp, source: 'SECONDARY_TOKEN_MARKET' };
@@ -198,17 +212,44 @@ export function buildXStockEvidenceDataset(
     // Contradiction Check: If divergence exceeds tolerance (1.0%) or status is unresolved, mark CONTRADICTORY
     if (convergenceSpreadPct > 1.0 || isDivergent) {
       convergenceState = 'CONTRADICTORY';
-    } else {
+    } else if (isRwaValid && isCmcValid) {
       convergenceState = 'VALID';
+    } else if (rwaState === 'STALE' || cmcState === 'STALE') {
+      convergenceState = 'STALE';
+    } else if (rwaState === 'SYNTHETIC' || cmcState === 'SYNTHETIC') {
+      convergenceState = 'SYNTHETIC';
+    } else if (rwaState === 'INVALID' || cmcState === 'INVALID') {
+      convergenceState = 'INVALID';
+    } else {
+      convergenceState = 'MISSING';
     }
-  } else if (hasRwaPrice || hasCmcPrice) {
-    convergenceState = 'VALID'; // single-source observation
   } else {
-    convergenceState = 'MISSING';
+    // Single-source observation CANNOT validate cross-aggregator spread.
+    // Never mark VALID when only one aggregator is available.
+    if (rwaState === 'STALE' || cmcState === 'STALE') {
+      convergenceState = 'STALE';
+    } else if (rwaState === 'SYNTHETIC' || cmcState === 'SYNTHETIC') {
+      convergenceState = 'SYNTHETIC';
+    } else if (rwaState === 'INVALID' || cmcState === 'INVALID') {
+      convergenceState = 'INVALID';
+    } else {
+      convergenceState = 'MISSING';
+    }
   }
 
-  const spreadFreshness: XStockEvidenceFreshness = (hasRwaPrice || hasCmcPrice) ? 'LIVE' : 'UNAVAILABLE';
-  const spreadTimestamp = rwaTimestamp || cmcTimestamp || null;
+  const spreadFreshness: XStockEvidenceFreshness = (isRwaValid && isCmcValid)
+    ? 'LIVE'
+    : (hasRwaPrice || hasCmcPrice)
+    ? ((rwaFreshness === 'STALE' || cmcFreshness === 'STALE') ? 'STALE' : 'LIVE')
+    : 'UNAVAILABLE';
+  const spreadTimestamp = (rwaTimestamp && cmcTimestamp) ? rwaTimestamp : (rwaTimestamp || cmcTimestamp || null);
+
+  const spreadVerificationStatus: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED' =
+    (convergenceState === 'VALID' && isRwaValid && isCmcValid && convergenceSpreadPct !== null && convergenceSpreadPct <= 1.0)
+      ? 'VERIFIED'
+      : (hasRwaPrice || hasCmcPrice)
+      ? 'PARTIAL'
+      : 'UNVERIFIED';
 
   data['multi_source_spread'] = {
     id: 'multi_source_spread',
@@ -225,13 +266,16 @@ export function buildXStockEvidenceDataset(
     state: convergenceState,
     provenance: convergenceState,
     provenanceCategory: convergenceSpreadPct !== null ? 'DERIVED' : 'UNAVAILABLE',
-    isVerificationGrade: false,
+    isVerificationGrade: spreadVerificationStatus === 'VERIFIED',
+    verificationStatus: spreadVerificationStatus,
     rawSourceValues: rawPairValues,
     details: convergenceState === 'CONTRADICTORY'
       ? `Material divergence (${convergenceSpreadPct?.toFixed(2)}% > 1.0% tolerance) between TOKENIZED_MARKET ($${rwaPrice?.toFixed(2)}) and SECONDARY_TOKEN_MARKET ($${cmcPrice?.toFixed(2)}). Original values preserved; consensus price suppressed.`
-      : convergenceSpreadPct !== null
-      ? `Feeds converged within tolerance (${convergenceSpreadPct.toFixed(2)}%).`
-      : 'Insufficient independent aggregator feeds to measure pairwise spread.'
+      : (convergenceSpreadPct !== null && convergenceState === 'VALID')
+      ? `Feeds converged within 1.0% tolerance (${convergenceSpreadPct.toFixed(2)}% spread). Dual independent aggregators verified.`
+      : (hasRwaPrice || hasCmcPrice)
+      ? `Single-source observation (${hasRwaPrice ? 'CoinGecko RWA only' : 'CoinMarketCap only'}). Multi-source price verification requires two independent market aggregators; single-source feeds are not verification-grade. Status: PARTIAL / UNVERIFIED.`
+      : 'Insufficient independent aggregator feeds to measure pairwise spread. Status: UNVERIFIED.'
   };
 
   // 4. Finnhub Underlying Equity Reference Price (UNDERLYING_EQUITY)
@@ -593,21 +637,61 @@ export function verifyXStockEvidenceDataset(
     }
   }
 
-  // Verification is verified ONLY when at least the critical pricing telemetry is strictly VALID
-  // and there are ZERO contradictions, synthetics, stales, or invalids in core market data.
-  const corePriceDatum = evidenceMap['coingecko_rwa_price'];
+  // Multi-Source Price Verification Semantics (P0 Requirement):
+  // 1. Require both CoinGecko RWA price AND CoinMarketCap price to be valid.
+  // 2. Require a valid cross-source spread/convergence check within the existing 1.0% tolerance.
+  // 3. If either source is missing, stale, invalid, or unavailable -> status must be PARTIAL / UNVERIFIED, never VERIFIED.
+  // 4. Do not treat a single-source observation as "VALID" for the cross-aggregator verification pillar.
+  // 5. Preserve existing provenance/evidence states and deterministic F3 rules.
+  const rwaDatum = evidenceMap['coingecko_rwa_price'];
+  const cmcDatum = evidenceMap['cmc_cross_check_price'];
   const spreadDatum = evidenceMap['multi_source_spread'];
-  const hasValidCorePrice = corePriceDatum?.state === 'VALID';
-  const hasNoContradiction = spreadDatum?.state !== 'CONTRADICTORY';
 
-  // F3 Rule: any contradictory or synthetic datum strictly prevents a VALID verification outcome
-  const isVerified = hasValidCorePrice && hasNoContradiction && contradictoryCount === 0 && syntheticCount === 0 && invalidCount === 0;
+  const isRwaValid = rwaDatum?.state === 'VALID' && typeof rwaDatum?.value === 'number' && rwaDatum.value > 0;
+  const isCmcValid = cmcDatum?.state === 'VALID' && typeof cmcDatum?.value === 'number' && cmcDatum.value > 0;
+  const isSpreadValid = spreadDatum?.state === 'VALID' && typeof spreadDatum?.value === 'number' && spreadDatum.value <= 1.0;
+  const hasNoSpreadContradiction = spreadDatum?.state !== 'CONTRADICTORY';
+
+  // Both independent market aggregators (CoinGecko RWA AND CoinMarketCap) must be strictly VALID and converged within tolerance
+  const hasDualAggregatorConvergence = isRwaValid && isCmcValid && isSpreadValid && hasNoSpreadContradiction;
+
+  // Determine multi-source price verification status:
+  // If either source is missing, stale, invalid, or unavailable -> PARTIAL or UNVERIFIED, never VERIFIED
+  let multiSourcePriceStatus: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
+  if (spreadDatum?.state === 'CONTRADICTORY' || contradictoryCount > 0) {
+    multiSourcePriceStatus = 'UNVERIFIED';
+  } else if (hasDualAggregatorConvergence) {
+    multiSourcePriceStatus = 'VERIFIED';
+  } else if (isRwaValid || isCmcValid || (rwaDatum && rwaDatum.state !== 'MISSING') || (cmcDatum && cmcDatum.state !== 'MISSING')) {
+    multiSourcePriceStatus = 'PARTIAL';
+  } else {
+    multiSourcePriceStatus = 'UNVERIFIED';
+  }
+
+  // F3 Deterministic Rule: VERIFIED requires genuine independent two-source price convergence,
+  // and ZERO contradictions, synthetics, or invalids across all evidence data points.
+  const isVerified = hasDualAggregatorConvergence && contradictoryCount === 0 && syntheticCount === 0 && invalidCount === 0;
+
+  // Explicit deterministic critical gaps when two-source convergence is not met
+  if (!hasDualAggregatorConvergence) {
+    if (!isRwaValid && !isCmcValid) {
+      criticalGaps.push('Multi-Source Price Verification: Both independent aggregators (CoinGecko RWA and CoinMarketCap) are missing or unavailable. Status: UNVERIFIED.');
+    } else if (!isRwaValid) {
+      criticalGaps.push(`Multi-Source Price Verification: CoinGecko RWA feed is ${rwaDatum?.state || 'MISSING'}. Single-source observation cannot be marked VERIFIED. Status: PARTIAL.`);
+    } else if (!isCmcValid) {
+      criticalGaps.push(`Multi-Source Price Verification: CoinMarketCap cross-check is ${cmcDatum?.state || 'MISSING'}. Single-source observation cannot be marked VERIFIED. Status: PARTIAL.`);
+    } else if (!isSpreadValid) {
+      criticalGaps.push(`Multi-Source Price Verification: Cross-aggregator spread (${spreadDatum?.value ?? 'N/A'}%) exceeds 1.0% tolerance. Status: UNVERIFIED.`);
+    }
+  }
 
   return {
     assetSymbol,
     underlyingTicker,
     verifiedAt: new Date().toISOString(),
     isVerified,
+    status: multiSourcePriceStatus,
+    multiSourcePriceStatus,
     totalDataPoints: total,
     validCount,
     contradictoryCount,

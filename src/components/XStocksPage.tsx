@@ -353,7 +353,12 @@ export default function XStocksPage() {
           freshness: livePrice !== null ? 'LIVE' : 'UNAVAILABLE',
           state: isDivergent ? 'CONTRADICTORY' : (livePrice !== null ? 'VALID' : 'MISSING'),
           provenanceCategory: livePrice !== null ? 'SOURCE' : 'UNAVAILABLE',
-          isVerificationGrade: livePrice !== null && !isDivergent
+          isVerificationGrade: Boolean(hasRwaLivePrice && isCmcValid && !isDivergent && (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS')),
+          verificationStatus: (hasRwaLivePrice && isCmcValid && !isDivergent && (convergenceResult.status === 'FULL_CONSENSUS' || convergenceResult.status === 'PARTIAL_CONSENSUS'))
+            ? 'VERIFIED'
+            : (hasRwaLivePrice || isCmcValid)
+            ? 'PARTIAL'
+            : 'UNVERIFIED'
         };
 
         const equityEvidence: XStockNormalizedEvidence = {
