@@ -59,7 +59,7 @@ export interface XStockNormalizedEvidence {
   isVerificationGrade?: boolean;
   rawSourceValues?: Record<string, { value: any; timestamp?: string | number | null; source: string }>;
   details?: string;
-  verificationStatus?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
+  verificationStatus?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED' | 'UNAVAILABLE';
 }
 
 export type XStockEvidenceDatum<T = number | null> = XStockNormalizedEvidence;
@@ -71,6 +71,8 @@ export interface XStockEvidenceVerificationReport {
   isVerified: boolean;
   status?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
   multiSourcePriceStatus?: 'VERIFIED' | 'PARTIAL' | 'UNVERIFIED';
+  securityScanStatus?: 'SCAN_CLEAN' | 'RISK_FLAGS_DETECTED' | 'PARTIAL' | 'UNAVAILABLE';
+  securityScanDetails?: string;
   totalDataPoints: number;
   validCount: number;
   contradictoryCount: number;
@@ -523,24 +525,87 @@ export function buildXStockEvidenceDataset(
   };
 
   // 12. On-Chain Security Bytecode / Token Authority Scan (ON_CHAIN)
+  // P2 Security Semantics:
+  // - A successful GoPlus/RugCheck API response means SCAN AVAILABLE, not automatically "VALID/VERIFIED".
+  // - Evaluate the actual security findings returned by the provider.
+  // - Any detected risk/security flag must be surfaced as RISK FLAGS DETECTED, with the underlying finding preserved.
+  // - No findings + successful scan may be reported as SCAN CLEAN / NO FLAGS OBSERVED, not a blanket safety certification.
+  // - Missing, stale, malformed, or unavailable provider data -> PARTIAL / UNAVAILABLE, never VERIFIED.
+  // - Preserve provider provenance: Blockscout = EVM on-chain/explorer evidence; GoPlus = security telemetry; RugCheck = Solana security telemetry.
+  // - Never turn "scan succeeded" into a blanket "token verified/safe" claim.
   const hasContract = Boolean(stock.contractAddress && stock.contractAddress.trim().length > 4);
-  const isScanSuccess = scanResponse?.success && Boolean(scanResponse?.data);
+  const isScanSuccess = Boolean(scanResponse?.success && scanResponse?.data);
   const scanData = scanResponse?.data;
   const isSolana = stock.chain === 'Solana';
 
+  // Determine provider provenance based on chain and scan response source
+  const providerProvenance = scanResponse?.source || (isSolana ? 'RugCheck' : 'GoPlus Security');
+
+  // Evaluate actual security findings from provider
+  const detectedRiskFlags: string[] = [];
+  if (isScanSuccess && scanData) {
+    if (scanData.is_honeypot) {
+      detectedRiskFlags.push('Honeypot Detected');
+    }
+    if (scanData.cannotSell) {
+      detectedRiskFlags.push('Trading / Transfer Restriction (Cannot Sell)');
+    }
+    if (scanData.owner_change_balance) {
+      detectedRiskFlags.push('Owner Can Change Balances');
+    }
+    if (scanData.is_blacklisted) {
+      detectedRiskFlags.push('Blacklist Capability Detected');
+    }
+    const buyTax = typeof scanData.buyTax === 'number' ? scanData.buyTax : parseFloat(String(scanData.buyTax || '0').replace('%', ''));
+    const sellTax = typeof scanData.sellTax === 'number' ? scanData.sellTax : parseFloat(String(scanData.sellTax || '0').replace('%', ''));
+    if (!isNaN(sellTax) && sellTax > 10) {
+      detectedRiskFlags.push(`High Sell Tax (${sellTax}%)`);
+    }
+    if (!isNaN(buyTax) && buyTax > 10) {
+      detectedRiskFlags.push(`High Buy Tax (${buyTax}%)`);
+    }
+    if (Array.isArray(scanData.rugcheckRisks)) {
+      const dangerRisks = scanData.rugcheckRisks.filter((r: any) => r.level === 'danger' || (r.score && r.score >= 500));
+      for (const r of dangerRisks) {
+        if (!detectedRiskFlags.some(f => f.toLowerCase().includes(r.name.toLowerCase()))) {
+          detectedRiskFlags.push(r.name);
+        }
+      }
+    }
+    if ((scanData.highRiskCount || 0) > 0 && detectedRiskFlags.length === 0) {
+      detectedRiskFlags.push(`${scanData.highRiskCount} High Risk Indicator(s)`);
+    }
+  }
+
   let scanState: XStockEvidenceState = 'MISSING';
+  let formattedValue = 'UNAVAILABLE';
+  let scanDetails = '';
+
   if (!hasContract) {
     scanState = 'MISSING';
-  } else if (isScanSuccess) {
-    if (scanData?.is_honeypot) {
+    formattedValue = 'UNAVAILABLE';
+    scanDetails = 'No contract or mint address registered on file. Status: UNAVAILABLE.';
+  } else if (!isScanSuccess) {
+    if (scanResponse?.error) {
       scanState = 'INVALID';
+      formattedValue = 'SCAN UNAVAILABLE';
+      scanDetails = `Automated security scan failed: ${scanResponse.error}. Status: UNAVAILABLE.`;
+    } else {
+      scanState = 'MISSING';
+      formattedValue = 'SCAN PENDING / UNAVAILABLE';
+      scanDetails = 'Security scan telemetry pending or unavailable from provider. Status: UNAVAILABLE.';
+    }
+  } else {
+    // Scan is AVAILABLE: Evaluate actual findings
+    if (detectedRiskFlags.length > 0) {
+      scanState = 'INVALID';
+      formattedValue = 'RISK FLAGS DETECTED';
+      scanDetails = `Security telemetry (${providerProvenance}) detected active risk flags: ${detectedRiskFlags.join('; ')}. Findings preserved from provider scan.`;
     } else {
       scanState = 'VALID';
+      formattedValue = 'SCAN CLEAN / NO FLAGS OBSERVED';
+      scanDetails = `Automated security scan (${providerProvenance}) observed 0 high-risk flags. Evaluated transfer restrictions, taxes, honeypot vectors, and authorities. Scan availability confirms observable telemetry only, not a blanket safety certification.`;
     }
-  } else if (scanResponse?.error) {
-    scanState = 'INVALID';
-  } else {
-    scanState = 'MISSING';
   }
 
   const scanTimestamp = scanResponse?.timestamp ? new Date(scanResponse.timestamp).toISOString() : null;
@@ -551,21 +616,26 @@ export function buildXStockEvidenceDataset(
     dataType: 'Smart Contract Authority & Vulnerability Telemetry',
     source: 'ON_CHAIN',
     assetId: stock.contractAddress || 'No Address On File',
-    value: isScanSuccess ? (scanData?.is_honeypot ? 0 : 1) : null,
-    formattedValue: isScanSuccess ? (scanData?.is_honeypot ? 'Honeypot Alert' : 'Verified Scan') : (scanState === 'INVALID' ? 'Security Alert' : 'Unavailable'),
+    value: isScanSuccess ? (detectedRiskFlags.length > 0 ? 0 : 1) : null,
+    formattedValue,
     timestamp: scanTimestamp,
     providerTimestamp: scanTimestamp ? new Date(scanTimestamp).toLocaleTimeString() : null,
     freshness: isScanSuccess ? 'LIVE' : 'UNAVAILABLE',
     freshnessStatus: isScanSuccess ? 'LIVE' : 'UNAVAILABLE',
     state: scanState,
     provenance: scanState,
-    provenanceCategory: hasContract ? 'SOURCE' : 'UNAVAILABLE',
-    isVerificationGrade: Boolean(isScanSuccess && scanState === 'VALID'),
-    details: isScanSuccess
-      ? `On-chain scan verified (${scanResponse?.source || 'GoPlus/RugCheck'}). Token authority and mint permissions evaluated.`
-      : hasContract
-      ? 'On-chain security scan pending or unavailable.'
-      : 'No verified contract or mint address registered on file.'
+    provenanceCategory: hasContract && isScanSuccess ? 'SOURCE' : 'UNAVAILABLE',
+    // Observational automated scan is never treated as a blanket verification-grade certification
+    isVerificationGrade: false,
+    verificationStatus: !isScanSuccess ? 'UNAVAILABLE' : (detectedRiskFlags.length > 0 ? 'UNVERIFIED' : 'PARTIAL'),
+    rawSourceValues: isScanSuccess ? {
+      scan: {
+        value: detectedRiskFlags.length > 0 ? detectedRiskFlags : 'NO_FLAGS_OBSERVED',
+        timestamp: scanTimestamp,
+        source: providerProvenance
+      }
+    } : undefined,
+    details: scanDetails
   };
 
   return data;
@@ -632,8 +702,27 @@ export function verifyXStockEvidenceDataset(
         break;
       case 'INVALID':
         invalidCount++;
-        criticalGaps.push(`${datum.name || datum.dataType}: Invalid datum or scan alert.`);
+        criticalGaps.push(`${datum.name || datum.dataType}: ${datum.details || 'Invalid datum or scan alert.'}`);
         break;
+    }
+  }
+
+  // Security Telemetry Evaluation (P2 Requirement):
+  // - A successful provider response means SCAN AVAILABLE, not automatically "VALID/VERIFIED".
+  // - Any detected risk flag must be surfaced as RISK FLAGS DETECTED, with the underlying finding preserved.
+  // - No findings + successful scan reported as SCAN CLEAN / NO FLAGS OBSERVED, not a blanket safety certification.
+  // - Missing, stale, malformed, or unavailable provider data -> PARTIAL / UNAVAILABLE, never VERIFIED.
+  const scanDatum = evidenceMap['token_security_scan'];
+  let securityScanStatus: 'SCAN_CLEAN' | 'RISK_FLAGS_DETECTED' | 'PARTIAL' | 'UNAVAILABLE' = 'UNAVAILABLE';
+  if (scanDatum) {
+    if (scanDatum.formattedValue === 'SCAN CLEAN / NO FLAGS OBSERVED' && scanDatum.state === 'VALID') {
+      securityScanStatus = 'SCAN_CLEAN';
+    } else if (scanDatum.formattedValue === 'RISK FLAGS DETECTED' || scanDatum.state === 'INVALID') {
+      securityScanStatus = 'RISK_FLAGS_DETECTED';
+    } else if (scanDatum.state === 'MISSING' || scanDatum.state === 'STALE') {
+      securityScanStatus = 'UNAVAILABLE';
+    } else {
+      securityScanStatus = 'PARTIAL';
     }
   }
 
@@ -692,6 +781,8 @@ export function verifyXStockEvidenceDataset(
     isVerified,
     status: multiSourcePriceStatus,
     multiSourcePriceStatus,
+    securityScanStatus,
+    securityScanDetails: scanDatum?.details,
     totalDataPoints: total,
     validCount,
     contradictoryCount,

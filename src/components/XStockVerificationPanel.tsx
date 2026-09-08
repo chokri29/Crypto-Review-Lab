@@ -215,9 +215,49 @@ export default function XStockVerificationPanel({
     basisDeviationPct = ((liveTokenPrice! - equityPrice!) / equityPrice!) * 100;
   }
 
+  // Security Provider Evaluation & Provenance (P2 Semantics)
   const scanData = scanResponse?.data;
-  const hasScanData = scanResponse?.success && !!scanData;
+  const hasScanData = Boolean(scanResponse?.success && scanData);
   const isSolana = selectedStock.chain === 'Solana';
+
+  const providerName = useMemo(() => {
+    if (scanResponse?.source) return scanResponse.source;
+    if (isSolana) return 'RugCheck';
+    return 'GoPlus Security';
+  }, [scanResponse?.source, isSolana]);
+
+  const detectedRiskFlags = useMemo(() => {
+    if (!hasScanData || !scanData) return [];
+    const flags: string[] = [];
+    if (scanData.is_honeypot) flags.push('Honeypot Detected');
+    if (scanData.cannotSell) flags.push('Trading / Transfer Restriction (Cannot Sell)');
+    if (scanData.owner_change_balance) flags.push('Owner Can Change Balances');
+    if (scanData.is_blacklisted) flags.push('Blacklist Capability Detected');
+    const buyTax = typeof scanData.buyTax === 'number' ? scanData.buyTax : parseFloat(String(scanData.buyTax || '0').replace('%', ''));
+    const sellTax = typeof scanData.sellTax === 'number' ? scanData.sellTax : parseFloat(String(scanData.sellTax || '0').replace('%', ''));
+    if (!isNaN(sellTax) && sellTax > 10) flags.push(`High Sell Tax (${sellTax}%)`);
+    if (!isNaN(buyTax) && buyTax > 10) flags.push(`High Buy Tax (${buyTax}%)`);
+    if (Array.isArray(scanData.rugcheckRisks)) {
+      const dangerRisks = scanData.rugcheckRisks.filter((r: any) => r.level === 'danger' || (r.score && r.score >= 500));
+      for (const r of dangerRisks) {
+        if (!flags.some(f => f.toLowerCase().includes(r.name.toLowerCase()))) {
+          flags.push(r.name);
+        }
+      }
+    }
+    if ((scanData.highRiskCount || 0) > 0 && flags.length === 0) {
+      flags.push(`${scanData.highRiskCount} High Risk Indicator(s)`);
+    }
+    return flags;
+  }, [hasScanData, scanData]);
+
+  const scanStatus: 'SCANNING' | 'CLEAN' | 'RISK_DETECTED' | 'UNAVAILABLE' = useMemo(() => {
+    if (isScanning) return 'SCANNING';
+    if (!selectedStock.contractAddress) return 'UNAVAILABLE';
+    if (!scanResponse || !scanResponse.success || !scanData) return 'UNAVAILABLE';
+    if (detectedRiskFlags.length > 0) return 'RISK_DETECTED';
+    return 'CLEAN';
+  }, [isScanning, selectedStock.contractAddress, scanResponse, scanData, detectedRiskFlags]);
 
   // Explorer link for contract address
   const explorerUrl = useMemo(() => {
@@ -708,10 +748,46 @@ export default function XStockVerificationPanel({
               Smart Contract &amp; Token Safety ({selectedStock.chain})
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            GoPlus &amp; RugCheck Automated Scans
-          </span>
+          <div className="flex items-center gap-2">
+            {scanStatus === 'SCANNING' ? (
+              <span className="px-2.5 py-1 rounded-md text-[10.5px] font-mono font-bold bg-cyan-950/50 text-cyan-300 border border-cyan-800/60 flex items-center gap-1.5">
+                <RefreshCw className="w-3 h-3 animate-spin" />
+                <span>Scanning Telemetry...</span>
+              </span>
+            ) : scanStatus === 'RISK_DETECTED' ? (
+              <span className="px-2.5 py-1 rounded-md text-[10.5px] font-mono font-bold bg-rose-950/60 text-rose-300 border border-rose-800/60 flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                <span>RISK FLAGS DETECTED</span>
+              </span>
+            ) : scanStatus === 'CLEAN' ? (
+              <span className="px-2.5 py-1 rounded-md text-[10.5px] font-mono font-bold bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 flex items-center gap-1.5" title="Provider scan observed 0 risk flags; telemetry available (not an audit certification)">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span>SCAN CLEAN / NO FLAGS OBSERVED</span>
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-md text-[10.5px] font-mono font-medium bg-slate-900 text-slate-400 border border-slate-800 flex items-center gap-1.5">
+                <HelpCircle className="w-3 h-3 text-slate-500" />
+                <span>TELEMETRY UNAVAILABLE</span>
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Risk Flags Alert Banner (Preserving Provider Findings) */}
+        {scanStatus === 'RISK_DETECTED' && (
+          <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/70 space-y-1.5">
+            <div className="flex items-center gap-2 text-rose-300 font-bold text-xs font-mono">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Security Telemetry Alert ({providerName}):</span>
+            </div>
+            <div className="text-rose-200 text-xs font-mono pl-6">
+              {detectedRiskFlags.join(' • ')}
+            </div>
+            <p className="text-[11px] text-slate-400 font-sans pl-6">
+              Automated provider scan flagged potential risk indicators. Findings are preserved as returned by provider without suppression.
+            </p>
+          </div>
+        )}
 
         {/* Contract Address Bar */}
         {selectedStock.contractAddress && (
@@ -755,39 +831,239 @@ export default function XStockVerificationPanel({
         {/* Safety Indicators */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
           
+          {/* Card 1: Transfer Restrictions & Honeypot Check */}
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
             <div className="text-[10px] text-slate-500 uppercase">Transfer Restrictions</div>
-            <div className="flex items-center gap-1.5 font-bold text-emerald-300">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Standard Transferable Token</span>
-            </div>
-            <div className="text-[10.5px] text-slate-400 font-sans">
-              No honeypot or malicious transfer locks detected.
-            </div>
+            {!hasScanData ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-slate-400">
+                  <HelpCircle className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span>Telemetry Unavailable</span>
+                </div>
+                <div className="text-[10.5px] text-slate-500 font-sans">
+                  No automated transfer telemetry returned by provider.
+                </div>
+              </>
+            ) : scanData?.is_honeypot ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Honeypot Detected</span>
+                </div>
+                <div className="text-[10.5px] text-rose-300/80 font-sans">
+                  Contract appears restricted from free selling or transferring.
+                </div>
+              </>
+            ) : scanData?.cannotSell ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Transfer Restriction</span>
+                </div>
+                <div className="text-[10.5px] text-rose-300/80 font-sans">
+                  Restrictions preventing standard selling detected.
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>No Transfer Locks Observed</span>
+                </div>
+                <div className="text-[10.5px] text-slate-400 font-sans">
+                  Provider scan observed standard token transferability.
+                </div>
+              </>
+            )}
           </div>
 
+          {/* Card 2: Trading Fees & Taxes */}
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
             <div className="text-[10px] text-slate-500 uppercase">Trading Fees &amp; Taxes</div>
-            <div className="flex items-center gap-1.5 font-bold text-white">
-              <DollarSign className="w-4 h-4 text-cyber-cyan shrink-0" />
-              <span>0% Buy / 0% Sell Tax</span>
-            </div>
-            <div className="text-[10.5px] text-slate-400 font-sans">
-              Standard token contract with zero hidden transaction taxes.
-            </div>
+            {!hasScanData ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-slate-400">
+                  <HelpCircle className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span>Telemetry Unavailable</span>
+                </div>
+                <div className="text-[10.5px] text-slate-500 font-sans">
+                  Transaction fee rates not reported by provider.
+                </div>
+              </>
+            ) : (() => {
+              const buyTaxNum = typeof scanData.buyTax === 'number' ? scanData.buyTax : parseFloat(String(scanData.buyTax || '0').replace('%', ''));
+              const sellTaxNum = typeof scanData.sellTax === 'number' ? scanData.sellTax : parseFloat(String(scanData.sellTax || '0').replace('%', ''));
+              const hasTaxData = !isNaN(buyTaxNum) || !isNaN(sellTaxNum);
+              const isHighTax = (!isNaN(buyTaxNum) && buyTaxNum > 10) || (!isNaN(sellTaxNum) && sellTaxNum > 10);
+              const isZeroTax = buyTaxNum === 0 && sellTaxNum === 0;
+
+              if (!hasTaxData) {
+                return (
+                  <>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-400">
+                      <HelpCircle className="w-4 h-4 text-slate-500 shrink-0" />
+                      <span>Fee Data Not Reported</span>
+                    </div>
+                    <div className="text-[10.5px] text-slate-500 font-sans">
+                      Provider did not supply explicit fee rate fields.
+                    </div>
+                  </>
+                );
+              }
+
+              if (isHighTax) {
+                return (
+                  <>
+                    <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                      <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>{buyTaxNum}% Buy / {sellTaxNum}% Sell</span>
+                    </div>
+                    <div className="text-[10.5px] text-rose-300/80 font-sans">
+                      High transaction tax rates observed on-chain.
+                    </div>
+                  </>
+                );
+              }
+
+              if (isZeroTax) {
+                return (
+                  <>
+                    <div className="flex items-center gap-1.5 font-bold text-white">
+                      <DollarSign className="w-4 h-4 text-cyber-cyan shrink-0" />
+                      <span>0% Buy / 0% Sell Observed</span>
+                    </div>
+                    <div className="text-[10.5px] text-slate-400 font-sans">
+                      Standard token contract with zero hidden transaction taxes.
+                    </div>
+                  </>
+                );
+              }
+
+              return (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <DollarSign className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>{buyTaxNum}% Buy / {sellTaxNum}% Sell</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-sans">
+                    Observed on-chain transaction fees via {providerName}.
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
+          {/* Card 3: Mint & Freeze Permissions */}
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
             <div className="text-[10px] text-slate-500 uppercase">Mint &amp; Freeze Permissions</div>
-            <div className="flex items-center gap-1.5 font-bold text-amber-300">
-              <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Managed by Regulated Issuer</span>
+            {!hasScanData ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-slate-400">
+                  <HelpCircle className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span>Telemetry Unavailable</span>
+                </div>
+                <div className="text-[10.5px] text-slate-500 font-sans">
+                  Contract authorities unverified by automated scan.
+                </div>
+              </>
+            ) : scanData?.owner_change_balance ? (
+              <>
+                <div className="flex items-center gap-1.5 font-bold text-rose-400">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>Owner Can Modify Balance</span>
+                </div>
+                <div className="text-[10.5px] text-rose-300/80 font-sans">
+                  Privileged capability detected: contract owner can modify balances.
+                </div>
+              </>
+            ) : isSolana ? (
+              scanData?.is_mintable ? (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Active Mint Authority</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-sans">
+                    Authority retained for 1:1 issuance and redemption of tokenized shares.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Fixed Supply (Authority Revoked)</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-sans">
+                    Mint authority is inactive or revoked.
+                  </div>
+                </>
+              )
+            ) : (
+              scanData?.is_mintable ? (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-amber-300">
+                    <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Mintable ({scanData.owner_type_label || 'Regulated Issuer'})</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-sans">
+                    Permits 1:1 issuance and redemption when shares are bought or sold.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Fixed Supply Contract</span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-sans">
+                    No active dynamic minting capabilities observed.
+                  </div>
+                </>
+              )
+            )}
+          </div>
+
+        </div>
+
+        {/* Provider Provenance & Methodology Bar */}
+        <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2 text-xs font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[10.5px] border-b border-slate-800/80 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 uppercase tracking-wider font-bold">Provider Provenance:</span>
+              <span className="text-slate-200 font-bold">{providerName}</span>
+              {scanResponse?.timestamp && (
+                <span className="text-slate-500">
+                  • {new Date(scanResponse.timestamp).toLocaleTimeString()}
+                </span>
+              )}
             </div>
-            <div className="text-[10.5px] text-slate-400 font-sans">
-              Permits 1:1 issuance and redemption when shares are bought or sold.
+            <div className="flex items-center gap-2 flex-wrap">
+              {isSolana ? (
+                <>
+                  <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
+                    RugCheck: Solana Security Telemetry
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
+                    GoPlus: Token Security Scanner
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
+                    Blockscout: EVM On-Chain &amp; Explorer
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
+                    GoPlus: Bytecode Security Telemetry
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
+          <div className="text-[11px] text-slate-400 font-sans leading-relaxed">
+            <strong className="text-slate-300">Observation Notice: </strong>
+            Automated security scans evaluate observable contract bytecode, authorities, and transaction rules at scan time. Successful scan availability indicates observable provider telemetry, not an institutional audit, insurance, or blanket safety guarantee.
+          </div>
         </div>
       </div>
 
@@ -1066,7 +1342,17 @@ export default function XStockVerificationPanel({
                             }`}>
                               {provenanceCategory}
                             </span>
-                            {item.isVerificationGrade ? (
+                            {item.id === 'token_security_scan' ? (
+                              <span className={`text-[8px] font-bold px-1 py-0.2 rounded border uppercase ${
+                                datumState === 'VALID'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                  : datumState === 'INVALID'
+                                  ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                                  : 'bg-slate-800 text-slate-400 border-slate-700'
+                              }`}>
+                                {datumState === 'VALID' ? 'SCAN AVAILABLE' : datumState === 'INVALID' ? 'FLAGS DETECTED' : 'UNAVAILABLE'}
+                              </span>
+                            ) : item.isVerificationGrade ? (
                               <span className="text-[8px] text-emerald-400 font-bold bg-emerald-500/10 px-1 py-0.2 rounded border border-emerald-500/20">
                                 VERIFIED
                               </span>
