@@ -981,11 +981,11 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           symbol: cleanSymbol,
           category: calcBp.categoryType || category,
           overallScore: calcBp.overallScore,
-          grade: calcBp.grade,
+          grade: '',
           riskLevel: calcBp.riskLevel,
           scores,
-          verdict: `${cleanName} (${cleanSymbol}) is assigned a Grade ${calcBp.grade} rating (${calcBp.overallScore}/100) under the CRL 5-dimension locked Evaluation Blueprint rubric.`,
-          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, corresponding to Letter Grade ${calcBp.grade} with ${calcBp.riskLevel} Risk tier.`,
+          verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with a ${calcBp.riskLevel} Risk tier under the CRL 5-dimension locked Evaluation Blueprint rubric.`,
+          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, corresponding to ${calcBp.riskLevel} Risk tier.`,
           pros: [
             `Verified on-chain contract bytecode registered for ${cleanSymbol} on ${selectedChainInfo.name}`,
             buyTax === 0 && sellTax === 0 ? 'Verified zero-tax contract execution model (0% buy / 0% sell fee)' : 'Active decentralized liquidity routing',
@@ -1027,7 +1027,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
       const proBenchmarks: ProSecurityBenchmarks = {
         crlInstitutionalScore,
-        crlSecurityGrade: bp.grade,
+        crlSecurityGrade: undefined,
         crlAuditStatus: (reviewData.proBenchmarks?.crlAuditStatus && !reviewData.proBenchmarks.crlAuditStatus.includes('CertiK') && !reviewData.proBenchmarks.crlAuditStatus.includes('OpenZeppelin') && reviewData.proBenchmarks.crlAuditStatus !== 'AST Bytecode & Opcode Verified')
           ? reviewData.proBenchmarks.crlAuditStatus
           : 'UNVERIFIED',
@@ -1049,7 +1049,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         const tempBase: CryptoReview = {
           ...reviewData,
           overallScore: bp.overallScore,
-          grade: bp.grade,
+          grade: '',
           riskLevel: bp.riskLevel,
           id: `${reviewData.symbol.toLowerCase()}-${Date.now()}`,
           createdAt: new Date().toISOString().split('T')[0],
@@ -1063,7 +1063,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       let completeReview: CryptoReview = {
         ...reviewData,
         overallScore: bp.overallScore,
-        grade: bp.grade,
+        grade: '',
         riskLevel: bp.riskLevel,
         id: `${reviewData.symbol.toLowerCase()}-${Date.now()}`,
         createdAt: new Date().toISOString().split('T')[0],
@@ -1277,14 +1277,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       case 'Critical': return 'text-rose-400 bg-rose-500/10 border-rose-500/20 animate-pulse';
       default: return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
     }
-  };
-
-  const getGradeColor = (grade: string) => {
-    const mainChar = grade.charAt(0);
-    if (mainChar === 'A') return 'text-emerald-400 border-emerald-400/20 bg-emerald-950/20';
-    if (mainChar === 'B') return 'text-teal-400 border-teal-400/20 bg-teal-950/20';
-    if (mainChar === 'C') return 'text-amber-400 border-amber-400/20 bg-amber-950/20';
-    return 'text-rose-400 border-rose-400/20 bg-rose-950/20';
   };
 
   // Safe markdown formatter
@@ -2244,13 +2236,13 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   </p>
                 </div>
 
-                {/* Letter-grade & overallScore badges — strictly scoped to internal/admin-facing view or reviews with publishApproved === true */}
+                {/* Risk Tier & overallScore badges — strictly scoped to internal/admin-facing view or reviews with publishApproved === true */}
                 {(isAdminMaster || generatedReview.publishApproved === true) ? (
                   <div className="flex items-center gap-2">
-                    {/* Score badge */}
-                    <div className={`border rounded-xl px-3 py-1 text-center min-w-[60px] ${getGradeColor(generatedReview.grade)}`}>
-                      <div className="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Grade</div>
-                      <div className="text-xl font-sans font-bold leading-tight tracking-tight">{generatedReview.grade}</div>
+                    {/* Risk Tier badge */}
+                    <div className="border border-emerald-400/30 bg-emerald-950/20 rounded-xl px-3 py-1 text-center min-w-[60px]">
+                      <div className="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Risk Tier</div>
+                      <div className="text-sm font-sans font-bold leading-tight tracking-tight text-emerald-400">{generatedReview.riskLevel} Risk</div>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1 text-center min-w-[60px]">
@@ -2386,7 +2378,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
                   const benchmarks: ProSecurityBenchmarks = generatedReview.proBenchmarks || {
                     crlInstitutionalScore: crlInstScore,
-                    crlSecurityGrade: generatedReview.grade,
+                    crlSecurityGrade: undefined,
                     crlAuditStatus: 'UNVERIFIED',
                     crlThreatMatrixStatus: hasRealSecurityScan ? 'AUTOMATED_SCAN_ATTACHED' : 'NOT_PERFORMED',
                     crlOpenFindings: hasRealSecurityScan ? 'SCAN_RESULTS_PENDING_AUDIT' : 'NOT_PERFORMED',
@@ -2499,7 +2491,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                 <span className="text-emerald-400 font-bold">{instScoreDisplay}/100</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
-                                Grade {benchmarks.crlSecurityGrade || generatedReview.grade}. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
+                                Risk Tier: {generatedReview.riskLevel} Risk. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
                               </p>
                             </div>
 

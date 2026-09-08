@@ -63,7 +63,7 @@ const reviewResponseSchema = {
     symbol: { type: Type.STRING },
     category: { type: Type.STRING },
     overallScore: { type: Type.INTEGER, description: "Overall rating score out of 100 calculated via weighted dimension sum" },
-    grade: { type: Type.STRING, description: "Letter grade derived strictly from overallScore: AAA (93-100), AA+ (90-92), AA (85-89), A (78-84), BBB (70-77), BB (60-69), B (50-59), C (30-49), D (0-29)" },
+    grade: { type: Type.STRING, description: "Optional legacy grade identifier" },
     verdict: { type: Type.STRING, description: "A high-impact, professional 1-2 sentence final rating verdict." },
     scores: {
       type: Type.OBJECT,
@@ -95,7 +95,7 @@ const reviewResponseSchema = {
       description: "Calculated risk level derived from overallScore: Low (>=85), Medium (70-84), High (50-69), Critical (<50)" 
     }
   },
-  required: ["name", "symbol", "category", "overallScore", "grade", "verdict", "scores", "summary", "pros", "cons", "riskLevel"]
+  required: ["name", "symbol", "category", "overallScore", "verdict", "scores", "summary", "pros", "cons", "riskLevel"]
 };
 
 function isQuotaOrDemandError(error: any): boolean {
@@ -464,9 +464,9 @@ The project delivers specialized capabilities in ${resolvedCategory}. Primary ev
 Smart contract inspection ${params.contractAddress ? `for address ${params.contractAddress}` : 'on public ledgers'} indicates a Security Rating of ${security}/10 and Tokenomics Rating of ${tokenomics}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : isMintable ? 'Notice: Supply minting capability is present.' : 'No malicious transfer restrictions identified.'}
 
 ### Conclusion
-${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore}/100, corresponding to Letter Grade ${bp.grade} with a ${bp.riskLevel} Risk tier under the locked 5-dimension rubric.`;
+${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore}/100, corresponding to ${bp.riskLevel} Risk tier under the locked 5-dimension rubric.`;
 
-  const verdict = `${cleanName} (${cleanSymbol}) is assigned a Grade ${bp.grade} rating (${bp.overallScore}/100) with ${bp.riskLevel} Risk tier under the 5-dimension locked Evaluation Blueprint rubric.`;
+  const verdict = `${cleanName} (${cleanSymbol}) is assigned a score of ${bp.overallScore}/100 with ${bp.riskLevel} Risk tier under the 5-dimension locked Evaluation Blueprint rubric.`;
 
   return {
     id: `rev_${Date.now()}_${cleanSymbol.toLowerCase()}`,
@@ -474,7 +474,7 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
     symbol: cleanSymbol,
     category: bp.categoryType || resolvedCategory,
     overallScore: bp.overallScore,
-    grade: bp.grade,
+    grade: '',
     riskLevel: bp.riskLevel,
     scores,
     verdict,
@@ -2319,14 +2319,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   app.post("/api/audit/verify-signature", (req, res) => {
     try {
       const { auditSignature, scores, verdict, grade, timestamp } = req.body;
-      if (!auditSignature || !scores || !verdict || !grade || !timestamp) {
+      if (!auditSignature || !scores || !verdict || !timestamp) {
         return res.status(400).json({ isValid: false, reason: "Missing required verification fields." });
       }
 
       const result = verifyAuditSignatureServerSide(auditSignature, {
         scores,
         verdict,
-        grade,
+        grade: grade || '',
         timestamp
       });
 
@@ -2419,7 +2419,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       `- Use ONLY the live Dual Sync market numbers below when asked for prices, 24h changes, ranks, market caps, FDV, or volume.`,
       `- All project evaluations MUST conform strictly to Evaluation Blueprint math:`,
       `  Overall Score = (Utility * 2.5) + (Tokenomics * 2.5) + (Security * 2.5) + (Team * 1.5) + (Community * 1.0)`,
-      `  Grade Scale: AAA (93-100), AA+ (90-92), AA (85-89), A (78-84), BBB (70-77), BB (60-69), B (50-59), C (30-49), D (0-29)`,
       `  Risk Levels: Low (85-100), Medium (70-84), High (50-69), Critical (0-49)`,
       ``,
       `#### TRACKED ASSETS (LIVE DUAL SYNC + MASTER BLUEPRINT REVIEWS):`
@@ -2451,7 +2450,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       contextLines.push(`  * 24h Change: ${change >= 0 ? '+' : ''}${change.toFixed(2)}% | Market Cap: $${cap.toLocaleString()} | FDV: $${fdv.toLocaleString()}`);
       contextLines.push(`  * Rank: #${rank}`);
       contextLines.push(`  * 24h Volume: $${vol.toLocaleString()}`);
-      contextLines.push(`  * Evaluation Blueprint Audit Rating: **${bpResult.overallScore} / 100** | Grade: **${bpResult.grade}** | Risk: **${bpResult.riskLevel}**`);
+      contextLines.push(`  * Evaluation Blueprint Audit Rating: **${bpResult.overallScore} / 100** | Risk: **${bpResult.riskLevel}**`);
       contextLines.push(`  * Dimension Breakdown: Utility (25%): ${scoreObj.utility}/10, Tokenomics (25%): ${scoreObj.tokenomics}/10, Security/Code (25%): ${scoreObj.security}/10, Team (15%): ${scoreObj.team}/10, Community (10%): ${scoreObj.community}/10.`);
       if (master && master.verdict) {
         contextLines.push(`  * Master Audit Verdict: "${master.verdict}"`);
@@ -2482,9 +2481,9 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       contextLines.push(`  * 24h Change: ${change >= 0 ? '+' : ''}${change.toFixed(2)}% | Market Cap: $${cap.toLocaleString()} | FDV: $${fdv.toLocaleString()}`);
       contextLines.push(`  * Rank: #${rank}`);
       contextLines.push(`  * 24h Volume: $${vol.toLocaleString()}`);
-      contextLines.push(`  * Evaluation Blueprint Audit Rating: **${bpResult.overallScore} / 100** | Grade: **${bpResult.grade}** | Risk: **${bpResult.riskLevel}**`);
+      contextLines.push(`  * Evaluation Blueprint Audit Rating: **${bpResult.overallScore} / 100** | Risk: **${bpResult.riskLevel}**`);
       if (bpResult.isMemeCoinPenaltyActive) {
-        contextLines.push(`  * ⚠️ MEME COIN PENALTY FLAG: TRIGGERED (Utility ${utility}/10 <= 2 AND Team ${team}/10 <= 3 -> Hard Capped at 60/100 [Grade BB / High Risk])`);
+        contextLines.push(`  * ⚠️ MEME COIN PENALTY FLAG: TRIGGERED (Utility ${utility}/10 <= 2 AND Team ${team}/10 <= 3 -> Hard Capped at 60/100 [High Risk])`);
       }
       contextLines.push(`  * Dimension Breakdown: Utility (25%): ${utility}/10, Tokenomics (25%): ${tokenomics}/10, Security/Code (25%): ${security}/10, Team (15%): ${team}/10, Community (10%): ${community}/10.`);
     });
@@ -2543,17 +2542,16 @@ CRITICAL OPERATIONAL RULES:
    - Security/Code: 25% Weight
    - Team/Backers: 15% Weight
    - Community: 10% Weight
-   - Grade Scale: AAA (93-100), AA+ (90-92), AA (85-89), A (78-84), BBB (70-77), BB (60-69), B (50-59), C (30-49), D (0-29).
    - Risk Levels: Low (85-100), Medium (70-84), High (50-69), Critical (0-49).
 
 3. MEME COIN PENALTY FLAG:
    - RULE: If Utility <= 2/10 AND Team <= 3/10, the project TRIGGERS the Meme Coin Penalty Flag.
-   - HARD CAP: The overall audit score MUST be hard-capped at 60/100 (Grade BB / High Risk), regardless of how high Community (e.g. 10/10) or Security scores are.
+   - HARD CAP: The overall audit score MUST be hard-capped at 60/100 (High Risk), regardless of how high Community (e.g. 10/10) or Security scores are.
    - APPLICABILITY: When evaluating or analyzing meme coins, speculative hype tokens, or anonymous team launches (e.g., PEPE, WIF, BONK, DOGE, SHIB, FLOKI, or custom user meme tokens), ALWAYS explicitly state whether the Meme Coin Penalty Flag is triggered and cite the 60/100 hard-cap rule in your response.
 
 4. FORMATTING: Use structured Markdown with bold headers and bullet points. Whenever evaluating or discussing a project, cite its live CoinGecko + CMC Dual Sync metrics and its Evaluation Blueprint dimension score breakdown.
 
-5. NO SELF-CALCULATED SCORES OR INVENTED RATINGS: You MUST NEVER calculate or state a specific overall score, letter grade, or risk level for a project on your own — you may ONLY reference a score if one is already supplied to you as part of the conversation context (e.g., from the live Dual Sync Feed or provided report data). If asked to rate or score a project that you do not already have a calculated score for in context, explain that official scores come from a full Evaluation Blueprint report (via Project Review or Security & Risk Assessment), and offer to explain the rubric parameters itself instead of producing an invented number.
+5. NO SELF-CALCULATED SCORES OR INVENTED RATINGS: You MUST NEVER calculate or state a specific overall score or risk level for a project on your own — you may ONLY reference a score if one is already supplied to you as part of the conversation context (e.g., from the live Dual Sync Feed or provided report data). If asked to rate or score a project that you do not already have a calculated score for in context, explain that official scores come from a full Evaluation Blueprint report (via Project Review or Security & Risk Assessment), and offer to explain the rubric parameters itself instead of producing an invented number.
 
 ${dualSyncContext}`;
 
@@ -3240,7 +3238,7 @@ ${dualSyncContext}`;
         xml += `    <changefreq>${proj.changefreq}</changefreq>\n`;
         xml += `    <priority>${proj.priority}</priority>\n`;
         if (proj.logoUrl) {
-          const safeTitle = `${proj.name} (${proj.symbol}) ${proj.grade} Security Review &amp; Rating`.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const safeTitle = `${proj.name} (${proj.symbol}) Security Review &amp; Risk Rating`.replace(/</g, '&lt;').replace(/>/g, '&gt;');
           xml += `    <image:image>\n`;
           xml += `      <image:loc>${proj.logoUrl}</image:loc>\n`;
           xml += `      <image:title>${safeTitle}</image:title>\n`;
@@ -3290,7 +3288,7 @@ function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
     }
 
     if (activeReview) {
-      const pageTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Rating: ${activeReview.grade} | Crypto Review Lab`;
+      const pageTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Score: ${activeReview.overallScore}/100 | Crypto Review Lab`;
       const pageDesc = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290);
       const pageUrl = `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(activeReview.id)}`;
       const pageImage = activeReview.logoUrl || 'https://www.cryptoreviewlab.com/og-banner.jpg';

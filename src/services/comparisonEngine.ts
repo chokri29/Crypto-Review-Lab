@@ -299,7 +299,7 @@ export function buildComparisonReport(
     narrativeSentence2 = `Both protocols demonstrate closely matched evaluation metrics across all 5 framework dimensions.`;
   }
 
-  const synthesizedNarrative = `${primaryReview.name} (${primaryReview.symbol}) evaluates at ${primaryReview.overallScore}/100 (${primaryReview.grade}) compared to benchmark protocol ${compareName} (${compareSymbol || 'BMK'}) at ${benchmarkBlueprint.overallScore}/100 (${benchmarkBlueprint.grade}) under the ${primaryReview.category} blueprint standard. ${narrativeSentence2} Both protocols exhibit ${primaryReview.riskLevel} to ${benchmarkBlueprint.riskLevel} risk profiles, reflecting category-aligned security parameters under ${verificationDepth}.`;
+  const synthesizedNarrative = `${primaryReview.name} (${primaryReview.symbol}) evaluates at ${primaryReview.overallScore}/100 (${primaryReview.riskLevel} Risk) compared to benchmark protocol ${compareName} (${compareSymbol || 'BMK'}) at ${benchmarkBlueprint.overallScore}/100 (${benchmarkBlueprint.riskLevel} Risk) under the ${primaryReview.category} blueprint standard. ${narrativeSentence2} Both protocols reflect category-aligned security parameters under ${verificationDepth}.`;
 
   return {
     targetProtocol: targetSummary,

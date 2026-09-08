@@ -269,9 +269,8 @@ export default function BlogPreviewer({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getGradeBadgeStyles = (grade: string, score: number) => {
-    const g = (grade || '').toUpperCase();
-    if (g.includes('AAA') || g.includes('AA') || g.includes('A+') || score >= 90) {
+  const getScoreBadgeStyles = (score: number) => {
+    if (score >= 90) {
       return {
         bg: 'bg-emerald-500/15',
         text: 'text-emerald-400',
@@ -279,7 +278,7 @@ export default function BlogPreviewer({
         shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.25)]',
       };
     }
-    if (g.includes('A') || score >= 80) {
+    if (score >= 80) {
       return {
         bg: 'bg-cyber-cyan/15',
         text: 'text-cyber-cyan',
@@ -287,7 +286,7 @@ export default function BlogPreviewer({
         shadow: 'shadow-[0_0_10px_rgba(0,229,255,0.25)]',
       };
     }
-    if (g.includes('BBB') || g.includes('BB') || g.includes('B') || score >= 70) {
+    if (score >= 70) {
       return {
         bg: 'bg-amber-500/15',
         text: 'text-amber-400',
@@ -413,7 +412,7 @@ export default function BlogPreviewer({
   const handleShareTwitter = () => {
     const shareUrl = getPublicShareUrl();
     const text = activeReview 
-      ? `Read the cryptographic audit report for ${activeReview.name} (${activeReview.symbol}) - Grade: ${activeReview.grade} on Crypto Review Lab!`
+      ? `Read the cryptographic audit report for ${activeReview.name} (${activeReview.symbol}) - Score: ${activeReview.overallScore}/100 on Crypto Review Lab!`
       : `Check out the cryptographic project audit reports on Crypto Review Lab!`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -441,7 +440,7 @@ export default function BlogPreviewer({
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         r.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.grade.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (r.riskLevel && r.riskLevel.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (r.verdict && r.verdict.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
@@ -521,21 +520,12 @@ export default function BlogPreviewer({
     }
   };
 
-  const getGradeColor = (grade: string) => {
-    if (grade === 'AAA') {
-      return 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)] font-black';
-    }
-    if (grade === 'AA') {
+  const getRiskColor = (riskLevel?: string, score?: number) => {
+    if (riskLevel === 'Low' || (score !== undefined && score >= 80)) {
       return 'text-cyber-green bg-cyber-green/10 border-cyber-green/50 shadow-[0_0_10px_rgba(0,255,136,0.15)] font-extrabold';
     }
-    if (grade.charAt(0) === 'A') {
-      return 'text-cyber-cyan/95 bg-cyber-cyan/5 border-cyber-cyan/30 font-bold';
-    }
-    if (grade.charAt(0) === 'B') {
-      return 'text-cyber-text-primary bg-cyber-text-secondary/10 border-cyber-text-muted/40 font-semibold';
-    }
-    if (grade.charAt(0) === 'C') {
-      return 'text-cyber-orange bg-cyber-orange/10 border-cyber-orange/30 font-semibold';
+    if (riskLevel === 'Medium' || (score !== undefined && score >= 60)) {
+      return 'text-amber-400 bg-amber-500/10 border-amber-500/40 font-semibold';
     }
     return 'text-rose-400 bg-rose-500/10 border-rose-500/30 font-bold';
   };
@@ -815,13 +805,13 @@ export default function BlogPreviewer({
                         </span>
                       </div>
 
-                      {/* Grade Badge */}
+                      {/* Score / Risk Badge */}
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
-                          {highlightMatch(review.grade, searchQuery)}
+                          {review.overallScore}/100
                         </span>
                         <span className="font-mono text-[10px] text-cyber-text-muted">
-                          {review.overallScore}/100
+                          {review.riskLevel} Risk
                         </span>
                       </div>
                     </button>
@@ -1247,8 +1237,8 @@ export default function BlogPreviewer({
                                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                                     </button>
 
-                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getGradeColor(rev.grade)}`}>
-                                      {rev.grade}
+                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getRiskColor(rev.riskLevel, rev.overallScore)}`}>
+                                      {rev.riskLevel} Risk
                                     </div>
                                   </div>
                                 </div>
@@ -1423,9 +1413,9 @@ export default function BlogPreviewer({
                                     <Star className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
                                   </button>
 
-                                  {/* Grade badge */}
-                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getGradeColor(rev.grade)}`}>
-                                    {rev.grade}
+                                  {/* Risk Level badge */}
+                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rev.riskLevel, rev.overallScore)}`}>
+                                    {rev.riskLevel} Risk
                                   </div>
                                 </div>
                               </div>
@@ -1497,7 +1487,7 @@ export default function BlogPreviewer({
                       .sort((a, b) => b.overallScore - a.overallScore)
                       .slice(0, 4)
                       .map((item) => {
-                        const gradeStyles = getGradeBadgeStyles(item.grade, item.overallScore);
+                        const scoreStyles = getScoreBadgeStyles(item.overallScore);
                         const isPinned = watchlist.includes(item.id);
                         return (
                           <motion.div
@@ -1543,8 +1533,8 @@ export default function BlogPreviewer({
                                 </div>
                               </div>
                               <div className="text-right shrink-0 pl-1">
-                                <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${gradeStyles.bg} ${gradeStyles.text} ${gradeStyles.border}`}>
-                                  {item.grade} • {item.overallScore}%
+                                <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
+                                  {item.riskLevel} Risk • {item.overallScore}%
                                 </span>
                               </div>
                             </div>
@@ -1918,11 +1908,14 @@ export default function BlogPreviewer({
               return (
                 <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    {/* Col 1: Grade & Overall Rating */}
+                    {/* Col 1: Composite Score & Risk Tier */}
                     <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-1.5">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Audit Rating</span>
-                      <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.grade}</span>
-                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Audit Score: {activeBlueprint.overallScore}/100</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Composite Score</span>
+                      <div className="flex items-baseline justify-center">
+                        <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.overallScore}</span>
+                        <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Risk Tier: {activeBlueprint.riskLevel} Risk</span>
                       <span className={`text-[10px] font-mono font-extrabold uppercase px-3 py-1 rounded-full border mt-1 ${activeBlueprint.overallScore >= 75 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : activeBlueprint.overallScore >= 50 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
                         {activeBlueprint.overallScore >= 75 ? 'Low Systemic Risk' : activeBlueprint.overallScore >= 50 ? 'Moderate Caution' : 'High Security Risk'}
                       </span>

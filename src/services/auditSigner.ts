@@ -238,14 +238,14 @@ export function computeReportHash(
 export function signAuditReportServerSide(params: {
   scores: CryptoReviewScores;
   verdict: string;
-  grade: string;
+  grade?: string;
   timestamp: string;
 }): CryptoAuditSignature {
   const { privateKeyPem, publicKeyPem } = getKeyPair();
   const { hashHex, canonicalText } = computeReportHash(
     params.scores,
     params.verdict,
-    params.grade,
+    params.grade || '',
     params.timestamp
   );
 

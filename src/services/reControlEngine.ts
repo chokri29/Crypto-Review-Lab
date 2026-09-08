@@ -945,7 +945,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
     team: initialReview.scores.team,
     community: initialReview.scores.community
   }, category);
-  initialReview.grade = bpResult.grade;
+  initialReview.grade = '';
   initialReview.riskLevel = bpResult.riskLevel;
 
   return {
@@ -1528,40 +1528,33 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
     checks: gate5Checks
   });
 
-  // GATE 6: GRADE-RISK ALIGNMENT
+  // GATE 6: RISK LEVEL ALIGNMENT
   const bpCalcForGrade = calculateBlueprintScore(review.scores, category);
-  const expectedGrade = bpCalcForGrade.grade;
   const expectedRisk = bpCalcForGrade.riskLevel;
 
-  const gradeMatches = review.grade === expectedGrade || review.grade.startsWith(expectedGrade[0]) || review.grade.includes(expectedGrade[0]);
   const riskMatches = review.riskLevel === expectedRisk;
 
   const gate6Checks = [
     {
-      name: 'Letter Grade Scale Mapping',
-      status: gradeMatches ? ('PASSED' as const) : ('FLAGGED' as const),
-      detail: `Report Grade: ${review.grade} | Blueprint Expected: ${expectedGrade} (Score: ${review.overallScore})`
-    },
-    {
       name: 'Risk Level Tier Alignment',
       status: riskMatches ? ('PASSED' as const) : ('FLAGGED' as const),
-      detail: `Report Risk: ${review.riskLevel} | Blueprint Expected: ${expectedRisk}`
+      detail: `Report Risk: ${review.riskLevel} | Blueprint Expected: ${expectedRisk} (Score: ${review.overallScore})`
     },
     {
-      name: 'Rating Matrix Consistency',
+      name: 'Risk Boundary Consistency',
       status: 'VERIFIED' as const,
-      detail: 'Rating tier and grade scale within institutional bounds'
+      detail: 'Assessed risk tier is strictly aligned with score boundaries'
     }
   ];
 
-  const gate6Score = (gradeMatches && riskMatches) ? 100 : gradeMatches ? 92 : 80;
+  const gate6Score = riskMatches ? 100 : 80;
   gates.push({
     gateNumber: 6,
-    gateName: 'Grade-Risk Alignment',
-    description: 'Verifies strict alignment between the overall score, letter grade (AAA to D), and Risk Level (Low/Med/High/Critical).',
+    gateName: 'Risk Level Alignment',
+    description: 'Verifies strict alignment between the overall score and Risk Level (Low/Medium/High/Critical).',
     scorePct: gate6Score,
     passed: gate6Score >= 90,
-    notes: gate6Score >= 90 ? 'Letter grade and risk level are perfectly aligned with Blueprint rubric bounds.' : 'Grade or risk level classification deviates from score boundaries.',
+    notes: gate6Score >= 90 ? 'Risk level is aligned with Blueprint rubric bounds.' : 'Risk level classification deviates from score boundaries.',
     checks: gate6Checks
   });
 
@@ -1724,7 +1717,7 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
 
   const verdict = (review.verdict && review.verdict.length > 20) 
     ? review.verdict 
-    : `Institutional Auto-Calibrated Verdict: ${review.name || 'Protocol'} maintains a Grade ${grade} rating with ${riskLevel} risk tier under the 5-dimension Blueprint specification.`;
+    : `Auto-Calibrated Verdict: ${review.name || 'Protocol'} evaluates at ${overallScore}/100 with ${riskLevel} risk tier under the 5-dimension Blueprint specification.`;
 
   // 6. Pro Benchmarks & On-Chain Invariants — HONEST LABELING ONLY (no fabricated CertiK/OpenZeppelin or passing matrix)
   const realTvlFormatted = formatDefiLlamaTvl(review.realTvl);
@@ -1740,7 +1733,7 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
     proBenchmarks = {
       ...review.proBenchmarks,
       crlInstitutionalScore: overallScore,
-      crlSecurityGrade: grade,
+      crlSecurityGrade: undefined,
       // Honest third-party audit status: CertiK/OpenZeppelin are not integrated in this applet
       crlAuditStatus: (review.proBenchmarks.crlAuditStatus && !review.proBenchmarks.crlAuditStatus.includes('CertiK') && !review.proBenchmarks.crlAuditStatus.includes('OpenZeppelin'))
         ? review.proBenchmarks.crlAuditStatus

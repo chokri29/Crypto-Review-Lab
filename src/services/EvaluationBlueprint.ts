@@ -15,14 +15,16 @@ export interface EvaluationDimension {
   keyCriteria: string[];
 }
 
-export interface GradeBoundary {
-  grade: string;
+export interface RiskBoundary {
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   minScore: number;
   maxScore: number;
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   color: string;
   description: string;
 }
+
+// Deprecated alias for backwards compatibility
+export type GradeBoundary = RiskBoundary;
 
 export type ProtocolCategoryType =
   | 'Layer 1 Blockchain'
@@ -854,20 +856,18 @@ export const EVALUATION_BLUEPRINT_DIMENSIONS: EvaluationDimension[] = [
   }
 ];
 
-export const LOCKED_GRADE_BOUNDARIES: GradeBoundary[] = [
-  { grade: 'AAA', minScore: 93, maxScore: 100, riskLevel: 'Low', color: '#00ff88', description: 'Gold-Standard Decentralization & Security' },
-  { grade: 'AA+', minScore: 90, maxScore: 92, riskLevel: 'Low', color: '#00e5ff', description: 'Premier High-Throughput Protocol' },
-  { grade: 'AA', minScore: 85, maxScore: 89, riskLevel: 'Low', color: '#38bdf8', description: 'Robust Infrastructure & Strong TVL' },
-  { grade: 'A', minScore: 78, maxScore: 84, riskLevel: 'Medium', color: '#fbbf24', description: 'Solid Utility with Floating Inflation Sinks' },
-  { grade: 'BBB', minScore: 70, maxScore: 77, riskLevel: 'Medium', color: '#f59e0b', description: 'Moderate Security/Utility Balance' },
-  { grade: 'BB', minScore: 60, maxScore: 69, riskLevel: 'High', color: '#f97316', description: 'Elevated Supply Concentration & Centralization' },
-  { grade: 'B', minScore: 50, maxScore: 59, riskLevel: 'High', color: '#ef4444', description: 'Unaudited Contracts or High Insider Allocation' },
-  { grade: 'C', minScore: 30, maxScore: 49, riskLevel: 'Critical', color: '#dc2626', description: 'Severe Vulnerabilities or Honeypot Vectors' },
-  { grade: 'D', minScore: 0, maxScore: 29, riskLevel: 'Critical', color: '#b91c1c', description: 'Active Exploit / Scam Parameters' }
+export const RISK_LEVEL_BOUNDARIES: RiskBoundary[] = [
+  { riskLevel: 'Low', minScore: 85, maxScore: 100, color: '#00ff88', description: 'Low Risk — Robust Security, Decentralization & Technical Fundamentals' },
+  { riskLevel: 'Medium', minScore: 70, maxScore: 84, color: '#fbbf24', description: 'Medium Risk — Moderate Security/Utility Balance with Manageable Vulnerability Profile' },
+  { riskLevel: 'High', minScore: 50, maxScore: 69, color: '#f97316', description: 'High Risk — Elevated Supply Concentration, Centralization, or Unaudited Code' },
+  { riskLevel: 'Critical', minScore: 0, maxScore: 49, color: '#dc2626', description: 'Critical Risk — Severe Vulnerabilities, Exploit Vectors, or High Architectural Failure Risk' }
 ];
 
+// Deprecated alias for backwards compatibility
+export const LOCKED_GRADE_BOUNDARIES = RISK_LEVEL_BOUNDARIES as any;
+
 /**
- * Service function: Calculates overall score, letter grade, risk level, dynamic category weights,
+ * Service function: Calculates overall score, risk level, dynamic category weights,
  * data confidence, and weighted dimension breakdown according to the Evaluation Blueprint rubric.
  */
 export function calculateBlueprintScore(
@@ -915,16 +915,12 @@ export function calculateBlueprintScore(
 
   const rawScore = Math.min(100, Math.max(1, Math.round(expandedScore)));
 
-  // Meme Coin Penalty Rule: If Utility <= 2 AND Team <= 3, cap max score at 60 (BB / High Risk)
+  // Meme Coin Penalty Rule: If Utility <= 2 AND Team <= 3, cap max score at 60 (High Risk)
   const isMemeCoinPenaltyTriggered = utility <= 2 && team <= 3;
   const isCapped = isMemeCoinPenaltyTriggered && rawScore > 60;
   const overallScore = isCapped ? 60 : rawScore;
 
-  const matchedBoundary =
-    LOCKED_GRADE_BOUNDARIES.find((b) => overallScore >= b.minScore && overallScore <= b.maxScore) ||
-    LOCKED_GRADE_BOUNDARIES[LOCKED_GRADE_BOUNDARIES.length - 1];
-
-  let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' = matchedBoundary.riskLevel;
+  let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   if (overallScore >= 85) {
     riskLevel = 'Low';
   } else if (overallScore >= 70) {
@@ -943,7 +939,7 @@ export function calculateBlueprintScore(
 
   return {
     overallScore,
-    grade: matchedBoundary.grade,
+    grade: '',
     riskLevel,
     baseWeightedSum: Number(baseSum.toFixed(2)),
     adjustedScore: Number(adjustedScore.toFixed(2)),
@@ -977,15 +973,10 @@ When evaluating or discussing any project, you MUST strictly adhere to the singl
 4. Conditional Stress Testing (TVL drain for DeFi/L1 vs Cryptographic Noise/Key risk models for Middleware)
 5. Data Quality & Confidence Indicators (Verified On-Chain + CRL Pro Risk Model + Simulated Vectors)
 
-Grade scale boundaries:
-- AAA (93-100 pts): Gold-Standard Security & Decentralization
-- AA+ (90-92 pts): Premier High-Throughput Protocol
-- AA (85-89 pts): Robust Infrastructure & Strong TVL
-- A (78-84 pts): Solid Utility with Floating Inflation Sinks
-- BBB (70-77 pts): Moderate Security/Utility Balance
-- BB (60-69 pts): Elevated Supply Concentration
-- B (50-59 pts): Unaudited Contracts or High Insider Allocation
-- C (30-49 pts): Severe Vulnerabilities
-- D (0-29 pts): Active Exploit / Scam Parameters`;
+Standardized Risk Boundaries:
+- Low Risk (85-100 pts): Robust Security, Decentralization & Strong Fundamentals
+- Medium Risk (70-84 pts): Solid Utility with Manageable Inflation or Vulnerability Sinks
+- High Risk (50-69 pts): Elevated Supply Concentration, Centralization, or Unaudited Code
+- Critical Risk (0-49 pts): Severe Vulnerabilities, Honeypot Vectors, or Exploit Parameters`;
 }
 

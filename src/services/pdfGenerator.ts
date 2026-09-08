@@ -5,7 +5,7 @@
 
 import jsPDF from 'jspdf';
 import {
-  LOCKED_GRADE_BOUNDARIES,
+  RISK_LEVEL_BOUNDARIES,
   normalizeProtocolCategory,
   getCategoryTechnicalVectors,
   getCategoryStressTestModel,
@@ -277,11 +277,11 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
 
   y += 8;
 
-  // 5. Grade Scale Table
+  // 5. Standardized Risk Boundaries Table
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('GRADE BOUNDARIES & RISK RATING TIERING', margin, y);
+  doc.text('STANDARDIZED RISK BOUNDARIES & SCORE TIERS', margin, y);
   y += 4;
 
   const gradeHeaderY = y;
@@ -291,26 +291,18 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('GRADE', margin + 4, gradeHeaderY + 4.5);
-  doc.text('SCORE RANGE', margin + 30, gradeHeaderY + 4.5);
-  doc.text('RISK LEVEL', margin + 75, gradeHeaderY + 4.5);
-  doc.text('INTERPRETATION & CRITERIA', margin + 115, gradeHeaderY + 4.5);
+  doc.text('RISK TIER', margin + 4, gradeHeaderY + 4.5);
+  doc.text('SCORE RANGE', margin + 40, gradeHeaderY + 4.5);
+  doc.text('INTERPRETATION & CRITERIA', margin + 85, gradeHeaderY + 4.5);
 
   y += 6.5;
 
-  LOCKED_GRADE_BOUNDARIES.forEach((boundary, idx) => {
+  RISK_LEVEL_BOUNDARIES.forEach((boundary, idx) => {
     const rowY = y;
     if (idx % 2 === 0) {
       doc.setFillColor(248, 250, 252);
-      doc.rect(margin, rowY, contentWidth, 6, 'F');
+      doc.rect(margin, rowY, contentWidth, 6.5, 'F');
     }
-    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.text(boundary.grade, margin + 4, rowY + 4.2);
-
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${boundary.minScore} - ${boundary.maxScore} pts`, margin + 30, rowY + 4.2);
 
     let riskColor = emeraldAccent;
     if (boundary.riskLevel === 'Medium') riskColor = [245, 158, 11];
@@ -318,14 +310,17 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
 
     doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
     doc.setFont('helvetica', 'bold');
-    doc.text(boundary.riskLevel.toUpperCase(), margin + 75, rowY + 4.2);
+    doc.setFontSize(7.5);
+    doc.text(`${boundary.riskLevel.toUpperCase()} RISK`, margin + 4, rowY + 4.2);
 
     doc.setTextColor(textDark[0], textDark[1], textDark[2]);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text(boundary.description, margin + 115, rowY + 4.2);
+    doc.text(`${boundary.minScore} - ${boundary.maxScore} pts`, margin + 40, rowY + 4.2);
 
-    y += 6;
+    doc.setFontSize(7);
+    doc.text(boundary.description, margin + 85, rowY + 4.2);
+
+    y += 6.5;
   });
 
   // 6. N.B. Supplementary Rules & Penalty Notes
@@ -342,8 +337,8 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(120, 53, 15);
-  doc.text('If a evaluated asset has Utility <= 2/10 AND Team <= 3/10 (pure speculative token model), the overall score', margin + 4, y + 9.5);
-  doc.text('is capped at a maximum of 60/100 (BB / High Risk Grade) regardless of community metrics or audit status.', margin + 4, y + 12.8);
+  doc.text('If an evaluated asset has Utility <= 2/10 AND Team <= 3/10 (pure speculative token model), the overall score', margin + 4, y + 9.5);
+  doc.text('is capped at a maximum of 60/100 (High Risk Tier) regardless of community metrics or audit status.', margin + 4, y + 12.8);
 
   // Footer
   addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Master Evaluation Blueprint Specification Manual');

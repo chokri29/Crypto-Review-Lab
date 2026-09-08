@@ -308,7 +308,7 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
           </div>
         </div>
 
-        {/* Metric 3: Security Grade */}
+        {/* Metric 3: Risk Profile */}
         <div 
           onClick={() => onSelectReview && onSelectReview(activeAudit.id)}
           className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyber-cyan/30 flex flex-col justify-between shadow-sm hover:border-cyber-cyan/65 transition-colors cursor-pointer group/tile"
@@ -316,22 +316,19 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
         >
           <div className="flex items-center justify-between gap-1">
             <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
-              SECURITY GRADE
+              RISK PROFILE
             </div>
             <span className={`font-mono text-[9.5px] font-extrabold px-1.5 py-0.5 rounded border uppercase shrink-0 ${getRiskStyles(activeAudit.riskLevel)}`}>
-              {activeAudit.riskLevel} Risk
+              Tier
             </span>
           </div>
           <div className="flex items-baseline gap-2 py-1">
-            <span className={`font-display font-black text-xl sm:text-2xl tracking-tight ${getGradeTextColor(activeAudit.grade)}`}>
-              {activeAudit.grade}
-            </span>
-            <span className="font-mono text-[10px] text-slate-400 uppercase font-bold">
-              Tier Rating
+            <span className={`font-display font-black text-xl sm:text-2xl tracking-tight ${activeAudit.riskLevel === 'Low' ? 'text-cyber-green' : activeAudit.riskLevel === 'Medium' ? 'text-amber-400' : 'text-cyber-orange'}`}>
+              {activeAudit.riskLevel} Risk
             </span>
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            smart contract rating
+            calibrated risk boundary
           </div>
         </div>
 
@@ -348,7 +345,7 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse shrink-0" />
           </div>
           <div className="font-display font-black text-xl sm:text-2xl text-emerald-400 tracking-tight flex items-center gap-1.5 py-1">
-            PASS
+            ACTIVE
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
             consensus &amp; state verified

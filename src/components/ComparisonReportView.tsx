@@ -107,15 +107,15 @@ export const ComparisonReportView: React.FC<ComparisonReportViewProps> = ({
               <span className="text-2xl font-extrabold font-mono text-cyan-300">{targetProtocol.overallScore}</span>
               <span className="text-xs text-slate-400 font-mono">/100</span>
               <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">
-                Grade: {targetProtocol.grade}
+                {targetProtocol.riskLevel} Risk
               </div>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
             <div>
-              <span>Risk: </span>
-              <span className="text-slate-200 font-semibold">{targetProtocol.riskLevel}</span>
+              <span>Verification: </span>
+              <span className="text-slate-200 font-semibold">{targetProtocol.verificationDepth}</span>
             </div>
             <div>
               <span>Date: </span>
@@ -138,16 +138,16 @@ export const ComparisonReportView: React.FC<ComparisonReportViewProps> = ({
             <div className="text-right">
               <span className="text-2xl font-extrabold font-mono text-amber-300">{benchmarkProtocol.overallScore}</span>
               <span className="text-xs text-slate-400 font-mono">/100</span>
-              <div className="text-xs font-mono font-bold text-emerald-400 mt-0.5">
-                Grade: {benchmarkProtocol.grade}
+              <div className="text-xs font-mono font-bold text-amber-400 mt-0.5">
+                {benchmarkProtocol.riskLevel} Risk
               </div>
             </div>
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
             <div>
-              <span>Risk: </span>
-              <span className="text-slate-200 font-semibold">{benchmarkProtocol.riskLevel}</span>
+              <span>Verification: </span>
+              <span className="text-slate-200 font-semibold">{benchmarkProtocol.verificationDepth}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Calendar className="w-3 h-3 text-slate-500" />

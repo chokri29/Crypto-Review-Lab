@@ -177,7 +177,7 @@ export interface AVF08TraceabilityChain {
   conclusion: {
     verdict: string;
     riskLevel: string;
-    grade: string;
+    grade?: string;
   };
   scoreChain: {
     overallScore: number;
@@ -262,7 +262,7 @@ export function verifyAVF08Traceability(
   if (!review.verdict || typeof review.verdict !== 'string') {
     missingFields.push('verdict');
   }
-  if (!review.grade || typeof review.grade !== 'string') {
+  if (review.grade !== undefined && typeof review.grade !== 'string') {
     missingFields.push('grade');
   }
   if (!review.createdAt || typeof review.createdAt !== 'string') {
@@ -286,7 +286,7 @@ export function verifyAVF08Traceability(
 
   const scores = review.scores!;
   const verdict = review.verdict!;
-  const grade = review.grade!;
+  const grade = review.grade || '';
   const createdAt = review.createdAt!;
 
   // Deterministically compute canonical SHA-256 hash using existing auditSigner logic
@@ -305,7 +305,7 @@ export function verifyAVF08Traceability(
     conclusion: {
       verdict,
       riskLevel: review.riskLevel || 'Unknown',
-      grade
+      grade: grade || undefined
     },
     scoreChain: {
       overallScore: review.overallScore ?? 0,
@@ -2438,7 +2438,7 @@ function runF3Verification(
     avf05.status === 'INPUT_MISSING' ||
     avf06.status === 'INPUT_MISSING' ||
     avf04.status === 'INPUT_MISSING' ||
-    (avf08.status === 'INPUT_MISSING' && avf08.missingFields.some(f => ['scores', 'verdict', 'grade', 'createdAt'].includes(f)))
+    (avf08.status === 'INPUT_MISSING' && avf08.missingFields.some(f => ['scores', 'verdict', 'createdAt'].includes(f)))
   );
 
   if (hasCriticalDiscrepancy) {

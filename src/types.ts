@@ -17,7 +17,7 @@ export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'INPUT_MISSING'
 
 export interface ProSecurityBenchmarks {
   crlInstitutionalScore: number;
-  crlSecurityGrade: string;
+  crlSecurityGrade?: string;
   crlAuditStatus: string;
   crlThreatMatrixStatus: string;
   crlOpenFindings: string;
@@ -56,7 +56,7 @@ export interface CryptoReview {
   symbol: string;
   category: string;
   overallScore: number; // 1-100
-  grade: string;        // AAA, AA, A, BBB, BB, B, C, D
+  grade?: string;       // Legacy field (deprecated)
   verdict: string;      // Summary verdict sentence
   scores: CryptoReviewScores;
   summary: string;      // Markdown review detail

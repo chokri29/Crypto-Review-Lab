@@ -514,40 +514,6 @@ export default function App() {
       )
     : [];
 
-  const getGradeBadgeStyles = (grade: string, score: number) => {
-    const g = (grade || '').toUpperCase();
-    if (g.includes('AAA') || g.includes('AA') || g.includes('A+') || score >= 90) {
-      return {
-        bg: 'bg-emerald-500/15',
-        text: 'text-emerald-400',
-        border: 'border-emerald-500/40',
-        shadow: 'shadow-[0_0_10px_rgba(16,185,129,0.25)]',
-      };
-    }
-    if (g.includes('A') || score >= 80) {
-      return {
-        bg: 'bg-cyber-cyan/15',
-        text: 'text-cyber-cyan',
-        border: 'border-cyber-cyan/40',
-        shadow: 'shadow-[0_0_10px_rgba(0,229,255,0.25)]',
-      };
-    }
-    if (g.includes('BBB') || g.includes('BB') || g.includes('B') || score >= 70) {
-      return {
-        bg: 'bg-amber-500/15',
-        text: 'text-amber-400',
-        border: 'border-amber-500/40',
-        shadow: 'shadow-[0_0_10px_rgba(245,158,11,0.25)]',
-      };
-    }
-    return {
-      bg: 'bg-rose-500/15',
-      text: 'text-rose-400',
-      border: 'border-rose-500/40',
-      shadow: 'shadow-[0_0_10px_rgba(244,63,94,0.25)]',
-    };
-  };
-
   const handleSelectSearchResult = (reviewId: string) => {
     setSelectedReviewId(reviewId);
     setActiveTab('blog');
@@ -1174,8 +1140,8 @@ export default function App() {
       if (logo) imageUrl = logo;
       ogType = "article";
 
-      title = `${matchedReview.name} (${matchedReview.symbol}) ${matchedReview.grade} Security Review & Audit Rating | Crypto Review Lab`;
-      descriptionText = `Detailed ${matchedReview.grade}-rated institutional security audit for ${matchedReview.name} (${matchedReview.symbol}). Overall Score: ${matchedReview.overallScore}/100 | Risk Level: ${matchedReview.riskLevel} | Category: ${matchedReview.category}. Verdict: ${matchedReview.verdict}`;
+      title = `${matchedReview.name} (${matchedReview.symbol}) Security Review & Risk Assessment | Crypto Review Lab`;
+      descriptionText = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${matchedReview.name} (${matchedReview.symbol}). Overall Score: ${matchedReview.overallScore}/100 | Risk Level: ${matchedReview.riskLevel} | Category: ${matchedReview.category}. Verdict: ${matchedReview.verdict}`;
       keywords = `${matchedReview.name}, ${matchedReview.symbol}, ${matchedReview.symbol} audit, ${matchedReview.symbol} security review, ${matchedReview.symbol} rating, ${matchedReview.category}, ${matchedReview.riskLevel} risk, AVF evaluation, crypto code audit, smart contract security`;
 
       // Rich Schema.org Review & FinancialProduct JSON-LD
@@ -1453,7 +1419,7 @@ export default function App() {
                             </div>
                           </div>
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                            {review.grade || 'A+'}
+                            {review.overallScore}/100
                           </span>
                         </button>
                       ))
