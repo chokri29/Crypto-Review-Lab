@@ -252,9 +252,9 @@ export default function XStockVerificationPanel({
             <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold text-purple-300 bg-purple-950/60 border border-purple-800/60">
               {selectedStock.symbol} • {selectedStock.underlyingTicker}
             </span>
-            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-800/60 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>100% Asset-Backed</span>
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-medium text-slate-300 bg-slate-900/90 border border-slate-700/80 flex items-center gap-1.5" title="Issuer-reported collateral structure from prospectus — not independently audited by CRL">
+              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              <span>Issuer-Stated 1:1 Backing</span>
             </span>
           </div>
 
@@ -362,7 +362,7 @@ export default function XStockVerificationPanel({
             <div className="pt-2 text-[11px] font-mono text-slate-400 flex flex-wrap items-center justify-between gap-3 border-t border-slate-800/80">
               <span className="text-slate-400 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
-                <span>Instrument: <strong className="text-slate-200">{selectedStock.legalInstrumentType || '1:1 Asset-Backed Tracker'}</strong></span>
+                <span>Instrument (Issuer Spec): <strong className="text-slate-200">{selectedStock.legalInstrumentType || 'Tracker Certificate'}</strong></span>
               </span>
               <span className="text-slate-400">
                 Primary Market: <strong className="text-slate-200">{selectedStock.exchange} (9:30–16:00 ET)</strong>
@@ -370,96 +370,114 @@ export default function XStockVerificationPanel({
             </div>
           </div>
 
-          {/* Right Column (5 cols): 1:1 Collateralized Architecture Card filling full column */}
+          {/* Right Column (5 cols): Issuer Instrument Architecture Card (Self-Reported Metadata) */}
           <div className="lg:col-span-5 flex flex-col">
-            <div className="w-full h-full p-4 sm:p-5 rounded-xl bg-slate-950/90 border border-cyber-cyan/30 shadow-lg flex flex-col justify-between space-y-3">
-              <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5">
-                <div className="flex items-center gap-2 text-cyber-cyan font-bold text-xs">
-                  <ShieldCheck className="w-4 h-4 text-cyber-cyan shrink-0" />
-                  <span className="font-orbitron text-xs uppercase tracking-wider text-white">1:1 Collateralized Architecture</span>
+            <div className="w-full h-full p-4 sm:p-5 rounded-xl bg-slate-950/90 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                <div className="flex items-center gap-2 text-slate-300 font-bold text-xs">
+                  <Landmark className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span className="font-orbitron text-xs uppercase tracking-wider text-white">Issuer Instrument Architecture</span>
                 </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 shrink-0">
-                  Swiss DLT Act
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700 shrink-0">
+                  Issuer Metadata
                 </span>
               </div>
 
               <p className="text-xs font-mono text-slate-300 leading-relaxed">
-                xStocks are tokenized tracker certificates issued under Swiss law. Each token is 100% collateralized with underlying shares held in regulated bankruptcy-remote custody.
+                Per issuer documentation, xStocks are tokenized tracker certificates issued under Swiss law. The issuer specifies that each token is backed by underlying equity shares held in segregated, bankruptcy-remote custody accounts.
               </p>
 
               <div className="grid grid-cols-2 gap-2.5 pt-1 text-[11px] font-mono">
                 <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-300 space-y-0.5">
-                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Custody Parity</div>
-                  <div className="text-emerald-400 font-bold flex items-center gap-1 text-xs">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span>1 Token = 1 Share</span>
+                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Issuer-Stated Parity</div>
+                  <div className="text-slate-200 font-bold flex items-center gap-1.5 text-xs">
+                    <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Issuer-stated 1:1 backing</span>
                   </div>
+                  <div className="text-[9px] text-slate-500 font-sans mt-0.5">Reported 1 token = 1 share</div>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-300 space-y-0.5">
-                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Legal Protection</div>
-                  <div className="text-cyber-cyan font-bold flex items-center gap-1 text-xs">
-                    <Lock className="w-3 h-3 text-cyber-cyan shrink-0" />
-                    <span>FINMA Regulated</span>
+                  <div className="text-[9.5px] text-slate-400 uppercase tracking-wider font-bold">Reported Legal Status</div>
+                  <div className="text-slate-200 font-bold flex items-center gap-1.5 text-xs">
+                    <Scale className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Swiss DLT Framework</span>
                   </div>
+                  <div className="text-[9px] text-slate-500 font-sans mt-0.5">Issuer-stated statutory framework</div>
                 </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400 flex items-center gap-1.5">
+                <Info className="w-3 h-3 text-slate-400 shrink-0" />
+                <span>Issuer/Instrument Metadata — Not independently verified by CRL</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Key Stock Specifications Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 font-mono text-xs">
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
-            <Building2 className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Underlying Equity</span>
-          </div>
-          <div className="text-white font-bold text-base sm:text-lg">
-            {selectedStock.underlyingTicker}
-          </div>
-          <div className="text-[10.5px] text-slate-400">
-            {selectedStock.exchange}
-          </div>
+      {/* 2. Key Stock Specifications Overview — Clearly Demarcated as Issuer / Registry Metadata */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between px-0.5">
+          <span className="text-[10.5px] font-mono font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <FileText className="w-3 h-3 text-slate-500" />
+            <span>Instrument &amp; Issuer Metadata (Registry Specifications)</span>
+          </span>
+          <span className="text-[10px] font-mono text-slate-500">
+            Self-reported • Unverified by CRL
+          </span>
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 font-mono text-xs">
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5 shadow-sm">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <Building2 className="w-3.5 h-3.5 text-cyber-cyan" />
+              <span>Underlying Equity</span>
+            </div>
+            <div className="text-white font-bold text-base sm:text-lg">
+              {selectedStock.underlyingTicker}
+            </div>
+            <div className="text-[10.5px] text-slate-400">
+              {selectedStock.exchange}
+            </div>
+          </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
-            <Layers className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Token Blockchain</span>
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5 shadow-sm">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <Layers className="w-3.5 h-3.5 text-cyber-cyan" />
+              <span>Token Blockchain</span>
+            </div>
+            <div className="text-white font-bold text-base sm:text-lg">
+              {selectedStock.chain}
+            </div>
+            <div className="text-[10.5px] text-slate-400">
+              {selectedStock.category}
+            </div>
           </div>
-          <div className="text-white font-bold text-base sm:text-lg">
-            {selectedStock.chain}
-          </div>
-          <div className="text-[10.5px] text-slate-400">
-            {selectedStock.category}
-          </div>
-        </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
-            <Landmark className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Token Issuer</span>
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5 shadow-sm">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <Landmark className="w-3.5 h-3.5 text-slate-400" />
+              <span>Reported Issuer</span>
+            </div>
+            <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.issuer}>
+              {selectedStock.issuer}
+            </div>
+            <div className="text-[10.5px] text-slate-400 truncate" title={selectedStock.jurisdiction}>
+              Jurisdiction: {selectedStock.jurisdiction}
+            </div>
           </div>
-          <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.issuer}>
-            {selectedStock.issuer}
-          </div>
-          <div className="text-[10.5px] text-slate-400 truncate">
-            {selectedStock.jurisdiction}
-          </div>
-        </div>
 
-        <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-cyber-cyan/40 transition-colors space-y-1.5 shadow-sm">
-          <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
-            <Lock className="w-3.5 h-3.5 text-cyber-cyan" />
-            <span>Physical Custodian</span>
-          </div>
-          <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.custodian}>
-            {selectedStock.custodian}
-          </div>
-          <div className="text-[10.5px] text-emerald-400 flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 shrink-0" />
-            <span>Segregated Share Custody</span>
+          <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5 shadow-sm">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
+              <span>Reported Custodian</span>
+            </div>
+            <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.custodian}>
+              {selectedStock.custodian}
+            </div>
+            <div className="text-[10.5px] text-slate-400 flex items-center gap-1">
+              <FileText className="w-3 h-3 text-slate-500 shrink-0" />
+              <span>Issuer-reported custody structure</span>
+            </div>
           </div>
         </div>
       </div>
@@ -585,84 +603,96 @@ export default function XStockVerificationPanel({
         </div>
       </div>
 
-      {/* 4. Section: How 1:1 Backing Works (The 3 Pillars of Security) */}
-      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      {/* 4. Section: Issuer-Reported Backing & Custody Structure (Instrument Metadata) */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
+            <Landmark className="w-4 h-4 text-slate-300" />
             <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-              How This Token Is Backed (3 Pillars of Security)
+              Issuer-Reported Backing &amp; Custody Structure
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-slate-400">
-            Token Control ≠ Custody ≠ Reserves
+          <span className="text-[10px] font-mono text-amber-400/90 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40 w-fit">
+            Issuer Claims — Not Independently Audited by CRL
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 font-sans text-xs">
           
           {/* Pillar 1: Token Creation */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-cyan-500/30 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-orbitron font-bold text-xs text-cyan-300 uppercase tracking-wider">
+              <span className="font-orbitron font-bold text-xs text-slate-200 uppercase tracking-wider">
                 1. Token Issuer
               </span>
-              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
-                On-Chain
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                Issuer Metadata
               </span>
             </div>
             <div className="text-white font-bold text-sm">
               {selectedStock.issuer || 'Backed Finance'}
             </div>
             <p className="text-slate-400 leading-relaxed text-[11.5px]">
-              Mints and manages the {selectedStock.symbol} smart contract on {selectedStock.chain}. <span className="text-amber-300 font-semibold">Important:</span> Smart contract admin keys cannot withdraw or touch the physical stock shares.
+              Mints and manages the {selectedStock.symbol} smart contract on {selectedStock.chain}. <span className="text-slate-300 font-semibold">Note:</span> Smart contract administration is separate from equity holding per issuer documentation.
             </p>
           </div>
 
           {/* Pillar 2: Real Share Custody */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-purple-500/30 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-orbitron font-bold text-xs text-purple-300 uppercase tracking-wider">
-                2. Real Share Custody
+              <span className="font-orbitron font-bold text-xs text-slate-200 uppercase tracking-wider">
+                2. Custody Structure
               </span>
-              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-purple-950/80 text-purple-300 border border-purple-800/40">
-                Off-Chain
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                Issuer Reported
               </span>
             </div>
             <div className="text-white font-bold text-sm">
+              Issuer-Reported Custodian
+            </div>
+            <div className="text-slate-300 font-mono text-[11px] font-medium truncate" title={selectedStock.custodian}>
               {selectedStock.custodian || 'InCore Bank AG / Alpaca Securities LLC'}
             </div>
             <p className="text-slate-400 leading-relaxed text-[11.5px]">
-              Regulated institutional custodians hold the physical NYSE/NASDAQ equity shares in segregated, bankruptcy-remote accounts. If the token issuer ceases operations, the underlying shares remain protected.
+              The issuer reports that underlying equity shares are held in segregated accounts with regulated partner institutions. CRL does not hold custodial keys or conduct physical vault audits.
             </p>
           </div>
 
-          {/* Pillar 3: Proof of Reserves */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 space-y-2">
+          {/* Pillar 3: Reserve Transparency */}
+          <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-orbitron font-bold text-xs text-emerald-300 uppercase tracking-wider">
-                3. Proof of Reserves
+              <span className="font-orbitron font-bold text-xs text-slate-200 uppercase tracking-wider">
+                3. Reserve Reporting
               </span>
-              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800/40">
-                1:1 Collateral
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                External Link
               </span>
             </div>
             <div className="text-white font-bold text-sm">
-              100% Fully Collateralized
+              Issuer-Stated 1:1 Backing
             </div>
             <p className="text-slate-400 leading-relaxed text-[11.5px]">
-              Each token in circulation is matched 1:1 by real stock shares held in custody. The issuer provides public collateral feeds to verify reserves.
+              The issuer claims each circulating token corresponds to one share in custody. The presence of a link or feed does not constitute continuous CRL reserve reconciliation.
             </p>
-            {selectedStock.proofOfReserveUrl && (
-              <a
-                href={selectedStock.proofOfReserveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-emerald-400 hover:text-emerald-300 pt-1 cursor-pointer"
-              >
-                <span>View Collateral Feed</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+            {selectedStock.proofOfReserveUrl ? (
+              <div className="pt-1 border-t border-slate-800/80">
+                <a
+                  href={selectedStock.proofOfReserveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-cyan-400 hover:text-cyan-300 cursor-pointer"
+                >
+                  <span>External proof-of-reserves reference available</span>
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+                <div className="text-[10px] text-slate-500 font-sans mt-0.5">
+                  External reference link only; not verified or audited by CRL.
+                </div>
+              </div>
+            ) : (
+              <div className="text-[10.5px] text-slate-500 font-mono pt-1">
+                No external proof-of-reserves link provided by issuer.
+              </div>
             )}
           </div>
 
@@ -679,7 +709,7 @@ export default function XStockVerificationPanel({
             </h3>
           </div>
           <span className="text-[10px] font-mono text-slate-400">
-            GoPlus &amp; RugCheck Verified
+            GoPlus &amp; RugCheck Automated Scans
           </span>
         </div>
 
@@ -761,37 +791,37 @@ export default function XStockVerificationPanel({
         </div>
       </div>
 
-      {/* 6. Section: Legal & Regulatory Framework */}
-      <div className="p-5 rounded-2xl bg-slate-950/90 border border-cyber-cyan/25 space-y-3 font-mono text-xs">
+      {/* 6. Section: Legal Framework & CoinGecko RWA Registry (Instrument Metadata) */}
+      <div className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
           <div className="flex items-center gap-2">
-            <Scale className="w-4 h-4 text-cyber-cyan" />
+            <Scale className="w-4 h-4 text-slate-400" />
             <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
               Legal Framework &amp; CoinGecko RWA Registry
             </h3>
           </div>
-          <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40 font-bold">
-            Verified RWA Security
+          <span className="text-[10px] text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 font-mono font-medium">
+            Issuer / Registry Metadata
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-            <span className="text-[10px] text-slate-500 uppercase block">Regulatory Jurisdiction</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Regulatory Jurisdiction (Reported)</span>
             <span className="text-white font-bold text-xs block">{selectedStock.jurisdiction || 'Switzerland'}</span>
-            <span className="text-[10px] text-slate-400 font-sans block">Swiss DLT Act (Distributed Ledger Technology Framework)</span>
+            <span className="text-[10px] text-slate-400 font-sans block">Reported under Swiss DLT Act legal framework</span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-            <span className="text-[10px] text-slate-500 uppercase block">Security Instrument</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Security Instrument (Prospectus)</span>
             <span className="text-white font-bold text-xs block">{selectedStock.legalInstrumentType || 'Tracker Certificate'}</span>
-            <span className="text-[10px] text-slate-400 font-sans block">1:1 Asset-Backed Regulated Ledger-Based Security</span>
+            <span className="text-[10px] text-slate-400 font-sans block">Issuer-classified tracker certificate structure</span>
           </div>
 
           <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-            <span className="text-[10px] text-slate-500 uppercase block">CoinGecko Canonical RWA ID</span>
+            <span className="text-[10px] text-slate-400 uppercase block">CoinGecko Canonical RWA ID</span>
             <span className="text-cyan-300 font-bold text-xs block">{selectedStock.coingeckoRwaId || selectedStock.coingeckoId}</span>
-            <span className="text-[10px] text-slate-400 font-sans block">Official Real-World Asset classification</span>
+            <span className="text-[10px] text-slate-400 font-sans block">CoinGecko public RWA directory classification</span>
           </div>
         </div>
       </div>
@@ -1091,8 +1121,8 @@ export default function XStockVerificationPanel({
           <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
           <span className="font-bold">Independent Transparency Standard • Zero Sponsored Listings</span>
         </div>
-        <div className="text-slate-500 text-[9.5px] max-w-xl leading-relaxed">
-          CRL displays market data directly from verified public sources. Proof-of-reserve links are provided as a convenience reference to the issuer&apos;s published attestations.
+        <div className="text-slate-400 text-[9.5px] max-w-xl leading-relaxed">
+          CRL independently verifies real-time market-data consistency and on-chain contract telemetry. Issuer claims, custody structures, and proof-of-reserve links are presented as external instrument metadata and are not independently audited or certified by CRL.
         </div>
       </div>
 
