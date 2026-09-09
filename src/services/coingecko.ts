@@ -400,7 +400,7 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     symbol
   );
 
-  // 1. If matched with master locked Evaluation Blueprint, preserve canonical score, grade, risk, verdict, and summary while updating live market metrics!
+  // 1. If matched with master locked Evaluation Blueprint, preserve canonical score, risk, verdict, and summary while updating live market metrics!
   if (masterMatch) {
     const merged = {
       ...masterMatch,
@@ -426,12 +426,12 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
   const community = isMemeToken ? 9 : Math.min(10, Math.max(5, Math.round(10 - Math.log10(Math.max(1, rank)) * 2.2)));
 
   const computedScores = { utility, tokenomics, security, team, community };
-  const { overallScore, grade, riskLevel, isMemeCoinPenaltyActive } = calculateBlueprintScore(computedScores, category);
+  const { overallScore, riskLevel, isMemeCoinPenaltyActive } = calculateBlueprintScore(computedScores, category);
 
   const dateStr = new Date().toISOString().split('T')[0];
 
   const verdictText = isMemeCoinPenaltyActive
-    ? `⚠️ MEME COIN PENALTY FLAG TRIGGERED: ${name} (${symbol}) has Utility (${utility}/10) ≤ 2 and Team (${team}/10) ≤ 3. Overall score is hard-capped at 60/100 (Grade ${grade} / ${riskLevel} Risk) under Evaluation Blueprint.`
+    ? `⚠️ MEME COIN PENALTY FLAG TRIGGERED: ${name} (${symbol}) has Utility (${utility}/10) ≤ 2 and Team (${team}/10) ≤ 3. Overall score is hard-capped at 60/100 (${riskLevel} Risk) under Evaluation Blueprint.`
     : `${name} (${symbol}) evaluated under the locked Evaluation Blueprint rubric with real-time CoinGecko + CoinMarketCap (CMC) dual-engine market consensus.`;
 
   const created: CryptoReview = {
@@ -443,7 +443,6 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     symbol,
     category: isMemeToken ? 'Meme Token / Speculative' : category,
     overallScore,
-    grade,
     verdict: verdictText,
     scores: computedScores,
     riskLevel,
@@ -455,7 +454,7 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
 **${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.`,
     pros: [
       `Cross-verified across CoinGecko, CoinMarketCap & CoinStats (CG Rank #${dualMetrics.liveRank} | CMC Rank #${dualMetrics.cmcRank}).`,
-      `Verified under locked Evaluation Blueprint rubric (Grade ${grade}, Confidence ${dualMetrics.confidenceScore}%).`,
+      `Verified under locked Evaluation Blueprint rubric (Score ${overallScore}/100, Confidence ${dualMetrics.confidenceScore}%).`,
       `Active global liquidity with ${(dualMetrics.liveVolume24h / 1e6).toFixed(1)}M 24h trading volume.`
     ],
     cons: [

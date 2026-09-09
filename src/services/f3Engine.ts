@@ -177,7 +177,6 @@ export interface AVF08TraceabilityChain {
   conclusion: {
     verdict: string;
     riskLevel: string;
-    grade?: string;
   };
   scoreChain: {
     overallScore: number;
@@ -262,9 +261,6 @@ export function verifyAVF08Traceability(
   if (!review.verdict || typeof review.verdict !== 'string') {
     missingFields.push('verdict');
   }
-  if (review.grade !== undefined && typeof review.grade !== 'string') {
-    missingFields.push('grade');
-  }
   if (!review.createdAt || typeof review.createdAt !== 'string') {
     missingFields.push('createdAt');
   }
@@ -286,14 +282,12 @@ export function verifyAVF08Traceability(
 
   const scores = review.scores!;
   const verdict = review.verdict!;
-  const grade = review.grade || '';
   const createdAt = review.createdAt!;
 
   // Deterministically compute canonical SHA-256 hash using existing auditSigner logic
   const { hashHex: computedHash, canonicalText } = computeReportHash(
     scores,
     verdict,
-    grade,
     createdAt
   );
 
@@ -304,8 +298,7 @@ export function verifyAVF08Traceability(
   const traceabilityChain: AVF08TraceabilityChain = {
     conclusion: {
       verdict,
-      riskLevel: review.riskLevel || 'Unknown',
-      grade: grade || undefined
+      riskLevel: review.riskLevel || 'Unknown'
     },
     scoreChain: {
       overallScore: review.overallScore ?? 0,
@@ -355,7 +348,6 @@ export function verifyAVF08Traceability(
   const verification = verifyAuditSignatureServerSide(signatureData, {
     scores,
     verdict,
-    grade,
     timestamp: signatureData.signedAt || createdAt
   });
 

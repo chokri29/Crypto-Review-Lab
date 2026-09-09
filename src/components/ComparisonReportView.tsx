@@ -57,9 +57,9 @@ export const ComparisonReportView: React.FC<ComparisonReportViewProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-bold">
-                  {isPaidPro ? 'Security & Risk Assessment' : 'Institutional Benchmark'}
+                  {isPaidPro ? 'Security & Risk Assessment' : 'Protocol Benchmark'}
                 </span>
-                <span className="text-xs font-mono text-slate-400">Institutional Benchmark Analysis</span>
+                <span className="text-xs font-mono text-slate-400">Protocol Benchmark Analysis</span>
               </div>
               <h3 className="text-base sm:text-lg font-bold font-mono text-slate-100 mt-0.5 flex items-center gap-2">
                 {isPaidPro ? 'SECURITY ASSESSMENT COMPARISON' : 'BENCHMARK VARIANCE ANALYSIS'}
@@ -385,7 +385,7 @@ export const ComparisonReportView: React.FC<ComparisonReportViewProps> = ({
         <div className="flex items-center gap-2 mb-2">
           <Info className="w-4 h-4 text-amber-400" />
           <h4 className="text-xs font-bold font-mono text-amber-300 uppercase tracking-wider">
-            Synthesized Institutional Comparison Narrative
+            Synthesized Protocol Comparison Narrative
           </h4>
         </div>
         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">

@@ -1902,7 +1902,7 @@ export default function BlogPreviewer({
               maxSupply={activeReview.maxSupply}
             />
 
-            {/* Score Showcase Hero - Institutional Audit Rating & Security Dimension Metrics */}
+            {/* Score Showcase Hero - Evaluation Score & Security Dimension Metrics */}
             {(() => {
               const activeBlueprint = calculateBlueprintScore(activeReview.scores || { utility: 5, tokenomics: 5, security: 5, team: 5, community: 5 }, activeReview.category);
               const overallColor = activeBlueprint.overallScore >= 75 ? 'text-emerald-400' : activeBlueprint.overallScore >= 50 ? 'text-amber-400' : 'text-rose-400';
@@ -1995,7 +1995,7 @@ export default function BlogPreviewer({
               />
             </div>
 
-            {/* Institutional Benchmark Comparison Section */}
+            {/* Protocol Benchmark Comparison Section */}
             {activeReview.comparisonReport && (
               <ComparisonReportView 
                 data={activeReview.comparisonReport} 

@@ -55,7 +55,7 @@ export function exportF3AuditCsv(
   const orderId = (project as any).orderId || project.id || `CRL-${project.symbol.toUpperCase()}`;
 
   const rows: string[][] = [
-    // Header & Institutional Identification
+    // Header & Verification Engine Identification
     ['CRYPTO REVIEW LAB — F3 DETERMINISTIC VERIFICATION AUDIT REPORT'],
     ['Report Type', 'F3 Final Approved & Verified Report'],
     ['Standard & Rule Version', ruleVersion],
@@ -113,7 +113,7 @@ export function exportF3AuditCsv(
       avf03?.status || 'VERIFIED',
       avf03?.status === 'VERIFIED' ? '100%' : '80%',
       'Weight Sum: 100.0%',
-      avf03?.details || 'Enforces exact 25/25/25/15/10 weight constraints and strict locked grade boundaries.'
+      avf03?.details || 'Enforces exact 25/25/25/15/10 weight constraints and strict evaluation blueprint criteria.'
     ],
     [
       'AVF-04',
@@ -137,7 +137,7 @@ export function exportF3AuditCsv(
       avf06?.status || 'CONSISTENT',
       avf06?.status === 'CONSISTENT' ? '100%' : '70%',
       `Declared: ${avf06?.declaredRisk || project.riskLevel} | Evaluated: ${avf06?.verifiedRiskLevel || project.riskLevel}`,
-      avf06?.details || (avf06?.contradictions && avf06.contradictions.length > 0 ? `Contradictions: ${avf06.contradictions.join('; ')}` : 'Logical consistency verified between narrative and score grade.')
+      avf06?.details || (avf06?.contradictions && avf06.contradictions.length > 0 ? `Contradictions: ${avf06.contradictions.join('; ')}` : 'Logical consistency verified between narrative and evaluation score.')
     ],
     [
       'AVF-07',
@@ -216,7 +216,6 @@ export function exportF3ProjectsBatchCsv(
       'Symbol',
       'Category',
       'Overall Score',
-      'Grade',
       'Risk Level',
       'F3 Status',
       'Confidence',
@@ -239,7 +238,6 @@ export function exportF3ProjectsBatchCsv(
       p.symbol,
       p.category || 'General',
       p.overallScore !== undefined ? String(p.overallScore) : 'Not Scored',
-      p.grade || 'N/A',
       p.riskLevel || 'N/A',
       status,
       conf,

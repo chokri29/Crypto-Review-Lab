@@ -279,8 +279,8 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
           symbol: rev.symbol,
           timestamp,
           type,
-          message: rev.verdict || `AVF ${type} rating with score of ${rev.overallScore}% (${rev.grade}).`,
-          details: `${rev.category} | Blueprint Score: ${rev.overallScore}/100 Grade ${rev.grade}. ${rev.pros?.[0] || 'Verification benchmark verified.'}`
+          message: rev.verdict || `AVF ${type} rating with evaluation score of ${rev.overallScore}/100.`,
+          details: `${rev.category} | Evaluation Score: ${rev.overallScore}/100 (${rev.riskLevel} Risk). ${rev.pros?.[0] || 'Verification benchmark verified.'}`
         };
       });
     }

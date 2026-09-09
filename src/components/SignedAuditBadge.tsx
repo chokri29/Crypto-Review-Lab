@@ -11,7 +11,6 @@ interface SignedAuditBadgeProps {
   signature?: CryptoAuditSignature;
   scores?: CryptoReviewScores;
   verdict?: string;
-  grade?: string;
   timestamp?: string;
   className?: string;
   compact?: boolean;
@@ -21,7 +20,6 @@ export const SignedAuditBadge: React.FC<SignedAuditBadgeProps> = ({
   signature,
   scores,
   verdict,
-  grade,
   timestamp,
   className = '',
   compact = false
@@ -59,7 +57,7 @@ export const SignedAuditBadge: React.FC<SignedAuditBadgeProps> = ({
     setVerificationResult(null);
 
     try {
-      if (scores && verdict && grade) {
+      if (scores && verdict) {
         const res = await fetch('/api/audit/verify-signature', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -67,7 +65,6 @@ export const SignedAuditBadge: React.FC<SignedAuditBadgeProps> = ({
             auditSignature: signature,
             scores,
             verdict,
-            grade,
             timestamp: signature.signedAt || timestamp || new Date().toISOString()
           })
         });

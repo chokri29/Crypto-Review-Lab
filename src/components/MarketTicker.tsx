@@ -145,34 +145,6 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
     }, 150);
   };
 
-  const getGradeColor = (grade: string) => {
-    if (grade === 'AAA') {
-      return 'text-cyber-cyan border-cyber-cyan/40 bg-cyber-cyan/10 shadow-[0_0_15px_rgba(0,229,255,0.25)] font-black';
-    }
-    if (grade === 'AA') {
-      return 'text-cyber-green border-cyber-green/30 bg-cyber-green/10 shadow-[0_0_12px_rgba(0,255,136,0.15)] font-extrabold';
-    }
-    if (grade?.charAt(0) === 'A') {
-      return 'text-cyber-cyan border-cyber-cyan/20 bg-cyber-cyan/5 font-bold';
-    }
-    if (grade?.charAt(0) === 'B') {
-      return 'text-cyber-text-primary border-cyber-text-muted/30 bg-cyber-text-secondary/10 font-semibold';
-    }
-    if (grade?.charAt(0) === 'C') {
-      return 'text-cyber-orange border-cyber-orange/20 bg-cyber-orange/10 font-semibold';
-    }
-    return 'text-rose-400 border-rose-400/20 bg-rose-500/10 font-bold';
-  };
-
-  const getGradeTextColor = (grade: string) => {
-    if (grade === 'AAA') return 'text-cyber-cyan drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]';
-    if (grade === 'AA') return 'text-emerald-400';
-    if (grade?.charAt(0) === 'A') return 'text-cyber-cyan';
-    if (grade?.charAt(0) === 'B') return 'text-slate-100';
-    if (grade?.charAt(0) === 'C') return 'text-amber-400';
-    return 'text-rose-400';
-  };
-
   const getRiskStyles = (risk: string) => {
     switch (risk) {
       case 'Low': return 'text-cyber-green bg-cyber-green/5 border-cyber-green/20';
@@ -319,7 +291,7 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
               RISK PROFILE
             </div>
             <span className={`font-mono text-[9.5px] font-extrabold px-1.5 py-0.5 rounded border uppercase shrink-0 ${getRiskStyles(activeAudit.riskLevel)}`}>
-              Tier
+              Status
             </span>
           </div>
           <div className="flex items-baseline gap-2 py-1">
@@ -328,7 +300,7 @@ export default function MarketTicker({ reviews = [], onSelectReview, mode = 'sho
             </span>
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            calibrated risk boundary
+            assessed risk classification
           </div>
         </div>
 

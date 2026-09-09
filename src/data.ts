@@ -15,7 +15,6 @@ const RAW_REVIEWS: CryptoReview[] = [
     symbol: 'ZAMA',
     category: 'Privacy / FHE Cryptography',
     overallScore: 83,
-    grade: 'A',
     verdict: 'Zama provides robust cryptographic primitives for confidential computing, though its long-term economic sustainability remains contingent on widespread enterprise adoption of Fully Homomorphic Encryption (FHE).',
     scores: {
       utility: 9,
@@ -60,7 +59,6 @@ Zama is a technically superior project with a clear moat in the FHE space. The p
     symbol: 'HYPE',
     category: 'DeFi / Perp DEX',
     overallScore: 93,
-    grade: 'AA+',
     verdict: 'Hyperliquid is a high-performance Layer 1 appchain specialized in decentralized perpetual exchange, boasting orderbook execution speeds and gas-free transaction mechanisms.',
     scores: {
       utility: 10,
@@ -83,7 +81,7 @@ The platform supports perpetual swap trading with up to 50x leverage on dozens o
 The native HYPE token serves multiple roles including consensus staking, validator security collateral, and platform governance. The core state-transition logic is designed for speed and heavily audited to prevent front-running, front-running attacks, and sequencer manipulation.
 
 ### Conclusion
-Hyperliquid has set a new standard for decentralized trading experience. Its hybrid approach—combining the performance of a centralized exchange with the security of a non-custodial ledger—makes it a premium, AAA-grade project.`,
+Hyperliquid has set a new standard for decentralized trading experience. Its hybrid approach—combining the performance of a centralized exchange with the security of a non-custodial ledger—makes it a premium, top-tier project.`,
     pros: [
       'Sub-second order execution matching the experience of CEXs.',
       'Completely gas-free execution environment for end traders.',
@@ -95,13 +93,11 @@ Hyperliquid has set a new standard for decentralized trading experience. Its hyb
       'Active regulatory pressure surrounding leveraged derivative protocols.'
     ],
     proBenchmarks: {
-      crlInstitutionalScore: 90,
-      crlSecurityGrade: 'AA+',
       crlAuditStatus: 'UNVERIFIED',
       crlThreatMatrixStatus: 'NOT_PERFORMED',
       crlOpenFindings: 'NOT_PERFORMED',
       crlVerificationScore: 90,
-      crlRiskModelSummary: 'Institutional security profile (9/10) evaluated under CRL Pro Risk Model. Automated security invariant scans not performed.',
+      crlRiskModelSummary: 'Security profile (9/10) evaluated under CRL Pro Risk Model. Automated security invariant scans not performed.',
       symbolicExecutionMatrix: {
         reentrancyVector: 'NOT_PERFORMED',
         flashLoanDrainCascade: 'NOT_PERFORMED',
@@ -120,7 +116,6 @@ Hyperliquid has set a new standard for decentralized trading experience. Its hyb
     symbol: 'ARB',
     category: 'L2 / Scaling',
     overallScore: 89,
-    grade: 'AA',
     verdict: 'Arbitrum is the leading Optimistic Rollup suite for Ethereum, offering ultra-cheap transactions and high throughput while inheriting Ethereum\'s robust security model.',
     scores: {
       utility: 9,
@@ -165,7 +160,6 @@ With dominant TVL, robust developer activity, and mature infrastructure, Arbitru
     symbol: 'UNI',
     category: 'DeFi / Exchange',
     overallScore: 94,
-    grade: 'AAA',
     verdict: 'Uniswap is the premier decentralized exchange protocol in Web3, facilitating automated liquidity and trustless token swaps via highly audited smart contracts.',
     scores: {
       utility: 10,
@@ -188,7 +182,7 @@ Securing billions in liquidity pools across Ethereum, Arbitrum, Polygon, and Bas
 Uniswap contracts are historically the most battle-tested and audited pieces of code in Web3 history. Despite various frontend DNS attacks in the broader industry, the core protocol has never suffered a smart contract exploit. The "fee switch" activation remains a highly anticipated catalyst.
 
 ### Conclusion
-Uniswap is the critical core infrastructure of decentralized finance. Its security record and relentless innovation cement it as a AAA-grade financial protocol.`,
+Uniswap is the critical core infrastructure of decentralized finance. Its security record and relentless innovation cement it as a premier financial protocol.`,
     pros: [
       'Unmatched security track record with zero smart contract exploits.',
       'Massive global liquidity depth across dozens of blockchains.',
@@ -209,7 +203,6 @@ Uniswap is the critical core infrastructure of decentralized finance. Its securi
     symbol: 'RENDER',
     category: 'DePIN / Compute',
     overallScore: 85,
-    grade: 'A',
     verdict: 'Render Network is a decentralized GPU rendering platform linking idle compute nodes with artists, developers, and AI spatial computing teams.',
     scores: {
       utility: 9,
@@ -251,7 +244,6 @@ Render Network is a premier example of Web3 delivering tangible, real-world util
     symbol: 'SOL',
     category: 'Smart Contract / L1',
     overallScore: 91,
-    grade: 'AA',
     verdict: 'Solana is a high-speed monolithic Layer 1 blockchain achieving sub-second finality and high throughput via its Proof-of-History consensus mechanism.',
     scores: {
       utility: 10,
@@ -296,7 +288,6 @@ Solana represents the gold standard of user-friendly, high-throughput cryptograp
     symbol: 'LINK',
     category: 'DePIN / Oracles',
     overallScore: 95,
-    grade: 'AAA',
     verdict: 'Chainlink is the industry-standard decentralized oracle network, securing tens of billions in smart contracts across all major blockchain ecosystems.',
     scores: {
       utility: 10,
@@ -341,7 +332,6 @@ Chainlink is as close to a utility "blue-chip" as Web3 has. Its institutional tr
     symbol: 'SUI',
     category: 'Smart Contract / L1',
     overallScore: 92,
-    grade: 'AA+',
     verdict: 'Sui is an object-centric Layer 1 blockchain powered by the Move programming language, delivering parallel execution and instant sub-second finality.',
     scores: {
       utility: 10,
@@ -383,7 +373,6 @@ With unmatched horizontal throughput, superior developer ergonomics, and seamles
     symbol: 'KAS',
     category: 'Layer 1 / BlockDAG',
     overallScore: 90,
-    grade: 'AA',
     verdict: 'Kaspa is a revolutionary open-source Proof-of-Work BlockDAG protocol enabling instant block confirmation and high-frequency parallel transaction mining.',
     scores: {
       utility: 9,
@@ -428,7 +417,6 @@ Kaspa represents the evolution of Proof-of-Work technology, combining Satoshi's 
     symbol: 'JUP',
     category: 'DeFi Protocol (AMM / Lending)',
     overallScore: 81,
-    grade: 'A',
     verdict: 'Jupiter stands as the undisputed liquidity engine of the Solana ecosystem, demonstrating exceptional routing utility and volume capture, though its long-term valuation remains constrained by governance-only token utility and substantial fully diluted supply overhang.',
     scores: {
       utility: 9,
@@ -471,7 +459,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     ...review,
     category: bp.categoryType,
     overallScore: bp.overallScore,
-    grade: bp.grade,
     riskLevel: bp.riskLevel,
     publishApproved: true
   };

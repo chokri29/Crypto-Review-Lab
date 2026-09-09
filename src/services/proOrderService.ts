@@ -555,7 +555,6 @@ export function approveAndDeliverProOrder(
   const auditSignature = signAuditReportServerSide({
     scores: targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 },
     verdict: targetReview.verdict || '',
-    grade: targetReview.grade || 'A',
     timestamp: deliveredAtStr
   });
 
@@ -1056,7 +1055,6 @@ function getSeedOrders(): ProOrder[] {
     symbol: 'HYPE',
     category: 'Layer 1 / Perpetual DEX',
     overallScore: 93,
-    grade: 'AAA',
     verdict: 'Top-tier high throughput perp L1 with sub-second finality and audited vault safety.',
     scores: { utility: 10, tokenomics: 9, security: 9, team: 9, community: 9 },
     summary: 'Hyperliquid represents a major milestone in high-performance decentralized derivatives. Built on a custom Tendermint-based L1 consensus, it achieves over 20,000 orders per second without relying on third-party sequencers.',
@@ -1069,7 +1067,7 @@ function getSeedOrders(): ProOrder[] {
   const adminOverrideSeed: AdminOverrideLog = {
     overriddenBy: 'Principal Chief Auditor',
     overriddenAt: yesterday.toISOString(),
-    reason: 'Pre-verified institutional reference seed audit delivery.',
+    reason: 'Pre-verified reference seed audit delivery.',
     previousF3Status: 'VERIFIED',
     discrepanciesOverridden: [],
     acknowledged: true
@@ -1085,7 +1083,6 @@ function getSeedOrders(): ProOrder[] {
   const seedSig = signAuditReportServerSide({
     scores: draft1.scores,
     verdict: 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.',
-    grade: draft1.grade,
     timestamp: yesterday.toISOString()
   });
 
@@ -1111,7 +1108,7 @@ function getSeedOrders(): ProOrder[] {
     projectName: 'Hyperliquid',
     projectSymbol: 'HYPE',
     contractAddress: '0x9923...fe49 (Arbitrum / L1 Bridge)',
-    focusArea: 'Institutional L1 Perp DEX Architecture, Orderbook Matching Security, and Liquidation Cascade Resistance',
+    focusArea: 'L1 Perp DEX Architecture, Orderbook Matching Security, and Liquidation Cascade Resistance',
     verificationDepth: 'Unified Bytecode & Evidence Verification',
     stressSimulation: true,
     amountUsd: 149.00,
@@ -1167,10 +1164,9 @@ function getSeedOrders(): ProOrder[] {
     symbol: 'ZAMA',
     category: 'Privacy / FHE Cryptography',
     overallScore: 90,
-    grade: 'AA+',
     verdict: 'State-of-the-art confidential smart contract layer leveraging fully homomorphic encryption.',
     scores: { utility: 9, tokenomics: 9, security: 9, team: 10, community: 8 },
-    summary: 'Zama enables privacy-preserving smart contract computation using Fully Homomorphic Encryption (FHE). First system draft highlights strong institutional backing.',
+    summary: 'Zama enables privacy-preserving smart contract computation using Fully Homomorphic Encryption (FHE). First system draft highlights strong ecosystem backing.',
     pros: ['End-to-end encrypted state', 'Strong academic cryptography team', 'Compatible with EVM toolchains'],
     cons: ['Higher compute overhead', 'Hardware acceleration required', 'Nascent developer ecosystem'],
     riskLevel: 'Low',

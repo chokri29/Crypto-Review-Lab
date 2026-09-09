@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { ShieldCheck, Lock, Award, Sliders, ChevronDown, ChevronUp, Info, CheckCircle2, Download, Cpu, Sparkles, RefreshCw } from 'lucide-react';
 import { 
   EVALUATION_BLUEPRINT_DIMENSIONS, 
-  RISK_LEVEL_BOUNDARIES, 
   calculateBlueprintScore 
 } from '../services/EvaluationBlueprint';
 import { generateBlueprintFormulaPdf } from '../services/pdfGenerator';
@@ -233,35 +232,6 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
               </div>
             </div>
 
-            {/* Standardized Risk Boundaries */}
-            <div>
-              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                <Info className="w-4 h-4 text-cyan-400" />
-                <span>Standardized Risk Boundaries & Score Tiers</span>
-              </h4>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                {RISK_LEVEL_BOUNDARIES.map((b) => (
-                  <div 
-                    key={b.riskLevel}
-                    className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-left flex flex-col justify-between min-w-0"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono font-bold text-xs sm:text-sm" style={{ color: b.color }}>
-                        {b.riskLevel} Risk
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-300 font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
-                        {b.minScore}–{b.maxScore} pts
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-sans mt-2 line-clamp-2">
-                      {b.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Live Interactive Blueprint Calculator */}
             {/* Phase 2: Automated Re-Control Architecture Explanation */}
             <div className="border-t border-slate-800 pt-4 space-y-3">
@@ -401,7 +371,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-teal-400 font-bold">AVF-06: Semantic Consistency</span>
-                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Ensures declared risk level and grade match computed scores without contradictions.</p>
+                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Ensures declared risk level and evaluation score match without contradictions.</p>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-indigo-400 font-bold">AVF-07: Calibrated Confidence</span>
@@ -437,7 +407,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                         AVF-08 Cryptographic Signing Rule
                       </div>
                       <div className="bg-slate-900 p-2 rounded text-[11px] text-rose-300 font-mono">
-                        Digest = SHA256(Symbol ∥ Scores ∥ Grade ∥ Timestamp)
+                        Digest = SHA256(Symbol ∥ Scores ∥ Timestamp)
                       </div>
                       <ul className="text-[10px] text-slate-400 space-y-0.5 list-disc pl-4 font-sans">
                         <li><strong>Draft:</strong> Status = <code>UNSIGNED</code> (pre-audit draft preview)</li>

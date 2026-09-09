@@ -5,7 +5,6 @@
 
 import jsPDF from 'jspdf';
 import {
-  RISK_LEVEL_BOUNDARIES,
   normalizeProtocolCategory,
   getCategoryTechnicalVectors,
   getCategoryStressTestModel,
@@ -47,7 +46,6 @@ export interface AuditPdfData {
   citations?: string[];
   // Internal optional legacy fields tolerated but never rendered in public documents:
   overallScore?: number;
-  grade?: string;
   riskLevel?: string;
   dimensionScores?: {
     utility: number;
@@ -275,56 +273,8 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     y += 7;
   });
 
+  // 5. Supplementary Rules & Penalty Notes
   y += 8;
-
-  // 5. Standardized Risk Boundaries Table
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('STANDARDIZED RISK BOUNDARIES & SCORE TIERS', margin, y);
-  y += 4;
-
-  const gradeHeaderY = y;
-  doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
-  doc.rect(margin, gradeHeaderY, contentWidth, 6.5, 'F');
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'bold');
-  doc.text('RISK TIER', margin + 4, gradeHeaderY + 4.5);
-  doc.text('SCORE RANGE', margin + 40, gradeHeaderY + 4.5);
-  doc.text('INTERPRETATION & CRITERIA', margin + 85, gradeHeaderY + 4.5);
-
-  y += 6.5;
-
-  RISK_LEVEL_BOUNDARIES.forEach((boundary, idx) => {
-    const rowY = y;
-    if (idx % 2 === 0) {
-      doc.setFillColor(248, 250, 252);
-      doc.rect(margin, rowY, contentWidth, 6.5, 'F');
-    }
-
-    let riskColor = emeraldAccent;
-    if (boundary.riskLevel === 'Medium') riskColor = [245, 158, 11];
-    if (boundary.riskLevel === 'High' || boundary.riskLevel === 'Critical') riskColor = [225, 29, 72];
-
-    doc.setTextColor(riskColor[0], riskColor[1], riskColor[2]);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.text(`${boundary.riskLevel.toUpperCase()} RISK`, margin + 4, rowY + 4.2);
-
-    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${boundary.minScore} - ${boundary.maxScore} pts`, margin + 40, rowY + 4.2);
-
-    doc.setFontSize(7);
-    doc.text(boundary.description, margin + 85, rowY + 4.2);
-
-    y += 6.5;
-  });
-
-  // 6. N.B. Supplementary Rules & Penalty Notes
-  y += 6;
   doc.setFillColor(254, 243, 199); // Amber-100
   doc.setDrawColor(245, 158, 11); // Amber-500
   doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'FD');
@@ -398,7 +348,7 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
   }
 
   if (data.isPro) {
-    generateProInstitutionalPdfReport(data, customFilename);
+    generateProAssessmentPdfReport(data, customFilename);
     return;
   }
 
@@ -858,10 +808,10 @@ function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, margin: nu
 
 /**
  * Generates a Premium 3-Page Security & Risk Assessment Report.
- * Specifically crafted for institutional controls, deep symbolic execution, TVL drain simulations,
+ * Specifically crafted for deep symbolic execution, TVL drain simulations,
  * and CRL Risk Model evaluations.
  */
-function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: string): void {
+function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: string): void {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -873,7 +823,7 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
   const margin = 15;
   const contentWidth = pageWidth - (margin * 2); // 180 mm
 
-  // Theme Palette: Slate & Gold/Amber Luxury Institutional
+  // Theme Palette: Slate & Gold/Amber Professional Verification
   const slate950 = [2, 6, 23];
   const slate900 = [15, 23, 42];
   const amber500 = [245, 158, 11];
@@ -946,7 +896,7 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
     : baseConfidence;
 
   // ==========================================
-  // PAGE 1: EXECUTIVE & INSTITUTIONAL OVERVIEW
+  // PAGE 1: EXECUTIVE & EVALUATION OVERVIEW
   // ==========================================
 
   let y = margin;
@@ -1470,11 +1420,11 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
 
   y += 28;
 
-  // 3. Official Institutional Verification Seal & Stamp
+  // 3. Cryptographic Verification & Integrity Digest
   if (y + 20 > pageHeight - 15) {
     addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());
     doc.addPage();
-    addProPageHeader(doc, pageWidth, margin, refId, 'SECTION 3 (CONTINUED): VERIFICATION INTEGRITY SEAL');
+    addProPageHeader(doc, pageWidth, margin, refId, 'SECTION 3 (CONTINUED): VERIFICATION & INTEGRITY');
     y = 22;
   }
 
@@ -1505,7 +1455,7 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(isVerified ? 180 : (isFailed ? 159 : 180), isVerified ? 83 : (isFailed ? 18 : 83), isVerified ? 9 : (isFailed ? 57 : 9));
-    doc.text(isVerified ? 'OFFICIAL ALGORITHMIC VERIFICATION SEAL & INTEGRITY DIGEST' : `OFFICIAL ALGORITHMIC ASSESSMENT DIGEST (${gating.actualStatus})`, margin + 4, y + 5);
+    doc.text(isVerified ? 'CRYPTOGRAPHIC INTEGRITY & TRACEABILITY DIGEST' : `CRYPTOGRAPHIC ASSESSMENT DIGEST (${gating.actualStatus})`, margin + 4, y + 5);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
@@ -1536,7 +1486,7 @@ function generateProInstitutionalPdfReport(data: AuditPdfData, customFilename?: 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(251, 191, 36);
-    doc.text(`INSTITUTIONAL HEADLINE COMPARISON: ${cmp.targetProtocol.name} vs ${cmp.benchmarkProtocol.name}`, margin + 4, cy + 5.5);
+    doc.text(`HEADLINE COMPARISON: ${cmp.targetProtocol.name} vs ${cmp.benchmarkProtocol.name}`, margin + 4, cy + 5.5);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);

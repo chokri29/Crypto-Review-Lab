@@ -313,7 +313,7 @@ export function critiqueTeam(review: CryptoReview): CriticResult {
     evidenceCount += 1;
     if (review.dataEngine?.includes('Dual Sync') || review.dataEngine?.includes('Auto-Calibrated')) {
       score += 6;
-      evidence.push('Institutional data provenance verified');
+      evidence.push('Verified data provenance');
     }
   }
 
@@ -351,7 +351,7 @@ export function critiqueUtility(review: CryptoReview): CriticResult {
     evidenceCount += 1;
     if (review.liveMarketCap >= 1_000_000_000) {
       score += 12;
-      evidence.push(`Institutional adoption ($${(review.liveMarketCap / 1e9).toFixed(2)}B Market Cap)`);
+      evidence.push(`Broad market adoption ($${(review.liveMarketCap / 1e9).toFixed(2)}B Market Cap)`);
     } else if (review.liveMarketCap >= 100_000_000) {
       score += 6;
       evidence.push(`Established market adoption ($${(review.liveMarketCap / 1e6).toFixed(0)}M Market Cap)`);
@@ -936,7 +936,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
   }
   initialReview.overallScore = currentReview.overallScore;
 
-  // Recalculate Blueprint grade and risk level for consistency
+  // Recalculate Blueprint risk level for consistency
   const category = normalizeProtocolCategory(initialReview.category || 'Specialized / Experimental');
   const bpResult = calculateBlueprintScore({
     utility: initialReview.scores.utility,
@@ -945,7 +945,6 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
     team: initialReview.scores.team,
     community: initialReview.scores.community
   }, category);
-  initialReview.grade = '';
   initialReview.riskLevel = bpResult.riskLevel;
 
   return {
@@ -1645,15 +1644,14 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
  * no live automated verification integration exists.
  */
 export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoReview {
-  const isInputMissing = review.grade === 'INPUT_MISSING' || review.riskLevel === 'INPUT_MISSING' || (review.riskLevel as string) === 'DRAFT_UNAVAILABLE';
+  const isInputMissing = review.riskLevel === 'INPUT_MISSING' || (review.riskLevel as string) === 'DRAFT_UNAVAILABLE';
   if (isInputMissing) {
     return {
       ...review,
       overallScore: 0,
-      grade: 'INPUT_MISSING',
       riskLevel: 'INPUT_MISSING',
       verdict: review.verdict || 'Assessment Input Pending: No preliminary assessment draft or telemetry data provided. Awaiting diagnostic scan execution.',
-      summary: review.summary || `Assessment pending for ${review.name || 'target'}. System draft data is unavailable (DRAFT_UNAVAILABLE). No favorable score, grade, or security conclusions are inferred.`
+      summary: review.summary || `Assessment pending for ${review.name || 'target'}. System draft data is unavailable (DRAFT_UNAVAILABLE). No favorable score or security conclusions are inferred.`
     };
   }
 
@@ -1673,10 +1671,9 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
 
   const calibratedScores = { utility, tokenomics, security, team, community };
 
-  // 2. Compute canonical Evaluation Blueprint overall score, letter grade, and risk level
+  // 2. Compute canonical Evaluation Blueprint overall score and risk level
   const bpResult = calculateBlueprintScore(calibratedScores, category);
   const overallScore = bpResult.overallScore;
-  const grade = bpResult.grade;
   const riskLevel = bpResult.riskLevel;
 
   // 3. Ensure Pros & Cons symmetry reflecting the protocol's risk level (scaffolding only if missing)
@@ -1732,8 +1729,6 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
 
     proBenchmarks = {
       ...review.proBenchmarks,
-      crlInstitutionalScore: overallScore,
-      crlSecurityGrade: undefined,
       // Honest third-party audit status: CertiK/OpenZeppelin are not integrated in this applet
       crlAuditStatus: (review.proBenchmarks.crlAuditStatus && !review.proBenchmarks.crlAuditStatus.includes('CertiK') && !review.proBenchmarks.crlAuditStatus.includes('OpenZeppelin'))
         ? review.proBenchmarks.crlAuditStatus
@@ -1793,7 +1788,6 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
     category,
     scores: calibratedScores,
     overallScore,
-    grade,
     riskLevel,
     pros,
     cons,

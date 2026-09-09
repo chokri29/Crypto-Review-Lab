@@ -180,7 +180,6 @@ export const AuditorReviewConsole: React.FC<{
       symbol: projSymbol,
       category: 'Smart Contract / Web3',
       overallScore: 92,
-      grade: 'AAA',
       verdict: `Security Assessment Completed (${auditorName}): ${dispatchNotes}`,
       scores: { utility: 9, tokenomics: 9, security: 10, team: 9, community: 9 },
       summary: `Security & Risk Assessment for ${projName} (${projSymbol}). Full executive risk assessment dossier verified and approved by ${auditorName}.`,
@@ -461,7 +460,6 @@ export const AuditorReviewConsole: React.FC<{
     const updatedReview = {
       ...baseReview,
       overallScore: recalculatedBlueprint.overallScore,
-      grade: recalculatedBlueprint.grade,
       riskLevel: recalculatedBlueprint.riskLevel,
       scores: currentScores,
       verdict: `Manual Audit Verified (${auditorName}): ${auditorComments}`,
@@ -1126,9 +1124,6 @@ export const AuditorReviewConsole: React.FC<{
                       <span className="text-[10px] font-mono text-slate-400 uppercase block">Recalculated Evaluation Blueprint Score</span>
                       <div className="text-xl font-extrabold text-slate-100 flex items-center gap-2 font-mono">
                         {recalculatedBlueprint.overallScore} / 100
-                        <span className="text-xs text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/40">
-                          Grade: {recalculatedBlueprint.grade}
-                        </span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -1190,7 +1185,6 @@ export const AuditorReviewConsole: React.FC<{
                       signature={selectedOrder.auditSignature || selectedOrder.finalReview?.auditSignature || selectedOrder.humanNotes?.auditSignature}
                       scores={selectedOrder.finalReview?.scores || currentScores}
                       verdict={selectedOrder.finalReview?.verdict}
-                      grade={selectedOrder.finalReview?.grade}
                       timestamp={selectedOrder.deliveredAt}
                     />
                   </div>

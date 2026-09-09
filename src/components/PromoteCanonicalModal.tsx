@@ -188,7 +188,7 @@ export function PromoteCanonicalModal({
                   : 'text-cyber-text-muted hover:text-cyber-text-primary hover:bg-cyber-cyan/5'
               }`}
             >
-              Overview & Grades
+              Overview & Evaluation
             </button>
 
             <button
@@ -225,7 +225,7 @@ export function PromoteCanonicalModal({
             </button>
           </div>
 
-          {/* TAB 1: OVERVIEW & GRADES DIFF */}
+          {/* TAB 1: OVERVIEW & SCORES DIFF */}
           {activeDiffTab === 'overview' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -243,9 +243,9 @@ export function PromoteCanonicalModal({
                   {oldCanonical ? (
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-cyber-text-muted">Overall Rating:</span>
+                        <span className="text-cyber-text-muted">Evaluation Score:</span>
                         <span className="font-mono font-bold text-rose-300">
-                          {oldCanonical.overallScore}/100 ({oldCanonical.grade})
+                          {oldCanonical.overallScore}/100
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -286,9 +286,9 @@ export function PromoteCanonicalModal({
 
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-cyber-text-muted">Overall Rating:</span>
+                      <span className="text-cyber-text-muted">Evaluation Score:</span>
                       <span className="font-mono font-bold text-emerald-300">
-                        {newReview.overallScore}/100 ({newReview.grade})
+                        {newReview.overallScore}/100
                       </span>
                     </div>
                     <div className="flex justify-between">

@@ -157,7 +157,7 @@ export const COMPARISON_PROTOCOLS: ComparisonProtocol[] = [
   { name: 'Aave', symbol: 'AAVE', categories: ['DeFi Protocol (AMM / Lending)'], displayCategory: 'DeFi Money Market' },
 
   // RWA (Tokenization / TradFi Bridge)
-  { name: 'Ondo Finance', symbol: 'ONDO', categories: ['RWA (Tokenization / TradFi Bridge)'], displayCategory: 'Institutional RWA Protocol' },
+  { name: 'Ondo Finance', symbol: 'ONDO', categories: ['RWA (Tokenization / TradFi Bridge)'], displayCategory: 'TradFi RWA Protocol' },
   { name: 'Centrifuge', symbol: 'CFG', categories: ['RWA (Tokenization / TradFi Bridge)'], displayCategory: 'RWA Credit Protocol' },
 
   // Privacy / Cryptographic (FHE / ZK / MPC)
@@ -981,7 +981,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           symbol: cleanSymbol,
           category: calcBp.categoryType || category,
           overallScore: calcBp.overallScore,
-          grade: '',
           riskLevel: calcBp.riskLevel,
           scores,
           verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with a ${calcBp.riskLevel} Risk tier under the CRL 5-dimension locked Evaluation Blueprint rubric.`,
@@ -1014,9 +1013,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       const bp = calculateBlueprintScore(reviewData.scores || { utility: 5, tokenomics: 5, security: 5, team: 5, community: 5 }, reviewData.category || category);
 
       const secScore = reviewData.scores?.security || 8;
-      const teamScore = reviewData.scores?.team || 8;
       const utilScore = reviewData.scores?.utility || 8;
-      const crlInstitutionalScore = Math.min(99, Math.max(60, Math.round(secScore * 6.5 + teamScore * 3.2 + 3)));
       const crlVerificationScore = Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2)));
 
       const hasRealSecurityScan = Boolean(reviewData.securityScan);
@@ -1026,15 +1023,13 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         : 'TVL data not available';
 
       const proBenchmarks: ProSecurityBenchmarks = {
-        crlInstitutionalScore,
-        crlSecurityGrade: undefined,
         crlAuditStatus: (reviewData.proBenchmarks?.crlAuditStatus && !reviewData.proBenchmarks.crlAuditStatus.includes('CertiK') && !reviewData.proBenchmarks.crlAuditStatus.includes('OpenZeppelin') && reviewData.proBenchmarks.crlAuditStatus !== 'AST Bytecode & Opcode Verified')
           ? reviewData.proBenchmarks.crlAuditStatus
           : 'UNVERIFIED',
         crlThreatMatrixStatus: hasRealSecurityScan ? 'AUTOMATED_SCAN_ATTACHED' : 'NOT_PERFORMED',
         crlOpenFindings: hasRealSecurityScan ? 'SCAN_RESULTS_PENDING_AUDIT' : 'NOT_PERFORMED',
         crlVerificationScore,
-        crlRiskModelSummary: `Institutional security profile (${secScore}/10) evaluated under CRL Pro Risk Model. Automated security invariant scans ${hasRealSecurityScan ? 'attached' : 'not performed'}.`,
+        crlRiskModelSummary: `Security profile (${secScore}/10) evaluated under CRL Pro Risk Model. Automated security invariant scans ${hasRealSecurityScan ? 'attached' : 'not performed'}.`,
         symbolicExecutionMatrix: {
           reentrancyVector: (hasRealSecurityScan && (existingMatrix?.reentrancyVector === 'PASSED' || reviewData.securityScan?.reentrancyPassed)) ? 'PASSED' : 'NOT_PERFORMED',
           flashLoanDrainCascade: (hasRealSecurityScan && (existingMatrix?.flashLoanDrainCascade === 'PASSED' || reviewData.securityScan?.flashLoanPassed)) ? 'PASSED' : 'NOT_PERFORMED',
@@ -1049,7 +1044,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         const tempBase: CryptoReview = {
           ...reviewData,
           overallScore: bp.overallScore,
-          grade: '',
           riskLevel: bp.riskLevel,
           id: `${reviewData.symbol.toLowerCase()}-${Date.now()}`,
           createdAt: new Date().toISOString().split('T')[0],
@@ -1063,7 +1057,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       let completeReview: CryptoReview = {
         ...reviewData,
         overallScore: bp.overallScore,
-        grade: '',
         riskLevel: bp.riskLevel,
         id: `${reviewData.symbol.toLowerCase()}-${Date.now()}`,
         createdAt: new Date().toISOString().split('T')[0],
@@ -1177,7 +1170,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             projectName: completeReview.name,
             projectSymbol: completeReview.symbol,
             contractAddress: contractAddress || undefined,
-            focusArea: focusArea || 'Institutional Smart Contract Audit & TVL Resilience',
+            focusArea: focusArea || 'Smart Contract Security Audit & TVL Resilience',
             verificationDepth: verificationDepth,
             stressSimulation: stressSimulation,
             systemDraft: completeReview,
@@ -2361,13 +2354,11 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   </span>
                 </div>
 
-                {/* CRL Pro Risk Model (Institutional Audit Engine) */}
+                {/* CRL Pro Risk Model (Verification Engine) */}
                 {(() => {
                   const isUnlocked = isProUnlocked;
                   const secScore = generatedReview.scores?.security || 8;
-                  const teamScore = generatedReview.scores?.team || 8;
                   const utilScore = generatedReview.scores?.utility || 8;
-                  const crlInstScore = Math.min(99, Math.max(60, Math.round(secScore * 6.5 + teamScore * 3.2 + 3)));
                   const crlVerifScore = Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2)));
 
                   const hasRealSecurityScan = Boolean(generatedReview.securityScan);
@@ -2377,13 +2368,11 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     : 'TVL data not available';
 
                   const benchmarks: ProSecurityBenchmarks = generatedReview.proBenchmarks || {
-                    crlInstitutionalScore: crlInstScore,
-                    crlSecurityGrade: undefined,
                     crlAuditStatus: 'UNVERIFIED',
                     crlThreatMatrixStatus: hasRealSecurityScan ? 'AUTOMATED_SCAN_ATTACHED' : 'NOT_PERFORMED',
                     crlOpenFindings: hasRealSecurityScan ? 'SCAN_RESULTS_PENDING_AUDIT' : 'NOT_PERFORMED',
                     crlVerificationScore: crlVerifScore,
-                    crlRiskModelSummary: `Institutional security score (${secScore}/10) evaluated under CRL Risk Model. Automated security invariant scans ${hasRealSecurityScan ? 'attached' : 'not performed'}.`,
+                    crlRiskModelSummary: `Security score (${secScore}/10) evaluated under CRL Risk Model. Automated security invariant scans ${hasRealSecurityScan ? 'attached' : 'not performed'}.`,
                     symbolicExecutionMatrix: {
                       reentrancyVector: (hasRealSecurityScan && existingMatrix?.reentrancyVector === 'PASSED') ? 'PASSED' : 'NOT_PERFORMED',
                       flashLoanDrainCascade: (hasRealSecurityScan && existingMatrix?.flashLoanDrainCascade === 'PASSED') ? 'PASSED' : 'NOT_PERFORMED',
@@ -2392,7 +2381,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     }
                   };
 
-                  const instScoreDisplay = benchmarks.crlInstitutionalScore || crlInstScore;
                   const verifScoreDisplay = benchmarks.crlVerificationScore || crlVerifScore;
 
                   return (
@@ -2405,7 +2393,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                         <div className="flex items-center gap-2">
                           <ProTierBadge size="sm" />
                           <h4 className="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider">
-                            Institutional Standards Analysis
+                            Security Verification Analysis
                           </h4>
                         </div>
                         <span className={`text-[9px] font-mono border px-2 py-0.5 rounded font-semibold uppercase flex items-center gap-1 ${
@@ -2414,22 +2402,22 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                             : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
                         }`}>
                           {!isUnlocked && <Lock className="w-2.5 h-2.5 text-amber-400" />}
-                          {isUnlocked ? 'CRL Institutional Risk Engine' : 'Security & Risk Assessment Required'}
+                          {isUnlocked ? 'CRL Verification Engine' : 'Security & Risk Assessment Required'}
                         </span>
                       </div>
 
                       {!isUnlocked ? (
-                        /* Unblurred Locked Window for Institutional Standards Analysis */
+                        /* Unblurred Locked Window for Security Verification Analysis */
                         <div className="bg-slate-950/90 border border-amber-500/40 rounded-xl p-4 sm:p-5 text-center space-y-3.5 my-1 shadow-lg">
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <div className="p-2.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 shadow-md">
                               <Lock className="w-5 h-5" />
                             </div>
                             <h5 className="text-xs sm:text-sm font-mono font-bold text-amber-300 uppercase tracking-wider">
-                              Institutional Standards Analysis Locked
+                              Security Verification Analysis Locked
                             </h5>
                             <p className="text-xs text-slate-300 max-w-lg leading-relaxed font-sans">
-                              Institutional Standards Analysis is accessible exclusively via the paid <strong className="text-amber-300 font-mono">Security & Risk Assessment</strong>.
+                              Security Verification Analysis is accessible exclusively via the paid <strong className="text-amber-300 font-mono">Security & Risk Assessment</strong>.
                             </p>
                           </div>
 
@@ -2477,18 +2465,18 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                           </div>
                         </div>
                       ) : (
-                        /* Unlocked Full Institutional Standards Analysis Window */
+                        /* Unlocked Full Security Verification Analysis Window */
                         <div className="space-y-2.5">
                           {/* 3 Core Risk Model Cards */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                            {/* Institutional Security Index */}
+                            {/* Security Index */}
                             <div className="bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 space-y-1">
                               <div className="flex items-center justify-between text-[11px] font-mono">
                                 <span className="text-amber-400 font-bold flex items-center gap-1">
                                   <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                                   Security Index
                                 </span>
-                                <span className="text-emerald-400 font-bold">{instScoreDisplay}/100</span>
+                                <span className="text-emerald-400 font-bold">{verifScoreDisplay}/100</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
                                 Risk Tier: {generatedReview.riskLevel} Risk. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
@@ -2580,7 +2568,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   </div>
                 </div>
 
-                {/* Institutional Benchmark Comparison Section */}
+                {/* Protocol Benchmark Comparison Section */}
                 {generatedReview.comparisonReport && (
                   <ComparisonReportView 
                     data={generatedReview.comparisonReport} 
@@ -2750,7 +2738,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       {/* Locked Public Evaluation Blueprint Banner & Rubric */}
       <EvaluationBlueprintRubric />
 
-      {/* Institutional Pro Tier Modal */}
+      {/* Security & Risk Assessment Modal */}
       <AnimatePresence>
         {showProModal && (
           <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 overflow-hidden">

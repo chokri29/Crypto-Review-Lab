@@ -16,8 +16,6 @@ export interface CryptoReviewScores {
 export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'INPUT_MISSING' | 'DRAFT_UNAVAILABLE';
 
 export interface ProSecurityBenchmarks {
-  crlInstitutionalScore: number;
-  crlSecurityGrade?: string;
   crlAuditStatus: string;
   crlThreatMatrixStatus: string;
   crlOpenFindings: string;
@@ -56,7 +54,6 @@ export interface CryptoReview {
   symbol: string;
   category: string;
   overallScore: number; // 1-100
-  grade?: string;       // Legacy field (deprecated)
   verdict: string;      // Summary verdict sentence
   scores: CryptoReviewScores;
   summary: string;      // Markdown review detail
@@ -241,7 +238,6 @@ export interface ProtocolBenchmarkSummary {
   symbol: string;
   category: string;
   overallScore: number;
-  grade: string;
   riskLevel: RiskLevel;
   createdAt: string;
   verificationDepth: string;
@@ -360,7 +356,7 @@ export { projectToPublicCryptoReviewReport, projectToPublicF3Verification } from
 
 /**
  * Public Audit / Diagnostic Report Shape
- * Decoupled from internal numeric Grade and Risk Level scores.
+ * Decoupled from internal numeric Evaluation Score and Risk Level.
  */
 export interface PublicCryptoReviewReport {
   id: string;

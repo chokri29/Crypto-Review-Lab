@@ -209,13 +209,12 @@ export function getSigningPublicKey(): string {
 }
 
 /**
- * Computes deterministic SHA-256 digest of key report content (scores, verdict, grade, timestamp).
+ * Computes deterministic SHA-256 digest of key report content (scores, verdict, timestamp).
  * Fully deterministic, works identically on Browser and Node.js.
  */
 export function computeReportHash(
   scores: CryptoReviewScores,
   verdict: string,
-  grade: string,
   timestamp: string
 ): { hashHex: string; canonicalText: string } {
   const normScores = {
@@ -226,7 +225,7 @@ export function computeReportHash(
     community: Number(scores?.community ?? 0)
   };
 
-  const canonicalText = `scores:${JSON.stringify(normScores)}|verdict:${(verdict || '').trim()}|grade:${(grade || '').trim()}|timestamp:${(timestamp || '').trim()}`;
+  const canonicalText = `scores:${JSON.stringify(normScores)}|verdict:${(verdict || '').trim()}|timestamp:${(timestamp || '').trim()}`;
   const hashHex = sha256Hex(canonicalText);
 
   return { hashHex, canonicalText };
@@ -238,14 +237,12 @@ export function computeReportHash(
 export function signAuditReportServerSide(params: {
   scores: CryptoReviewScores;
   verdict: string;
-  grade?: string;
   timestamp: string;
 }): CryptoAuditSignature {
   const { privateKeyPem, publicKeyPem } = getKeyPair();
   const { hashHex, canonicalText } = computeReportHash(
     params.scores,
     params.verdict,
-    params.grade || '',
     params.timestamp
   );
 
@@ -289,7 +286,6 @@ export function verifyAuditSignatureServerSide(
   params: {
     scores: CryptoReviewScores;
     verdict: string;
-    grade: string;
     timestamp: string;
   }
 ): { isValid: boolean; hashMatches: boolean; signatureMatches: boolean; reason?: string } {
@@ -300,7 +296,6 @@ export function verifyAuditSignatureServerSide(
   const { hashHex } = computeReportHash(
     params.scores,
     params.verdict,
-    params.grade,
     params.timestamp
   );
 

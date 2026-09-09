@@ -214,7 +214,6 @@ export function buildComparisonReport(
     symbol: primaryReview.symbol,
     category: primaryReview.category,
     overallScore: primaryReview.overallScore,
-    grade: primaryReview.grade,
     riskLevel: primaryReview.riskLevel,
     createdAt: primaryReview.createdAt || '2026-08-01',
     verificationDepth,
@@ -228,7 +227,6 @@ export function buildComparisonReport(
     symbol: compareSymbol || 'BMK',
     category: primaryReview.category, // Same category template applied
     overallScore: benchmarkBlueprint.overallScore,
-    grade: benchmarkBlueprint.grade,
     riskLevel: benchmarkBlueprint.riskLevel,
     createdAt: createdAtStr,
     verificationDepth, // Exact same depth setting

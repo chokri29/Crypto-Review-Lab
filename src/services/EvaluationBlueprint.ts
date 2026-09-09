@@ -15,17 +15,6 @@ export interface EvaluationDimension {
   keyCriteria: string[];
 }
 
-export interface RiskBoundary {
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-  minScore: number;
-  maxScore: number;
-  color: string;
-  description: string;
-}
-
-// Deprecated alias for backwards compatibility
-export type GradeBoundary = RiskBoundary;
-
 export type ProtocolCategoryType =
   | 'Layer 1 Blockchain'
   | 'Layer 2 / Scaling'
@@ -764,7 +753,6 @@ export function computeProtocolTypeMultiFactorModifier(
 
 export interface BlueprintScoreResult {
   overallScore: number;
-  grade: string;
   riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   baseWeightedSum?: number;
   adjustedScore?: number;
@@ -856,16 +844,6 @@ export const EVALUATION_BLUEPRINT_DIMENSIONS: EvaluationDimension[] = [
   }
 ];
 
-export const RISK_LEVEL_BOUNDARIES: RiskBoundary[] = [
-  { riskLevel: 'Low', minScore: 85, maxScore: 100, color: '#00ff88', description: 'Low Risk — Robust Security, Decentralization & Technical Fundamentals' },
-  { riskLevel: 'Medium', minScore: 70, maxScore: 84, color: '#fbbf24', description: 'Medium Risk — Moderate Security/Utility Balance with Manageable Vulnerability Profile' },
-  { riskLevel: 'High', minScore: 50, maxScore: 69, color: '#f97316', description: 'High Risk — Elevated Supply Concentration, Centralization, or Unaudited Code' },
-  { riskLevel: 'Critical', minScore: 0, maxScore: 49, color: '#dc2626', description: 'Critical Risk — Severe Vulnerabilities, Exploit Vectors, or High Architectural Failure Risk' }
-];
-
-// Deprecated alias for backwards compatibility
-export const LOCKED_GRADE_BOUNDARIES = RISK_LEVEL_BOUNDARIES as any;
-
 /**
  * Service function: Calculates overall score, risk level, dynamic category weights,
  * data confidence, and weighted dimension breakdown according to the Evaluation Blueprint rubric.
@@ -939,7 +917,6 @@ export function calculateBlueprintScore(
 
   return {
     overallScore,
-    grade: '',
     riskLevel,
     baseWeightedSum: Number(baseSum.toFixed(2)),
     adjustedScore: Number(adjustedScore.toFixed(2)),
@@ -971,12 +948,6 @@ When evaluating or discussing any project, you MUST strictly adhere to the singl
 2. Dynamic dimension weighting tailored to risk (e.g. 35% Security for DeFi & Bridges holding funds)
 3. Category-specific technical vectors (Reentrancy, Noise Growth, Sequencer Fallback, Relayer Multi-sig)
 4. Conditional Stress Testing (TVL drain for DeFi/L1 vs Cryptographic Noise/Key risk models for Middleware)
-5. Data Quality & Confidence Indicators (Verified On-Chain + CRL Pro Risk Model + Simulated Vectors)
-
-Standardized Risk Boundaries:
-- Low Risk (85-100 pts): Robust Security, Decentralization & Strong Fundamentals
-- Medium Risk (70-84 pts): Solid Utility with Manageable Inflation or Vulnerability Sinks
-- High Risk (50-69 pts): Elevated Supply Concentration, Centralization, or Unaudited Code
-- Critical Risk (0-49 pts): Severe Vulnerabilities, Honeypot Vectors, or Exploit Parameters`;
+5. Data Quality & Confidence Indicators (Verified On-Chain + CRL Pro Risk Model + Simulated Vectors)`;
 }
 
