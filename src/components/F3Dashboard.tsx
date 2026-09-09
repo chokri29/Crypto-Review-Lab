@@ -45,6 +45,8 @@ import { useF3VerificationState } from '../context/F3VerificationContext';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { exportF3AuditCsv, exportF3ProjectsBatchCsv } from '../services/csvExport';
 import { CRL_VERSION_MANIFEST } from '../versionManifest';
+import { EvidenceQualityCard } from './EvidenceQualityCard';
+import { getDeterministicVerificationPresentation } from '../services/verificationPresentation';
 
 interface F3DashboardProps {
   reviews?: CryptoReview[];
@@ -505,74 +507,89 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
   });
 
   const getStatusBadge = () => {
-    if (isStandby) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
-          <Clock className="w-4 h-4 text-slate-400" />
-          STANDBY (Awaiting Execution)
-        </span>
-      );
-    }
     if (adminOverride) {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/50">
           <KeyRound className="w-4 h-4 text-purple-400" />
-          ADMIN OVERRIDDEN ({adminOverride.overriddenBy})
+          Admin Override ({adminOverride.overriddenBy})
         </span>
       );
     }
-    if (isVerified) {
+    if (isStandby) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          F3 VERIFIED (100% INVARIANT MATCH)
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+          <Clock className="w-4 h-4 text-slate-400" />
+          Unverified (Standby)
         </span>
       );
     }
-    if (isConditional) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
-          CONDITIONAL / ATTENTION REQUIRED
-        </span>
-      );
-    }
-    if (isFailed) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/50">
-          <XCircle className="w-4 h-4 text-rose-400" />
-          VERIFICATION FAILED (Discrepancy)
-        </span>
-      );
-    }
-    return null;
+    const presentation = getDeterministicVerificationPresentation(selectedProject, currentF3Result);
+    const renderIcon = () => {
+      switch (presentation.state) {
+        case 'Verified':
+          return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+        case 'Partially Verified':
+          return <AlertTriangle className="w-4 h-4 text-amber-400" />;
+        case 'Contradictory':
+          return <AlertTriangle className="w-4 h-4 text-orange-400" />;
+        case 'Invalid':
+          return <XCircle className="w-4 h-4 text-rose-400" />;
+        case 'Unverified':
+        default:
+          return <HelpCircle className="w-4 h-4 text-slate-400" />;
+      }
+    };
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold border shadow-sm ${presentation.badgeClass}`}
+        title={presentation.definition}
+      >
+        {renderIcon()}
+        <span>{presentation.state}</span>
+      </span>
+    );
   };
 
   const getModuleStatusPill = (status: string, scorePct: number) => {
-    if (status === 'STANDBY') {
+    const norm = (status || '').toUpperCase();
+    if (norm === 'STANDBY') {
       return (
         <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
-          STANDBY
+          Unverified
         </span>
       );
     }
-    if (scorePct >= 95 || status === 'VERIFIED' || status === 'CONSISTENT' || status === 'HASH_MATCH') {
+    if (norm === 'VERIFIED' || norm === 'CONSISTENT' || norm === 'HASH_MATCH' || norm === 'PASSED' || scorePct >= 95) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-          PASSED
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          Verified
         </span>
       );
     }
-    if (scorePct >= 65 || status === 'CONDITIONAL' || status === 'PARTIALLY_VERIFIED' || status === 'UNSIGNED' || status === 'REQUIRES_REVIEW') {
+    if (norm === 'CONDITIONAL' || norm === 'PARTIALLY_VERIFIED' || norm === 'UNSIGNED' || norm === 'REQUIRES_REVIEW' || norm === 'SOURCE_LIMITED' || scorePct >= 65) {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
-          CONDITIONAL
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          Partially Verified
+        </span>
+      );
+    }
+    if (norm === 'DISCREPANCY_FOUND' || norm === 'CONFLICT' || norm === 'MISCLASSIFIED' || norm === 'DISCREPANCY') {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30">
+          Contradictory
+        </span>
+      );
+    }
+    if (norm === 'FAILED' || norm === 'HASH_MISMATCH' || norm === 'SIGNATURE_INVALID') {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          Invalid
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-        ATTENTION
+      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
+        Unverified
       </span>
     );
   };
@@ -844,10 +861,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                       <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                         <span className="truncate max-w-[130px]">{r.category}</span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="font-bold text-slate-200">{r.overallScore ?? 90}/100</span>
-                          <span className="px-1 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-bold">
-                            {r.grade || 'AA'}
-                          </span>
+                          <span className="font-bold text-slate-200">Score: {r.overallScore ?? 90}/100</span>
                         </div>
                       </div>
 
@@ -887,9 +901,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs font-mono text-slate-400 mt-1 flex-wrap">
-                  <span>Reported Score: <strong className="text-slate-100">{selectedProject.overallScore}/100</strong></span>
-                  <span>•</span>
-                  <span>Grade: <strong className="text-cyan-400">{selectedProject.grade}</strong></span>
+                  <span>Evaluation Score: <strong className="text-slate-100">{selectedProject.overallScore}/100</strong></span>
                   <span>•</span>
                   <span>Declared Risk: <strong className="text-slate-200">{selectedProject.riskLevel}</strong></span>
                   {selectedProject.contractAddress && (
@@ -958,6 +970,11 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
           </div>
         )}
       </div>
+
+      {/* CRL Evaluation & Verification Presentation: Evidence Quality, Verification Status, Integrity & Traceability */}
+      {selectedProject && (
+        <EvidenceQualityCard review={selectedProject} f3Result={currentF3Result} />
+      )}
 
       {/* Export Confirmation Feedback Banner */}
       <AnimatePresence>
@@ -1064,14 +1081,26 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
           </p>
         </div>
 
-        {/* Card 4: Cryptographic Hash */}
+        {/* Card 4: Integrity & Traceability */}
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2">
           <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Report SHA-256 Digest</span>
-            <Lock className="w-4 h-4 text-rose-400" />
+            <span>Integrity & Traceability</span>
+            <Lock className="w-4 h-4 text-cyan-400" />
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-mono text-slate-200 truncate max-w-[160px]">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className={`font-bold ${avf08?.traceabilityChain?.cryptographicIntegrity?.hashMatches || avf08?.status === 'VERIFIED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {avf08?.traceabilityChain?.cryptographicIntegrity?.hashMatches || avf08?.status === 'VERIFIED' ? 'Integrity: Consistent' : 'Integrity: Check Required'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[11px] font-mono">
+              <span className={`font-bold ${!avf08?.missingFields?.length ? 'text-cyan-400' : 'text-slate-400'}`}>
+                {!avf08?.missingFields?.length ? 'Traceability: Complete' : 'Traceability: Limited'}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-0.5 border-t border-slate-800/80">
+            <span className="text-[10px] font-mono text-slate-400 truncate max-w-[150px]">
               {avf08?.reportHash ? `${avf08.reportHash.slice(0, 14)}...` : 'Deterministic Hash'}
             </span>
             {avf08?.reportHash && (
@@ -1084,9 +1113,6 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
               </button>
             )}
           </div>
-          <p className="text-[11px] font-mono text-slate-400">
-            Ed25519 Cryptographic Sig Parity
-          </p>
         </div>
       </div>
 

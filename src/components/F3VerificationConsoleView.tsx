@@ -7,6 +7,8 @@ import React, { useState } from 'react';
 import { F3VerificationResult, AdminOverrideLog } from '../types';
 import { CRL_VERSION_MANIFEST } from '../versionManifest';
 import { getConfidenceLevel } from '../services/f3Engine';
+import { EvidenceQualityCard } from './EvidenceQualityCard';
+import { getDeterministicVerificationPresentation } from '../services/verificationPresentation';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -93,9 +95,10 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
 
   const adminOverride = propAdminOverride || f3Result.adminOverride;
 
-  const isVerified = overallStatus === 'VERIFIED';
-  const isConditional = overallStatus === 'CONDITIONAL';
-  const isFailed = overallStatus === 'FAILED';
+  const presentation = getDeterministicVerificationPresentation(undefined, f3Result);
+  const isVerified = presentation.state === 'Verified';
+  const isConditional = presentation.state === 'Partially Verified';
+  const isFailed = presentation.state === 'Invalid' || presentation.state === 'Contradictory';
   const hasDiscrepanciesOrNeedsReview = !isVerified || discrepancies.length > 0;
 
   const statusBadge = () => {
@@ -103,38 +106,32 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40">
           <KeyRound className="w-3.5 h-3.5 text-purple-400" />
-          ADMIN OVERRIDDEN (Lead Sign-Off)
+          Admin Override Authorized ({adminOverride.overriddenBy})
         </span>
       );
     }
-    if (isVerified) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-          VERIFIED (Deterministic 100%)
-        </span>
-      );
-    }
-    if (isConditional) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-          CONDITIONAL (Partial Telemetry)
-        </span>
-      );
-    }
-    if (isFailed) {
-      return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-          <XCircle className="w-3.5 h-3.5 text-rose-400" />
-          FAILED (Discrepancies Detected)
-        </span>
-      );
-    }
+    const renderIcon = () => {
+      switch (presentation.state) {
+        case 'Verified':
+          return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />;
+        case 'Partially Verified':
+          return <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />;
+        case 'Contradictory':
+          return <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />;
+        case 'Invalid':
+          return <XCircle className="w-3.5 h-3.5 text-rose-400" />;
+        case 'Unverified':
+        default:
+          return <HelpCircle className="w-3.5 h-3.5 text-slate-400" />;
+      }
+    };
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold bg-slate-800 text-slate-300 border border-slate-700">
-        <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-        INPUT_MISSING
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-extrabold border ${presentation.badgeClass}`}
+        title={presentation.definition}
+      >
+        {renderIcon()}
+        {presentation.state}
       </span>
     );
   };
@@ -212,31 +209,26 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
       title: 'Traceability & Cryptographic Integrity',
       status: avf08?.status || 'VERIFIED',
       icon: <Lock className="w-4 h-4 text-rose-400" />,
-      details: avf08?.details || 'Cryptographic audit report signature and hash integrity.',
-      summary: `Audit Digest: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 16)}...` : 'Generated on-the-fly'} | Signature: ${avf08?.isSigned ? 'Ed25519 Verified' : 'Pending Final Sign-Off'}`
+      details: avf08?.details || 'Cryptographic evaluation signature and canonical hash integrity.',
+      summary: `${avf08?.traceabilityChain?.cryptographicIntegrity?.hashMatches || avf08?.status === 'VERIFIED' ? 'Integrity: Consistent' : 'Integrity: Check Required'} | ${!avf08?.missingFields?.length ? 'Traceability: Complete' : 'Traceability: Limited'} | Digest: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 16)}...` : 'Canonical Hash'}`
     }
   ];
 
   const getModuleBadge = (status: string) => {
-    switch (status) {
-      case 'VERIFIED':
-      case 'HASH_MATCH':
-      case 'CONSISTENT':
-        return <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">PASSED</span>;
-      case 'CONDITIONAL':
-      case 'UNSIGNED':
-      case 'NARRATIVE_ONLY':
-      case 'SOURCE_LIMITED':
-        return <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded">CONDITIONAL</span>;
-      case 'CONFLICT':
-      case 'MISCLASSIFIED':
-      case 'DISCREPANCY_FOUND':
-      case 'HASH_MISMATCH':
-      case 'SIGNATURE_INVALID':
-        return <span className="text-[10px] font-mono font-bold text-rose-300 bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5 rounded">DISCREPANCY</span>;
-      default:
-        return <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded">{status}</span>;
+    const norm = (status || '').toUpperCase();
+    if (norm === 'VERIFIED' || norm === 'HASH_MATCH' || norm === 'CONSISTENT' || norm === 'PASSED') {
+      return <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">Verified</span>;
     }
+    if (norm === 'CONDITIONAL' || norm === 'UNSIGNED' || norm === 'NARRATIVE_ONLY' || norm === 'SOURCE_LIMITED' || norm === 'PARTIALLY_VERIFIED') {
+      return <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded">Partially Verified</span>;
+    }
+    if (norm === 'CONFLICT' || norm === 'MISCLASSIFIED' || norm === 'DISCREPANCY_FOUND' || norm === 'CONTRADICTORY') {
+      return <span className="text-[10px] font-mono font-bold text-orange-300 bg-orange-500/10 border border-orange-500/30 px-2 py-0.5 rounded">Contradictory</span>;
+    }
+    if (norm === 'FAILED' || norm === 'HASH_MISMATCH' || norm === 'SIGNATURE_INVALID' || norm === 'INVALID') {
+      return <span className="text-[10px] font-mono font-bold text-rose-300 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded">Invalid</span>;
+    }
+    return <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">Unverified</span>;
   };
 
   return (
@@ -290,18 +282,16 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-slate-300">AVF Pipeline Status:</span>
             <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-              F1 Candidate [PASSED]
+              F1 Candidate [Verified]
             </span>
             <span className="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-              F2 Convergence [PASSED]
+              F2 Convergence [Verified]
             </span>
             <span className={`px-2 py-0.5 rounded border ${
               adminOverride ? 'text-purple-300 bg-purple-500/10 border-purple-500/30 font-bold' :
-              isVerified ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30 font-bold' :
-              isConditional ? 'text-amber-300 bg-amber-500/10 border-amber-500/30 font-bold' :
-              'text-rose-300 bg-rose-500/10 border-rose-500/30 font-bold'
+              presentation.badgeClass
             }`}>
-              F3 Verification [{adminOverride ? 'OVERRIDDEN' : overallStatus}]
+              F3 Verification [{adminOverride ? 'Admin Overridden' : presentation.state}]
             </span>
           </div>
           <span className="text-slate-400 text-[11px]">
@@ -310,6 +300,11 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
              'Review / Calibration or Admin Override Required'}
           </span>
         </div>
+      </div>
+
+      {/* CRL Evaluation & Verification Presentation: Evidence Quality, Verification Status, Integrity & Traceability */}
+      <div className="p-4 sm:p-5 bg-slate-950/40 border-b border-slate-800">
+        <EvidenceQualityCard f3Result={f3Result} />
       </div>
 
       {/* Active Admin Override Notice */}

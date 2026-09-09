@@ -331,23 +331,23 @@ export const ComparisonReportView: React.FC<ComparisonReportViewProps> = ({
               </div>
               <div className="flex justify-between py-1.5 text-xs text-slate-600 font-mono">
                 <span>Honeypot & Bytecode Trap Detection</span>
-                <span>PASSED</span>
-                <span>PASSED</span>
+                <span>Verified</span>
+                <span>Verified</span>
               </div>
               <div className="flex justify-between py-1.5 text-xs text-slate-600 font-mono">
                 <span>Mintable Infinite Supply Vector</span>
-                <span>PASSED</span>
-                <span>FLAGGED</span>
+                <span>Verified</span>
+                <span>Check Required</span>
               </div>
               <div className="flex justify-between py-1.5 text-xs text-slate-600 font-mono">
                 <span>Flash-Loan Cascading Stress Limit</span>
-                <span>PASSED</span>
-                <span>PASSED</span>
+                <span>Verified</span>
+                <span>Verified</span>
               </div>
               <div className="flex justify-between py-1.5 text-xs text-slate-600 font-mono">
                 <span>Proxy Admin Multi-Sig Governance Lock</span>
-                <span>FLAGGED</span>
-                <span>PASSED</span>
+                <span>Check Required</span>
+                <span>Verified</span>
               </div>
             </div>
 

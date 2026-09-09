@@ -76,6 +76,7 @@ import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
+import { EvidenceQualityCard } from './EvidenceQualityCard';
 
 interface BlogPreviewerProps {
   reviews: CryptoReview[];
@@ -1269,7 +1270,7 @@ export default function BlogPreviewer({
                                   {rev.riskLevel} RISK
                                 </span>
                                 <span className="text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
-                                  Audit Report
+                                  Evaluation Report
                                   <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
                                 </span>
                               </div>
@@ -1455,7 +1456,7 @@ export default function BlogPreviewer({
                                 </span>
                               </div>
                               <span className="text-[11px] font-display font-bold text-cyber-cyan group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
-                                Audit Report
+                                Evaluation Report
                                 <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
                               </span>
                             </div>
@@ -1729,7 +1730,7 @@ export default function BlogPreviewer({
             <RefreshCw className="w-5 h-5 text-cyber-cyan" />
           </div>
           <h3 className="font-display font-black text-base sm:text-lg text-cyber-text-primary uppercase tracking-wide mb-2">
-            Synchronizing Audit Report...
+            Synchronizing Evaluation & Verification...
           </h3>
           <p className="font-mono text-xs text-cyber-text-secondary max-w-md mx-auto mb-6">
             Retrieving live cryptographic review and security metrics for <span className="text-cyber-cyan font-bold">{activeReviewId.replace(/^cg-/, '').toUpperCase()}</span>...
@@ -1801,7 +1802,7 @@ export default function BlogPreviewer({
 
               <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-cyber-text-muted uppercase tracking-widest">
                 <Flame className="w-3.5 h-3.5 text-cyber-orange" />
-                <span>Full Project Audit Report</span>
+                <span>Evaluation & Verification Report</span>
               </div>
             </div>
           </div>
@@ -1908,9 +1909,9 @@ export default function BlogPreviewer({
               return (
                 <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    {/* Col 1: Composite Score & Risk Tier */}
+                    {/* Col 1: Evaluation Score & Risk Tier */}
                     <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-1.5">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Composite Score</span>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
                       <div className="flex items-baseline justify-center">
                         <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.overallScore}</span>
                         <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
@@ -1952,6 +1953,9 @@ export default function BlogPreviewer({
                 </div>
               );
             })()}
+
+            {/* CRL Evaluation & Verification: Evidence Quality, Verification Status, Integrity & Traceability */}
+            <EvidenceQualityCard review={activeReview} />
 
             {/* Data Engine Provenance Badge & Evaluation Blueprint Overview & Security Alerts */}
             <div className="space-y-3.5 my-3 text-left">
