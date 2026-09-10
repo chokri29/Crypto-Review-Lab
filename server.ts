@@ -63,7 +63,6 @@ const reviewResponseSchema = {
     symbol: { type: Type.STRING },
     category: { type: Type.STRING },
     overallScore: { type: Type.INTEGER, description: "Overall rating score out of 100 calculated via weighted dimension sum" },
-    grade: { type: Type.STRING, description: "Optional legacy grade identifier" },
     verdict: { type: Type.STRING, description: "A high-impact, professional 1-2 sentence final rating verdict." },
     scores: {
       type: Type.OBJECT,
@@ -474,7 +473,6 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
     symbol: cleanSymbol,
     category: bp.categoryType || resolvedCategory,
     overallScore: bp.overallScore,
-    grade: '',
     riskLevel: bp.riskLevel,
     scores,
     verdict,
@@ -653,7 +651,6 @@ Your entire response must match the specified JSON schema exactly.`;
       if (parsedReview && parsedReview.scores) {
         const bpResult = calculateBlueprintScore(parsedReview.scores, parsedReview.category || protocolType || category);
         parsedReview.overallScore = bpResult.overallScore;
-        parsedReview.grade = bpResult.grade;
         parsedReview.riskLevel = bpResult.riskLevel;
         parsedReview.category = bpResult.categoryType;
       }
@@ -794,10 +791,9 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
           symbol: projectSymbol,
           category: 'Smart Contract / Web3',
           overallScore: 0,
-          grade: 'INPUT_MISSING',
           verdict: 'Assessment Input Pending: No preliminary assessment draft or telemetry data provided. Awaiting diagnostic scan execution.',
           scores: { utility: 0, tokenomics: 0, security: 0, team: 0, community: 0 },
-          summary: `Assessment pending for ${projectName} (${projectSymbol}). System draft data is unavailable (DRAFT_UNAVAILABLE). No favorable score, grade, or security conclusions are inferred.`,
+          summary: `Assessment pending for ${projectName} (${projectSymbol}). System draft data is unavailable (DRAFT_UNAVAILABLE). No favorable score or security conclusions are inferred.`,
           pros: [],
           cons: ['Initial diagnostic telemetry missing', 'Bytecode verification data pending scan execution'],
           riskLevel: 'INPUT_MISSING' as const,
@@ -1280,7 +1276,6 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
         symbol: String(review.symbol).toUpperCase(),
         category: String(review.category || 'DeFi / Web3'),
         overallScore: Number(review.overallScore) || 80,
-        grade: String(review.grade || 'A'),
         verdict: String(review.verdict || ''),
         scores: {
           utility: Number(review.scores?.utility) || 8,
@@ -1317,7 +1312,6 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
         symbol: r.symbol,
         category: r.category,
         overallScore: r.overallScore,
-        grade: r.grade,
         verdict: r.verdict,
         scores: r.scores,
         riskLevel: r.riskLevel,
@@ -1353,7 +1347,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     ...review,
     category: bp.categoryType,
     overallScore: bp.overallScore,
-    grade: bp.grade,
     riskLevel: bp.riskLevel
   };
 });
@@ -1368,7 +1361,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           ...r,
           category: bp.categoryType,
           overallScore: bp.overallScore,
-          grade: bp.grade,
           riskLevel: bp.riskLevel
         };
       });
@@ -2318,7 +2310,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   // API endpoint: Public Cryptographic Signature Verification
   app.post("/api/audit/verify-signature", (req, res) => {
     try {
-      const { auditSignature, scores, verdict, grade, timestamp } = req.body;
+      const { auditSignature, scores, verdict, timestamp } = req.body;
       if (!auditSignature || !scores || !verdict || !timestamp) {
         return res.status(400).json({ isValid: false, reason: "Missing required verification fields." });
       }
@@ -2326,7 +2318,6 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       const result = verifyAuditSignatureServerSide(auditSignature, {
         scores,
         verdict,
-        grade: grade || '',
         timestamp
       });
 
@@ -3200,7 +3191,6 @@ ${dualSyncContext}`;
           lastmod,
           name: rev.name,
           symbol: rev.symbol,
-          grade: rev.grade,
           logoUrl: rev.logoUrl
         };
       });
