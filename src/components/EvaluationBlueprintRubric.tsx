@@ -139,7 +139,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
             </div>
 
             <p className="text-xs text-slate-300 leading-relaxed font-sans">
-              The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation, the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation to enforce mathematical rigor, cryptographic integrity, and institutional audit standards.
+              The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation, the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation to enforce mathematical rigor, cryptographic integrity, and deterministic verification standards.
             </p>
 
             {/* Key Innovations / Tripartite Core Stages */}
@@ -271,8 +271,8 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                     <span className="text-[10px] text-slate-400 font-sans">Zero weighted math drift (±0.5 pt)</span>
                   </div>
                   <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
-                    <span className="text-teal-400 font-bold block">6. Risk Tier Alignment</span>
-                    <span className="text-[10px] text-slate-400 font-sans">Score-to-risk tier calibration</span>
+                    <span className="text-teal-400 font-bold block">6. Risk Assessment Consistency</span>
+                    <span className="text-[10px] text-slate-400 font-sans">Semantic risk finding corroboration</span>
                   </div>
                   <div className="bg-slate-900 p-2.5 rounded border border-slate-800 col-span-1 sm:col-span-2">
                     <span className="text-rose-400 font-bold block">7. Formatting Integrity</span>
@@ -464,7 +464,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                         </div>
                         <div>
                           <div className="text-xs font-bold text-slate-200">
-                            Risk Tier: <span className="text-emerald-400 font-mono font-black">{calculated.riskLevel} Risk</span>
+                            Risk Level: <span className="text-emerald-400 font-mono font-black">{calculated.riskLevel} Risk</span>
                           </div>
                           <div className="text-xs text-slate-400">
                             Protocol Profile: <span className="font-mono text-slate-200 font-bold">{calculated.categoryType}</span>

@@ -463,9 +463,9 @@ The project delivers specialized capabilities in ${resolvedCategory}. Primary ev
 Smart contract inspection ${params.contractAddress ? `for address ${params.contractAddress}` : 'on public ledgers'} indicates a Security Rating of ${security}/10 and Tokenomics Rating of ${tokenomics}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : isMintable ? 'Notice: Supply minting capability is present.' : 'No malicious transfer restrictions identified.'}
 
 ### Conclusion
-${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore}/100, corresponding to ${bp.riskLevel} Risk tier under the locked 5-dimension rubric.`;
+${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore}/100, reflecting a ${bp.riskLevel} Risk assessment under the locked 5-dimension rubric.`;
 
-  const verdict = `${cleanName} (${cleanSymbol}) is assigned a score of ${bp.overallScore}/100 with ${bp.riskLevel} Risk tier under the 5-dimension locked Evaluation Blueprint rubric.`;
+  const verdict = `${cleanName} (${cleanSymbol}) is assigned a score of ${bp.overallScore}/100 with ${bp.riskLevel} Risk assessment under the 5-dimension locked Evaluation Blueprint rubric.`;
 
   return {
     id: `rev_${Date.now()}_${cleanSymbol.toLowerCase()}`,
@@ -647,7 +647,7 @@ Your entire response must match the specified JSON schema exactly.`;
 
       const parsedReview = JSON.parse(textResult.trim());
 
-      // Mathematical Alignment Enforcement: Recalculate overallScore, grade, and riskLevel directly from the 5 dimension scores with category routing
+      // Mathematical Alignment Enforcement: Recalculate overallScore and riskLevel directly from the 5 dimension scores with category routing
       if (parsedReview && parsedReview.scores) {
         const bpResult = calculateBlueprintScore(parsedReview.scores, parsedReview.category || protocolType || category);
         parsedReview.overallScore = bpResult.overallScore;

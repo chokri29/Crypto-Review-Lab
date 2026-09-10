@@ -1909,14 +1909,14 @@ export default function BlogPreviewer({
               return (
                 <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    {/* Col 1: Evaluation Score & Risk Tier */}
+                    {/* Col 1: Evaluation Score & Risk Level */}
                     <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-1.5">
                       <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
                       <div className="flex items-baseline justify-center">
                         <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.overallScore}</span>
                         <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
                       </div>
-                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Risk Tier: {activeBlueprint.riskLevel} Risk</span>
+                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Risk Level: {activeBlueprint.riskLevel} Risk</span>
                       <span className={`text-[10px] font-mono font-extrabold uppercase px-3 py-1 rounded-full border mt-1 ${activeBlueprint.overallScore >= 75 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : activeBlueprint.overallScore >= 50 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
                         {activeBlueprint.overallScore >= 75 ? 'Low Systemic Risk' : activeBlueprint.overallScore >= 50 ? 'Moderate Caution' : 'High Security Risk'}
                       </span>

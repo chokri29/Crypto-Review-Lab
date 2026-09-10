@@ -534,7 +534,7 @@ export function evaluateCategoryOutlierAndRecord(
   let outlierAnalysis = '';
 
   if (isOutlier) {
-    outlierAnalysis = `[Statistical Outlier Alert] Project initial F1-F2 drift (${initialDelta.toFixed(1)} pts) is +${zScore.toFixed(2)} σ above ${category} category mean (${currentStats.meanDelta.toFixed(1)} ± ${currentStats.stdDevDelta.toFixed(1)} pts). Flagged for institutional risk scrutiny.`;
+    outlierAnalysis = `[Statistical Outlier Alert] Project initial F1-F2 drift (${initialDelta.toFixed(1)} pts) is +${zScore.toFixed(2)} σ above ${category} category mean (${currentStats.meanDelta.toFixed(1)} ± ${currentStats.stdDevDelta.toFixed(1)} pts). Flagged for heightened risk scrutiny.`;
   } else {
     outlierAnalysis = `[Self-Calibrating Memory] Project drift (${initialDelta.toFixed(1)} pts) aligns with ${category} historical baseline (${currentStats.meanDelta.toFixed(1)} ± ${currentStats.stdDevDelta.toFixed(1)} pts, z = ${zScore.toFixed(2)}).`;
   }
@@ -837,7 +837,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
         f1RefinementsApplied.push(`Stable Convergence reached at Round ${roundNum}: All dimensions converged within ${CONVERGENCE_THRESHOLD} pts (Max Dim Δ: ${maxDimDelta.toFixed(1)} pts).`);
       } else {
         requiresManualAuditEscalation = true;
-        f1RefinementsApplied.push(`[AVF Escalation Alert] Max rounds (${maxRounds}) reached without achieving full convergence (Max Dim Δ: ${maxDimDelta.toFixed(1)} pts). Flagged for mandatory institutional manual audit escalation.`);
+        f1RefinementsApplied.push(`[AVF Escalation Alert] Max rounds (${maxRounds}) reached without achieving full convergence (Max Dim Δ: ${maxDimDelta.toFixed(1)} pts). Flagged for mandatory manual review escalation.`);
       }
 
       rounds.push({
@@ -1528,21 +1528,21 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   });
 
   // GATE 6: RISK LEVEL ALIGNMENT
-  const bpCalcForGrade = calculateBlueprintScore(review.scores, category);
-  const expectedRisk = bpCalcForGrade.riskLevel;
+  const bpCalcForRisk = calculateBlueprintScore(review.scores, category);
+  const expectedRisk = bpCalcForRisk.riskLevel;
 
   const riskMatches = review.riskLevel === expectedRisk;
 
   const gate6Checks = [
     {
-      name: 'Risk Level Tier Alignment',
+      name: 'Risk Level Alignment',
       status: riskMatches ? ('PASSED' as const) : ('FLAGGED' as const),
       detail: `Report Risk: ${review.riskLevel} | Blueprint Expected: ${expectedRisk} (Score: ${review.overallScore})`
     },
     {
-      name: 'Risk Boundary Consistency',
+      name: 'Risk Assessment Consistency',
       status: 'VERIFIED' as const,
-      detail: 'Assessed risk tier is strictly aligned with score boundaries'
+      detail: 'Assessed risk level is aligned with rubric evaluation findings'
     }
   ];
 
@@ -1550,10 +1550,10 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   gates.push({
     gateNumber: 6,
     gateName: 'Risk Level Alignment',
-    description: 'Verifies strict alignment between the overall score and Risk Level (Low/Medium/High/Critical).',
+    description: 'Verifies consistency between the numerical evaluation score and Risk Level.',
     scorePct: gate6Score,
     passed: gate6Score >= 90,
-    notes: gate6Score >= 90 ? 'Risk level is aligned with Blueprint rubric bounds.' : 'Risk level classification deviates from score boundaries.',
+    notes: gate6Score >= 90 ? 'Risk level is aligned with Blueprint rubric evaluation.' : 'Risk level classification deviates from rubric evaluation.',
     checks: gate6Checks
   });
 
@@ -1600,7 +1600,7 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   gates.push({
     gateNumber: 7,
     gateName: 'Formatting Integrity',
-    description: 'Validates required markdown section headings, pros/cons balance, executive verdict, and institutional formatting.',
+    description: 'Validates required markdown section headings, pros/cons balance, executive verdict, and formal formatting.',
     scorePct: gate7Score,
     passed: gate7Passed,
     notes: gate7Passed ? `Report formatting, section structure, and pros/cons balance verified clean (Score: ${gate7Score}%).` : 'Formatting or section structure incomplete.',
@@ -1714,7 +1714,7 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
 
   const verdict = (review.verdict && review.verdict.length > 20) 
     ? review.verdict 
-    : `Auto-Calibrated Verdict: ${review.name || 'Protocol'} evaluates at ${overallScore}/100 with ${riskLevel} risk tier under the 5-dimension Blueprint specification.`;
+    : `Auto-Calibrated Verdict: ${review.name || 'Protocol'} evaluates at ${overallScore}/100 with ${riskLevel} risk assessment under the 5-dimension Blueprint specification.`;
 
   // 6. Pro Benchmarks & On-Chain Invariants — HONEST LABELING ONLY (no fabricated CertiK/OpenZeppelin or passing matrix)
   const realTvlFormatted = formatDefiLlamaTvl(review.realTvl);

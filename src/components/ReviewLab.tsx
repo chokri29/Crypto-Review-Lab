@@ -983,8 +983,8 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           overallScore: calcBp.overallScore,
           riskLevel: calcBp.riskLevel,
           scores,
-          verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with a ${calcBp.riskLevel} Risk tier under the CRL 5-dimension locked Evaluation Blueprint rubric.`,
-          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, corresponding to ${calcBp.riskLevel} Risk tier.`,
+          verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with ${calcBp.riskLevel} Risk assessment under the CRL 5-dimension Evaluation Blueprint rubric.`,
+          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, reflecting a ${calcBp.riskLevel} Risk assessment.`,
           pros: [
             `Verified on-chain contract bytecode registered for ${cleanSymbol} on ${selectedChainInfo.name}`,
             buyTax === 0 && sellTax === 0 ? 'Verified zero-tax contract execution model (0% buy / 0% sell fee)' : 'Active decentralized liquidity routing',
@@ -2229,12 +2229,12 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   </p>
                 </div>
 
-                {/* Risk Tier & overallScore badges — strictly scoped to internal/admin-facing view or reviews with publishApproved === true */}
+                {/* Risk Level & overallScore badges — strictly scoped to internal/admin-facing view or reviews with publishApproved === true */}
                 {(isAdminMaster || generatedReview.publishApproved === true) ? (
                   <div className="flex items-center gap-2">
-                    {/* Risk Tier badge */}
+                    {/* Risk Level badge */}
                     <div className="border border-emerald-400/30 bg-emerald-950/20 rounded-xl px-3 py-1 text-center min-w-[60px]">
-                      <div className="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Risk Tier</div>
+                      <div className="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Risk Level</div>
                       <div className="text-sm font-sans font-bold leading-tight tracking-tight text-emerald-400">{generatedReview.riskLevel} Risk</div>
                     </div>
 
@@ -2479,7 +2479,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                 <span className="text-emerald-400 font-bold">{verifScoreDisplay}/100</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
-                                Risk Tier: {generatedReview.riskLevel} Risk. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
+                                Risk Level: {generatedReview.riskLevel} Risk. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
                               </p>
                             </div>
 

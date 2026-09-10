@@ -75,7 +75,7 @@ export const REVIEW_LAB_FAQ_ITEMS: FAQItem[] = [
     category: 'lab',
     question: 'What evaluation criteria and dimensions determine a project\'s Review Lab score under AVF?',
     definition: 'A standardized 100-point security matrix evaluating Smart Contracts (25%), Tokenomics (20%), Tech (20%), Team (20%), and Community (15%).',
-    tip: 'Scores translate directly into calibrated risk tiers ranging from Low (85-100) down to Critical (<50).',
+    tip: 'Evaluates protocols on a continuous 100-point numerical scale reflecting multi-vector security, tokenomics, and code health.',
     answer: 'Review Lab evaluates crypto projects on a standardized 100-point scale across 5 core verification dimensions:\n\n1. Smart Contract & Audit Security (25%) — Opcode syntax integrity, vulnerability scans (GoPlus/RugCheck), access control, and upgradeability multi-sig timelocks.\n\n2. Tokenomics & Lockup Schedules (20%) — Inflation emission rates, cliff unlock pressure, circulating-to-total supply ratios, and liquidity pool burn/lock proofs.\n\n3. Tech Stack & Developer Velocity (20%) — GitHub commit cadence, test suite code coverage, modular architecture, and formal verification tests.\n\n4. Team Transparency & Legal Compliance (20%) — Core team background verification, legal jurisdiction, entity registration, and regulatory sanctions checks.\n\n5. Community Engagement & Liquidity Depth (15%) — Organic social sentiment, decentralized exchange TVL depth, order book slippage, and active holder dispersion.\n\nEach dimension is independently validated using multi-vector stress simulations before deterministic scoring.'
   },
   {
@@ -90,14 +90,14 @@ export const REVIEW_LAB_FAQ_ITEMS: FAQItem[] = [
     question: 'What is the Security & Risk Assessment service and who is it designed for?',
     definition: 'A private technical diagnostic evaluation for engineering teams, protocol founders, and treasuries — conducted prior to public launch, major contract upgrades, or whenever a detailed security check is required.',
     tip: 'Delivers actionable security findings, risk analysis, provider evidence, and step-by-step remediation recommendations.',
-    answer: 'The Security & Risk Assessment is an automated diagnostic advisory service built specifically for web3 developers, protocol teams, launchpads, and treasury managers. It is conducted prior to public launch, major contract upgrades, or whenever detailed security verification is required.\n\nEach assessment delivers a structured advisory package:\n\n- Automated Multi-Source Security Scanning — Bytecode vulnerability profiling across GoPlus, RugCheck, and Blockscout explorers.\n- TVL Stress Modeling — Simulation of extreme market conditions, flash loan liquidity drain thresholds, and oracle latency.\n- Institutional Audit Dossier — Private report featuring vulnerability classifications, severity breakdowns, provider evidence, and step-by-step remediation guidance.'
+    answer: 'The Security & Risk Assessment is an automated diagnostic advisory service built specifically for web3 developers, protocol teams, launchpads, and treasury managers. It is conducted prior to public launch, major contract upgrades, or whenever detailed security verification is required.\n\nEach assessment delivers a structured advisory package:\n\n- Automated Multi-Source Security Scanning — Bytecode vulnerability profiling across GoPlus, RugCheck, and Blockscout explorers.\n- TVL Stress Modeling — Simulation of extreme market conditions, flash loan liquidity drain thresholds, and oracle latency.\n- Technical Verification Dossier — Private report featuring vulnerability classifications, severity breakdowns, provider evidence, and step-by-step remediation guidance.'
   },
   {
     category: 'lab',
     question: 'How does Review Lab evaluate crypto prop trading firms and funded accounts under the AVF model?',
     definition: 'Prop trading evaluation framework rating payout reliability, trailing drawdown thresholds, leverage rules, and profit splits up to 90%.',
     tip: 'Verifies real broker liquidity feeds and on-chain payout transactions before issuing an AVF prop trading rating.',
-    answer: 'Review Lab evaluates crypto proprietary trading firms and funded account providers using a strict 5-pillar assessment:\n\n1. Drawdown Rules — Distinction between static versus trailing drawdown rules, daily loss limits, and account reset fairness.\n\n2. Payout Reliability — Verification of on-chain payout transactions, average processing speed, and institutional banking corridors.\n\n3. Profit Share Matrix — Transparency of profit split tiers (ranging up to 90%) and scaling plan benchmarks.\n\n4. Broker Execution & Feeds — Quality of live market feeds, execution latency, slippage boundaries, and spread markups.\n\n5. Historical Trader Outcomes — Verified pass rates, payout consistency over trailing quarters, and regulatory registration.'
+    answer: 'Review Lab evaluates crypto proprietary trading firms and funded account providers using a strict 5-pillar assessment:\n\n1. Drawdown Rules — Distinction between static versus trailing drawdown rules, daily loss limits, and account reset fairness.\n\n2. Payout Reliability — Verification of on-chain payout transactions, average processing speed, and verified banking settlement corridors.\n\n3. Profit Share Matrix — Transparency of profit split tiers (ranging up to 90%) and scaling plan benchmarks.\n\n4. Broker Execution & Feeds — Quality of live market feeds, execution latency, slippage boundaries, and spread markups.\n\n5. Historical Trader Outcomes — Verified pass rates, payout consistency over trailing quarters, and regulatory registration.'
   }
 ];
 
@@ -105,9 +105,9 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
   {
     category: 'avf',
     question: 'What are the 7 Automated Security Gates in the AVF Engine pipeline?',
-    definition: 'A 7-stage verification chain: Gate 0 (Syntax/Opcode), Gate 1 (Triangulation), Gate 2 (GoPlus), Gate 3 (Score Math), Gate 4 (Risk Tier Alignment), Gate 5 (Tokenomics), and Gate 6 (Anti-Drift Re-Control).',
-    tip: 'Every candidate audit must pass all 7 gates sequentially; failing any gate triggers automatic re-calibration.',
-    answer: 'The Algorithmic Verification Framework (AVF) operates 7 sequential automated security gates that every evaluation candidate must satisfy:\n\nGate 0 — Structural Syntax & Opcode Integrity: Validates contract bytecode formatting, opcode sequence validity, and AST tree cleanliness.\n\nGate 1 — Multi-Source Triangulation: Cross-verifies telemetry across redundant RPC nodes, block explorers, and price feeds.\n\nGate 2 — GoPlus & RugCheck Security: Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.\n\nGate 3 — Score Arithmetic & Weighted Analysis: Enforces mathematical consistency across 5 evaluation sub-vectors with zero rounding variance.\n\nGate 4 — Risk Tier Alignment: Maps composite numerical scores to calibrated risk tiers (Low, Medium, High, Critical) without manual discretion.\n\nGate 5 — Tokenomics & Liquidity Stress Models: Simulates 5-year emission curves, cliff unlock depth, and DEX liquidity impact.\n\nGate 6 — Anti-Drift Re-Control: Enforces strict <3.0 point composite delta between F1 and F2 before signing final verification.'
+    definition: 'A 7-stage verification chain: Gate 0 (Syntax/Opcode), Gate 1 (Triangulation), Gate 2 (GoPlus), Gate 3 (Cross-Framework Drift), Gate 4 (Tokenomics), Gate 5 (Score Arithmetic), and Gate 6 (Risk Assessment Consistency).',
+    tip: 'Every candidate evaluation must pass all 7 gates sequentially; failing any gate triggers automatic re-calibration.',
+    answer: 'The Algorithmic Verification Framework (AVF) operates 7 sequential automated security gates that every evaluation candidate must satisfy:\n\nGate 0 — Structural Syntax & Opcode Integrity: Validates contract bytecode formatting, opcode sequence validity, and AST tree cleanliness.\n\nGate 1 — Multi-Source Triangulation: Cross-verifies telemetry across redundant RPC nodes, block explorers, and price feeds.\n\nGate 2 — GoPlus & RugCheck Security: Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.\n\nGate 3 — Cross-Framework Consistency Check: Enforces strict <3.0 point composite score drift convergence between F1 and F2 models.\n\nGate 4 — Tokenomics Re-Verification: Evaluates token distribution models, circulating vs. max supply ratios, and unlock overhang.\n\nGate 5 — Score Arithmetic Check: Recomputes category-weighted dimension math to ensure exact mathematical consistency without drift.\n\nGate 6 — Risk Assessment Consistency: Verifies semantic alignment between identified security findings and declared risk classification.'
   },
   {
     category: 'avf',
@@ -128,7 +128,7 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
     question: 'What Maximum Acceptable Score Drift threshold is enforced by AVF Engine Security Protocols?',
     definition: 'Score Drift is the total mathematical delta between F1 draft score and F2 cross-validation review score.',
     tip: 'Bounded strictly under <3.0 points. If drift exceeds 3.0 points, the system automatically loops through Phase 2 Re-Control.',
-    answer: 'AVF Security Protocols enforce a strict Score Drift threshold bounded below <3.0 composite score points.\n\nIf evaluation variance between the F1 Candidate Engine and F2 Reviewer exceeds 3.0 points, the system automatically triggers an automated re-control cycle before passing to F3 deterministic verification and delivering the final institutional PDF audit report.'
+    answer: 'AVF Security Protocols enforce a strict Score Drift threshold bounded below <3.0 composite score points.\n\nIf evaluation variance between the F1 Candidate Engine and F2 Reviewer exceeds 3.0 points, the system automatically triggers an automated re-control cycle before passing to F3 deterministic verification and delivering the final PDF evaluation report.'
   },
   {
     category: 'avf',
@@ -190,7 +190,7 @@ export function generatePropTradingStructuredData() {
     '@type': 'DefinedTermSet',
     '@id': 'https://www.cryptoreviewlab.com/?m=1#prop-trading-criteria-schema',
     'name': 'Prop Trading Evaluation Criteria & Risk Management Framework',
-    'description': 'Institutional benchmarks for evaluating crypto prop trading firms, funded account challenge rules, drawdown mechanics, profit target allocations, and payout split scalability.',
+    'description': 'Quantitative benchmarks for evaluating crypto prop trading firms, funded account challenge rules, drawdown mechanics, profit target allocations, and payout split scalability.',
     'hasDefinedTerm': [
       {
         '@type': 'DefinedTerm',
@@ -226,7 +226,7 @@ export function generateAvfSecurityProtocolsStructuredData() {
       '@type': 'Organization',
       'name': 'Crypto Review Lab Security Research'
     },
-    'proficiencyLevel': 'Institutional',
+    'proficiencyLevel': 'Expert',
     'articleSection': 'Smart Contract Security & Cross-Validation Audit'
   };
 }

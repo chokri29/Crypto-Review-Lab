@@ -36,7 +36,7 @@ Under Evaluation Blueprint v2.4, default evaluation weights are strictly calibra
 | **Utility** | **25%** (`0.25`) | Protocol value proposition, fee capture, and adoption depth. |
 | **Tokenomics** | **25%** (`0.25`) | Circulating/Total supply ratio, unlock cliff risk, and emission sustainability. |
 | **Security** | **25%** (`0.25`) | Smart contract audits, bytecode invariants, and vulnerability history. |
-| **Team & Backing** | **15%** (`0.15`) | Team transparency, engineering track record, and institutional backers. |
+| **Team & Backing** | **15%** (`0.15`) | Team transparency, engineering track record, and verified backer ecosystem. |
 | **Community & Ecosystem** | **10%** (`0.10`) | Social engagement, developer activity, and ecosystem liquidity depth. |
 | **Total Composite** | **100%** (`1.00`) | Standard baseline weighted composite score. |
 
@@ -72,7 +72,7 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Discrepancy Threshold:** Must be $\le 0.5\text{ pts}$ to receive `VERIFIED`.
 
 ### Module 6: AVF-06 — Risk-Conclusion Semantic Consistency
-- **Purpose:** Verifies that declared risk level and letter grade are semantically consistent with calculated scores and verified security telemetry signals.
+- **Purpose:** Verifies that declared risk findings and risk level are semantically consistent with calculated scores and verified security telemetry signals.
 - **Output:** `CONSISTENT` (0 contradictions), `REQUIRES_REVIEW` (material divergence), or `CONFLICT` (critical contradiction).
 
 ### Module 7: AVF-07 — Deterministic Multi-Source Confidence
@@ -80,7 +80,7 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Formula:** See Section 4 for the exact mathematical formula.
 
 ### Module 8: AVF-08 — Traceability & Cryptographic Integrity
-- **Purpose:** Guarantees cryptographic audit report integrity and prevents tampering.
+- **Purpose:** Guarantees cryptographic report traceability and data integrity.
 - **Requirements:** See Section 5 for digital signing specifications.
 
 ---
@@ -105,7 +105,7 @@ $$\text{Confidence} = (0.20 \times C_{\text{class}}) + (0.30 \times C_{\text{pro
    - `0.0` when input signals are missing.
 
 ### Confidence Thresholds:
-- **HIGH:** $\ge 85\%$ (0.85) — Ready for immediate institutional reporting.
+- **HIGH:** $\ge 85\%$ (0.85) — Verified evidence grounding ready for final audit reporting.
 - **MODERATE:** $70\% - 84\%$ — Partial telemetry present; narrative verification noted.
 - **LOW / CAUTION:** $< 70\%$ — Requires additional source telemetry.
 
@@ -117,7 +117,7 @@ AVF-08 ensures complete cryptographic audit trail traceability and immutability:
 
 ### Canonical Digest Generation (SHA-256):
 Every report generates a canonical SHA-256 hash payload composed of:
-$$\text{Payload} = \text{SHA256}(\text{Symbol} \parallel \text{Scores} \parallel \text{Grade} \parallel \text{OverallScore} \parallel \text{Timestamp})$$
+$$\text{Payload} = \text{SHA256}(\text{Scores} \parallel \text{Verdict} \parallel \text{CreatedAt})$$
 
 ### Signing Requirements:
 1. **System Draft State:**
@@ -128,4 +128,4 @@ $$\text{Payload} = \text{SHA256}(\text{Symbol} \parallel \text{Scores} \parallel
    - Generates an Ed25519 digital signature (`auditSignature.signatureHash`).
    - AVF-08 verifies signature authenticity, timestamp integrity, and public key fingerprint, transitioning status to `VERIFIED` / `HASH_MATCH`.
 3. **Immutability Protection:**
-   - Any modification to dimension scores, verdict text, or grade invalidates the digital signature hash immediately (`HASH_MISMATCH` / `SIGNATURE_INVALID`).
+   - Any modification to dimension scores or verdict text invalidates the digital signature hash immediately (`HASH_MISMATCH` / `SIGNATURE_INVALID`).

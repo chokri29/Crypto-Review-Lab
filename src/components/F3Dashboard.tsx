@@ -299,7 +299,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
         signature: (f3 as any).signature,
         hash: (f3 as any).reportHash || '',
         signedAt: f3?.timestamp || new Date().toISOString(),
-        publicKey: 'crl_ed25519_pubkey_institutional_authority',
+        publicKey: 'crl_ed25519_pubkey_verification_authority',
         tier: 'pro' as const
       } : undefined),
       f3Verification: f3
@@ -406,7 +406,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       icon: <Scale className="w-4 h-4 text-blue-400" />,
       metricPrimary: 'Weights Sum: 100.0% Compliant',
       metricSecondary: 'Utility 25% | Tokenomics 25% | Security 25% | Team 15% | Community 10%',
-      details: avf03?.details || 'Weight distribution fully complies with Blueprint v2.4 institutional specification.',
+      details: avf03?.details || 'Weight distribution fully complies with Blueprint v2.4 specification.',
       checks: [
         { name: 'Sum-to-100% Invariant', status: avf03?.isVerified ?? true ? 'VERIFIED' : 'FLAGGED', detail: 'Sum of all 5 dimension multipliers equals exactly 1.000 (100%)' },
         { name: 'Weight Calibration Lock', status: 'VERIFIED', detail: 'Formula: (U×0.25) + (T×0.25) + (S×0.25) + (TM×0.15) + (C×0.10)' },
@@ -456,11 +456,11 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
         ? `Conservative Stance: Declared [${avf06.declaredRisk}] stricter than implied [${avf06.verifiedRiskLevel}]`
         : `Evaluated Level: ${avf06?.verifiedRiskLevel || selectedProject?.riskLevel || 'Low'} (${avf06?.contradictions?.length ? `${avf06.contradictions.length} Contradictions` : 'Consistent'})`,
-      details: avf06?.details || 'Verdict, composite score tier, and declared risk level consistency verified.',
+      details: avf06?.details || 'Verdict, score alignment, and declared risk level consistency verified.',
       checks: [
-        { name: 'Score-to-Risk Tier Mapping', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION', detail: 'Composite score aligns with declared risk classification bounds' },
+        { name: 'Risk Assessment Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION', detail: 'Composite score aligns with declared risk assessment findings' },
         { name: 'Contradiction Detection', status: (avf06?.contradictions?.length ?? 0) === 0 ? 'VERIFIED' : 'FLAGGED', detail: (avf06?.contradictions?.length ?? 0) === 0 ? 'No conflicting narrative assertions found' : avf06?.contradictions?.join('; ') || '' },
-        { name: 'Verdict Semantic Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : (avf06?.status === 'REQUIRES_REVIEW' ? 'ATTENTION' : (selectedProject?.verdict ? 'PASSED' : 'NOT_PERFORMED')), detail: avf06?.status === 'CONSISTENT' ? 'Summary tone and verdict align with rubric classification' : (avf06?.status === 'REQUIRES_REVIEW' ? 'Semantic discrepancy detected between narrative and grade' : (selectedProject?.verdict ? 'Verdict narrative present (uncalibrated tone scan)' : 'Verdict statement missing')) }
+        { name: 'Verdict Semantic Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : (avf06?.status === 'REQUIRES_REVIEW' ? 'ATTENTION' : (selectedProject?.verdict ? 'PASSED' : 'NOT_PERFORMED')), detail: avf06?.status === 'CONSISTENT' ? 'Summary tone and verdict align with rubric classification' : (avf06?.status === 'REQUIRES_REVIEW' ? 'Semantic discrepancy detected between narrative and risk findings' : (selectedProject?.verdict ? 'Verdict narrative present (uncalibrated tone scan)' : 'Verdict statement missing')) }
       ]
     },
     {
@@ -676,7 +676,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                             <span className="text-[9px] bg-cyan-950 text-cyan-400 px-1 py-0.2 rounded border border-cyan-800">PRO</span>
                           </div>
                           <p className="text-[10px] text-slate-400 leading-tight">
-                            Institutional audit brief with AVF algorithmic matrix & Ed25519 cryptographic signatures.
+                            Cryptographic verification audit brief with AVF algorithmic matrix & Ed25519 signatures.
                           </p>
                         </div>
                       </button>

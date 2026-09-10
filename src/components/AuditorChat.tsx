@@ -104,7 +104,7 @@ const AUDITOR_PROMPT_PRESETS: AuditorPromptPreset[] = [
     id: 'p-6',
     category: 'BLUEPRINT',
     title: 'Zama (ZAMA) Tri-Sync Rating',
-    subtitle: 'Live F3 verification state, risk tier, and blueprint score',
+    subtitle: 'Live F3 verification state, risk findings, and blueprint score',
     query: 'What is the live Tri-Sync price and Evaluation Blueprint rating for Zama (ZAMA)?',
     iconType: 'cpu'
   },
@@ -160,7 +160,7 @@ const PAST_VERDICTS: PastVerdict[] = [
     timestamp: '15:42 UTC',
     type: 'PASS',
     message: 'Multisig contract upgrade authority locks validated.',
-    details: 'Verified institutional-grade 5-of-8 threshold configuration. No single point of failure found.'
+    details: 'Verified high-assurance 5-of-8 threshold configuration. No single point of failure found.'
   },
   {
     id: 'v-2',
@@ -1126,7 +1126,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
             </h3>
           </div>
           <p className="text-xs text-slate-400 font-sans mt-0.5">
-            Institutional documentation on AVF verification gates, Evaluation Blueprint scoring, and blockchain security protocols.
+            Comprehensive documentation on AVF verification gates, Evaluation Blueprint scoring, and blockchain security protocols.
           </p>
         </div>
 

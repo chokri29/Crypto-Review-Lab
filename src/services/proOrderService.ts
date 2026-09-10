@@ -545,7 +545,7 @@ export function approveAndDeliverProOrder(
     : { ...order.systemDraft };
 
   if (!auditorNotes.reviewedBy || !auditorNotes.reviewedBy.trim()) {
-    throw new Error('Reviewer name is required for institutional audit sign-off');
+    throw new Error('Reviewer name is required for audit sign-off');
   }
 
   const reviewAuthor = auditorNotes.reviewedBy.trim();

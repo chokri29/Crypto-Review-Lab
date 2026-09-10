@@ -82,7 +82,7 @@ export const AuditorReviewConsole: React.FC<{
     } catch (e) {}
   }, []);
 
-  // Reviewer Editing Form State (Static Institutional Authority)
+  // Reviewer Editing Form State
   const [auditorName, setAuditorName] = useState('Crypto Review Lab');
   const [verificationStamp, setVerificationStamp] = useState<'VERIFIED_AUDIT' | 'CORRECTIONS_APPLIED' | 'HIGH_RISK_WARNING'>('VERIFIED_AUDIT');
   const [auditorComments, setAuditorComments] = useState('');
@@ -199,7 +199,7 @@ export const AuditorReviewConsole: React.FC<{
           projectName: projName,
           projectSymbol: projSymbol,
           contractAddress: dispatchContract.trim() || undefined,
-          focusArea: dispatchFocus.trim() || 'Institutional Smart Contract Audit & TVL Resilience',
+          focusArea: dispatchFocus.trim() || 'Smart Contract Security Audit & TVL Resilience',
           verificationDepth: 'Unified Bytecode & Evidence Verification',
           stressSimulation: true,
           systemDraft: systemDraft
@@ -1007,12 +1007,12 @@ export const AuditorReviewConsole: React.FC<{
                 </div>
               </div>
 
-              {/* Institutional Review & Correction Form */}
+              {/* Reviewer Audit & Correction Form */}
               <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <h4 className="font-mono text-sm font-extrabold text-amber-300 flex items-center gap-2">
                     <Edit3 className="w-4 h-4 text-amber-400" />
-                    Institutional Review & Correction Controls
+                    Reviewer Audit & Correction Controls
                   </h4>
                   <span className="text-[11px] font-mono text-slate-400">
                     Live Score Recalculation Active
@@ -1512,7 +1512,7 @@ export const AuditorReviewConsole: React.FC<{
 
                 {/* Explanatory Policy Note */}
                 <div className="text-[11px] font-mono text-slate-300 bg-slate-950/60 p-3 rounded-lg border border-purple-500/20 leading-relaxed">
-                  <strong className="text-purple-400">Institutional Policy: </strong>
+                  <strong className="text-purple-400">Review Policy: </strong>
                   F3 is a deterministic verification layer designed to catch genuine discrepancies and enforce audit integrity. When real-world deviations occur (such as testnet wrappers, manual liquidity adjustments, or custom governance parameters), this override provides a conscious, logged mechanism to validate and proceed with delivery.
                 </div>
 

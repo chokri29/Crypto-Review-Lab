@@ -1128,7 +1128,7 @@ export default function App() {
       );
     }
 
-    let title = "Crypto Review Lab — Institutional Financial Analytics & Code Audit Terminal";
+    let title = "Crypto Review Lab — Algorithmic Security Intelligence & Code Evaluation Terminal";
     let descriptionText = "An Interactive Crypto Intelligence and Verification AI Platform — Powered by AVF Engine (Algorithmic Verification Framework) monitoring smart contracts, liquidity depth, TVL stress vectors, and live market anomalies.";
     let keywords = "crypto audit, crypto reviews, AVF engine, smart contract audit, prop firm reviews, DeFi security rating, crypto intelligence, tokenomics review, blockchain security";
     let imageUrl = "https://www.cryptoreviewlab.com/og-banner.jpg";
@@ -1180,9 +1180,9 @@ export default function App() {
       };
     } else {
       if (activeTab === 'lab') {
-        title = "AVF Review Lab — Institutional Crypto Risk & Code Audit Terminal | Crypto Review Lab";
+        title = "AVF Review Lab — Algorithmic Crypto Risk & Code Evaluation Terminal | Crypto Review Lab";
         descriptionText = "Execute instant algorithmic smart contract audits, flash-loan drain simulations, TVL stress testing, and quantitative risk appraisals using AVF Engine.";
-        keywords = "AVF review lab, crypto security audit, smart contract vulnerability scanner, institutional crypto risk, DeFi protocol security";
+        keywords = "AVF review lab, crypto security audit, smart contract vulnerability scanner, crypto risk assessment, DeFi protocol security";
       } else if (activeTab === 'blog') {
         title = "Market Intelligence Portal | Crypto Review Lab";
         descriptionText = "Explore comprehensive independent security audits, project risk ratings, market confidence metrics, and deep-dive technical evaluations.";
@@ -1560,7 +1560,7 @@ export default function App() {
                       <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
                         <span className="font-orbitron font-bold text-[9px] sm:text-[10px] text-cyan-300 uppercase tracking-[2px]">
-                          CRYPTO REVIEW LAB — INSTITUTIONAL SECURITY TERMINAL
+                          CRYPTO REVIEW LAB — SECURITY VERIFICATION TERMINAL
                         </span>
                       </div>
                     </div>
@@ -1570,7 +1570,7 @@ export default function App() {
                     </h2>
 
                     <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
-                      Algorithmic Verification Framework (AVF Engine) performing symbolic execution, flash-loan drain simulation, TVL stress analysis, and live multi-exchange market surveillance. An institutional crypto intelligence and verification suite for digital assets.
+                      Algorithmic Verification Framework (AVF Engine) performing symbolic execution, flash-loan drain simulation, TVL stress analysis, and live multi-exchange market surveillance. An independent crypto intelligence and verification suite for digital assets.
                     </p>
                   </div>
 
@@ -2258,7 +2258,7 @@ export default function App() {
                     </div>
 
                     <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                      The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation, the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation to enforce mathematical rigor, cryptographic integrity, and institutional audit standards.
+                      The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation, the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation to enforce mathematical rigor, cryptographic integrity, and deterministic verification standards.
                     </p>
 
                     {/* Key Innovations / Tripartite Core Stages */}
@@ -2378,7 +2378,7 @@ export default function App() {
                     <div>
                       <h3 className="font-display font-bold text-xl text-cyber-cyan">Get in Touch</h3>
                       <p className="text-xs text-cyber-text-secondary mt-1 max-w-sm">
-                        For institutional audit inquiries, promotional collaborations, or general security feedback, reach out via the channels below.
+                        For security assessment inquiries, technical collaborations, or general feedback, reach out via the channels below.
                       </p>
                     </div>
 

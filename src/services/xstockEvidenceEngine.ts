@@ -276,7 +276,7 @@ export function buildXStockEvidenceDataset(
       : (convergenceSpreadPct !== null && convergenceState === 'VALID')
       ? `Feeds converged within 1.0% tolerance (${convergenceSpreadPct.toFixed(2)}% spread). Dual independent aggregators verified.`
       : (hasRwaPrice || hasCmcPrice)
-      ? `Single-source observation (${hasRwaPrice ? 'CoinGecko RWA only' : 'CoinMarketCap only'}). Multi-source price verification requires two independent market aggregators; single-source feeds are not verification-grade. Status: PARTIAL / UNVERIFIED.`
+      ? `Single-source observation (${hasRwaPrice ? 'CoinGecko RWA only' : 'CoinMarketCap only'}). Multi-source price verification requires two independent market aggregators; single-source feeds do not satisfy multi-source verification status. Status: PARTIAL / UNVERIFIED.`
       : 'Insufficient independent aggregator feeds to measure pairwise spread. Status: UNVERIFIED.'
   };
 
@@ -625,7 +625,7 @@ export function buildXStockEvidenceDataset(
     state: scanState,
     provenance: scanState,
     provenanceCategory: hasContract && isScanSuccess ? 'SOURCE' : 'UNAVAILABLE',
-    // Observational automated scan is never treated as a blanket verification-grade certification
+    // Observational automated scan is never treated as a blanket verification certification
     isVerificationGrade: false,
     verificationStatus: !isScanSuccess ? 'UNAVAILABLE' : (detectedRiskFlags.length > 0 ? 'UNVERIFIED' : 'PARTIAL'),
     rawSourceValues: isScanSuccess ? {

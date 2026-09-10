@@ -288,7 +288,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setFontSize(7.5);
   doc.setTextColor(120, 53, 15);
   doc.text('If an evaluated asset has Utility <= 2/10 AND Team <= 3/10 (pure speculative token model), the overall score', margin + 4, y + 9.5);
-  doc.text('is capped at a maximum of 60/100 (High Risk Tier) regardless of community metrics or audit status.', margin + 4, y + 12.8);
+  doc.text('is capped at a maximum of 60/100 (High Risk classification) regardless of community metrics or audit status.', margin + 4, y + 12.8);
 
   // Footer
   addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Master Evaluation Blueprint Specification Manual');

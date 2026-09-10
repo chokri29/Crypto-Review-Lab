@@ -1062,7 +1062,7 @@ export default function XStockVerificationPanel({
 
           <div className="text-[11px] text-slate-400 font-sans leading-relaxed">
             <strong className="text-slate-300">Observation Notice: </strong>
-            Automated security scans evaluate observable contract bytecode, authorities, and transaction rules at scan time. Successful scan availability indicates observable provider telemetry, not an institutional audit, insurance, or blanket safety guarantee.
+            Automated security scans evaluate observable contract bytecode, authorities, and transaction rules at scan time. Successful scan availability indicates observable provider telemetry, not a formal security audit, insurance, or blanket safety guarantee.
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ function escapeCsv(val: any): string {
 }
 
 /**
- * Generates and triggers browser download of an institutional CSV verification report
+ * Generates and triggers browser download of a detailed CSV verification report
  * for a specific project verified in the F3 Deterministic Matrix.
  */
 export function exportF3AuditCsv(
