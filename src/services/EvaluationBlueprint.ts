@@ -119,7 +119,7 @@ export function calculateDataConfidence(
 ): DataConfidenceBreakdown {
   const onChain = hasOnChainAddress ? 45 : 0;
   const publicAudits = hasPublicAudits ? 35 : 0;
-  const simulated = hasOnChainAddress || hasPublicAudits ? 20 : 20;
+  const simulated = 20;
 
   const totalConfidence = Math.min(98, Math.max(0, onChain + publicAudits + simulated));
   const roundedConfidence = Math.round(totalConfidence);
@@ -821,10 +821,10 @@ export const EVALUATION_BLUEPRINT_DIMENSIONS: EvaluationDimension[] = [
     name: 'Team & Backer Track Record',
     weight: 0.15,
     percentageText: '15%',
-    description: 'Inspects core developer engineering experience, institutional backer reputation, and transparency of governance.',
+    description: 'Inspects core developer engineering experience, venture backer reputation, and transparency of governance.',
     keyCriteria: [
       'Founder engineering track record',
-      'Tier-1 VC & institutional backing',
+      'Venture capital & strategic backing',
       'Code commit frequency & GitHub velocity',
       'Public identity & operational accountability'
     ]

@@ -1046,7 +1046,7 @@ function getSeedOrders(): ProOrder[] {
   const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
   const seed1Id = 'CRL-884291';
-  const seed1Email = 'capital.ventures@institutional.io';
+  const seed1Email = 'capital.ventures@fundcapital.io';
   const draft1: CryptoReview = {
     id: 'hype-seed',
     coingeckoId: 'hyperliquid',

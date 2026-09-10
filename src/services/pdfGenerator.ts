@@ -248,7 +248,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     { name: '1. Utility & Protocol Function', weight: '25%', maxPts: '25.0 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, protocol utility.' },
     { name: '2. Tokenomics & Economic Model', weight: '25%', maxPts: '25.0 pts', criteria: 'Inflation schedule, supply concentration, staking sinks, emission control.' },
     { name: '3. Smart Contract Security', weight: '25%', maxPts: '25.0 pts', criteria: 'Third-party audits, code verification, multisig admin, exploit history.' },
-    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Dev experience, institutional backers, multisig transparency, KYC.' },
+    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Dev experience, strategic backers, multisig transparency, KYC.' },
     { name: '5. Community & Governance', weight: '10%', maxPts: '10.0 pts', criteria: 'Active dev ecosystem, organic user base, voting participation, social reach.' },
   ];
 

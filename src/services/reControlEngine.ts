@@ -285,7 +285,7 @@ export function critiqueCommunity(review: CryptoReview): CriticResult {
 }
 
 /**
- * Team & Governance Critic: Evaluates proxy admin locks, institutional data engine provenance,
+ * Team & Governance Critic: Evaluates proxy admin locks, verified data engine provenance,
  * and audit findings management.
  * Derived ONLY from project evidence on review — NEVER reads F1 generated scores or narrative text.
  */

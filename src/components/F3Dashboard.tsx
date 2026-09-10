@@ -44,6 +44,7 @@ import { F3VerificationResult, getConfidenceLevel, projectToPublicCryptoReviewRe
 import { useF3VerificationState } from '../context/F3VerificationContext';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { exportF3AuditCsv, exportF3ProjectsBatchCsv } from '../services/csvExport';
+import { getSigningPublicKey } from '../services/auditSigner';
 import { CRL_VERSION_MANIFEST } from '../versionManifest';
 import { EvidenceQualityCard } from './EvidenceQualityCard';
 import { getDeterministicVerificationPresentation } from '../services/verificationPresentation';
@@ -299,7 +300,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
         signature: (f3 as any).signature,
         hash: (f3 as any).reportHash || '',
         signedAt: f3?.timestamp || new Date().toISOString(),
-        publicKey: 'crl_ed25519_pubkey_verification_authority',
+        publicKey: getSigningPublicKey(),
         tier: 'pro' as const
       } : undefined),
       f3Verification: f3
