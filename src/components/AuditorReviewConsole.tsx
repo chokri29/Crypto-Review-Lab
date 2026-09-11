@@ -521,9 +521,9 @@ export const AuditorReviewConsole: React.FC<{
     }
 
     setIsExecutingF3(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
-        review.f3Verification = runF3Verification(review, {
+        review.f3Verification = await runF3Verification(review, {
           securityScan: review.securityScan,
           citations: review.citations,
           activeOverride: activeOverride

@@ -26,7 +26,17 @@ import {
   mapNowPaymentsStatusToPaymentStatus,
   PRINCIPAL_EMAIL 
 } from "./src/services/proOrderService.js";
-import { verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
+import { signAuditReportServerSide, verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
+
+if (typeof globalThis.fetch === 'function') {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = function (input: any, init?: any) {
+    if (typeof input === 'string' && input.startsWith('/')) {
+      input = `http://localhost:3000${input}`;
+    }
+    return originalFetch(input, init);
+  } as any;
+}
 
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'crypto_reviews.json');
 
@@ -1381,7 +1391,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   });
 
   // API endpoint: Internal Human Reviewer Approval & Delivery (Step 2 & 3)
-  app.post("/api/pro-order/review-approve", (req, res) => {
+  app.post("/api/pro-order/review-approve", async (req, res) => {
     try {
       if (!isAuthorizedAdmin(req)) {
         return res.status(401).json({ error: "Unauthorized: Admin authorization required to approve and deliver orders." });
@@ -1392,7 +1402,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return res.status(400).json({ error: "Order ID and auditor notes are required." });
       }
 
-      const updatedOrder = approveAndDeliverProOrder(orderId, auditorNotes, updatedReview);
+      const updatedOrder = await approveAndDeliverProOrder(orderId, auditorNotes, updatedReview);
       if (!updatedOrder) {
         return res.status(404).json({ error: `Order #${orderId} not found.` });
       }
@@ -2308,6 +2318,25 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
 
 
   // API endpoint: Public Cryptographic Signature Verification
+  app.post("/api/audit/sign", (req, res) => {
+    try {
+      const result = signAuditReportServerSide(req.body);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ error: error?.message || "Failed to sign audit report" });
+    }
+  });
+
+  app.post("/api/audit/verify", (req, res) => {
+    try {
+      const { signatureData, params } = req.body;
+      const result = verifyAuditSignatureServerSide(signatureData, params);
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ isValid: false, hashMatches: false, signatureMatches: false, reason: error?.message || "Failed to verify audit signature" });
+    }
+  });
+
   app.post("/api/audit/verify-signature", (req, res) => {
     try {
       const { auditSignature, scores, verdict, timestamp } = req.body;

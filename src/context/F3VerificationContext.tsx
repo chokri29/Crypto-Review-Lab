@@ -226,7 +226,7 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
       await new Promise(r => setTimeout(r, 60));
     }
 
-    const result = runF3Verification({
+    const result = await runF3Verification({
       ...targetProject,
       adminOverride: activeOverride
     }, {

@@ -14,7 +14,6 @@ import {
   NowPaymentsIpnLog
 } from '../types';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine';
-import { signAuditReportServerSide } from './auditSigner';
 import { runF3Verification, isF2GatePassed } from './f3Engine';
 import { computeMultiSourceConvergence } from './marketConvergence';
 import fs from 'fs';
@@ -38,16 +37,22 @@ function loadOrdersFromFile(): ProOrder[] {
         console.error("Failed to parse orders from pro_orders.json:", err);
       }
     }
-    const initialSeed = getSeedOrders();
-    try {
-      fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(initialSeed, null, 2), 'utf-8');
-    } catch (e) {
-      console.error("Failed to initialize pro_orders.json:", e);
+    if (typeof (getSeedOrders as any) === 'function') {
+      const p = getSeedOrders();
+      if (p && typeof p.then === 'function') {
+        p.then(initialSeed => {
+          try {
+            fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(initialSeed, null, 2), 'utf-8');
+          } catch (e) {
+            console.error("Failed to initialize pro_orders.json:", e);
+          }
+        }).catch(() => {});
+      }
     }
-    return initialSeed;
+    return [];
   } catch (e) {
     console.error("Failed to load pro orders:", e);
-    return getSeedOrders();
+    return [];
   }
 }
 
@@ -521,7 +526,7 @@ export function confirmPublishProOrder(
 /**
  * Marks a Pro Order as Reviewed & Delivered by human auditor, sending final delivery email.
  */
-export function approveAndDeliverProOrder(
+export async function approveAndDeliverProOrder(
   orderId: string, 
   auditorNotes: {
     reviewedBy: string;
@@ -531,7 +536,7 @@ export function approveAndDeliverProOrder(
     adminOverride?: AdminOverrideLog;
   },
   updatedReview?: CryptoReview
-): ProOrder | null {
+): Promise<ProOrder | null> {
   const orders = getAllOrders();
   const index = orders.findIndex(o => o.orderId === orderId);
   if (index === -1) return null;
@@ -552,19 +557,16 @@ export function approveAndDeliverProOrder(
   const reviewComments = auditorNotes.auditorComments?.trim() || 'Manual audit verification completed and report approved.';
   const adminOverride = auditorNotes.adminOverride || order.adminOverride || targetReview.adminOverride;
 
-  const auditSignature = signAuditReportServerSide({
-    scores: targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 },
-    verdict: targetReview.verdict || '',
-    timestamp: deliveredAtStr
-  });
+  const scores = targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 };
+  const verdict = targetReview.verdict || '';
+  const timestamp = deliveredAtStr;
+  const auditSignature = await fetch('/api/audit/sign', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({scores, verdict, timestamp}) }).then(r => r.json());
 
   targetReview.auditSignature = auditSignature;
   if (adminOverride) {
     targetReview.adminOverride = adminOverride;
   }
 
-  // STRICT 95% F3 GATE ENFORCEMENT ON DELIVERY
-  // F3 may execute ONLY when the F2 quality score is >= 95% and Gate 3 passed (status === 'PASS').
   const isF2Passed = isF2GatePassed(targetReview);
   if (!isF2Passed && !adminOverride) {
     const f2Score = typeof targetReview.phaseTwoReControl?.qualityScorePct === 'number' 
@@ -577,7 +579,7 @@ export function approveAndDeliverProOrder(
     );
   }
 
-  targetReview.f3Verification = runF3Verification(targetReview, {
+  targetReview.f3Verification = await runF3Verification(targetReview, {
     securityScan: targetReview.securityScan,
     citations: targetReview.citations,
     activeOverride: adminOverride
@@ -727,15 +729,13 @@ export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise
   const isF2Passed = isF2GatePassed(regeneratedDraft);
 
   if (isF2Passed) {
-    // F2 PASSED → F3 ELIGIBLE: Run existing deterministic runF3Verification()
-    regeneratedDraft.f3Verification = runF3Verification(regeneratedDraft, {
+    regeneratedDraft.f3Verification = await runF3Verification(regeneratedDraft, {
       securityScan: regeneratedDraft.securityScan,
       citations: regeneratedDraft.citations,
       avfLoopResult: report.avfSession || null
     });
     order.status = 'IN_HUMAN_REVIEW';
   } else {
-    // F3 BLOCKED → PENDING_REGENERATION: Do NOT call runF3Verification()
     regeneratedDraft.f3Verification = undefined;
     order.status = 'PENDING_REGENERATION';
   }
@@ -768,7 +768,7 @@ export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise
     }
     regenFinal.phaseTwoReControl = report;
     if (isF2Passed) {
-      regenFinal.f3Verification = runF3Verification(regenFinal, {
+      regenFinal.f3Verification = await runF3Verification(regenFinal, {
         securityScan: regenFinal.securityScan || order.systemDraft.securityScan,
         citations: regenFinal.citations,
         avfLoopResult: report.avfSession || null
@@ -1040,7 +1040,7 @@ export function lookupOrder(query: string): ProOrder[] {
 /**
  * Provides demo seed orders so the Auditor Review Console and Order Lookup work immediately upon visiting
  */
-function getSeedOrders(): ProOrder[] {
+async function getSeedOrders(): Promise<ProOrder[]> {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 18 * 60 * 60 * 1000);
   const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
@@ -1074,17 +1074,16 @@ function getSeedOrders(): ProOrder[] {
   };
   draft1.adminOverride = adminOverrideSeed;
   draft1.phaseTwoReControl = runPhaseTwoReControl(draft1);
-  draft1.f3Verification = runF3Verification(draft1, {
+  draft1.f3Verification = await runF3Verification(draft1, {
     securityScan: draft1.securityScan,
     citations: draft1.citations,
     activeOverride: adminOverrideSeed
   });
 
-  const seedSig = signAuditReportServerSide({
-    scores: draft1.scores,
-    verdict: 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.',
-    timestamp: yesterday.toISOString()
-  });
+  const scores = draft1.scores;
+  const verdict = 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.';
+  const timestamp = yesterday.toISOString();
+  const seedSig = await fetch('/api/audit/sign', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({scores, verdict, timestamp}) }).then(r => r.json());
 
   const finalSeedReview = {
     ...draft1,
@@ -1096,7 +1095,7 @@ function getSeedOrders(): ProOrder[] {
     auditSignature: seedSig,
     adminOverride: adminOverrideSeed
   };
-  finalSeedReview.f3Verification = runF3Verification(finalSeedReview, {
+  finalSeedReview.f3Verification = await runF3Verification(finalSeedReview, {
     securityScan: finalSeedReview.securityScan,
     citations: finalSeedReview.citations,
     activeOverride: adminOverrideSeed

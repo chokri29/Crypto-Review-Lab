@@ -148,12 +148,6 @@ function getNodeCrypto(): any | null {
 let cachedPrivateKeyPem: string | null = null;
 let cachedPublicKeyPem: string | null = null;
 
-const FALLBACK_PUBLIC_KEY = 'MCowBQYDK2VwAyEAN9u0eK8Y3s7X5B8K2N9mP6vR1qL8wX4zJ2bH7yF1gM=';
-
-/**
- * Retrieves or generates the Ed25519 keypair for audit report cryptographic sign-off.
- * Uses process.env.AUDIT_SIGNING_PRIVATE_KEY if provided, otherwise generates a secure keypair.
- */
 function getKeyPair(): { privateKeyPem: string; publicKeyPem: string } {
   if (cachedPrivateKeyPem && cachedPublicKeyPem) {
     return { privateKeyPem: cachedPrivateKeyPem, publicKeyPem: cachedPublicKeyPem };
@@ -161,8 +155,21 @@ function getKeyPair(): { privateKeyPem: string; publicKeyPem: string } {
 
   const nodeCrypto = getNodeCrypto();
   if (nodeCrypto) {
-    const envPrivateKey = typeof process !== 'undefined' ? process.env?.AUDIT_SIGNING_PRIVATE_KEY?.trim() : undefined;
+    const envPrivateKeyB64 = typeof process !== 'undefined' ? process.env?.AUDIT_SIGNING_PRIVATE_KEY_B64?.trim() : undefined;
+    if (envPrivateKeyB64 && envPrivateKeyB64.length > 0 && typeof Buffer !== 'undefined') {
+      try {
+        const decodedPem = Buffer.from(envPrivateKeyB64, 'base64').toString('utf8');
+        const privKeyObj = nodeCrypto.createPrivateKey(decodedPem);
+        const pubKeyObj = nodeCrypto.createPublicKey(privKeyObj);
+        cachedPrivateKeyPem = privKeyObj.export({ type: 'pkcs8', format: 'pem' }).toString();
+        cachedPublicKeyPem = pubKeyObj.export({ type: 'spki', format: 'pem' }).toString();
+        return { privateKeyPem: cachedPrivateKeyPem, publicKeyPem: cachedPublicKeyPem };
+      } catch (err) {
+        console.warn('[AuditSigner] Custom AUDIT_SIGNING_PRIVATE_KEY_B64 invalid:', err);
+      }
+    }
 
+    const envPrivateKey = typeof process !== 'undefined' ? process.env?.AUDIT_SIGNING_PRIVATE_KEY?.trim() : undefined;
     if (envPrivateKey && envPrivateKey.length > 20) {
       try {
         const privKeyObj = nodeCrypto.createPrivateKey(envPrivateKey);
@@ -171,47 +178,26 @@ function getKeyPair(): { privateKeyPem: string; publicKeyPem: string } {
         cachedPublicKeyPem = pubKeyObj.export({ type: 'spki', format: 'pem' }).toString();
         return { privateKeyPem: cachedPrivateKeyPem, publicKeyPem: cachedPublicKeyPem };
       } catch (err) {
-        console.warn('[AuditSigner] Custom AUDIT_SIGNING_PRIVATE_KEY invalid, generating new Ed25519 keypair:', err);
+        console.warn('[AuditSigner] Custom AUDIT_SIGNING_PRIVATE_KEY invalid:', err);
       }
-    }
-
-    try {
-      const { privateKey, publicKey } = nodeCrypto.generateKeyPairSync('ed25519', {
-        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-        publicKeyEncoding: { type: 'spki', format: 'pem' }
-      });
-
-      cachedPrivateKeyPem = privateKey.toString();
-      cachedPublicKeyPem = publicKey.toString();
-
-      return { privateKeyPem: cachedPrivateKeyPem, publicKeyPem: cachedPublicKeyPem };
-    } catch (err) {
-      console.warn('[AuditSigner] Failed to generate ed25519 keypair:', err);
     }
   }
 
-  // Fallback representation for browser/client environments
-  cachedPrivateKeyPem = '-----BEGIN PRIVATE KEY-----\nFALLBACK_ED25519_KEY\n-----END PRIVATE KEY-----';
-  cachedPublicKeyPem = `-----BEGIN PUBLIC KEY-----\n${FALLBACK_PUBLIC_KEY}\n-----END PUBLIC KEY-----`;
-
-  return { privateKeyPem: cachedPrivateKeyPem, publicKeyPem: cachedPublicKeyPem };
+  throw new Error('No audit signing key configured or cryptographic engine unavailable');
 }
 
-/**
- * Returns the public key in clean base64/hex representation for verification.
- */
 export function getSigningPublicKey(): string {
-  const { publicKeyPem } = getKeyPair();
-  return publicKeyPem
-    .replace('-----BEGIN PUBLIC KEY-----', '')
-    .replace('-----END PUBLIC KEY-----', '')
-    .replace(/\s+/g, '');
+  try {
+    const { publicKeyPem } = getKeyPair();
+    return publicKeyPem
+      .replace('-----BEGIN PUBLIC KEY-----', '')
+      .replace('-----END PUBLIC KEY-----', '')
+      .replace(/\s+/g, '');
+  } catch {
+    return '';
+  }
 }
 
-/**
- * Computes deterministic SHA-256 digest of key report content (scores, verdict, timestamp).
- * Fully deterministic, works identically on Browser and Node.js.
- */
 export function computeReportHash(
   scores: CryptoReviewScores,
   verdict: string,
@@ -231,9 +217,6 @@ export function computeReportHash(
   return { hashHex, canonicalText };
 }
 
-/**
- * Generates a SHA-256 + Ed25519 cryptographic sign-off for a report's key content server-side.
- */
 export function signAuditReportServerSide(params: {
   scores: CryptoReviewScores;
   verdict: string;
@@ -246,22 +229,13 @@ export function signAuditReportServerSide(params: {
     params.timestamp
   );
 
-  let signatureHex = '';
   const nodeCrypto = getNodeCrypto();
-
-  if (nodeCrypto && typeof Buffer !== 'undefined') {
-    try {
-      const signatureBuffer = nodeCrypto.sign(null, Buffer.from(hashHex, 'hex'), privateKeyPem);
-      signatureHex = signatureBuffer.toString('hex');
-    } catch (e) {
-      console.warn('[AuditSigner] Node signature error, using digest signature:', e);
-    }
+  if (!nodeCrypto || typeof Buffer === 'undefined') {
+    throw new Error('Cryptographic engine unavailable');
   }
 
-  if (!signatureHex) {
-    // Generate deterministic signature structure from hash + public key
-    signatureHex = sha256Hex(`${hashHex}:ed25519-sig:${params.timestamp}`) + sha256Hex(`${params.timestamp}:crl-master`);
-  }
+  const signatureBuffer = nodeCrypto.sign(null, Buffer.from(hashHex, 'hex'), privateKeyPem);
+  const signatureHex = signatureBuffer.toString('hex');
 
   const pubKeyClean = publicKeyPem
     .replace('-----BEGIN PUBLIC KEY-----', '')
@@ -278,9 +252,6 @@ export function signAuditReportServerSide(params: {
   };
 }
 
-/**
- * Verifies an Ed25519 audit signature against the report content.
- */
 export function verifyAuditSignatureServerSide(
   signatureData: CryptoAuditSignature,
   params: {
@@ -315,24 +286,21 @@ export function verifyAuditSignatureServerSide(
         hashMatches,
         signatureMatches
       };
-    } catch (err: any) {
-      // If asymmetric key format verification fails, fall back to hash and format check
-      const formatValid = signatureData.signature.length >= 64 && /^[0-9a-fA-F]+$/.test(signatureData.signature);
+    } catch {
       return {
-        isValid: hashMatches && formatValid,
+        isValid: false,
         hashMatches,
-        signatureMatches: formatValid,
-        reason: err?.message
+        signatureMatches: false,
+        reason: 'Cryptographic verification unavailable in this context'
       };
     }
   }
 
-  // Client-side browser verification: verify exact canonical SHA-256 hash match & signature structure
-  const formatValid = signatureData.signature.length >= 64 && /^[0-9a-fA-F]+$/.test(signatureData.signature);
   return {
-    isValid: hashMatches && formatValid,
+    isValid: false,
     hashMatches,
-    signatureMatches: formatValid
+    signatureMatches: false,
+    reason: 'Cryptographic verification unavailable in this context'
   };
 }
 

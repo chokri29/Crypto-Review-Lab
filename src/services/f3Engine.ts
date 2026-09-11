@@ -6,7 +6,6 @@
 import { CryptoReview, CryptoReviewScores, CryptoAuditSignature, AdminOverrideLog, F3FinalVerificationStatus, PublicCryptoReviewReport } from '../types';
 import {
   computeReportHash,
-  verifyAuditSignatureServerSide,
   getSigningPublicKey,
 } from './auditSigner';
 import {
@@ -235,9 +234,9 @@ export interface AVF08TraceabilityResult {
  * If hash or signature fails verification, reports HASH_MISMATCH / SIGNATURE_INVALID.
  * If cryptographic verification passes, reports VERIFIED.
  */
-export function verifyAVF08Traceability(
+export async function verifyAVF08Traceability(
   review?: Partial<CryptoReview> | null
-): AVF08TraceabilityResult {
+): Promise<AVF08TraceabilityResult> {
   const missingFields: string[] = [];
 
   if (!review) {
@@ -344,12 +343,18 @@ export function verifyAVF08Traceability(
     };
   }
 
-  // Verify against existing auditSigner verification engine
-  const verification = verifyAuditSignatureServerSide(signatureData, {
-    scores,
-    verdict,
-    timestamp: signatureData.signedAt || createdAt
-  });
+  const timestamp = signatureData.signedAt || createdAt;
+  const params = { scores, verdict, timestamp };
+  const verification = await fetch('/api/audit/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ signatureData, params })
+  }).then(r => r.json()).catch(() => ({
+    isValid: false,
+    hashMatches: false,
+    signatureMatches: false,
+    reason: 'Verification request failed'
+  }));
 
   traceabilityChain.cryptographicIntegrity.hashMatches = verification.hashMatches;
   traceabilityChain.cryptographicIntegrity.signatureValid = verification.signatureMatches;
@@ -2274,11 +2279,11 @@ export function isF2GatePassed(review?: Partial<CryptoReview> | null): boolean {
   return typeof effectiveQualityScore === 'number' && effectiveQualityScore >= 95.0 && f2.status === 'PASS';
 }
 
-function runF3Verification(
+async function runF3Verification(
   review?: Partial<CryptoReview> | null,
   optionsOrCategories?: F3VerificationOptions | string[] | null,
   optionalAvfLoopResult?: any | null
-): F3VerificationResult {
+): Promise<F3VerificationResult> {
   // --- STRICT SERVER-SIDE 95% F2 GATE ENFORCEMENT ---
   // F3 may execute ONLY when the existing F2/Phase-2 quality score is >= 95% and Gate 3 passed.
   // No direct or indirect call to runF3Verification() may occur for an assessment whose
@@ -2358,7 +2363,7 @@ function runF3Verification(
   const avf07 = verifyAVF07Confidence(avf01, avf02, avf04, avf06);
 
   // --- Step 8: AVF-08 Traceability & Integrity Verification ---
-  const avf08 = verifyAVF08Traceability(review);
+  const avf08 = await verifyAVF08Traceability(review);
 
   // --- Discrepancies & Contradictions Collection ---
   const discrepancies: string[] = [];

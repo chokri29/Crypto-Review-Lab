@@ -487,7 +487,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     const isF2Passed = isF2GatePassed(autoCalibrated);
     if (isF2Passed) {
       try {
-        autoCalibrated.f3Verification = runF3Verification(autoCalibrated, {
+        autoCalibrated.f3Verification = await runF3Verification(autoCalibrated, {
           securityScan: autoCalibrated.securityScan,
           citations: autoCalibrated.citations,
           avfLoopResult: newReport.avfSession || null

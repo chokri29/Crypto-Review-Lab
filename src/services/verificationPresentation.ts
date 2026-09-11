@@ -1,25 +1,11 @@
 import { CryptoReview, F3VerificationResult } from '../types';
-import { runF3Verification, isF2GatePassed } from './f3Engine';
 
-/**
- * Safely resolves existing deterministic F3 verification results without inventing or fabricating.
- */
 function resolveF3Result(
   review?: Partial<CryptoReview> | null,
   f3Result?: F3VerificationResult | null
 ): F3VerificationResult | null {
   if (f3Result) return f3Result;
   if (review?.f3Verification) return review.f3Verification;
-  if (review) {
-    try {
-      if (isF2GatePassed(review) || review.adminOverride) {
-        return runF3Verification(review);
-      }
-    } catch {
-      // Deterministic gate not passed yet
-      return null;
-    }
-  }
   return null;
 }
 
