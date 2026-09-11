@@ -901,12 +901,12 @@ export async function fetchHistoricalMarketChart(
       provenance: 'UNAVAILABLE',
       isVerificationGrade: false,
       isRwaHistoricalUnavailable: true,
-      rwaAdvisory: 'Historical RWA data unavailable on free CoinGecko plan (/rwas/{id}/market_chart requires Basic plan). Artificial indicators and synthetic series are strictly suppressed to avoid fabricated telemetry.',
+      rwaAdvisory: 'Historical RWA data unavailable!\nArtificial indicators and synthetic series are strictly suppressed to avoid fabricated telemetry.',
       indicators: {
         pivotHighs: [],
         pivotLows: [],
         isUnavailable: true,
-        unavailableReason: 'Historical RWA data unavailable on free CoinGecko plan'
+        unavailableReason: 'Historical RWA data unavailable'
       }
     };
     chartCache.set(cacheKey, { data: unavailableResult, timestamp: Date.now() });

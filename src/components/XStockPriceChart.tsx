@@ -641,10 +641,10 @@ export default function XStockPriceChart({
                   ? 'Historical RWA Data Unavailable' 
                   : 'Chart Telemetry Unavailable'}
               </span>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-line">
                 {chartData?.rwaAdvisory || 
                   (chartData?.isRwaHistoricalUnavailable
-                    ? 'CoinGecko RWA historical timeseries (/rwas/{id}/market_chart) requires a paid tier. To maintain zero synthetic data integrity, historical charts and indicators are disabled.'
+                    ? 'Historical RWA data unavailable!\nArtificial indicators and synthetic series are strictly suppressed to avoid fabricated telemetry.'
                     : `Live secondary market feeds for ${symbol} are currently not reporting on connected market data aggregator endpoints.`)}
               </p>
             </div>
