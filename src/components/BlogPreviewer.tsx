@@ -76,7 +76,6 @@ import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
-import { EvidenceQualityCard } from './EvidenceQualityCard';
 
 interface BlogPreviewerProps {
   reviews: CryptoReview[];
@@ -1953,9 +1952,6 @@ export default function BlogPreviewer({
                 </div>
               );
             })()}
-
-            {/* CRL Evaluation & Verification: Evidence Quality, Verification Status, Integrity & Traceability */}
-            <EvidenceQualityCard review={activeReview} />
 
             {/* Data Engine Provenance Badge & Evaluation Blueprint Overview & Security Alerts */}
             <div className="space-y-3.5 my-3 text-left">
