@@ -264,6 +264,9 @@ export function verifyAuditSignatureServerSide(
     return { isValid: false, hashMatches: false, signatureMatches: false, reason: 'Missing signature or public key data' };
   }
 
+  const trustedPublicKey = getSigningPublicKey();
+  if (!trustedPublicKey || signatureData.publicKey !== trustedPublicKey) return { isValid: false, hashMatches: false, signatureMatches: false, reason: 'Public key does not match the currently configured signing key' };
+
   const { hashHex } = computeReportHash(
     params.scores,
     params.verdict,
