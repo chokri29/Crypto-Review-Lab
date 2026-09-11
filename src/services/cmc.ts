@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { safeJsonParse } from '../utils/apiResponse';
+
 export interface CMCQuoteItem {
   id?: number;
   name?: string;
@@ -43,16 +45,25 @@ export async function fetchLiveCMCQuote(symbol: string, forceRefresh = false): P
 
   try {
     // 1. Try server proxy first
-    let response = await fetch(`/api/cmc/quote?symbol=${encodeURIComponent(cleanSymbol)}`);
-
-    // 2. Direct Apps Script proxy fallback if server proxy returns non-200
-    if (!response.ok) {
-      console.warn(`Server /api/cmc/quote returned HTTP ${response.status}. Trying direct GAS Web App proxy...`);
-      response = await fetch(`${CMC_GAS_URL}?symbol=${encodeURIComponent(cleanSymbol)}`);
+    let json: any = null;
+    try {
+      const response = await fetch(`/api/cmc/quote?symbol=${encodeURIComponent(cleanSymbol)}`);
+      json = await safeJsonParse(response);
+    } catch {
+      json = null;
     }
 
-    if (response.ok) {
-      const json = await response.json();
+    // 2. Direct Apps Script proxy fallback if server proxy returns non-JSON/error (e.g. Cloudflare SPA catch-all)
+    if (!json) {
+      try {
+        const gasResponse = await fetch(`${CMC_GAS_URL}?symbol=${encodeURIComponent(cleanSymbol)}`);
+        json = await safeJsonParse(gasResponse);
+      } catch (gasErr) {
+        console.warn(`CMC direct GAS proxy failed for ${cleanSymbol}:`, gasErr);
+      }
+    }
+
+    if (json) {
       const raw = json?.data?.[cleanSymbol] || json?.data?.[cleanSymbol.toLowerCase()];
       const entry = Array.isArray(raw) ? raw[0] : raw;
 
@@ -78,8 +89,6 @@ export async function fetchLiveCMCQuote(symbol: string, forceRefresh = false): P
         cmcCache[cleanSymbol] = { data: item, timestamp: now };
         return item;
       }
-    } else {
-      console.warn(`CMC Proxy returned HTTP ${response.status}`);
     }
   } catch (error) {
     console.warn(`CMC quote fetch error for ${cleanSymbol}:`, error);

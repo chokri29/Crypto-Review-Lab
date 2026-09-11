@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { safeJsonParse } from '../utils/apiResponse';
+
 export interface CoinStatsItem {
   id: string;
   icon?: string;
@@ -45,16 +47,25 @@ export async function fetchLiveCoinStatsMarkets(forceRefresh = false): Promise<R
 
   try {
     // 1. Try server proxy first
-    let response = await fetch('/api/coinstats/markets?limit=500');
+    let json: any = null;
+    try {
+      const response = await fetch('/api/coinstats/markets?limit=500');
+      json = await safeJsonParse(response);
+    } catch {
+      json = null;
+    }
     
-    // 2. Direct Apps Script proxy fallback if server proxy returns non-200
-    if (!response.ok) {
-      console.warn(`Server /api/coinstats/markets returned HTTP ${response.status}. Trying direct GAS Web App proxy...`);
-      response = await fetch(`${COINSTATS_GAS_URL}?limit=500`);
+    // 2. Direct Apps Script proxy fallback if server proxy returns non-JSON/error (e.g. Cloudflare SPA catch-all)
+    if (!json) {
+      try {
+        const gasResponse = await fetch(`${COINSTATS_GAS_URL}?limit=500`);
+        json = await safeJsonParse(gasResponse);
+      } catch (gasErr) {
+        console.warn('CoinStats direct GAS proxy failed:', gasErr);
+      }
     }
 
-    if (response.ok) {
-      const json = await response.json();
+    if (json) {
       const rawList: any[] = Array.isArray(json?.result) ? json.result : (Array.isArray(json) ? json : []);
 
       rawList.forEach((item) => {
@@ -87,8 +98,6 @@ export async function fetchLiveCoinStatsMarkets(forceRefresh = false): Promise<R
       });
 
       coinstatsCache = { data: map, timestamp: now };
-    } else {
-      console.warn(`CoinStats Proxy returned HTTP ${response.status}`);
     }
   } catch (error) {
     console.warn('CoinStats market fetch error:', error);

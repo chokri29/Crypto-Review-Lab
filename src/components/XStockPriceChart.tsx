@@ -127,41 +127,44 @@ export default function XStockPriceChart({
     };
   }, [symbol, name, coingeckoId, coingeckoRwaId, timeframe, propCurrentPrice, propChange24h]);
 
-  // Pre-load all 4 timeframes for instantaneous Multi-Timeframe Alignment
+  // Pre-load background timeframes sequentially with delay to prevent rate-limit bursts
   useEffect(() => {
     let isMounted = true;
     const timeframes: ChartTimeframe[] = ['24H', '7D', '1M', '1Y'];
     const targetCoinId = coingeckoId || coingeckoRwaId || symbol.toLowerCase();
     if (!targetCoinId) return;
 
-    Promise.all(
-      timeframes.map(tf =>
-        fetchHistoricalMarketChart(
-          targetCoinId,
-          symbol,
-          name,
-          propCurrentPrice,
-          propChange24h || 0,
-          tf
-        )
-      )
-    ).then(results => {
-      if (!isMounted) return;
-      const map: Partial<Record<ChartTimeframe, PricePoint[]>> = {};
-      results.forEach((res, idx) => {
-        if (res && res.prices && res.prices.length > 0) {
-          map[timeframes[idx]] = res.prices;
+    const backgroundTimeframes = timeframes.filter(tf => tf !== timeframe);
+
+    async function preloadTimeframes() {
+      for (const tf of backgroundTimeframes) {
+        if (!isMounted) break;
+        try {
+          const res = await fetchHistoricalMarketChart(
+            targetCoinId,
+            symbol,
+            name,
+            propCurrentPrice,
+            propChange24h || 0,
+            tf
+          );
+          if (isMounted && res && res.prices && res.prices.length > 0) {
+            setTimeframePricesMap(prev => ({ ...prev, [tf]: res.prices }));
+          }
+        } catch {
+          // background pre-load failure is non-blocking
         }
-      });
-      setTimeframePricesMap(prev => ({ ...map, ...prev }));
-    }).catch(err => {
-      console.warn('Multi-timeframe data preloading (xStock):', err);
-    });
+        // Small stagger between background pre-fetches
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+
+    preloadTimeframes();
 
     return () => {
       isMounted = false;
     };
-  }, [symbol, name, coingeckoId, coingeckoRwaId]);
+  }, [symbol, name, coingeckoId, coingeckoRwaId, timeframe]);
 
   // Snap the terminal point of the price array to propCurrentPrice (consensus anchor)
   const activePrices = useMemo<PricePoint[]>(() => {

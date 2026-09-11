@@ -11,6 +11,7 @@ import { enrichReviewWithDefiLlamaTvl } from './defillama';
 import { CoinStatsItem } from './coinstats';
 import { computeMultiSourceConvergence } from './marketConvergence';
 import { fetchLiveCMCQuote, CMCQuoteItem } from './cmc';
+import { safeJsonParse } from '../utils/apiResponse';
 
 export interface CoinGeckoMarketItem {
   id: string;
@@ -55,31 +56,41 @@ export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Reco
 
   try {
     const cleanIds = Array.from(new Set(ids.filter(Boolean))).join(',');
-    let response = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(cleanIds)}`);
-    if (!response.ok) {
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(cleanIds)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
-      response = await fetch(url);
+    let data: CoinGeckoMarketItem[] | null = null;
+
+    try {
+      const response = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(cleanIds)}`);
+      data = await safeJsonParse(response);
+    } catch {
+      data = null;
     }
 
-    if (response.ok) {
-      const data: CoinGeckoMarketItem[] = await response.json();
-      if (Array.isArray(data)) {
-        data.forEach(item => {
-          if (item && item.id && typeof item.current_price === 'number') {
-            const verifiedItem: CoinGeckoMarketItem = {
-              ...item,
-              dataEngine: 'CoinGecko API v3 (Live External Oracle)',
-              dataSources: ['CoinGecko API v3 Live Feed'],
-              isFallback: false,
-              provenance: 'LIVE'
-            };
-            map[item.id] = verifiedItem;
-            if (item.symbol) {
-              map[item.symbol.toLowerCase()] = verifiedItem;
-            }
-          }
-        });
+    if (!Array.isArray(data)) {
+      try {
+        const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(cleanIds)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+        const directRes = await fetch(url);
+        data = await safeJsonParse(directRes);
+      } catch (directErr) {
+        console.warn('Direct CoinGecko API markets fetch error:', directErr);
       }
+    }
+
+    if (Array.isArray(data)) {
+      data.forEach(item => {
+        if (item && item.id && typeof item.current_price === 'number') {
+          const verifiedItem: CoinGeckoMarketItem = {
+            ...item,
+            dataEngine: 'CoinGecko API v3 (Live External Oracle)',
+            dataSources: ['CoinGecko API v3 Live Feed'],
+            isFallback: false,
+            provenance: 'LIVE'
+          };
+          map[item.id] = verifiedItem;
+          if (item.symbol) {
+            map[item.symbol.toLowerCase()] = verifiedItem;
+          }
+        }
+      });
     }
   } catch (error) {
     console.warn('Verified CoinGecko API markets fetch error:', error);
@@ -94,23 +105,33 @@ export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchRes
   const cleanQuery = query.trim().toLowerCase();
 
   try {
-    let response = await fetch(`/api/coingecko/search?query=${encodeURIComponent(cleanQuery)}`);
-    if (!response.ok) {
-      const url = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(cleanQuery)}`;
-      response = await fetch(url);
+    let data: any = null;
+    try {
+      const response = await fetch(`/api/coingecko/search?query=${encodeURIComponent(cleanQuery)}`);
+      data = await safeJsonParse(response);
+    } catch {
+      data = null;
     }
-    if (response.ok) {
-      const data = await response.json();
-      if (data && Array.isArray(data.coins) && data.coins.length > 0) {
-        return data.coins.slice(0, 15).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          symbol: c.symbol?.toUpperCase() || '',
-          market_cap_rank: c.market_cap_rank || null,
-          thumb: c.thumb || c.large || '',
-          large: c.large || c.thumb || '',
-        }));
+
+    if (!data || !Array.isArray(data.coins)) {
+      try {
+        const url = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(cleanQuery)}`;
+        const directRes = await fetch(url);
+        data = await safeJsonParse(directRes);
+      } catch (directErr) {
+        console.warn('Direct CoinGecko search error:', directErr);
       }
+    }
+
+    if (data && Array.isArray(data.coins) && data.coins.length > 0) {
+      return data.coins.slice(0, 15).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        symbol: c.symbol?.toUpperCase() || '',
+        market_cap_rank: c.market_cap_rank || null,
+        thumb: c.thumb || c.large || '',
+        large: c.large || c.thumb || '',
+      }));
     }
   } catch (error) {
     console.warn('CoinGecko search error:', error);
@@ -121,26 +142,36 @@ export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchRes
 
 export async function fetchTrendingCoinGecko(): Promise<CoinGeckoSearchResult[]> {
   try {
-    let response = await fetch('/api/coingecko/trending');
-    if (!response.ok) {
-      const url = 'https://api.coingecko.com/api/v3/search/trending';
-      response = await fetch(url);
+    let data: any = null;
+    try {
+      const response = await fetch('/api/coingecko/trending');
+      data = await safeJsonParse(response);
+    } catch {
+      data = null;
     }
-    if (response.ok) {
-      const data = await response.json();
-      if (data && Array.isArray(data.coins) && data.coins.length > 0) {
-        return data.coins.map((item: any) => {
-          const c = item.item;
-          return {
-            id: c.id,
-            name: c.name,
-            symbol: c.symbol?.toUpperCase() || '',
-            market_cap_rank: c.market_cap_rank || null,
-            thumb: c.small || c.thumb || c.large || '',
-            large: c.large || c.small || '',
-          };
-        });
+
+    if (!data || !Array.isArray(data.coins)) {
+      try {
+        const url = 'https://api.coingecko.com/api/v3/search/trending';
+        const directRes = await fetch(url);
+        data = await safeJsonParse(directRes);
+      } catch (directErr) {
+        console.warn('Direct CoinGecko trending error:', directErr);
       }
+    }
+
+    if (data && Array.isArray(data.coins) && data.coins.length > 0) {
+      return data.coins.map((item: any) => {
+        const c = item.item;
+        return {
+          id: c.id,
+          name: c.name,
+          symbol: c.symbol?.toUpperCase() || '',
+          market_cap_rank: c.market_cap_rank || null,
+          thumb: c.small || c.thumb || c.large || '',
+          large: c.large || c.small || '',
+        };
+      });
     }
   } catch (error) {
     console.warn('CoinGecko trending error:', error);

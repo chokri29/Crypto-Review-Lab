@@ -4,6 +4,7 @@
  */
 
 import { isNyseMarketHour as isNyseCalendarMarketHour } from '../utils/usMarketCalendar';
+import { safeJsonParse } from '../utils/apiResponse';
 
 export interface PricePoint {
   timestamp: number;
@@ -808,10 +809,31 @@ export async function fetchHistoricalMarketChart(
 
   if (effectiveCoinId && effectiveCoinId !== 'n/a') {
     try {
-      const res = await fetch(`/api/coingecko/market_chart/${encodeURIComponent(effectiveCoinId)}?days=${days}&vs_currency=usd`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json && Array.isArray(json.prices) && json.prices.length > 2) {
+      let json: any = null;
+
+      // 1. Try server proxy endpoint first
+      try {
+        const res = await fetch(`/api/coingecko/market_chart/${encodeURIComponent(effectiveCoinId)}?days=${days}&vs_currency=usd`);
+        json = await safeJsonParse(res);
+      } catch (err) {
+        console.warn(`Internal /api/coingecko proxy fetch error for ${effectiveCoinId}:`, err);
+      }
+
+      // 2. Direct CoinGecko public fallback (handles custom domain masking, Cloudflare SPA catch-alls returning HTML, or proxy limits)
+      if (!json || !Array.isArray(json.prices) || json.prices.length <= 2) {
+        try {
+          const directUrl = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(effectiveCoinId)}/market_chart?vs_currency=usd&days=${days}`;
+          const directRes = await fetch(directUrl);
+          const directJson = await safeJsonParse(directRes);
+          if (directJson && Array.isArray(directJson.prices) && directJson.prices.length > 2) {
+            json = directJson;
+          }
+        } catch (directErr) {
+          console.warn(`Direct CoinGecko chart query error for ${effectiveCoinId}:`, directErr);
+        }
+      }
+
+      if (json && Array.isArray(json.prices) && json.prices.length > 2) {
           const rawPriceTuples: [number, number][] = json.prices;
           const rawVolTuples: [number, number][] = json.total_volumes || [];
 
@@ -873,7 +895,6 @@ export async function fetchHistoricalMarketChart(
           chartCache.set(cacheKey, { data: result, timestamp: Date.now() });
           return result;
         }
-      }
     } catch (err) {
       console.warn(`Could not fetch live market chart for ${effectiveCoinId}:`, err);
     }

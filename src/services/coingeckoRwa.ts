@@ -4,6 +4,7 @@
  */
 
 import { CoinGeckoMarketItem } from './coingecko';
+import { safeJsonParse } from '../utils/apiResponse';
 
 /**
  * CoinGecko Native RWA List item (from /rwas/list)
@@ -120,10 +121,11 @@ async function fetchWithTimeout<T>(url: string, timeoutMs: number = DEFAULT_TIME
   try {
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timer);
-    if (!res.ok) {
-      throw new Error(`HTTP error ${res.status} from ${url}`);
+    const parsed = await safeJsonParse<T>(res);
+    if (parsed === null) {
+      throw new Error(`Invalid non-JSON response from ${url}`);
     }
-    return await res.json() as T;
+    return parsed;
   } catch (err: any) {
     clearTimeout(timer);
     throw err;
@@ -141,10 +143,18 @@ export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGec
   }
 
   try {
-    const url = assetType 
-      ? `/api/coingecko/rwas/list?asset_type=${encodeURIComponent(assetType)}` 
-      : `/api/coingecko/rwas/list`;
-    const data = await fetchWithTimeout<CoinGeckoRwaListItem[]>(url, 7000);
+    const query = assetType ? `?asset_type=${encodeURIComponent(assetType)}` : '';
+    let data: CoinGeckoRwaListItem[] | null = null;
+    try {
+      data = await fetchWithTimeout<CoinGeckoRwaListItem[]>(`/api/coingecko/rwas/list${query}`, 7000);
+    } catch {
+      data = null;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      data = await fetchWithTimeout<CoinGeckoRwaListItem[]>(`https://api.coingecko.com/api/v3/rwas/list${query}`, 7000);
+    }
+
     if (Array.isArray(data)) {
       clientRwaListCache = { data, timestamp: Date.now() };
       return data;
@@ -178,8 +188,23 @@ export async function fetchCoinGeckoRwaMarkets(
   }
 
   try {
-    const url = `/api/coingecko/rwas/markets?ids=${encodeURIComponent(cleanIds.join(','))}&per_page=100`;
-    const rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(url, 8000);
+    const query = `ids=${encodeURIComponent(cleanIds.join(','))}&per_page=100`;
+    let rawList: CoinGeckoRwaMarketItem[] | null = null;
+
+    try {
+      rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`/api/coingecko/rwas/markets?${query}`, 8000);
+    } catch {
+      rawList = null;
+    }
+
+    // Direct fallback if proxy is returning HTML (e.g. Cloudflare SPA catch-all) or unavailable
+    if (!Array.isArray(rawList) || rawList.length === 0) {
+      try {
+        rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`https://api.coingecko.com/api/v3/rwas/markets?${query}`, 8000);
+      } catch (directErr) {
+        console.warn('[CoinGecko RWA] Direct public markets fetch failed:', directErr);
+      }
+    }
 
     const resultMap: Record<string, CoinGeckoRwaMarketItem> = {};
     if (Array.isArray(rawList)) {
@@ -214,8 +239,21 @@ export async function fetchCoinGeckoRwaDetail(rwaId: string): Promise<CoinGeckoR
   }
 
   try {
-    const url = `/api/coingecko/rwas/${encodeURIComponent(cleanId)}`;
-    const data = await fetchWithTimeout<CoinGeckoRwaDetail>(url, 7000);
+    let data: CoinGeckoRwaDetail | null = null;
+    try {
+      data = await fetchWithTimeout<CoinGeckoRwaDetail>(`/api/coingecko/rwas/${encodeURIComponent(cleanId)}`, 7000);
+    } catch {
+      data = null;
+    }
+
+    if (!data || !data.id) {
+      try {
+        data = await fetchWithTimeout<CoinGeckoRwaDetail>(`https://api.coingecko.com/api/v3/rwas/${encodeURIComponent(cleanId)}?tokens=true&tokenized_market_data=true`, 7000);
+      } catch (directErr) {
+        console.warn(`[CoinGecko RWA] Direct detail fetch failed for ${rwaId}:`, directErr);
+      }
+    }
+
     if (data && data.id) {
       clientRwaDetailCache.set(cleanId, { data, timestamp: Date.now() });
       return data;

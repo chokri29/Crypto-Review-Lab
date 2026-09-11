@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { safeJsonParse } from '../utils/apiResponse';
+
 export interface FinnhubQuote {
   symbol: string;
   c: number;   // Current price
@@ -48,16 +50,25 @@ export async function fetchLiveFinnhubQuote(
 
   try {
     // 1. Try server proxy first
-    let response = await fetch(`/api/finnhub/quote?symbol=${encodeURIComponent(cleanSymbol)}`);
-
-    // 2. Direct Apps Script proxy fallback if server proxy fails
-    if (!response.ok) {
-      response = await fetch(`${FINNHUB_GAS_URL}?symbol=${encodeURIComponent(cleanSymbol)}`);
+    let data: any = null;
+    try {
+      const response = await fetch(`/api/finnhub/quote?symbol=${encodeURIComponent(cleanSymbol)}`);
+      data = await safeJsonParse(response);
+    } catch {
+      data = null;
     }
 
-    if (response.ok) {
-      const data = await response.json();
-      
+    // 2. Direct Apps Script proxy fallback if server proxy fails or returns non-JSON (e.g. Cloudflare SPA catch-all)
+    if (!data || (typeof data.c !== 'number' && typeof data.pc !== 'number')) {
+      try {
+        const gasResponse = await fetch(`${FINNHUB_GAS_URL}?symbol=${encodeURIComponent(cleanSymbol)}`);
+        data = await safeJsonParse(gasResponse);
+      } catch (gasErr) {
+        console.warn(`Finnhub direct GAS proxy failed for ${cleanSymbol}:`, gasErr);
+      }
+    }
+
+    if (data) {
       const c = typeof data.c === 'number' && !isNaN(data.c) ? data.c : 0;
       const pc = typeof data.pc === 'number' && !isNaN(data.pc) ? data.pc : 0;
 
