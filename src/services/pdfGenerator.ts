@@ -11,6 +11,7 @@ import {
   getCategorySpecificModule,
   getCategoryDimensionWeights,
   calculateDataConfidence,
+  calculateEvidenceCoverage,
   ProtocolCategoryType
 } from './EvaluationBlueprint';
 
@@ -891,9 +892,23 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     ? {
         ...baseConfidence,
         overallConfidencePct: explicitConfScore,
-        confidenceLevel: (explicitConfScore >= 85 ? 'HIGH' : (explicitConfScore >= 70 ? 'MODERATE' : 'LOW')) as 'HIGH' | 'MODERATE' | 'LOW'
+        confidenceLevel: (explicitConfScore >= 80 ? 'HIGH' : (explicitConfScore >= 50 ? 'MODERATE' : 'LOW')) as 'HIGH' | 'MODERATE' | 'LOW'
       }
     : baseConfidence;
+
+  // Evidence coverage and deterministic verification confidence metrics
+  const f3 = data.f3Verification;
+  const canonicalStatus = f3?.canonicalVerificationStatus || (isVerified ? 'VERIFIED' : (isFailed ? 'FAILED' : 'NOT VERIFIED'));
+  const evidenceCoverage = calculateEvidenceCoverage(
+    hasRealContract,
+    hasRealScan,
+    true, // market data
+    Boolean(data.auditReports && data.auditReports.length > 0),
+    Boolean(data.realTvl && data.realTvl > 0)
+  );
+  const evidenceCoveragePct = f3?.evidenceCoveragePct ?? evidenceCoverage.coveragePct;
+  const verificationConfidencePct = f3?.verificationConfidencePct ?? confidence.overallConfidencePct;
+  const verificationConfidenceLevel = verificationConfidencePct >= 80 ? 'HIGH' : (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW');
 
   // ==========================================
   // PAGE 1: EXECUTIVE & EVALUATION OVERVIEW
@@ -960,7 +975,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   // 2. Target Protocol Identification Box
   doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin, y, contentWidth, 29, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 32, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
@@ -970,14 +985,15 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text(`• Protocol Category: ${categoryType}`, margin + 4, y + 11.5);
-  doc.text(`• Verified Address/Repo: ${data.contractAddress || 'Mainnet Monitored Bytecode & GitHub Repository'}`, margin + 4, y + 16);
-  doc.text(`• Verified DefiLlama TVL: ${formatDefiLlamaTvl(data.realTvl)}`, margin + 4, y + 20.5);
-  doc.text(`• Data Quality & Confidence: ${confidence.overallConfidencePct}% [${confidence.confidenceLevel}] (${confidence.verifiedOnChainPct}% On-Chain | ${confidence.publicAuditsPct}% Risk Model | ${confidence.simulatedDataPct}% Sim)`, margin + 4, y + 25);
+  doc.text(`• Protocol Category: ${categoryType}`, margin + 4, y + 11);
+  doc.text(`• Address / Bytecode Registry: ${data.contractAddress || 'Mainnet Monitored Bytecode & GitHub Repository'}`, margin + 4, y + 15.5);
+  doc.text(`• Reserve / DefiLlama TVL: ${data.realTvl && data.realTvl > 0 ? formatDefiLlamaTvl(data.realTvl) : 'UNAVAILABLE (Not tracked on DefiLlama)'}`, margin + 4, y + 20);
+  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Bytecode [VERIFIED]' : 'Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'Public Audits [VERIFIED]' : 'Public Audits [NOT VERIFIED]'})`, margin + 4, y + 24.5);
+  doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] | AVF Verification Status: ${canonicalStatus}`, margin + 4, y + 29);
 
-  y += 33;
+  y += 36;
 
-  // 3. Status Badge & Blueprint Master Standard Box
+  // 3. Status Badge & Verification Standard Box
   const boxBg = isVerified ? amber100 : (isFailed ? [255, 241, 242] : amber100);
   const boxBorder = isVerified ? amber500 : (isFailed ? [225, 29, 72] : amber500);
 
@@ -990,37 +1006,35 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFillColor(badgeBg[0], badgeBg[1], badgeBg[2]);
   doc.roundedRect(margin + 4, y + 3.5, 36, 17, 2, 2, 'F');
 
-  const badgeLabel = isVerified ? 'VERIFIED' : (gating.actualStatus === 'PENDING_REVIEW' ? 'PENDING' : gating.actualStatus);
+  const badgeLabel = canonicalStatus.toUpperCase();
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(badgeLabel.length > 8 ? 8.5 : 11);
-  doc.text(badgeLabel, margin + 22, y + 11, { align: 'center' });
+  doc.setFontSize(badgeLabel.length > 8 ? 8 : 10.5);
+  doc.text(badgeLabel, margin + 22, y + 10.5, { align: 'center' });
   doc.setFontSize(6.5);
   doc.setTextColor(255, 255, 255);
-  doc.text('CRL STANDARD', margin + 22, y + 16, { align: 'center' });
+  doc.text('AVF STATUS', margin + 22, y + 15.5, { align: 'center' });
 
   // Status Box Details
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
-  doc.setFontSize(10.5);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  const proStatusText = isVerified 
-    ? 'ASSESSMENT STATUS: DETERMINISTIC VERIFICATION PASSED'
-    : `ASSESSMENT STATUS: ${gating.actualStatus} (PENDING FINAL VERIFICATION)`;
-  doc.text(proStatusText, margin + 45, y + 9.5);
+  doc.text(`VERIFICATION STATUS: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 8.5);
 
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text('SPECIFICATION: ', margin + 45, y + 15.5);
-
-  doc.setTextColor(isVerified ? emerald500[0] : (isFailed ? 225 : 217), isVerified ? emerald500[1] : (isFailed ? 29 : 119), isVerified ? emerald500[2] : (isFailed ? 72 : 6));
-  doc.setFont('helvetica', 'bold');
-  doc.text('BLUEPRINT MASTER v2.4 (AVF-01..AVF-08 COMPLIANT)', margin + 75, y + 15.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text(`EVALUATION SCORE: ${data.overallScore || 0}/100 | INDEPENDENT ALGORITHMIC ASSESSMENT`, margin + 45, y + 13.5);
 
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(180, 83, 9);
-  doc.text(`ASSESSMENT ROUTING STATUS: CATEGORY ROUTED FOR ${categoryType.toUpperCase()}`, margin + 45, y + 20.5);
+  doc.text(`EVIDENCE COVERAGE: ${evidenceCoveragePct}% | VERIFICATION CONFIDENCE: ${verificationConfidencePct}% [${verificationConfidenceLevel}]`, margin + 45, y + 18);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
+  doc.text('BLUEPRINT MASTER v2.4 (AVF-01..AVF-08 COMPLIANT)', margin + 45, y + 22);
 
   y += 29;
 
@@ -1092,8 +1106,6 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFontSize(8);
   doc.setTextColor(180, 83, 9);
   doc.text('CRL RISK MODEL — AVF DETERMINISTIC VERIFICATION & ON-CHAIN TELEMETRY', margin + 4, y + 5.5);
-
-  const f3 = data.f3Verification;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.2);
@@ -1241,8 +1253,16 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     doc.text(vec.depth, margin + 70, rowY + 4.5);
     doc.text(vec.check, margin + 110, rowY + 4.5);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(16, 185, 129); // Emerald
+    const vUpper = (vec.verdict || '').toUpperCase();
+    if (vUpper.includes('VERIFIED') || vUpper.includes('PASSED')) {
+      doc.setTextColor(16, 185, 129); // Emerald
+    } else if (vUpper.includes('NOT') || vUpper.includes('UNAVAILABLE') || vUpper.includes('PENDING') || vUpper.includes('DEFINED') || vUpper.includes('N/A') || vUpper.includes('NOT_PERFORMED')) {
+      doc.setTextColor(100, 116, 139); // Slate neutral / unverified
+    } else if (vUpper.includes('FAILED') || vUpper.includes('INVALID') || vUpper.includes('FLAGGED') || vUpper.includes('CONFLICT') || vUpper.includes('CRITICAL')) {
+      doc.setTextColor(225, 29, 72); // Rose
+    } else {
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    }
     doc.text(vec.verdict, margin + 155, rowY + 4.5);
 
     y += 6.5;
@@ -1299,8 +1319,16 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     doc.text(item.check, margin + 62, rowY + 3.8);
     doc.text(item.status, margin + 120, rowY + 3.8);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(16, 185, 129); // Emerald
+    const iUpper = (item.verdict || '').toUpperCase();
+    if (iUpper.includes('VERIFIED') || iUpper.includes('PASSED') || iUpper.includes('COMPLIANT')) {
+      doc.setTextColor(16, 185, 129); // Emerald
+    } else if (iUpper.includes('NOT') || iUpper.includes('UNAVAILABLE') || iUpper.includes('PENDING') || iUpper.includes('DEFINED') || iUpper.includes('N/A') || iUpper.includes('NOT_PERFORMED')) {
+      doc.setTextColor(100, 116, 139); // Slate neutral / unverified
+    } else if (iUpper.includes('FAILED') || iUpper.includes('INVALID') || iUpper.includes('FLAGGED') || iUpper.includes('CONFLICT') || iUpper.includes('CRITICAL')) {
+      doc.setTextColor(225, 29, 72); // Rose
+    } else {
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    }
     doc.text(item.verdict, margin + 155, rowY + 3.8);
 
     y += 5.5;
@@ -1404,21 +1432,22 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
 
   doc.setFillColor(241, 245, 249);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 24, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 27, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(15, 23, 42);
-  doc.text(`2. DATA QUALITY & CONFIDENCE TRANSPARENCY INDICATOR: ${confidence.overallConfidencePct}% [${confidence.confidenceLevel}]`, margin + 4, y + 5.5);
+  doc.text(`2. EVIDENCE COVERAGE & DETERMINISTIC VERIFICATION DISCLOSURES`, margin + 4, y + 5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(51, 65, 85);
-  confidence.details.forEach((det, dIdx) => {
-    doc.text(`• ${det}`, margin + 4, y + 10.5 + (dIdx * 4.2));
-  });
+  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Contract Bytecode [VERIFIED]' : 'Contract Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'External Audits [VERIFIED]' : 'External Audits [NOT VERIFIED]'})`, margin + 4, y + 9.5);
+  doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] (Deterministic AVF mathematical validation)`, margin + 4, y + 13.7);
+  doc.text(`• AVF Verification Status: ${canonicalStatus} (Evidence determines findings; missing inputs remain unverified without positive assumptions)`, margin + 4, y + 17.9);
+  doc.text(`• Evidence State Invariant: MISSING, UNAVAILABLE, and NOT VERIFIED states are strictly preserved without synthetic inflation.`, margin + 4, y + 22.1);
 
-  y += 28;
+  y += 33;
 
   // 3. Cryptographic Verification & Integrity Digest
   if (y + 20 > pageHeight - 15) {

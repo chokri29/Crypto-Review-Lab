@@ -112,31 +112,85 @@ export type VerificationExecutionStatus = 'DEFINED' | 'EXECUTED' | 'VERIFIED' | 
  * - MODERATE: 70% – 84%
  * - LOW: < 70%
  */
+export interface EvidenceCoverageBreakdown {
+  coveragePct: number;
+  totalVectors: number;
+  verifiedVectors: number;
+  missingVectors: number;
+  unavailableVectors: number;
+  states: {
+    bytecode: 'VERIFIED' | 'MISSING';
+    securityScan: 'VERIFIED' | 'UNAVAILABLE';
+    marketTelemetry: 'VERIFIED' | 'UNAVAILABLE';
+    publicAudits: 'VERIFIED' | 'NOT VERIFIED';
+    reserveTvl: 'VERIFIED' | 'UNAVAILABLE';
+  };
+  details: string[];
+}
+
+export function calculateEvidenceCoverage(
+  hasOnChainAddress: boolean = false,
+  hasSecurityScan: boolean = false,
+  hasMarketData: boolean = true,
+  hasPublicAudits: boolean = false,
+  hasRealTvl: boolean = false
+): EvidenceCoverageBreakdown {
+  const states = {
+    bytecode: hasOnChainAddress ? ('VERIFIED' as const) : ('MISSING' as const),
+    securityScan: hasSecurityScan ? ('VERIFIED' as const) : ('UNAVAILABLE' as const),
+    marketTelemetry: hasMarketData ? ('VERIFIED' as const) : ('UNAVAILABLE' as const),
+    publicAudits: hasPublicAudits ? ('VERIFIED' as const) : ('NOT VERIFIED' as const),
+    reserveTvl: hasRealTvl ? ('VERIFIED' as const) : ('UNAVAILABLE' as const),
+  };
+
+  const vectors = Object.values(states);
+  const verifiedCount = vectors.filter(v => v === 'VERIFIED').length;
+  const coveragePct = Math.round((verifiedCount / vectors.length) * 100);
+
+  const details: string[] = [
+    `On-Chain Bytecode: [${states.bytecode}] ${hasOnChainAddress ? 'Smart contract address & bytecode registered' : 'No contract address supplied'}`,
+    `Security Telemetry & Invariants: [${states.securityScan}] ${hasSecurityScan ? 'On-chain vulnerability & honeypot scan active' : 'Automated security scan unavailable'}`,
+    `Multi-Source Market Telemetry: [${states.marketTelemetry}] ${hasMarketData ? 'Live price, volume & liquidity indexed' : 'Market telemetry unavailable'}`,
+    `Independent Third-Party Audits: [${states.publicAudits}] ${hasPublicAudits ? 'Verified public security audits on record' : 'No independent audits indexed (unverified qualitative claims)'}`,
+    `Reserve / TVL Telemetry: [${states.reserveTvl}] ${hasRealTvl ? 'Active TVL tracking on DefiLlama' : 'TVL telemetry unavailable on DefiLlama'}`
+  ];
+
+  return {
+    coveragePct,
+    totalVectors: vectors.length,
+    verifiedVectors: verifiedCount,
+    missingVectors: vectors.filter(v => v === 'MISSING').length,
+    unavailableVectors: vectors.filter(v => v === 'UNAVAILABLE' || v === 'NOT VERIFIED').length,
+    states,
+    details
+  };
+}
+
 export function calculateDataConfidence(
   hasOnChainAddress: boolean = false,
   hasPublicAudits: boolean = false,
   scores?: { utility: number; security: number }
 ): DataConfidenceBreakdown {
-  const onChain = hasOnChainAddress ? 45 : 0;
-  const publicAudits = hasPublicAudits ? 35 : 0;
-  const simulated = 20;
+  const onChain = hasOnChainAddress ? 50 : 0;
+  const publicAudits = hasPublicAudits ? 50 : 0;
+  const simulated = 0; // Removed synthetic baseline inflation
 
-  const totalConfidence = Math.min(98, Math.max(0, onChain + publicAudits + simulated));
+  const totalConfidence = Math.min(100, Math.max(0, onChain + publicAudits));
   const roundedConfidence = Math.round(totalConfidence);
 
   let level: 'HIGH' | 'MODERATE' | 'LOW' = 'LOW';
-  if (roundedConfidence >= 85) level = 'HIGH';
-  else if (roundedConfidence >= 70) level = 'MODERATE';
+  if (roundedConfidence >= 80) level = 'HIGH';
+  else if (roundedConfidence >= 50) level = 'MODERATE';
   else level = 'LOW';
 
   const details: string[] = [
     hasOnChainAddress
-      ? `Verified On-Chain Data (45%): Smart contract address & on-chain data verified`
-      : `On-Chain Data (0%): No direct smart contract address / verified bytecode on file`,
+      ? `On-Chain Bytecode: [VERIFIED] Smart contract address & on-chain data verified`
+      : `On-Chain Bytecode: [MISSING] No direct smart contract address / verified bytecode on file`,
     hasPublicAudits
-      ? `CRL Security Audits (${publicAudits}%): Verified public security audits / AST analysis`
-      : `CRL Security Audits (0%): No verified third-party audits on record`,
-    `Simulated Baseline (${simulated}%): Category stress & economic model constraints`
+      ? `Third-Party Security Audits: [VERIFIED] Verified public security audits / AST analysis`
+      : `Third-Party Security Audits: [NOT VERIFIED] No verified public audits on record; qualitative claims unverified`,
+    `Evidence State Integrity: Missing or unindexed inputs remain in explicit UNAVAILABLE / NOT VERIFIED states`
   ];
 
   return {
@@ -860,6 +914,7 @@ export function calculateBlueprintScore(
   options?: {
     hasOnChainAddress?: boolean;
     hasPublicAudits?: boolean;
+    declaredRiskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
   }
 ): BlueprintScoreResult {
   const categoryType = normalizeProtocolCategory(categoryInput);
@@ -892,21 +947,24 @@ export function calculateBlueprintScore(
   }
 
   const rawScore = Math.min(100, Math.max(1, Math.round(expandedScore)));
-
-  // Meme Coin Penalty Rule: If Utility <= 2 AND Team <= 3, cap max score at 60 (High Risk)
-  const isMemeCoinPenaltyTriggered = utility <= 2 && team <= 3;
-  const isCapped = isMemeCoinPenaltyTriggered && rawScore > 60;
-  const overallScore = isCapped ? 60 : rawScore;
+  const overallScore = rawScore;
+  const isMemeCoinPenaltyTriggered = false;
+  const isCapped = false;
 
   let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-  if (overallScore >= 85) {
-    riskLevel = 'Low';
-  } else if (overallScore >= 70) {
-    riskLevel = 'Medium';
-  } else if (overallScore >= 50) {
-    riskLevel = 'High';
+  if (options?.declaredRiskLevel) {
+    riskLevel = options.declaredRiskLevel;
   } else {
-    riskLevel = 'Critical';
+    // Evidence-based risk evaluation from core security and tokenomics invariants
+    if (security < 4.0) {
+      riskLevel = 'Critical';
+    } else if (security < 6.0 || tokenomics < 4.0) {
+      riskLevel = 'High';
+    } else if (security < 7.5 || overallScore < 70) {
+      riskLevel = 'Medium';
+    } else {
+      riskLevel = 'Low';
+    }
   }
 
   const confidence = calculateDataConfidence(

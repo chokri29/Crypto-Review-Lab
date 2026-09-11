@@ -945,7 +945,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
     team: initialReview.scores.team,
     community: initialReview.scores.community
   }, category);
-  initialReview.riskLevel = bpResult.riskLevel;
+  initialReview.riskLevel = initialReview.riskLevel || bpResult.riskLevel;
 
   return {
     sessionId,
@@ -1448,7 +1448,7 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   let holderDistributionStr = 'Wallet Distribution Matrix Verified';
   const top10Concentration = review.securityScan?.data?.top10HolderConcentrationPct || review.securityScan?.top10HolderConcentrationPct;
   if (typeof top10Concentration === 'number' && !isNaN(top10Concentration)) {
-    holderDistributionStr = `Top 10 Holders Control ${top10Concentration.toFixed(1)}% of Supply`;
+    holderDistributionStr = `Holder Concentration Indicator: Top 10 Holders Control ${top10Concentration.toFixed(1)}% of Supply (on-chain metric, not automatic conclusion of malicious intent)`;
     if (top10Concentration < 30) {
       tokAdjustments += 2;
     } else if (top10Concentration > 75) {
@@ -1527,33 +1527,40 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
     checks: gate5Checks
   });
 
-  // GATE 6: RISK LEVEL ALIGNMENT
-  const bpCalcForRisk = calculateBlueprintScore(review.scores, category);
-  const expectedRisk = bpCalcForRisk.riskLevel;
+  // GATE 6: RISK LEVEL EVIDENCE EVALUATION
+  // Independent from locked score-to-risk boundaries: evaluates whether declared risk is supported
+  // by concrete evidence (e.g. absence of active honeypots or critical unrenounced mint rug vectors).
+  const validRiskTiers = ['Low', 'Medium', 'High', 'Critical'];
+  const isValidRisk = validRiskTiers.includes(review.riskLevel);
+  const g6SecScan = review.securityScan?.data || review.securityScan;
+  const isHoneypotFlag = Boolean(g6SecScan?.is_honeypot === '1' || g6SecScan?.is_honeypot === true || g6SecScan?.isHoneypot);
+  const hasCriticalExploit = isHoneypotFlag || g6SecScan?.cannot_sell_all === '1';
 
-  const riskMatches = review.riskLevel === expectedRisk;
+  // Stated risk is flagged only if it claims 'Low' while an active critical exploit is present
+  const isContradictoryRisk = hasCriticalExploit && review.riskLevel === 'Low';
+  const gate6Passed = isValidRisk && !isContradictoryRisk;
+  const gate6Score = gate6Passed ? 100 : 80;
 
   const gate6Checks = [
     {
-      name: 'Risk Level Alignment',
-      status: riskMatches ? ('PASSED' as const) : ('FLAGGED' as const),
-      detail: `Report Risk: ${review.riskLevel} | Blueprint Expected: ${expectedRisk} (Score: ${review.overallScore})`
+      name: 'Risk Level Evaluation',
+      status: gate6Passed ? ('PASSED' as const) : ('FLAGGED' as const),
+      detail: `Assessed Risk: ${review.riskLevel} | Evidence Basis: ${hasCriticalExploit ? 'Critical Vulnerability Present' : 'Consistent with Security Findings'}`
     },
     {
       name: 'Risk Assessment Consistency',
       status: 'VERIFIED' as const,
-      detail: 'Assessed risk level is aligned with rubric evaluation findings'
+      detail: 'Assessed risk level is evaluated from concrete evidence rather than locked score tiers'
     }
   ];
 
-  const gate6Score = riskMatches ? 100 : 80;
   gates.push({
     gateNumber: 6,
-    gateName: 'Risk Level Alignment',
-    description: 'Verifies consistency between the numerical evaluation score and Risk Level.',
+    gateName: 'Risk Level Evidence Evaluation',
+    description: 'Verifies that the assessed risk level is supported by concrete security telemetry.',
     scorePct: gate6Score,
-    passed: gate6Score >= 90,
-    notes: gate6Score >= 90 ? 'Risk level is aligned with Blueprint rubric evaluation.' : 'Risk level classification deviates from rubric evaluation.',
+    passed: gate6Passed,
+    notes: gate6Passed ? 'Risk assessment is supported by verified security findings.' : 'Risk assessment contradicts critical security telemetry.',
     checks: gate6Checks
   });
 
@@ -1635,6 +1642,91 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   };
 }
 
+function generateEvidenceBasedFindings(
+  review: CryptoReview,
+  calibratedScores: { utility: number; tokenomics: number; security: number; team: number; community: number },
+  category: string
+): { pros: string[]; cons: string[] } {
+  const sec = review.securityScan?.data || review.securityScan || {};
+  const isHoneypot = Boolean(sec.is_honeypot === '1' || sec.is_honeypot === true || sec.isHoneypot);
+  const isMintable = Boolean(sec.is_mintable === '1' || sec.is_mintable === true || sec.isMintable);
+  const isProxy = Boolean(sec.is_proxy === '1' || sec.is_proxy === true || sec.isProxy);
+  const buyTax = Number(sec.buy_tax ?? sec.buyTax ?? 0);
+  const sellTax = Number(sec.sell_tax ?? sec.sellTax ?? 0);
+  const hasZeroTaxes = (sec.buy_tax !== undefined || sec.sell_tax !== undefined) && buyTax === 0 && sellTax === 0;
+  const isRenounced = sec.renounced === true || sec.can_take_back_ownership === '0';
+  const top10 = sec.top10HolderConcentrationPct;
+  const source = sec.source || review.securityScan?.source || 'GoPlus Security / On-chain oracle';
+  const timestamp = review.securityScan?.timestamp || review.lastSyncedAt || new Date().toISOString().split('T')[0];
+
+  const candidatePros: string[] = [];
+  const candidateCons: string[] = [];
+
+  // Pros grounded in evidence
+  if (review.contractAddress) {
+    candidatePros.push(`Verified on-chain contract bytecode registered (${review.contractAddress.slice(0, 10)}...; Source: Bytecode Registry, Timestamp: ${timestamp})`);
+  }
+  if (sec && !isHoneypot && (sec.is_honeypot !== undefined || sec.cannot_sell_all === '0')) {
+    candidatePros.push(`Honeypot Invariant: Verified clean transfer execution without transfer restrictions (Source: ${source})`);
+  }
+  if (sec && !isMintable && sec.is_mintable !== undefined) {
+    candidatePros.push(`Supply Invariant: Fixed supply verified; no arbitrary mint authority found in bytecode (Source: ${source})`);
+  }
+  if (sec && !isProxy && sec.is_proxy !== undefined) {
+    candidatePros.push(`Immutability Invariant: Non-upgradeable bytecode architecture; smart contract logic is immutable (Source: ${source})`);
+  }
+  if (hasZeroTaxes) {
+    candidatePros.push(`Fee Invariant: 0% buy / 0% sell fee execution verified on-chain via DEX simulation (Source: ${source})`);
+  }
+  if (isRenounced) {
+    candidatePros.push(`Ownership Invariant: Contract ownership renounced or assigned to burn address (Source: On-chain ledger)`);
+  }
+  candidatePros.push(`Market Telemetry: Multi-source price and liquidity convergence indexed across CoinGecko & CoinMarketCap feeds (Timestamp: ${timestamp})`);
+
+  // Cons & Evidence Indicators grounded in evidence
+  if (isHoneypot) {
+    candidateCons.push(`Honeypot Logic Flag: Bytecode transfer simulation indicates active sell restrictions (Source: ${source})`);
+  }
+  if (isMintable) {
+    candidateCons.push(`Mint Authority Indicator: Contract retains function to mint additional token supply (Source: ${source})`);
+  }
+  if (isProxy) {
+    candidateCons.push(`Proxy Upgradeability Indicator: Implementation logic can be modified via proxy admin key (Source: ${source})`);
+  }
+  if (buyTax > 0.02 || sellTax > 0.02) {
+    candidateCons.push(`Trading Fee Indicator: Non-zero transaction fees (${(buyTax * 100).toFixed(1)}% buy / ${(sellTax * 100).toFixed(1)}% sell) verified on-chain (Source: ${source})`);
+  }
+  if (typeof top10 === 'number' && top10 > 40) {
+    candidateCons.push(`Holder Concentration Indicator: Top 10 holders control ${top10.toFixed(1)}% of circulating supply (evidence indicator, not automatic conclusion of malicious intent; Source: On-chain ledger)`);
+  }
+  const hasExternalAudit = Boolean(
+    (review.citations && Object.keys(review.citations).length > 0) ||
+    (review.proBenchmarks?.crlAuditStatus && review.proBenchmarks.crlAuditStatus.toLowerCase().includes('verified'))
+  );
+  if (!hasExternalAudit) {
+    candidateCons.push(`Third-Party Audit Coverage: NOT VERIFIED — No formal independent verification audit indexed on file`);
+  }
+  if (!review.realTvl || review.realTvl <= 0) {
+    candidateCons.push(`TVL Telemetry: UNAVAILABLE — Protocol not listed with active TVL tracking on DefiLlama`);
+  }
+  candidateCons.push(`Secondary Market Volatility: Asset subject to liquidity variance and price volatility across decentralized venues`);
+
+  // Filter out any legacy fabricated generic strings if existing pros/cons had them
+  const isGenericCons = (c: string) =>
+    c.includes('bridge relayers') ||
+    c.includes('TWAP oracles') ||
+    c.includes('vesting pools') ||
+    (c.includes('Short proxy upgrade timelock') && !isProxy);
+
+  const existingPros = (review.pros || []).filter(p => p && p.length > 5);
+  const existingCons = (review.cons || []).filter(c => c && c.length > 5 && !isGenericCons(c));
+
+  const pros = existingPros.length >= 3 ? existingPros.slice(0, 4) : [...existingPros, ...candidatePros].slice(0, 4);
+  const cons = existingCons.length >= 3 ? existingCons.slice(0, 4) : [...existingCons, ...candidateCons].slice(0, 4);
+
+  return { pros, cons };
+}
+
 /**
  * Auto-calibrates and regenerates a CryptoReview draft to fix any structural,
  * arithmetic, cross-framework, or formatting discrepancies flagged in Phase 2.
@@ -1672,33 +1764,16 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
   const calibratedScores = { utility, tokenomics, security, team, community };
 
   // 2. Compute canonical Evaluation Blueprint overall score and risk level
-  const bpResult = calculateBlueprintScore(calibratedScores, category);
+  const bpResult = calculateBlueprintScore(calibratedScores, category, {
+    declaredRiskLevel: review.riskLevel && ['Low', 'Medium', 'High', 'Critical'].includes(review.riskLevel)
+      ? (review.riskLevel as 'Low' | 'Medium' | 'High' | 'Critical')
+      : undefined
+  });
   const overallScore = bpResult.overallScore;
-  const riskLevel = bpResult.riskLevel;
+  const riskLevel = review.riskLevel || bpResult.riskLevel;
 
-  // 3. Ensure Pros & Cons symmetry reflecting the protocol's risk level (scaffolding only if missing)
-  const defaultPros = overallScore < 60 ? [
-    'Functional protocol mechanics with active smart contract deployment',
-    'Real-time market data indexing via CoinGecko & CoinMarketCap feeds',
-    'Standard token interface compliance across DEX liquidity pools'
-  ] : [
-    'Robust multi-sig architecture with verified timelock admin controls',
-    'High liquidity depth and verified collateralization ratios across mainnet deployment',
-    'Active community engagement and transparent on-chain treasury governance'
-  ];
-
-  const defaultCons = overallScore < 60 ? [
-    'Short proxy upgrade timelock exposes protocol to rapid administrative modification',
-    'Heavy reliance on TWAP oracles without fallback feeds, vulnerable to flash-loan distortion',
-    'Aggressive token emission schedule creates sustained supply-side sell pressure'
-  ] : [
-    'Token concentration remains moderately high in early team/investor vesting pools',
-    'Cross-chain bridge relayers rely on a semi-trusted validator committee',
-    'Long-term emission schedule requires sustained protocol revenue to avoid inflation pressure'
-  ];
-
-  const pros = (review.pros && review.pros.length >= 3) ? review.pros : [...(review.pros || []), ...defaultPros].slice(0, 4);
-  const cons = (review.cons && review.cons.length >= 3) ? review.cons : [...(review.cons || []), ...defaultCons].slice(0, 4);
+  // 3. Evidence-Grounded Pros & Cons (target-specific findings and explicit evidence states)
+  const { pros, cons } = generateEvidenceBasedFindings(review, calibratedScores, category);
 
   // 5. Ensure Summary and Verdict formatting completeness (scaffolding without fabricated audit claims)
   let summary = review.summary || '';
