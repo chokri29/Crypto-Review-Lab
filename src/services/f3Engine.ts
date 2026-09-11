@@ -1435,8 +1435,19 @@ export function verifyAVF07Confidence(
     (0.30 * dataConfidence) +
     (0.30 * scenarioConfidence) +
     (0.20 * conclusionConfidence);
-  const overallConfidence = +rawOverall.toFixed(2);
-  const confidenceLevel = getConfidenceLevel(overallConfidence);
+  let overallConfidence = +rawOverall.toFixed(2);
+  let confidenceLevel = getConfidenceLevel(overallConfidence);
+
+  // Strictly enforce constraint: Do NOT claim HIGH confidence when deterministic verification is failed/contradictory
+  const isFailedOrContradictory =
+    avf06?.status === 'CONFLICT' ||
+    Boolean(avf06?.contradictions && avf06.contradictions.length > 0) ||
+    conclusionConfidence <= 0.3;
+
+  if (isFailedOrContradictory) {
+    overallConfidence = Math.min(overallConfidence, 0.55);
+    confidenceLevel = overallConfidence >= 0.5 ? 'MODERATE' : 'LOW';
+  }
   const confidencePct = Math.round(overallConfidence * 100);
 
   const isVerified = missingModules.length === 0;
@@ -2485,7 +2496,10 @@ async function runF3Verification(
     }
   }
 
-  const overallConfidenceNum = avf07.confidence.overallConfidence;
+  let overallConfidenceNum = avf07.confidence.overallConfidence;
+  if (overallStatus === 'FAILED' || overallStatus === 'DISCREPANCY_FOUND') {
+    overallConfidenceNum = Math.min(overallConfidenceNum, 0.50);
+  }
   const overallConfidencePct = Math.round(overallConfidenceNum * 100);
 
   // Summary message formulation

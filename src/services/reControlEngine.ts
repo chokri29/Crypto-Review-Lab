@@ -1656,7 +1656,7 @@ function generateEvidenceBasedFindings(
   const hasZeroTaxes = (sec.buy_tax !== undefined || sec.sell_tax !== undefined) && buyTax === 0 && sellTax === 0;
   const isRenounced = sec.renounced === true || sec.can_take_back_ownership === '0';
   const top10 = sec.top10HolderConcentrationPct;
-  const source = sec.source || review.securityScan?.source || 'GoPlus Security / On-chain oracle';
+  const source = sec.source || review.securityScan?.source || 'GoPlus Security / On-chain telemetry';
   const timestamp = review.securityScan?.timestamp || review.lastSyncedAt || new Date().toISOString().split('T')[0];
 
   const candidatePros: string[] = [];
@@ -1711,15 +1711,25 @@ function generateEvidenceBasedFindings(
   }
   candidateCons.push(`Secondary Market Volatility: Asset subject to liquidity variance and price volatility across decentralized venues`);
 
-  // Filter out any legacy fabricated generic strings if existing pros/cons had them
-  const isGenericCons = (c: string) =>
-    c.includes('bridge relayers') ||
-    c.includes('TWAP oracles') ||
-    c.includes('vesting pools') ||
-    (c.includes('Short proxy upgrade timelock') && !isProxy);
+  // Filter out any legacy fabricated generic strings or unsupported oracle/bridge claims
+  const isUnsupportedClaim = (text: string) => {
+    const isMemeOrStandard = review.category?.toLowerCase().includes('meme') || review.category?.toLowerCase().includes('speculative');
+    if (isMemeOrStandard) {
+      const lower = text.toLowerCase();
+      if (lower.includes('oracle') || lower.includes('bridge') || lower.includes('relayer') || lower.includes('tvl drain') || lower.includes('multi-sig treasury')) {
+        return true;
+      }
+    }
+    return (
+      text.includes('bridge relayers') ||
+      text.includes('TWAP oracles') ||
+      text.includes('vesting pools') ||
+      (text.includes('Short proxy upgrade timelock') && !isProxy)
+    );
+  };
 
-  const existingPros = (review.pros || []).filter(p => p && p.length > 5);
-  const existingCons = (review.cons || []).filter(c => c && c.length > 5 && !isGenericCons(c));
+  const existingPros = (review.pros || []).filter(p => p && p.length > 5 && !isUnsupportedClaim(p));
+  const existingCons = (review.cons || []).filter(c => c && c.length > 5 && !isUnsupportedClaim(c));
 
   const pros = existingPros.length >= 3 ? existingPros.slice(0, 4) : [...existingPros, ...candidatePros].slice(0, 4);
   const cons = existingCons.length >= 3 ? existingCons.slice(0, 4) : [...existingCons, ...candidateCons].slice(0, 4);
