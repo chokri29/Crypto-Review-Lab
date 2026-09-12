@@ -36,14 +36,12 @@ import {
   Sparkles,
   ArrowRight,
   Download,
-  FileText,
-  FileSpreadsheet
+  FileText
 } from 'lucide-react';
 import { CryptoReview, AdminOverrideLog, ProOrder } from '../types';
 import { F3VerificationResult, getConfidenceLevel, projectToPublicCryptoReviewReport } from '../services/f3Engine';
 import { useF3VerificationState } from '../context/F3VerificationContext';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
-import { exportF3AuditCsv, exportF3ProjectsBatchCsv } from '../services/csvExport';
 import { getSigningPublicKey } from '../services/auditSigner';
 import { CRL_VERSION_MANIFEST } from '../versionManifest';
 import { EvidenceQualityCard } from './EvidenceQualityCard';
@@ -310,27 +308,6 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
 
     setShowExportMenu(false);
     setExportFeedback(`Exported Final Approved PDF Report for ${selectedProject.name} (${selectedProject.symbol})`);
-    setTimeout(() => setExportFeedback(null), 5000);
-  };
-
-  const handleExportFinalCsv = () => {
-    if (!selectedProject) return;
-    exportF3AuditCsv(
-      selectedProject,
-      currentF3Result,
-      adminOverride,
-      `${selectedProject.symbol.toLowerCase()}_f3_final_verified_report.csv`
-    );
-    setShowExportMenu(false);
-    setExportFeedback(`Exported Final Approved CSV Report for ${selectedProject.name} (${selectedProject.symbol})`);
-    setTimeout(() => setExportFeedback(null), 5000);
-  };
-
-  const handleExportBatchCsv = () => {
-    if (!filteredProjects || filteredProjects.length === 0) return;
-    exportF3ProjectsBatchCsv(filteredProjects, getF3Result);
-    setShowExportMenu(false);
-    setExportFeedback(`Exported Batch CSV for ${filteredProjects.length} projects in queue`);
     setTimeout(() => setExportFeedback(null), 5000);
   };
 
@@ -642,7 +619,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                   onClick={() => setShowExportMenu(!showExportMenu)}
                   disabled={!selectedProject}
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 font-mono font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 shrink-0"
-                  title="Export final approved & verified report to PDF or CSV"
+                  title="Export final approved & verified report to PDF"
                 >
                   <Download className="w-4 h-4 text-cyan-400" />
                   <span>Export Report</span>
@@ -679,39 +656,6 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                           <p className="text-[10px] text-slate-400 leading-tight">
                             Cryptographic verification audit brief with AVF algorithmic matrix & Ed25519 signatures.
                           </p>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={handleExportFinalCsv}
-                        disabled={!selectedProject}
-                        className="w-full text-left p-2 hover:bg-emerald-500/10 rounded-lg text-slate-200 hover:text-emerald-300 flex items-start gap-2.5 transition-colors cursor-pointer group"
-                      >
-                        <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-md shrink-0 group-hover:bg-emerald-500/30">
-                          <FileSpreadsheet className="w-4 h-4" />
-                        </div>
-                        <div className="space-y-0.5">
-                          <div className="font-bold flex items-center gap-1.5">
-                            <span>Final Verified CSV</span>
-                            <span className="text-[9px] bg-emerald-950 text-emerald-400 px-1 py-0.2 rounded border border-emerald-800">DATA</span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 leading-tight">
-                            Structured tabular dataset with 5 dimension scores, AVF-01..AVF-08 results, and SHA-256 digest.
-                          </p>
-                        </div>
-                      </button>
-
-                      <div className="border-t border-slate-800 my-1"></div>
-
-                      <button
-                        onClick={handleExportBatchCsv}
-                        disabled={!filteredProjects || filteredProjects.length === 0}
-                        className="w-full text-left p-2 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-slate-100 flex items-center gap-2.5 transition-colors cursor-pointer"
-                      >
-                        <Layers className="w-4 h-4 text-purple-400 shrink-0 ml-1" />
-                        <div>
-                          <div className="font-bold text-[11px]">Batch Queue CSV ({filteredProjects.length} Projects)</div>
-                          <p className="text-[9px] text-slate-400">Export table of all reviewed projects</p>
                         </div>
                       </button>
                     </motion.div>
@@ -926,16 +870,6 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
               >
                 <FileText className="w-3.5 h-3.5 text-cyan-400" />
                 <span>Export PDF</span>
-              </button>
-
-              {/* Direct Export Final CSV */}
-              <button
-                onClick={handleExportFinalCsv}
-                className="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 hover:border-emerald-400 rounded-xl font-mono text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
-                title="Export final approved & verified CSV audit data"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Export CSV</span>
               </button>
 
               {isAdmin && (

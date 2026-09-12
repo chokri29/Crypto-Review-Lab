@@ -298,6 +298,102 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.save(customFilename);
 }
 
+function getAvfModulesList(f3: F3VerificationResult | PublicF3VerificationResult | undefined | null) {
+  const mods = (f3?.modules as any) || {};
+  const avf01 = mods.avf01Classification || mods.avf01Taxonomy || mods.avf01;
+  const avf02 = mods.avf02Evidence || mods.avf02Provenance || mods.avf02;
+  const avf03 = mods.avf03Methodology || mods.avf03;
+  const avf04 = mods.avf04Scenarios || mods.avf04StressTest || mods.avf04;
+  const avf05 = mods.avf05Score || mods.avf05;
+  const avf06 = mods.avf06RiskConclusion || mods.avf06Security || mods.avf06;
+  const avf07 = mods.avf07Confidence || mods.avf07;
+  const avf08 = mods.avf08Traceability || mods.avf08Integrity || mods.avf08;
+
+  return [
+    {
+      id: 'AVF-01',
+      name: 'Classification & Taxonomy',
+      status: avf01 ? (avf01.status || 'UNVERIFIED') : 'Input unavailable',
+      details: avf01 ? (avf01.details || 'Taxonomy and classification invariants evaluated') : 'Input unavailable'
+    },
+    {
+      id: 'AVF-02',
+      name: 'Evidence Grounding',
+      status: avf02 ? (avf02.status || 'UNVERIFIED') : 'Input unavailable',
+      details: !avf02
+        ? 'Input unavailable'
+        : (() => {
+            const cov = avf02.evidenceCoveragePct !== undefined && avf02.evidenceCoveragePct !== null
+              ? `Coverage: ${Math.round(avf02.evidenceCoveragePct * 100)}%`
+              : '';
+            const d = avf02.details || '';
+            return [cov, d].filter(Boolean).join(' • ') || 'Evidence coverage verified';
+          })()
+    },
+    {
+      id: 'AVF-03',
+      name: 'Methodology Compliance',
+      status: avf03 ? (avf03.status || 'UNVERIFIED') : 'Input unavailable',
+      details: avf03 ? (avf03.details || 'Evaluation rubric and weight constraints verified') : 'Input unavailable'
+    },
+    {
+      id: 'AVF-04',
+      name: 'Scenario Simulation',
+      status: avf04 ? (avf04.status || 'UNVERIFIED') : 'Input unavailable',
+      details: !avf04
+        ? 'Input unavailable'
+        : (() => {
+            const rate = avf04.scenarioExecutionRate !== undefined && avf04.scenarioExecutionRate !== null
+              ? `Execution Rate: ${Math.round(avf04.scenarioExecutionRate * 100)}%`
+              : '';
+            const d = avf04.details || '';
+            return [rate, d].filter(Boolean).join(' • ') || 'Scenario execution verified';
+          })()
+    },
+    {
+      id: 'AVF-05',
+      name: 'Score & Weight Parity',
+      status: avf05 ? (avf05.status === 'VERIFIED' || avf05.isVerified ? 'VERIFIED' : (avf05.status || 'UNVERIFIED')) : 'Input unavailable',
+      details: !avf05
+        ? 'Input unavailable'
+        : (() => {
+            const rep = avf05.reportedScore !== undefined && avf05.reportedScore !== null ? `Reported: ${avf05.reportedScore}` : '';
+            const rec = avf05.recomputedScore !== undefined && avf05.recomputedScore !== null ? `Recomputed: ${avf05.recomputedScore}` : '';
+            const disc = avf05.discrepancy !== undefined && avf05.discrepancy !== null ? `Δ: ${avf05.discrepancy}` : '';
+            const scoreStr = [rep, rec, disc].filter(Boolean).join(' | ');
+            const d = avf05.details || '';
+            return [scoreStr, d].filter(Boolean).join(' • ') || 'Mathematical model validated against Blueprint specification';
+          })()
+    },
+    {
+      id: 'AVF-06',
+      name: 'Risk-Conclusion Parity',
+      status: avf06 ? (avf06.status || 'UNVERIFIED') : 'Input unavailable',
+      details: !avf06
+        ? 'Input unavailable'
+        : (() => {
+            const contra = avf06.contradictions && avf06.contradictions.length > 0
+              ? `Contradictions: ${avf06.contradictions.join('; ')}`
+              : '';
+            const d = avf06.details || '';
+            return [contra, d].filter(Boolean).join(' • ') || 'Risk-conclusion logical parity verified';
+          })()
+    },
+    {
+      id: 'AVF-07',
+      name: 'Confidence Scorer',
+      status: avf07 ? (avf07.status || 'UNVERIFIED') : 'Input unavailable',
+      details: avf07 ? (avf07.details || 'Algorithmic confidence model aggregation computed') : 'Input unavailable'
+    },
+    {
+      id: 'AVF-08',
+      name: 'Traceability & Signing',
+      status: avf08 ? (avf08.status || 'UNVERIFIED') : 'Input unavailable',
+      details: avf08 ? (avf08.details || 'Cryptographic signing and report digest verified') : 'Input unavailable'
+    }
+  ];
+}
+
 /**
  * Generates a project or topic-specific PDF Security Audit Report.
  * Includes Project/Query Title, Exact Timestamp, Unique Reference ID, and Audit Findings.
@@ -699,6 +795,75 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
     }
 
     y += 32;
+
+    if (y + 60 > pageHeight - 18) {
+      addFooter(doc, pageWidth, pageHeight, margin, textMuted, `Target: ${projName} | ID: ${refId}`);
+      doc.addPage();
+      y = margin + 10;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    doc.text('AVF-01..AVF-08 DETERMINISTIC VERIFICATION MATRIX', margin, y);
+    y += 4;
+
+    const avfTableHeaderY = y;
+    doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+    doc.rect(margin, avfTableHeaderY, contentWidth, 6, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CHECK', margin + 3, avfTableHeaderY + 4.2);
+    doc.text('MODULE NAME', margin + 18, avfTableHeaderY + 4.2);
+    doc.text('STATUS', margin + 65, avfTableHeaderY + 4.2);
+    doc.text('DETERMINISTIC VALIDATION DETAILS & METRICS', margin + 105, avfTableHeaderY + 4.2);
+
+    y += 6;
+
+    const avfRows = getAvfModulesList(f3);
+    avfRows.forEach((row, idx) => {
+      const rowY = y;
+      if (idx % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(margin, rowY, contentWidth, 5.5, 'F');
+      }
+
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.8);
+      doc.text(row.id, margin + 3, rowY + 3.8);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text(row.name, margin + 18, rowY + 3.8);
+
+      const isInputUnavailable = row.status === 'Input unavailable';
+      const isRowVerified = row.status === 'VERIFIED' || row.status === 'CONSISTENT';
+      const isRowFlagged = row.status === 'FAILED' || row.status === 'DISCREPANCY_FOUND' || row.status === 'MISCLASSIFIED';
+
+      doc.setFont('helvetica', 'bold');
+      if (isInputUnavailable) {
+        doc.setTextColor(180, 83, 9);
+      } else if (isRowVerified) {
+        doc.setTextColor(16, 149, 106);
+      } else if (isRowFlagged) {
+        doc.setTextColor(225, 29, 72);
+      } else {
+        doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      }
+      doc.text(row.status, margin + 65, rowY + 3.8);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+      const maxDetailChars = 58;
+      const detailText = row.details.length > maxDetailChars ? `${row.details.slice(0, maxDetailChars - 3)}...` : row.details;
+      doc.text(detailText, margin + 105, rowY + 3.8);
+
+      y += 5.5;
+    });
+
+    y += 6;
   }
 
   // 4. Detailed Security Findings & Technical Analysis Text
@@ -1475,7 +1640,76 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
 
   y += 6;
 
-  // 2. Data Confidence / Quality Indicator Box
+  if (y + 60 > pageHeight - 35) {
+    addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());
+    doc.addPage();
+    addProPageHeader(doc, pageWidth, margin, refId, 'SECTION 3 (CONTINUED): AVF DETERMINISTIC MATRIX');
+    y = 22;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('2. AVF-01..AVF-08 DETERMINISTIC VERIFICATION MATRIX', margin, y);
+  y += 4;
+
+  const proAvfTableHeaderY = y;
+  doc.setFillColor(slate900[0], slate900[1], slate900[2]);
+  doc.rect(margin, proAvfTableHeaderY, contentWidth, 5.5, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CHECK', margin + 3, proAvfTableHeaderY + 3.8);
+  doc.text('MODULE NAME', margin + 18, proAvfTableHeaderY + 3.8);
+  doc.text('STATUS', margin + 65, proAvfTableHeaderY + 3.8);
+  doc.text('DETERMINISTIC VALIDATION DETAILS & METRICS', margin + 105, proAvfTableHeaderY + 3.8);
+
+  y += 5.5;
+
+  const proAvfRows = getAvfModulesList(data.f3Verification);
+  proAvfRows.forEach((row, idx) => {
+    const rowY = y;
+    if (idx % 2 === 0) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, rowY, contentWidth, 5.5, 'F');
+    }
+
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.8);
+    doc.text(row.id, margin + 3, rowY + 3.8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(row.name, margin + 18, rowY + 3.8);
+
+    const isInputUnavailable = row.status === 'Input unavailable';
+    const isRowVerified = row.status === 'VERIFIED' || row.status === 'CONSISTENT';
+    const isRowFlagged = row.status === 'FAILED' || row.status === 'DISCREPANCY_FOUND' || row.status === 'MISCLASSIFIED';
+
+    doc.setFont('helvetica', 'bold');
+    if (isInputUnavailable) {
+      doc.setTextColor(180, 83, 9);
+    } else if (isRowVerified) {
+      doc.setTextColor(16, 149, 106);
+    } else if (isRowFlagged) {
+      doc.setTextColor(225, 29, 72);
+    } else {
+      doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    }
+    doc.text(row.status, margin + 65, rowY + 3.8);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    const maxDetailChars = 58;
+    const detailText = row.details.length > maxDetailChars ? `${row.details.slice(0, maxDetailChars - 3)}...` : row.details;
+    doc.text(detailText, margin + 105, rowY + 3.8);
+
+    y += 5.5;
+  });
+
+  y += 6;
+
   if (y + 26 > pageHeight - 35) {
     addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());
     doc.addPage();
@@ -1490,7 +1724,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(15, 23, 42);
-  doc.text(`2. EVIDENCE COVERAGE & DETERMINISTIC VERIFICATION DISCLOSURES`, margin + 4, y + 5);
+  doc.text(`3. EVIDENCE COVERAGE & DETERMINISTIC VERIFICATION DISCLOSURES`, margin + 4, y + 5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
@@ -1502,7 +1736,6 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
 
   y += 33;
 
-  // 3. Cryptographic Verification & Integrity Digest
   if (y + 20 > pageHeight - 15) {
     addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());
     doc.addPage();
