@@ -50,7 +50,7 @@ import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
 import { EmailViewerModal } from './EmailViewerModal';
 import { PhaseTwoReControlView } from './PhaseTwoReControlView';
 import { runPhaseTwoReControl } from '../services/reControlEngine';
-import { runF3Verification, isF2GatePassed, projectToPublicCryptoReviewReport } from '../services/f3Engine';
+import { runF3Verification, isF2GatePassed, projectToPublicCryptoReviewReport, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { useF3VerificationState } from '../context/F3VerificationContext';
 
 export const AuditorReviewConsole: React.FC<{
@@ -528,6 +528,7 @@ export const AuditorReviewConsole: React.FC<{
           citations: review.citations,
           activeOverride: activeOverride
         });
+        regenerateNarrativeAfterVerification(review);
         setOrders([...orders]);
       } catch (err: any) {
         console.error("F3 re-verification error:", err);

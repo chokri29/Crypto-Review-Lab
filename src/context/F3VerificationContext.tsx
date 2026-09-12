@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { CryptoReview, ProOrder, AdminOverrideLog } from '../types';
-import { runF3Verification, isF2GatePassed, F3VerificationResult } from '../services/f3Engine';
+import { runF3Verification, isF2GatePassed, F3VerificationResult, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { INITIAL_REVIEWS } from '../data';
 
 export type EnhancedReviewedProject = CryptoReview & {
@@ -226,13 +226,13 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
       await new Promise(r => setTimeout(r, 60));
     }
 
-    const result = await runF3Verification({
-      ...targetProject,
-      adminOverride: activeOverride
-    }, {
+    targetProject.adminOverride = activeOverride || targetProject.adminOverride;
+    targetProject.f3Verification = await runF3Verification(targetProject, {
       securityScan: targetProject.securityScan,
       citations: targetProject.citations
     });
+    regenerateNarrativeAfterVerification(targetProject);
+    const result = targetProject.f3Verification;
 
     setF3Results(prev => ({
       ...prev,

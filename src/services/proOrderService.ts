@@ -14,7 +14,7 @@ import {
   NowPaymentsIpnLog
 } from '../types';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine';
-import { runF3Verification, isF2GatePassed } from './f3Engine';
+import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine';
 import { computeMultiSourceConvergence } from './marketConvergence';
 import fs from 'fs';
 import path from 'path';
@@ -584,6 +584,7 @@ export async function approveAndDeliverProOrder(
     citations: targetReview.citations,
     activeOverride: adminOverride
   });
+  regenerateNarrativeAfterVerification(targetReview);
   if (adminOverride && targetReview.f3Verification) {
     targetReview.f3Verification.adminOverride = adminOverride;
   }
@@ -734,6 +735,7 @@ export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise
       citations: regeneratedDraft.citations,
       avfLoopResult: report.avfSession || null
     });
+    regenerateNarrativeAfterVerification(regeneratedDraft);
     order.status = 'IN_HUMAN_REVIEW';
   } else {
     regeneratedDraft.f3Verification = undefined;
@@ -773,6 +775,7 @@ export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise
         citations: regenFinal.citations,
         avfLoopResult: report.avfSession || null
       });
+      regenerateNarrativeAfterVerification(regenFinal);
     } else {
       regenFinal.f3Verification = undefined;
     }
@@ -1079,6 +1082,7 @@ async function getSeedOrders(): Promise<ProOrder[]> {
     citations: draft1.citations,
     activeOverride: adminOverrideSeed
   });
+  regenerateNarrativeAfterVerification(draft1);
 
   const scores = draft1.scores;
   const verdict = 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.';
@@ -1100,6 +1104,7 @@ async function getSeedOrders(): Promise<ProOrder[]> {
     citations: finalSeedReview.citations,
     activeOverride: adminOverrideSeed
   });
+  regenerateNarrativeAfterVerification(finalSeedReview);
 
   const order1: ProOrder = {
     orderId: seed1Id,
