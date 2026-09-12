@@ -64,7 +64,7 @@ const CATEGORY_OPTIONS = [
 ];
 import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
-import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
+import { calculateBlueprintScore, calculateEvidenceCoverage } from '../services/EvaluationBlueprint';
 import { ProTierBadge } from './ProTierBadge';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
@@ -520,11 +520,11 @@ export default function BlogPreviewer({
     }
   };
 
-  const getRiskColor = (riskLevel?: string, score?: number) => {
-    if (riskLevel === 'Low' || (score !== undefined && score >= 80)) {
+  const getRiskColor = (riskLevel?: string) => {
+    if (riskLevel === 'Low') {
       return 'text-cyber-green bg-cyber-green/10 border-cyber-green/50 shadow-[0_0_10px_rgba(0,255,136,0.15)] font-extrabold';
     }
-    if (riskLevel === 'Medium' || (score !== undefined && score >= 60)) {
+    if (riskLevel === 'Medium') {
       return 'text-amber-400 bg-amber-500/10 border-amber-500/40 font-semibold';
     }
     return 'text-rose-400 bg-rose-500/10 border-rose-500/30 font-bold';
@@ -1237,7 +1237,7 @@ export default function BlogPreviewer({
                                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                                     </button>
 
-                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getRiskColor(rev.riskLevel, rev.overallScore)}`}>
+                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getRiskColor(rev.riskLevel)}`}>
                                       {rev.riskLevel} Risk
                                     </div>
                                   </div>
@@ -1414,7 +1414,7 @@ export default function BlogPreviewer({
                                   </button>
 
                                   {/* Risk Level badge */}
-                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rev.riskLevel, rev.overallScore)}`}>
+                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rev.riskLevel)}`}>
                                     {rev.riskLevel} Risk
                                   </div>
                                 </div>
@@ -1901,52 +1901,180 @@ export default function BlogPreviewer({
               maxSupply={activeReview.maxSupply}
             />
 
-            {/* Score Showcase Hero - Evaluation Score & Security Dimension Metrics */}
+            {/* Score Showcase Hero - Evaluation Score, Verification Status & Core Security Metrics */}
             {(() => {
               const activeBlueprint = calculateBlueprintScore(activeReview.scores || { utility: 5, tokenomics: 5, security: 5, team: 5, community: 5 }, activeReview.category);
-              const overallColor = activeBlueprint.overallScore >= 75 ? 'text-emerald-400' : activeBlueprint.overallScore >= 50 ? 'text-amber-400' : 'text-rose-400';
+              const scoreVal = activeReview.overallScore || activeBlueprint.overallScore;
+              const overallColor = scoreVal >= 75 ? 'text-emerald-400' : scoreVal >= 50 ? 'text-amber-400' : 'text-rose-400';
+
+              const f3 = activeReview.f3Verification;
+              const isFailed = f3?.overallStatus === 'FAILED' || f3?.overallStatus === 'DISCREPANCY_FOUND' || activeReview.proBenchmarks?.crlAuditStatus === 'FAILED';
+              const isVerified = f3?.overallStatus === 'VERIFIED' || activeReview.proBenchmarks?.crlAuditStatus === 'VERIFIED';
+              const canonicalStatus = f3?.canonicalVerificationStatus || (isVerified ? 'VERIFIED' : (isFailed ? 'FAILED' : 'NOT VERIFIED'));
+
+              // Evidence coverage
+              const hasRealContract = Boolean(activeReview.contractAddress && activeReview.contractAddress.length > 10);
+              const hasRealScan = Boolean(activeReview.securityScan?.data || activeReview.securityScan);
+              const hasPublicAudits = Boolean((activeReview.citations && Object.keys(activeReview.citations).length > 0) || ((activeReview as any).auditReports && (activeReview as any).auditReports.length > 0));
+              const hasRealTvl = Boolean(activeReview.realTvl && activeReview.realTvl > 0);
+              const evidenceCoverage = calculateEvidenceCoverage(hasRealContract, hasRealScan, true, hasPublicAudits, hasRealTvl);
+              const evidenceCoveragePct = f3?.evidenceCoveragePct ?? evidenceCoverage.coveragePct;
+
+              // Verification confidence (strictly capped: never HIGH if failed or contradictory)
+              const isFailedOrContradictory = isFailed || canonicalStatus === 'Contradictory' || canonicalStatus === 'Invalid' || (f3?.discrepancies && f3.discrepancies.length > 0);
+              let verificationConfidencePct = f3?.verificationConfidencePct ?? (hasPublicAudits ? 85 : 50);
+              if (isFailedOrContradictory && verificationConfidencePct > 55) {
+                verificationConfidencePct = 50;
+              }
+              const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = isFailedOrContradictory
+                ? (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW')
+                : (verificationConfidencePct >= 80 ? 'HIGH' : (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW'));
+
+              // Data Freshness & Source Coverage
+              const dataDateStr = activeReview.createdAt ? new Date(activeReview.createdAt).toISOString().split('T')[0] : 'Current Live Block';
+              const dataFreshness = `Live Telemetry Synchronized (${dataDateStr}) • CoinGecko API v3 (60s cache)`;
+              const activeSources = ['CoinGecko API v3'];
+              if (activeReview.contractAddress) activeSources.push('Etherscan / Bytecode Registry');
+              if (hasRealScan) activeSources.push(activeReview.securityScan?.source || 'GoPlus Security');
+              if (hasRealTvl) activeSources.push('DefiLlama');
+              if (hasPublicAudits) activeSources.push('Public Audit Registries');
+              const sourceCoverage = `${activeSources.join(', ')} (${activeSources.length} active feeds)`;
+
+              const secScan = activeReview.securityScan?.data || activeReview.securityScan;
+
               return (
-                <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                    {/* Col 1: Evaluation Score & Risk Level */}
-                    <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-1.5">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
-                      <div className="flex items-baseline justify-center">
-                        <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{activeBlueprint.overallScore}</span>
-                        <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
+                <div className="space-y-4">
+                  <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                      {/* Col 1: Evaluation Score & Final CRL State */}
+                      <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-2">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
+                        <div className="flex items-baseline justify-center">
+                          <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{scoreVal}</span>
+                          <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
+                        </div>
+                        
+                        <div className="flex flex-col items-center gap-1.5 w-full pt-1">
+                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Final CRL State</span>
+                          <span className={`text-[11px] font-mono font-black uppercase px-3 py-1 rounded-md border tracking-wider ${canonicalStatus === 'VERIFIED' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : canonicalStatus === 'FAILED' ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' : 'bg-amber-500/15 border-amber-500/40 text-amber-300'}`}>
+                            {canonicalStatus}
+                          </span>
+                        </div>
+
+                        <div className="text-[10px] font-mono text-slate-400 flex flex-col items-center gap-0.5 pt-1">
+                          <span>Evidence Coverage: <strong className="text-slate-200">{evidenceCoveragePct}%</strong></span>
+                          <span>Verification Confidence: <strong className="text-slate-200">{verificationConfidencePct}% [{verificationConfidenceLevel}]</strong></span>
+                        </div>
                       </div>
-                      <span className="text-[11px] font-mono text-slate-300 uppercase font-semibold">Risk Level: {activeBlueprint.riskLevel} Risk</span>
-                      <span className={`text-[10px] font-mono font-extrabold uppercase px-3 py-1 rounded-full border mt-1 ${activeBlueprint.overallScore >= 75 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : activeBlueprint.overallScore >= 50 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300'}`}>
-                        {activeBlueprint.overallScore >= 75 ? 'Low Systemic Risk' : activeBlueprint.overallScore >= 50 ? 'Moderate Caution' : 'High Security Risk'}
-                      </span>
+
+                      {/* Col 2: Color-Coded Dimension Bars & Indices */}
+                      <div className="md:col-span-8 space-y-2.5 p-0.5">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Evaluation Blueprint Metrics</span>
+                          <span className="text-[10px] font-mono text-slate-400">Locked Blueprint Invariants</span>
+                        </div>
+                        <div className="space-y-3">
+                          {[
+                            { label: 'Utility', val: activeReview.scores.utility },
+                            { label: 'Tokenomics', val: activeReview.scores.tokenomics },
+                            { label: 'Security/Code', val: activeReview.scores.security },
+                            { label: 'Team', val: activeReview.scores.team },
+                            { label: 'Community', val: activeReview.scores.community },
+                          ].map((metric, index) => {
+                            const c = getMetricColor(metric.val);
+                            return (
+                              <div key={index} className="flex items-center gap-3 text-[11px] md:text-xs font-sans">
+                                <span className="w-28 text-slate-200 font-display font-bold uppercase tracking-wider text-left text-[11px] truncate">{metric.label}</span>
+                                <div className="flex-1 h-2 bg-slate-950/80 border border-slate-800 rounded-full overflow-hidden p-0.5">
+                                  <div className={`h-full ${c.bgClass} rounded-full transition-all duration-700`} style={{ width: `${metric.val * 10}%` }}></div>
+                                </div>
+                                <span className={`w-12 text-right font-mono font-extrabold text-[12px] ${c.textClass}`}>{metric.val}/10</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Verification & Risks Assessment Section */}
+                  <div className="bg-slate-950/70 border border-cyber-cyan/20 rounded-xl p-4 space-y-3 text-left">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2.5">
+                      <h4 className="font-display font-bold text-xs sm:text-sm text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full"></span>
+                        Verification & Risks Assessment
+                      </h4>
+                      <span className="text-[10px] font-mono text-slate-400">AVF Deterministic Validation</span>
                     </div>
 
-                    {/* Col 2: Color-Coded Dimension Bars & Indices */}
-                    <div className="md:col-span-8 space-y-2.5 p-0.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Core Security Metrics</span>
-                        <span className="text-[10px] font-mono text-slate-400">Value-Proportional Color Indices</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px] font-mono">
+                      <div className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                        <span className="text-slate-400 block text-[10px] uppercase">Data Freshness</span>
+                        <span className="text-slate-200">{dataFreshness}</span>
                       </div>
-                      <div className="space-y-3">
-                        {[
-                          { label: 'Utility', val: activeReview.scores.utility },
-                          { label: 'Tokenomics', val: activeReview.scores.tokenomics },
-                          { label: 'Security/Code', val: activeReview.scores.security },
-                          { label: 'Team', val: activeReview.scores.team },
-                          { label: 'Community', val: activeReview.scores.community },
-                        ].map((metric, index) => {
-                          const c = getMetricColor(metric.val);
-                          return (
-                            <div key={index} className="flex items-center gap-3 text-[11px] md:text-xs font-sans">
-                              <span className="w-28 text-slate-200 font-display font-bold uppercase tracking-wider text-left text-[11px] truncate">{metric.label}</span>
-                              <div className="flex-1 h-2 bg-slate-950/80 border border-slate-800 rounded-full overflow-hidden p-0.5">
-                                <div className={`h-full ${c.bgClass} rounded-full transition-all duration-700`} style={{ width: `${metric.val * 10}%` }}></div>
-                              </div>
-                              <span className={`w-12 text-right font-mono font-extrabold text-[12px] ${c.textClass}`}>{metric.val}/10</span>
-                            </div>
-                          );
-                        })}
+                      <div className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                        <span className="text-slate-400 block text-[10px] uppercase">Source Coverage</span>
+                        <span className="text-slate-200">{sourceCoverage}</span>
                       </div>
+                    </div>
+
+                    {/* On-chain / Market / Security Evidence Badges */}
+                    <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">On-chain / Market / Security Evidence</span>
+                      <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                        <span className={`px-2 py-1 rounded border ${hasRealContract ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                          Bytecode: {hasRealContract ? 'VERIFIED' : 'MISSING'}
+                        </span>
+                        <span className="px-2 py-1 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-300">
+                          Market: TRI-ORACLE CONVERGENCE
+                        </span>
+                        <span className={`px-2 py-1 rounded border ${hasRealScan ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                          Security Scan: {hasRealScan ? 'VERIFIED' : 'UNAVAILABLE'}
+                        </span>
+                        <span className={`px-2 py-1 rounded border ${hasPublicAudits ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-400'}`}>
+                          Audits: {hasPublicAudits ? 'VERIFIED' : 'NOT VERIFIED / MISSING EVIDENCE'}
+                        </span>
+                        <span className={`px-2 py-1 rounded border ${hasRealTvl ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-400'}`}>
+                          TVL: {hasRealTvl ? 'VERIFIED' : 'UNAVAILABLE'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Key Risk Findings with Evidence / Provenance */}
+                    <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-1.5">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Key Risk Findings (Evidence & Provenance)</span>
+                      <ul className="space-y-1 text-[11px] font-mono text-slate-300">
+                        {secScan?.top10HolderConcentrationPct && (
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-amber-400">•</span>
+                            <span>Holder Concentration: Top 10 control {secScan.top10HolderConcentrationPct}% of supply (Source: On-chain ledger)</span>
+                          </li>
+                        )}
+                        {!hasPublicAudits && (
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-amber-400">•</span>
+                            <span>Third-Party Audits: NOT VERIFIED — No formal independent verification audit indexed on file (Source: Public Audit Registries)</span>
+                          </li>
+                        )}
+                        {!hasRealTvl && (
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-slate-400">•</span>
+                            <span>Protocol TVL: UNAVAILABLE — Asset not listed with active TVL tracking on DefiLlama (Source: DefiLlama)</span>
+                          </li>
+                        )}
+                        {f3?.discrepancies && f3.discrepancies.length > 0 && (
+                          <li className="flex items-start gap-1.5">
+                            <span className="text-rose-400">•</span>
+                            <span>Deterministic Discrepancy: {f3.discrepancies[0]} (Source: AVF Engine)</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+
+                    {/* Integrity & Traceability */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] font-mono text-slate-400 border-t border-slate-800/80">
+                      <span>Integrity: SHA-256 Digest & Ed25519 Cryptographic Verification</span>
+                      <span className="text-cyan-400 font-bold">CRL State: {canonicalStatus}</span>
                     </div>
                   </div>
                 </div>

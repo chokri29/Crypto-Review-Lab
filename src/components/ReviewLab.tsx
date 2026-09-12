@@ -2233,9 +2233,9 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 {(isAdminMaster || generatedReview.publishApproved === true) ? (
                   <div className="flex items-center gap-2">
                     {/* Risk Level badge */}
-                    <div className="border border-emerald-400/30 bg-emerald-950/20 rounded-xl px-3 py-1 text-center min-w-[60px]">
+                    <div className={`border rounded-xl px-3 py-1 text-center min-w-[60px] ${getRiskColor(generatedReview.riskLevel)}`}>
                       <div className="text-[8px] font-mono uppercase tracking-wider text-slate-400 leading-none">Risk Level</div>
-                      <div className="text-sm font-sans font-bold leading-tight tracking-tight text-emerald-400">{generatedReview.riskLevel} Risk</div>
+                      <div className="text-sm font-sans font-bold leading-tight tracking-tight">{generatedReview.riskLevel} Risk</div>
                     </div>
 
                     <div className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-1 text-center min-w-[60px]">
@@ -2479,7 +2479,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                 <span className="text-emerald-400 font-bold">{verifScoreDisplay}/100</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
-                                Risk Level: {generatedReview.riskLevel} Risk. {benchmarks.crlAuditStatus || 'UNVERIFIED'}.
+                                Verification Status: {benchmarks.crlAuditStatus || 'UNVERIFIED'}. Deterministic verification evaluated.
                               </p>
                             </div>
 

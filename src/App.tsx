@@ -2223,7 +2223,7 @@ export default function App() {
                       <div>
                         <h4 className="font-display font-bold text-cyber-text-primary uppercase tracking-wide mb-1">3. Intellectual Property</h4>
                         <p>
-                          All original content, designs, grading frameworks, scoring methodologies, and visual elements on Crypto Review Lab are the exclusive property of Crypto Review Lab and Chokri AlGhanmi. Re-distribution, copying, or embedding of these systems without express written consent is strictly prohibited.
+                          All original content, designs, evaluation frameworks, scoring methodologies, and visual elements on Crypto Review Lab are the exclusive property of Crypto Review Lab and Chokri AlGhanmi. Re-distribution, copying, or embedding of these systems without express written consent is strictly prohibited.
                         </p>
                       </div>
                       <div>

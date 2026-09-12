@@ -2499,6 +2499,9 @@ async function runF3Verification(
   let overallConfidenceNum = avf07.confidence.overallConfidence;
   if (overallStatus === 'FAILED' || overallStatus === 'DISCREPANCY_FOUND') {
     overallConfidenceNum = Math.min(overallConfidenceNum, 0.50);
+    avf07.confidence.overallConfidence = overallConfidenceNum;
+    avf07.confidenceLevel = 'LOW';
+    avf07.confidencePct = Math.round(overallConfidenceNum * 100);
   }
   const overallConfidencePct = Math.round(overallConfidenceNum * 100);
 
