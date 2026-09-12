@@ -472,7 +472,7 @@ ${cleanName} (${cleanSymbol}) is evaluated under the ${resolvedCategory} framewo
 The project delivers specialized capabilities in ${resolvedCategory}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.
 
 ### Tokenomics & Security
-Smart contract inspection ${params.contractAddress ? `for address ${params.contractAddress}` : 'on public ledgers'} indicates a Security Rating of ${security}/10 and Tokenomics Rating of ${tokenomics}/10. ${!honeypotKnown && !mintKnown ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : isMintable ? 'Notice: Supply minting capability is present.' : 'No malicious transfer restrictions identified.'}
+Smart contract inspection ${params.contractAddress ? `for address ${params.contractAddress}` : 'on public ledgers'} indicates a Security Rating of ${security}/10 and Tokenomics Rating of ${tokenomics}/10. ${!honeypotKnown && !mintKnown ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics detected in token bytecode.' : !honeypotKnown ? 'Honeypot status could not be independently verified from available telemetry.' : isMintable ? 'WARNING: Unlimited minting capabilities detected without public timelock restrictions.' : 'No malicious transfer restrictions identified.'}
 
 ### Conclusion
 ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore}/100, reflecting a ${bp.riskLevel} Risk assessment under the locked 5-dimension rubric.`;

@@ -39,7 +39,7 @@ import {
   FileText
 } from 'lucide-react';
 import { CryptoReview, AdminOverrideLog, ProOrder } from '../types';
-import { F3VerificationResult, getConfidenceLevel, projectToPublicCryptoReviewReport } from '../services/f3Engine';
+import { F3VerificationResult, getConfidenceLevel, projectToPublicCryptoReviewReport, isF2GatePassed } from '../services/f3Engine';
 import { useF3VerificationState } from '../context/F3VerificationContext';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { getSigningPublicKey } from '../services/auditSigner';
@@ -131,29 +131,29 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
     }
   }, [initialReviewId, reviewedProjects, setSelectedProjectId]);
 
-  // Requirement 2: useEffect hook that listens for F1-F2 evaluation completions (using custom event or shared state)
-  // and triggers an F3 verification run automatically upon report generation, while ensuring the manual button remains visible
+  // Pipeline Synchronization: Listen for Phase 2 (F2) completion events that pass with >= 95%
   const lastProcessedReviewRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const handleF1F2Completion = async (e: any) => {
-      const targetReview = e.detail;
-      if (!targetReview) return;
-      const targetId = targetReview.orderId || targetReview.id || targetReview.symbol;
-      if (targetId && targetId !== lastProcessedReviewRef.current) {
+    const handleF2Passed = async (e: any) => {
+      const target = e.detail;
+      if (!target) return;
+      const targetReview = target.finalReview || target.systemDraft || target;
+      const targetId = target.orderId || targetReview.id || targetReview.symbol;
+      
+      // STRICT PIPELINE GATE: F3 executes ONLY when F2 score is >= 95% (Gate 3 PASS) or authorized Admin Override
+      const isEligible = isF2GatePassed(targetReview) || Boolean(target.adminOverride || targetReview.adminOverride);
+      if (isEligible && targetId && targetId !== lastProcessedReviewRef.current) {
         lastProcessedReviewRef.current = targetId;
         setSelectedProjectId(targetId);
-        // Automatically trigger deterministic F3 verification on report generation
         await runDeterministicF3(targetReview);
       }
     };
 
-    window.addEventListener('crl_review_generated', handleF1F2Completion);
-    window.addEventListener('crl_order_created', handleF1F2Completion);
+    window.addEventListener('crl_f2_passed', handleF2Passed);
 
     return () => {
-      window.removeEventListener('crl_review_generated', handleF1F2Completion);
-      window.removeEventListener('crl_order_created', handleF1F2Completion);
+      window.removeEventListener('crl_f2_passed', handleF2Passed);
     };
   }, [runDeterministicF3, setSelectedProjectId]);
 
@@ -743,11 +743,14 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 max-h-[240px] overflow-y-auto pr-1">
               {filteredProjects.length === 0 ? (
                 <div className="col-span-full p-6 text-center text-slate-400 font-mono text-xs bg-slate-950/80 rounded-xl border border-slate-800 space-y-3">
-                  <p className="text-slate-300 font-bold">
-                    No reviewed projects currently in the verification pipeline.
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <p className="text-slate-200 font-bold text-sm">
+                    No verified projects currently in Stage 3 (F3) Matrix
                   </p>
-                  <p className="text-[11px] text-slate-400 max-w-md mx-auto">
-                    Initiate an Instant Audit or Security & Risk Assessment report in the ReviewLab to populate the real-time F3 Deterministic Verification pipeline.
+                  <p className="text-[11px] text-slate-400 max-w-lg mx-auto leading-relaxed">
+                    Under the <strong className="text-cyan-300">F1 → F2 (AVF) → F3</strong> pipeline, initial report drafts (F1) remain in the Auditor Console pending queue until an admin executes Phase 2 (F2) Re-Control. Projects proceed to F3 only after achieving an F2 quality score <strong className="text-emerald-300">&ge; 95.0%</strong> (Gate 3 PASS). If score &lt; 95%, the project remains in the pending list.
                   </p>
                   <div className="flex items-center justify-center gap-3 pt-1">
                     {onLaunchProEvaluation && (

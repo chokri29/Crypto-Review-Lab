@@ -493,6 +493,9 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           avfLoopResult: newReport.avfSession || null
         });
         regenerateNarrativeAfterVerification(autoCalibrated);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('crl_f2_passed', { detail: autoCalibrated }));
+        }
       } catch (f3Err) {
         console.warn('F3 verification failed:', f3Err);
         autoCalibrated.f3Verification = undefined;
@@ -987,7 +990,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           riskLevel: calcBp.riskLevel,
           scores,
           verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with ${calcBp.riskLevel} Risk assessment under the CRL 5-dimension Evaluation Blueprint rubric.`,
-          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${!honeypotKnown && !mintKnown ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.' : isMintable ? 'Notice: Supply minting capability is present.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, reflecting a ${calcBp.riskLevel} Risk assessment.`,
+          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${!honeypotKnown && !mintKnown ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics detected in token bytecode.' : !honeypotKnown ? 'Honeypot status could not be independently verified from available telemetry.' : isMintable ? 'WARNING: Unlimited minting capabilities detected without public timelock restrictions.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, reflecting a ${calcBp.riskLevel} Risk assessment.`,
           pros: [
             `Verified on-chain contract bytecode registered for ${cleanSymbol} on ${selectedChainInfo.name}`,
             buyTax === 0 && sellTax === 0 ? 'Verified zero-tax contract execution model (0% buy / 0% sell fee)' : 'Active decentralized liquidity routing',

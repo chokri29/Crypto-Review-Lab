@@ -142,6 +142,11 @@ export const AuditorReviewConsole: React.FC<{
         }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('crl_order_updated', { detail: updated }));
+          const rev = updated.finalReview || updated.systemDraft;
+          const isF2Passed = isF2GatePassed(rev) || Boolean(updated.adminOverride || rev?.adminOverride || adminOverrides[updated.orderId]);
+          if (isF2Passed) {
+            window.dispatchEvent(new CustomEvent('crl_f2_passed', { detail: updated }));
+          }
         }
       }
     } catch (e) {
@@ -562,9 +567,9 @@ export const AuditorReviewConsole: React.FC<{
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredOrders = orders.filter(o => {
-    // Tab filter
+    // Tab filter: Pending tab includes all non-delivered orders (PENDING_F2, PENDING_REGENERATION, IN_HUMAN_REVIEW, PAYMENT_CONFIRMED)
     const matchesTab = 
-      activeTab === 'pending' ? (o.status === 'IN_HUMAN_REVIEW' || o.status === 'PAYMENT_CONFIRMED') :
+      activeTab === 'pending' ? (o.status !== 'DELIVERED') :
       activeTab === 'delivered' ? (o.status === 'DELIVERED') : true;
 
     if (!matchesTab) return false;
@@ -840,15 +845,34 @@ export const AuditorReviewConsole: React.FC<{
 
                 <div className="flex items-center gap-2">
                   {onNavigateToF3 && (
-                    <button
-                      type="button"
-                      onClick={() => onNavigateToF3(selectedOrder.orderId)}
-                      className="px-3.5 py-2 bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                      title="Inspect deterministic algorithmic verification in F3 Dashboard"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>F3 Verification</span>
-                    </button>
+                    (() => {
+                      const rev = selectedOrder.finalReview || selectedOrder.systemDraft;
+                      const isF2Passed = isF2GatePassed(rev) || Boolean(selectedOrder.adminOverride || rev?.adminOverride || adminOverrides[selectedOrder.orderId]);
+                      return (
+                        <button
+                          type="button"
+                          disabled={!isF2Passed}
+                          onClick={() => {
+                            if (isF2Passed) {
+                              onNavigateToF3(selectedOrder.orderId);
+                            }
+                          }}
+                          className={`px-3.5 py-2 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all ${
+                            isF2Passed
+                              ? 'bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 cursor-pointer shadow-sm'
+                              : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
+                          }`}
+                          title={
+                            isF2Passed
+                              ? "Inspect deterministic algorithmic verification in F3 Dashboard"
+                              : "F3 Gated: Phase 2 (F2) Re-Control must pass with score >= 95% first"
+                          }
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>F3 Verification</span>
+                        </button>
+                      );
+                    })()
                   )}
                   <button
                     onClick={() => handleDownloadPreliminaryPdf(selectedOrder)}
@@ -995,15 +1019,35 @@ export const AuditorReviewConsole: React.FC<{
 
                 <div className="flex items-center gap-2 shrink-0">
                   {onNavigateToF3 && (
-                    <button
-                      type="button"
-                      onClick={() => onNavigateToF3((selectedOrder.finalReview || selectedOrder.systemDraft)?.id)}
-                      className="px-3.5 py-2 bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 text-cyan-300 border border-cyan-500/40 font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                      <span>Open F3 Dashboard</span>
-                      <ExternalLink className="w-3 h-3 text-cyan-400" />
-                    </button>
+                    (() => {
+                      const rev = selectedOrder.finalReview || selectedOrder.systemDraft;
+                      const isF2Passed = isF2GatePassed(rev) || Boolean(selectedOrder.adminOverride || rev?.adminOverride || adminOverrides[selectedOrder.orderId]);
+                      return (
+                        <button
+                          type="button"
+                          disabled={!isF2Passed}
+                          onClick={() => {
+                            if (isF2Passed) {
+                              onNavigateToF3((selectedOrder.finalReview || selectedOrder.systemDraft)?.id || selectedOrder.orderId);
+                            }
+                          }}
+                          className={`px-3.5 py-2 font-bold rounded-xl transition-all flex items-center gap-1.5 ${
+                            isF2Passed
+                              ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 text-cyan-300 border border-cyan-500/40 cursor-pointer shadow-sm'
+                              : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
+                          }`}
+                          title={
+                            isF2Passed
+                              ? "Open verified project in Stage 3 F3 Dashboard"
+                              : "F3 Gated: Phase 2 (F2) Re-Control must pass with score >= 95% first"
+                          }
+                        >
+                          <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                          <span>Open F3 Dashboard</span>
+                          <ExternalLink className="w-3 h-3 text-cyan-400" />
+                        </button>
+                      );
+                    })()
                   )}
                 </div>
               </div>

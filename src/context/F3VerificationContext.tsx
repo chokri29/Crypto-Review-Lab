@@ -95,11 +95,27 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     const list: EnhancedReviewedProject[] = [];
     const seenKeys = new Set<string>();
 
-    // 1. Add all live Pro Orders (e.g., 'Movement (MOVE)', etc.)
+    // 1. Add all live Pro Orders that have passed Phase 2 (F2) Re-Control (> 95%) or have authorized Admin Override
     proOrders.forEach((order) => {
       const base = order.finalReview || order.systemDraft;
       const key = `ORDER_${order.orderId}`.toUpperCase();
       const symbolKey = (order.projectSymbol || base?.symbol || '').toUpperCase();
+
+      // STRICT PIPELINE ENFORCEMENT: F1 —> F2 (AVF) —> F3
+      // A project may proceed to F3 ONLY IF Phase 2 (F2) result is >= 95.0% (Gate 3 PASS)
+      // OR an explicit Admin Master Override is in place.
+      // Candidate drafts in PENDING_F2 or failed re-control (PENDING_REGENERATION) remain in F1-F2 pending list and DO NOT enter F3.
+      const hasF2Passed = isF2GatePassed(base) || isF2GatePassed(order.finalReview) || isF2GatePassed(order.systemDraft);
+      const hasAdminOverride = Boolean(
+        order.adminOverride || 
+        base?.adminOverride || 
+        order.humanNotes?.adminOverride || 
+        adminOverrides[order.orderId]
+      );
+
+      if (!hasF2Passed && !hasAdminOverride) {
+        return;
+      }
 
       const revObj: EnhancedReviewedProject = {
         ...(base || {}),
@@ -145,6 +161,13 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
       const isStaticInitial = STATIC_INITIAL_IDS.has(rId) && !r.f3Verification && !r.phaseTwoReControl;
       if (isStaticInitial) return;
 
+      // STRICT PIPELINE ENFORCEMENT: F1 —> F2 (AVF) —> F3
+      const hasF2Passed = isF2GatePassed(r);
+      const hasAdminOverride = Boolean(r.adminOverride || adminOverrides[r.id]);
+      if (!hasF2Passed && !hasAdminOverride) {
+        return;
+      }
+
       const key = (r.id || r.symbol || r.name).toUpperCase();
       const symbolKey = (r.symbol || '').toUpperCase();
 
@@ -159,7 +182,7 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     });
 
     return list;
-  }, [proOrders, persistedReviews, savedReviews]);
+  }, [proOrders, persistedReviews, savedReviews, adminOverrides]);
 
   // Set default selected project if none selected or if current is removed
   useEffect(() => {
@@ -167,6 +190,8 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
       if (!selectedProjectId || !reviewedProjects.some(p => p.id === selectedProjectId)) {
         setSelectedProjectId(reviewedProjects[0].id);
       }
+    } else {
+      setSelectedProjectId('');
     }
   }, [reviewedProjects, selectedProjectId]);
 
@@ -303,37 +328,31 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     refreshPipelineData();
     const interval = setInterval(refreshPipelineData, 3500);
 
-    const handleOrderCreated = (e: any) => {
+    const handleOrderCreated = () => {
+      // Refresh pipeline data, but DO NOT automatically select in F3 Dashboard
+      // Projects remain in F1-F2 pending state until Phase 2 Re-Control passes with >= 95%
       refreshPipelineData();
-      if (e.detail?.orderId) {
-        setSelectedProjectId(e.detail.orderId);
-        const review = e.detail.finalReview || e.detail.systemDraft;
-        // Do NOT automatically run F3. If an existing verified result is present (e.g. from F2 pass or override), cache it.
+    };
+
+    const handleReviewGenerated = () => {
+      // Refresh pipeline data, but DO NOT prematurely select candidate draft in F3 Dashboard
+      refreshPipelineData();
+    };
+
+    const handleF2Passed = (e: any) => {
+      // Phase 2 (F2) Re-Control passed with score >= 95%: Project is now eligible for Stage 3 (F3) Matrix
+      refreshPipelineData();
+      const target = e.detail;
+      const targetId = target?.orderId || target?.id || target?.symbol;
+      if (targetId) {
+        setSelectedProjectId(targetId);
+        const review = target.finalReview || target.systemDraft || target;
         if (review?.f3Verification) {
           setF3Results(prev => ({
             ...prev,
-            [e.detail.orderId]: review.f3Verification,
+            [targetId]: review.f3Verification,
             [review.symbol]: review.f3Verification
           }));
-        }
-      }
-    };
-
-    const handleReviewGenerated = (e: any) => {
-      refreshPipelineData();
-      if (e.detail) {
-        const review = e.detail;
-        const targetId = review.id || review.symbol;
-        if (targetId) {
-          setSelectedProjectId(targetId);
-          // Do NOT automatically run F3 on initial review generation. If already verified, cache it.
-          if (review.f3Verification) {
-            setF3Results(prev => ({
-              ...prev,
-              [targetId]: review.f3Verification,
-              [review.symbol]: review.f3Verification
-            }));
-          }
         }
       }
     };
@@ -351,6 +370,7 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     window.addEventListener('crl_order_created', handleOrderCreated);
     window.addEventListener('crl_review_generated', handleReviewGenerated);
     window.addEventListener('crl_order_updated', handleOrderUpdated);
+    window.addEventListener('crl_f2_passed', handleF2Passed);
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
@@ -358,6 +378,7 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
       window.removeEventListener('crl_order_created', handleOrderCreated);
       window.removeEventListener('crl_review_generated', handleReviewGenerated);
       window.removeEventListener('crl_order_updated', handleOrderUpdated);
+      window.removeEventListener('crl_f2_passed', handleF2Passed);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [refreshPipelineData]);
