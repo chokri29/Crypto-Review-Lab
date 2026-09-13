@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, 
@@ -63,6 +63,7 @@ import { fetchLiveCMCQuote } from '../services/cmc';
 import { enrichReviewWithDefiLlamaTvl, formatDefiLlamaTvl } from '../services/defillama';
 import { getCoinLogoUrl } from '../utils/coinLogos';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
+import { isNativeGasCoin } from '../utils/nativeCoins';
 
 interface ReviewLabProps {
   onSaveReview: (review: CryptoReview) => void;
@@ -178,12 +179,15 @@ export const SUPPORTED_CHAINS: ChainOption[] = [
   { id: 'other', name: 'Other / Non-EVM', isEvm: false, badge: 'Custom Chain', placeholder: 'e.g. Non-EVM token address', color: 'text-slate-400 bg-slate-500/10 border-slate-500/30' },
 ];
 
-export const validateContractAddress = (address: string, chainId: string): { isValid: boolean; error?: string } => {
+export const validateContractAddress = (address: string, chainId: string, isRequired: boolean = true): { isValid: boolean; error?: string } => {
   const trimmed = (address || '').trim();
   if (!trimmed) {
+    if (!isRequired) {
+      return { isValid: true };
+    }
     return {
       isValid: false,
-      error: 'Contract address is required for on-chain security checks. Enter the address for the correct network.'
+      error: 'Smart contract / token address is required for standard interchangeable assets (ERC-20, BEP-20, SPL, governance, or LP tokens). Enter the address for the correct network.'
     };
   }
 
@@ -270,6 +274,20 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     }
   }, [prefillData]);
   const [contractAddress, setContractAddress] = useState(prefillData?.contractAddress || '');
+  const [assetType, setAssetType] = useState<'auto' | 'native' | 'token'>('auto');
+
+  // Intelligent detection: Base layer coins used to pay gas fees (BTC, ETH, SOL, SUI, BNB, AVAX, etc.)
+  const isDetectedNative = useMemo(() => {
+    return isNativeGasCoin({ symbol, name, category, chainId: selectedChain });
+  }, [symbol, name, category, selectedChain]);
+
+  // Contract address is required for interchangeable tokens (ERC-20, BEP-20, SPL, LP, governance),
+  // but optional for native base layer gas coins.
+  const isContractRequired = useMemo(() => {
+    if (assetType === 'native') return false;
+    if (assetType === 'token') return true;
+    return !isDetectedNative;
+  }, [assetType, isDetectedNative]);
   const verificationDepth = 'Unified Bytecode & Evidence Verification';
   const [stressSimulation, setStressSimulation] = useState(true);
   const [showProModal, setShowProModal] = useState(false);
@@ -710,9 +728,9 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       return;
     }
 
-    const validation = validateContractAddress(contractAddress, selectedChain);
+    const validation = validateContractAddress(contractAddress, selectedChain, isContractRequired);
     if (!validation.isValid) {
-      setError(validation.error || 'Contract address is required for on-chain security checks. Enter the address for the correct network.');
+      setError(validation.error || 'Contract address is required for standard interchangeable assets. Enter the address for the correct network.');
       return;
     }
 
@@ -825,7 +843,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             contractAddress: trimmedContract,
             securityScan: workingEvidence.securityScan || undefined,
             marketSnapshot: workingEvidence.marketSnapshot || undefined,
-            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract}, TVL Stress Simulation: ${stressSimulation ? 'ACTIVE' : 'DISABLED'}] ${focusArea.trim()}`
+            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract || 'Native Base Currency'}, TVL Stress Simulation: ${stressSimulation ? 'ACTIVE' : 'DISABLED'}] ${focusArea.trim()}`
           }),
         });
 
@@ -886,9 +904,11 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
           riskLevel: calcBp.riskLevel,
           scores,
           verdict: `${cleanName} (${cleanSymbol}) evaluates at ${calcBp.overallScore}/100 with ${calcBp.riskLevel} Risk assessment under the CRL 5-dimension Evaluation Blueprint rubric.`,
-          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\nSmart contract inspection for address ${trimmedContract} (${selectedChainInfo.name}) indicates a Security Rating of ${secScore}/10. ${!honeypotKnown && !mintKnown ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics detected in token bytecode.' : !honeypotKnown ? 'Honeypot status could not be independently verified from available telemetry.' : isMintable ? 'WARNING: Unlimited minting capabilities detected without public timelock restrictions.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, reflecting a ${calcBp.riskLevel} Risk assessment.`,
+          summary: `### Core Thesis\n${cleanName} (${cleanSymbol}) is evaluated under the ${category} framework on ${selectedChainInfo.name}. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.\n\n### Market & Utility Analysis\nThe project delivers specialized capabilities in ${category}. Primary evaluation focuses on cryptographic robustness, liquidity depth, and failure-point resilience under stress conditions.\n\n### Tokenomics & Security\n${trimmedContract ? `Smart contract inspection for address ${trimmedContract} (${selectedChainInfo.name})` : `Base layer consensus and native ledger verification for ${selectedChainInfo.name}`} indicates a Security Rating of ${secScore}/10. ${!honeypotKnown && !mintKnown ? (trimmedContract ? 'Honeypot and mint-authority status could not be independently verified from available telemetry.' : 'Native layer 1 coin with public distributed consensus validation.') : isHoneypot ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics detected in token bytecode.' : !honeypotKnown ? 'Honeypot status could not be independently verified from available telemetry.' : isMintable ? 'WARNING: Unlimited minting capabilities detected without public timelock restrictions.' : 'No malicious transfer restrictions identified.'}\n\n### Conclusion\n${cleanName} receives an overall Evaluation Blueprint Score of ${calcBp.overallScore}/100, reflecting a ${calcBp.riskLevel} Risk assessment.`,
           pros: [
-            `Verified on-chain contract bytecode registered for ${cleanSymbol} on ${selectedChainInfo.name}`,
+            trimmedContract
+              ? `Verified on-chain contract bytecode registered for ${cleanSymbol} on ${selectedChainInfo.name}`
+              : `Decentralized consensus & base layer network validation active for native ${cleanSymbol}`,
             buyTax === 0 && sellTax === 0 ? 'Verified zero-tax contract execution model (0% buy / 0% sell fee)' : 'Active decentralized liquidity routing',
             `Aligned with ${category} specification and evaluation rubric`
           ],
@@ -1570,29 +1590,66 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    {/* Asset Classification Header with Two Selector Pills Alongside */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <label className="block text-[11px] font-mono uppercase tracking-wider text-slate-300">
-                        Smart Contract / Token Address <span className="text-amber-400 font-bold">*</span>
+                        Smart Contract / Token Address {isContractRequired && <span className="text-amber-400 font-bold">*</span>}
                       </label>
-                      <span className="text-[9px] font-mono text-amber-400/90 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/30">
-                        REQUIRED FOR ON-CHAIN SCAN
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setAssetType(assetType === 'token' ? 'auto' : 'token')}
+                          className={`text-[9px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer ${
+                            isContractRequired
+                              ? 'text-amber-300 bg-amber-500/20 border-amber-500/50 font-semibold shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                              : 'text-slate-400 bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:text-slate-300'
+                          }`}
+                          title="Click to toggle: Standard interchangeable tokens (ERC-20, BEP-20, SPL, LP, Governance)"
+                        >
+                          REQUIRED (ERC-20 / BEP-20 / SPL / LP)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAssetType(assetType === 'native' ? 'auto' : 'native')}
+                          className={`text-[9px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer ${
+                            !isContractRequired
+                              ? 'text-emerald-300 bg-emerald-500/20 border-emerald-500/50 font-semibold shadow-[0_0_10px_rgba(16,185,129,0.15)]'
+                              : 'text-slate-400 bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:text-slate-300'
+                          }`}
+                          title="Click to toggle: Base layer coin used to pay gas fees (e.g. BTC, ETH on main chain, SOL, SUI, BNB, AVAX)"
+                        >
+                          NOT REQUIRED (NATIVE GAS COIN)
+                        </button>
+                      </div>
                     </div>
+
                     <input
                       type="text"
                       value={contractAddress}
                       onChange={(e) => setContractAddress(e.target.value)}
-                      placeholder={SUPPORTED_CHAINS.find(c => c.id === selectedChain)?.placeholder || "Enter token contract address..."}
+                      placeholder={
+                        !isContractRequired
+                          ? "Optional for native coins (e.g. enter wrapped token if applicable)..."
+                          : (SUPPORTED_CHAINS.find(c => c.id === selectedChain)?.placeholder || "Enter token contract address...")
+                      }
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 text-xs focus:outline-none focus:border-amber-500/50 font-mono tracking-tight"
                       disabled={isLoading}
-                      required
+                      required={isContractRequired}
                     />
-                    <p className="mt-1 text-[10px] text-slate-400 font-mono">
-                      {SUPPORTED_CHAINS.find(c => c.id === selectedChain)?.isEvm 
-                        ? "EVM standard: 0x format with 40 hexadecimal characters." 
-                        : selectedChain === 'solana'
-                          ? "Solana standard: 32-44 character Base58 token mint identifier (no 0x)."
-                          : "Non-EVM standard: Network-native token identifier (no 0x required)."}
+                    <p className="mt-1 text-[10px] text-slate-400 font-mono leading-relaxed">
+                      {!isContractRequired ? (
+                        <span className="text-emerald-400/90">
+                          ✓ Base layer coin used to pay gas fees (e.g. Bitcoin, Ethereum on main chain, Solana, Sui Network). Smart contract address is optional.
+                        </span>
+                      ) : (
+                        <span>
+                          {SUPPORTED_CHAINS.find(c => c.id === selectedChain)?.isEvm 
+                            ? "Required for EVM interchangeable tokens (ERC-20, BEP-20, governance, or LP tokens). Format: 0x + 40 hex characters." 
+                            : selectedChain === 'solana'
+                              ? "Required for Solana tokens (SPL, governance, LP tokens). Format: 32-44 character Base58 mint ID (no 0x)."
+                              : "Required for standard interchangeable assets (governance, LP, or sub-network tokens)."}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

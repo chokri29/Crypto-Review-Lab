@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { INITIAL_REVIEWS } from "./src/data.js";
 import { calculateBlueprintScore } from "./src/services/EvaluationBlueprint.js";
+import { isNativeGasCoin } from "./src/utils/nativeCoins.js";
 import { 
   createProOrder, 
   approveAndDeliverProOrder, 
@@ -507,13 +508,23 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
         return res.status(400).json({ error: "Project name and token ticker symbol are required." });
       }
 
-      if (!contractAddress || !String(contractAddress).trim()) {
-        return res.status(400).json({ error: "Contract address is required for on-chain security checks. Enter the address for the correct network." });
-      }
-
       const reqName = String(name).trim().toLowerCase();
       const reqSymbol = String(symbol).trim().toLowerCase();
       const resolvedProtocolType = String(protocolType || category || 'DeFi Protocol (AMM / Lending)').trim();
+
+      const isNative = isNativeGasCoin({
+        symbol: String(symbol),
+        name: String(name),
+        category: resolvedProtocolType,
+        chainId: req.body?.chainId
+      });
+
+      const cleanContract = contractAddress ? String(contractAddress).trim() : '';
+      if (!cleanContract && !isNative) {
+        return res.status(400).json({ 
+          error: "Smart contract / token address is required for standard interchangeable assets (ERC-20, BEP-20, SPL, governance, or LP tokens). Enter the address for the correct network." 
+        });
+      }
 
       // Master Evaluation Blueprint lookup: If project exists in reference database, return canonical blueprint review to eliminate dual scoring discrepancies
       const masterMatch = INITIAL_REVIEWS.find(r => 
