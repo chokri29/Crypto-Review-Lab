@@ -1930,18 +1930,6 @@ export default function BlogPreviewer({
                 ? (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW')
                 : (verificationConfidencePct >= 80 ? 'HIGH' : (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW'));
 
-              // Data Freshness & Source Coverage
-              const dataDateStr = activeReview.createdAt ? new Date(activeReview.createdAt).toISOString().split('T')[0] : 'Current Live Block';
-              const dataFreshness = `Live Telemetry Synchronized (${dataDateStr}) • CoinGecko API v3 (60s cache)`;
-              const activeSources = ['CoinGecko API v3'];
-              if (activeReview.contractAddress) activeSources.push('Etherscan / Bytecode Registry');
-              if (hasRealScan) activeSources.push(activeReview.securityScan?.source || 'GoPlus Security');
-              if (hasRealTvl) activeSources.push('DefiLlama');
-              if (hasPublicAudits) activeSources.push('Public Audit Registries');
-              const sourceCoverage = `${activeSources.join(', ')} (${activeSources.length} active feeds)`;
-
-              const secScan = activeReview.securityScan?.data || activeReview.securityScan;
-
               return (
                 <div className="space-y-4">
                   <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
@@ -1994,87 +1982,6 @@ export default function BlogPreviewer({
                           })}
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Verification & Risks Assessment Section */}
-                  <div className="bg-slate-950/70 border border-cyber-cyan/20 rounded-xl p-4 space-y-3 text-left">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2.5">
-                      <h4 className="font-display font-bold text-xs sm:text-sm text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-                        <span className="w-1.5 h-3.5 bg-cyan-400 rounded-full"></span>
-                        Verification & Risks Assessment
-                      </h4>
-                      <span className="text-[10px] font-mono text-slate-400">AVF Deterministic Validation</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[11px] font-mono">
-                      <div className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
-                        <span className="text-slate-400 block text-[10px] uppercase">Data Freshness</span>
-                        <span className="text-slate-200">{dataFreshness}</span>
-                      </div>
-                      <div className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
-                        <span className="text-slate-400 block text-[10px] uppercase">Source Coverage</span>
-                        <span className="text-slate-200">{sourceCoverage}</span>
-                      </div>
-                    </div>
-
-                    {/* On-chain / Market / Security Evidence Badges */}
-                    <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">On-chain / Market / Security Evidence</span>
-                      <div className="flex flex-wrap gap-2 text-[10px] font-mono">
-                        <span className={`px-2 py-1 rounded border ${hasRealContract ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
-                          Bytecode: {hasRealContract ? 'VERIFIED' : 'MISSING'}
-                        </span>
-                        <span className="px-2 py-1 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-300">
-                          Market: TRI-ORACLE CONVERGENCE
-                        </span>
-                        <span className={`px-2 py-1 rounded border ${hasRealScan ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
-                          Security Scan: {hasRealScan ? 'VERIFIED' : 'UNAVAILABLE'}
-                        </span>
-                        <span className={`px-2 py-1 rounded border ${hasPublicAudits ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-400'}`}>
-                          Audits: {hasPublicAudits ? 'VERIFIED' : 'NOT VERIFIED / MISSING EVIDENCE'}
-                        </span>
-                        <span className={`px-2 py-1 rounded border ${hasRealTvl ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-slate-800/80 border-slate-700 text-slate-400'}`}>
-                          TVL: {hasRealTvl ? 'VERIFIED' : 'UNAVAILABLE'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Key Risk Findings with Evidence / Provenance */}
-                    <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800 space-y-1.5">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Key Risk Findings (Evidence & Provenance)</span>
-                      <ul className="space-y-1 text-[11px] font-mono text-slate-300">
-                        {secScan?.top10HolderConcentrationPct && (
-                          <li className="flex items-start gap-1.5">
-                            <span className="text-amber-400">•</span>
-                            <span>Holder Concentration: Top 10 control {secScan.top10HolderConcentrationPct}% of supply (Source: On-chain ledger)</span>
-                          </li>
-                        )}
-                        {!hasPublicAudits && (
-                          <li className="flex items-start gap-1.5">
-                            <span className="text-amber-400">•</span>
-                            <span>Third-Party Audits: NOT VERIFIED — No formal independent verification audit indexed on file (Source: Public Audit Registries)</span>
-                          </li>
-                        )}
-                        {!hasRealTvl && (
-                          <li className="flex items-start gap-1.5">
-                            <span className="text-slate-400">•</span>
-                            <span>Protocol TVL: UNAVAILABLE — Asset not listed with active TVL tracking on DefiLlama (Source: DefiLlama)</span>
-                          </li>
-                        )}
-                        {f3?.discrepancies && f3.discrepancies.length > 0 && (
-                          <li className="flex items-start gap-1.5">
-                            <span className="text-rose-400">•</span>
-                            <span>Deterministic Discrepancy: {f3.discrepancies[0]} (Source: AVF Engine)</span>
-                          </li>
-                        )}
-                      </ul>
-                    </div>
-
-                    {/* Integrity & Traceability */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] font-mono text-slate-400 border-t border-slate-800/80">
-                      <span>Integrity: SHA-256 Digest & Ed25519 Cryptographic Verification</span>
-                      <span className="text-cyan-400 font-bold">CRL State: {canonicalStatus}</span>
                     </div>
                   </div>
                 </div>
