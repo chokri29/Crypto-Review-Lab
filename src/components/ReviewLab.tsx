@@ -32,7 +32,6 @@ import {
   Flame,
   Code,
   Terminal,
-  Sliders,
   Eye,
   CheckCircle2,
   Building2,
@@ -51,8 +50,6 @@ import { CryptoReview, CryptoReviewScores, RiskLevel, ProSecurityBenchmarks } fr
 import { EvaluationBlueprintRubric } from './EvaluationBlueprintRubric';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
-import { buildComparisonReport } from '../services/comparisonEngine';
-import { ComparisonReportView } from './ComparisonReportView';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from '../services/reControlEngine';
 import { runF3Verification, isF2GatePassed, getStandardCoinGeckoCategories, getConfidenceLevel, projectToPublicCryptoReviewReport, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { getMetricColor } from '../utils/metricColors';
@@ -120,67 +117,6 @@ const ACCELERATOR_POOL = [
   { name: 'dogwifhat', symbol: 'WIF', category: 'Memecoin / Speculative' },
   { name: 'Injective', symbol: 'INJ', category: 'DeFi Protocol (AMM / Lending)' },
   { name: 'LayerZero', symbol: 'ZRO', category: 'Infrastructure (Oracle / Bridge)' },
-];
-
-export interface ComparisonProtocol {
-  name: string;
-  symbol: string;
-  categories: string[];
-  displayCategory: string;
-}
-
-export const COMPARISON_PROTOCOLS: ComparisonProtocol[] = [
-  // Layer 1 Blockchain & Appchains
-  { name: 'Hyperliquid', symbol: 'HYPE', categories: ['Layer 1 Blockchain', 'DeFi Protocol (AMM / Lending)'], displayCategory: 'Layer 1 / DeFi Appchain' },
-  { name: 'Sui Network', symbol: 'SUI', categories: ['Layer 1 Blockchain'], displayCategory: 'Layer 1 Blockchain' },
-  { name: 'Berachain', symbol: 'BERA', categories: ['Layer 1 Blockchain'], displayCategory: 'Proof-of-Liquidity L1' },
-  { name: 'Monad', symbol: 'MONAD', categories: ['Layer 1 Blockchain'], displayCategory: 'Parallel EVM L1' },
-  { name: 'Movement', symbol: 'MOVE', categories: ['Layer 1 Blockchain'], displayCategory: 'Move EVM L1' },
-  { name: 'Solana', symbol: 'SOL', categories: ['Layer 1 Blockchain'], displayCategory: 'Layer 1 Blockchain' },
-  { name: 'Aptos', symbol: 'APT', categories: ['Layer 1 Blockchain'], displayCategory: 'Layer 1 Blockchain' },
-  { name: 'Kaspa', symbol: 'KAS', categories: ['Layer 1 Blockchain'], displayCategory: 'Layer 1 BlockDAG' },
-  { name: 'Sei Network', symbol: 'SEI', categories: ['Layer 1 Blockchain'], displayCategory: 'Parallel L1' },
-  { name: 'Near Protocol', symbol: 'NEAR', categories: ['Layer 1 Blockchain', 'Specialized / Experimental'], displayCategory: 'Layer 1 / AI' },
-
-  // Layer 2 / Scaling / Modular
-  { name: 'Arbitrum', symbol: 'ARB', categories: ['Layer 2 / Scaling'], displayCategory: 'Layer 2 Rollup' },
-  { name: 'Celestia', symbol: 'TIA', categories: ['Layer 2 / Scaling', 'Infrastructure (Oracle / Bridge)'], displayCategory: 'Modular Data Availability' },
-  { name: 'Starknet', symbol: 'STRK', categories: ['Layer 2 / Scaling', 'Privacy / Cryptographic (FHE / ZK / MPC)'], displayCategory: 'ZK Layer 2' },
-  { name: 'Optimism', symbol: 'OP', categories: ['Layer 2 / Scaling'], displayCategory: 'Layer 2 Rollup' },
-  { name: 'Base', symbol: 'BASE', categories: ['Layer 2 / Scaling'], displayCategory: 'Layer 2 Rollup' },
-  { name: 'Polygon', symbol: 'POL', categories: ['Layer 2 / Scaling', 'Layer 1 Blockchain'], displayCategory: 'Layer 2 / Sidechain' },
-
-  // DeFi Protocol & Yield / Restaking
-  { name: 'EigenLayer', symbol: 'EIGEN', categories: ['DeFi Protocol (AMM / Lending)'], displayCategory: 'Restaking Middleware' },
-  { name: 'Ethena', symbol: 'ENA', categories: ['DeFi Protocol (AMM / Lending)'], displayCategory: 'Synthetic Dollar Protocol' },
-  { name: 'Uniswap', symbol: 'UNI', categories: ['DeFi Protocol (AMM / Lending)'], displayCategory: 'DeFi DEX Protocol' },
-  { name: 'Aave', symbol: 'AAVE', categories: ['DeFi Protocol (AMM / Lending)'], displayCategory: 'DeFi Money Market' },
-
-  // RWA (Tokenization / TradFi Bridge)
-  { name: 'Ondo Finance', symbol: 'ONDO', categories: ['RWA (Tokenization / TradFi Bridge)'], displayCategory: 'TradFi RWA Protocol' },
-  { name: 'Centrifuge', symbol: 'CFG', categories: ['RWA (Tokenization / TradFi Bridge)'], displayCategory: 'RWA Credit Protocol' },
-
-  // Privacy / Cryptographic (FHE / ZK / MPC)
-  { name: 'Zama', symbol: 'ZAMA', categories: ['Privacy / Cryptographic (FHE / ZK / MPC)'], displayCategory: 'Privacy / FHE Protocol' },
-  { name: 'Secret Network', symbol: 'SCRT', categories: ['Privacy / Cryptographic (FHE / ZK / MPC)'], displayCategory: 'Confidential Computing' },
-  { name: 'Oasis Network', symbol: 'ROSE', categories: ['Privacy / Cryptographic (FHE / ZK / MPC)'], displayCategory: 'Privacy Preservation' },
-
-  // Infrastructure (Oracle / Bridge / Interop)
-  { name: 'Pyth Network', symbol: 'PYTH', categories: ['Infrastructure (Oracle / Bridge)'], displayCategory: 'Financial Oracle' },
-  { name: 'Chainlink', symbol: 'LINK', categories: ['Infrastructure (Oracle / Bridge)'], displayCategory: 'Oracle & Data Feeds' },
-  { name: 'Wormhole', symbol: 'W', categories: ['Infrastructure (Oracle / Bridge)'], displayCategory: 'Cross-Chain Bridge' },
-  { name: 'LayerZero', symbol: 'ZRO', categories: ['Infrastructure (Oracle / Bridge)'], displayCategory: 'Omnichain Interoperability' },
-
-  // DePIN (Compute / Storage / Wireless)
-  { name: 'Bittensor', symbol: 'TAO', categories: ['DePIN (Compute / Storage / Wireless)'], displayCategory: 'Decentralized AI & Compute' },
-  { name: 'Render Network', symbol: 'RENDER', categories: ['DePIN (Compute / Storage / Wireless)'], displayCategory: 'GPU Compute Grid' },
-  { name: 'Akash Network', symbol: 'AKT', categories: ['DePIN (Compute / Storage / Wireless)'], displayCategory: 'DePIN Cloud Infrastructure' },
-  { name: 'Helium', symbol: 'HNT', categories: ['DePIN (Compute / Storage / Wireless)'], displayCategory: 'Wireless DePIN Network' },
-
-  // Memecoin / Speculative
-  { name: 'Pepe', symbol: 'PEPE', categories: ['Memecoin / Speculative'], displayCategory: 'Memecoin' },
-  { name: 'dogwifhat', symbol: 'WIF', categories: ['Memecoin / Speculative'], displayCategory: 'Memecoin' },
-  { name: 'Bonk', symbol: 'BONK', categories: ['Memecoin / Speculative'], displayCategory: 'Memecoin' },
 ];
 
 export const matchCategory = (cat?: string): string => {
@@ -336,44 +272,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
   const [contractAddress, setContractAddress] = useState(prefillData?.contractAddress || '');
   const verificationDepth = 'Unified Bytecode & Evidence Verification';
   const [stressSimulation, setStressSimulation] = useState(true);
-  const [isCompareEnabled, setIsCompareEnabled] = useState(true);
-  const [compareProtocol, setCompareProtocol] = useState('Ethereum (ETH)');
-
-  // Filter comparison protocols based on selected form category
-  const availableCompareProtocols = COMPARISON_PROTOCOLS.filter(p => p.categories.includes(category));
-  const displayCompareProtocols = availableCompareProtocols.length > 0 ? availableCompareProtocols : COMPARISON_PROTOCOLS;
-
-  // Auto-adjust selected comparison protocol if main category changes
-  useEffect(() => {
-    const matching = COMPARISON_PROTOCOLS.filter(p => p.categories.includes(category));
-    if (matching.length > 0) {
-      const isCurrentValid = matching.some(p => `${p.name} (${p.symbol})` === compareProtocol);
-      if (!isCurrentValid) {
-        const distinct = matching.find(p => p.name.toLowerCase() !== name.trim().toLowerCase());
-        if (distinct) {
-          setCompareProtocol(`${distinct.name} (${distinct.symbol})`);
-        } else {
-          setCompareProtocol(`${matching[0].name} (${matching[0].symbol})`);
-        }
-      }
-    }
-  }, [category, compareProtocol, name]);
-
-  // Ensure comparison protocol is never the same as the primary protocol being evaluated
-  useEffect(() => {
-    if (name && compareProtocol) {
-      const compName = compareProtocol.split('(')[0].trim().toLowerCase();
-      const primaryName = name.trim().toLowerCase();
-      if (compName === primaryName) {
-        const distinct = displayCompareProtocols.find(p => p.name.toLowerCase() !== primaryName);
-        if (distinct) {
-          setCompareProtocol(`${distinct.name} (${distinct.symbol})`);
-        } else {
-          setCompareProtocol('Ethereum (ETH)');
-        }
-      }
-    }
-  }, [name, compareProtocol, displayCompareProtocols]);
   const [showProModal, setShowProModal] = useState(false);
   const [showFeaturesAccordion, setShowFeaturesAccordion] = useState(false);
   const [showPromoAccordion, setShowPromoAccordion] = useState(false);
@@ -699,11 +597,9 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     }
   }, []);
 
-  // Custom Category, Compare & Blockchain Dropdown States
+  // Custom Category & Blockchain Dropdown States
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isCompareDropdownOpen, setIsCompareDropdownOpen] = useState(false);
-  const compareDropdownRef = useRef<HTMLDivElement>(null);
   const [isChainDropdownOpen, setIsChainDropdownOpen] = useState(false);
   const chainDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -929,7 +825,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             contractAddress: trimmedContract,
             securityScan: workingEvidence.securityScan || undefined,
             marketSnapshot: workingEvidence.marketSnapshot || undefined,
-            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract}, TVL Stress Simulation: ${stressSimulation ? 'ACTIVE' : 'DISABLED'}${isCompareEnabled ? `, Compare Against: ${compareProtocol}` : ''}] ${focusArea.trim()}`
+            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract}, TVL Stress Simulation: ${stressSimulation ? 'ACTIVE' : 'DISABLED'}] ${focusArea.trim()}`
           }),
         });
 
@@ -1044,21 +940,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         }
       };
 
-      // Generate Comparison Report if compare mode is enabled
-      let comparisonReportData = undefined;
-      if (isCompareEnabled && compareProtocol) {
-        const tempBase: CryptoReview = {
-          ...reviewData,
-          overallScore: bp.overallScore,
-          riskLevel: bp.riskLevel,
-          id: `${reviewData.symbol.toLowerCase()}-${Date.now()}`,
-          createdAt: new Date().toISOString().split('T')[0],
-          author: 'Lab Security Auditor',
-          category: category
-        };
-        comparisonReportData = buildComparisonReport(tempBase, compareProtocol, verificationDepth);
-      }
-
       // Phase 1: Client Payment & System Draft Generation (Phase 2 remains undefined until initiated by Admin)
       let completeReview: CryptoReview = {
         ...reviewData,
@@ -1068,7 +949,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
         createdAt: new Date().toISOString().split('T')[0],
         author: 'Crypto Review Lab Security Assessment Engine',
         proBenchmarks: proBenchmarks,
-        comparisonReport: comparisonReportData,
+        comparisonReport: undefined,
         phaseTwoReControl: undefined // Awaiting Phase 2 Verification via Admin Dashboard
       };
 
@@ -1727,110 +1608,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     <span className="font-mono text-[10px] text-slate-300">TVL Stress Simulation (Multi-Vector Liquidity Stress Test)</span>
                   </label>
                 </div>
-
-                {/* Compare Against Toggle & Dropdown */}
-                <div className="bg-slate-950/80 border border-slate-800/80 rounded-xl p-2.5 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-300 hover:text-amber-300 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={isCompareEnabled}
-                        onChange={(e) => setIsCompareEnabled(e.target.checked)}
-                        className="rounded border-slate-800 text-amber-500 focus:ring-amber-500 bg-slate-900 cursor-pointer"
-                      />
-                      <span className="font-mono text-[10px] uppercase font-bold text-amber-300 flex items-center gap-1.5">
-                        <Sliders className="w-3 h-3 text-amber-400" />
-                        Benchmark Protocol Comparison
-                      </span>
-                    </label>
-                    {isCompareEnabled && (
-                      <span className="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20 font-medium">
-                        Benchmark Selected
-                      </span>
-                    )}
-                  </div>
-
-                  {isCompareEnabled && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="pt-1 relative"
-                      ref={compareDropdownRef}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                          Select Reference Benchmark
-                        </label>
-                        <span className="text-[9px] font-mono text-amber-300/90 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 font-medium">
-                          Category: {category.split(' ')[0]}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsCompareDropdownOpen(!isCompareDropdownOpen)}
-                        disabled={isLoading}
-                        className="w-full bg-slate-900 border border-slate-750 hover:border-amber-500/40 focus:border-amber-500/60 rounded-xl px-3 py-2 text-slate-200 text-xs font-mono flex items-center justify-between transition-all cursor-pointer shadow-inner"
-                      >
-                        <div className="flex items-center gap-2 overflow-hidden truncate">
-                          <span className="truncate font-medium text-amber-200">
-                            {compareProtocol}
-                          </span>
-                        </div>
-                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${isCompareDropdownOpen ? 'rotate-180 text-amber-400' : ''}`} />
-                      </button>
-
-                      <AnimatePresence>
-                        {isCompareDropdownOpen && (
-                          <>
-                            <div 
-                              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[1px]" 
-                              onClick={() => setIsCompareDropdownOpen(false)} 
-                            />
-                            <motion.div
-                              initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute left-0 right-0 mt-1 z-50 bg-slate-900 border border-slate-750 rounded-xl shadow-2xl overflow-hidden py-1 divide-y divide-slate-800/60 max-h-60 overflow-y-auto"
-                            >
-                              {displayCompareProtocols.map((p) => {
-                                const formattedVal = `${p.name} (${p.symbol})`;
-                                const isSelected = compareProtocol === formattedVal;
-                                return (
-                                  <button
-                                    key={p.symbol}
-                                    type="button"
-                                    onClick={() => {
-                                      setCompareProtocol(formattedVal);
-                                      setIsCompareDropdownOpen(false);
-                                    }}
-                                    className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                                      isSelected ? 'bg-amber-500/10 text-amber-300 font-semibold' : 'text-slate-300 hover:bg-slate-800/80 hover:text-slate-100'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2.5 overflow-hidden">
-                                      <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 font-mono text-[10px] font-bold shrink-0">
-                                        {p.symbol}
-                                      </div>
-                                      <div className="flex flex-col truncate">
-                                        <span className="font-sans text-xs font-medium text-slate-200">{p.name}</span>
-                                        <span className="text-[10px] text-slate-400 font-mono">{p.displayCategory}</span>
-                                      </div>
-                                    </div>
-                                    {isSelected && (
-                                      <Check className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  )}
-                </div>
               </div>
 
               {/* Custom Focus Lens */}
@@ -1912,7 +1689,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 symbol={symbol.toUpperCase().trim() || 'TARGET'}
                 name={name.trim() || 'Protocol'}
                 category={category}
-                compareProtocol={isCompareEnabled ? compareProtocol : undefined}
                 stepIndex={loadingStep}
               />
             </div>
@@ -2573,15 +2349,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     </p>
                   </div>
                 </div>
-
-                {/* Protocol Benchmark Comparison Section */}
-                {generatedReview.comparisonReport && (
-                  <ComparisonReportView 
-                    data={generatedReview.comparisonReport} 
-                    isPaidPro={isProUnlocked}
-                    onUnlockPro={() => setShowProModal(true)}
-                  />
-                )}
 
                 {/* Phase Two Automated Re-Control Section */}
                 {generatedReview.phaseTwoReControl && (

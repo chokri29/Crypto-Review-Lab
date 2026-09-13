@@ -14,7 +14,6 @@ export interface SecurityCheckTerminalLoaderProps {
   symbol?: string;
   name?: string;
   category?: string;
-  compareProtocol?: string;
   stepIndex: number;
 }
 
@@ -66,7 +65,6 @@ export const ProEvaluationTerminalLoader: React.FC<SecurityCheckTerminalLoaderPr
   symbol = 'TARGET',
   name = 'Protocol',
   category,
-  compareProtocol,
   stepIndex
 }) => {
   const steps = SECURITY_CHECK_STEPS;
@@ -277,11 +275,6 @@ export const ProEvaluationTerminalLoader: React.FC<SecurityCheckTerminalLoaderPr
             <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
               VECTOR: <strong className="text-cyan-300">{cleanCategory}</strong>
             </span>
-            {compareProtocol && (
-              <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">
-                BENCHMARK: <strong className="text-amber-300">{compareProtocol}</strong>
-              </span>
-            )}
             <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-amber-300 font-semibold">
               STAGE: <span className="text-slate-200">{currentStep.stageBadge}</span>
             </span>

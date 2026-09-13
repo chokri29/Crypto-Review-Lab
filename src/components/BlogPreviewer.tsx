@@ -69,7 +69,6 @@ import { ProTierBadge } from './ProTierBadge';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
 import { getMetricColor } from '../utils/metricColors';
-import MajorEventsAlertBox from './MajorEventsAlertBox';
 import { TiltCard } from './TiltCard';
 import MarketMetricsTable from './MarketMetricsTable';
 import CryptoPriceChart from './CryptoPriceChart';
@@ -2011,19 +2010,6 @@ export default function BlogPreviewer({
                   <strong className="text-white font-bold">{activeReview.name} ({activeReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.
                 </p>
               </div>
-
-              {/* Major Events & Critical Security Alerts Box */}
-              <MajorEventsAlertBox 
-                name={activeReview.name} 
-                symbol={activeReview.symbol} 
-                category={activeReview.category}
-                scores={activeReview.scores}
-                overallScore={activeReview.overallScore}
-                riskLevel={activeReview.riskLevel}
-                coingeckoId={activeReview.coingeckoId}
-                contractAddress={activeReview.contractAddress}
-                chainId={activeReview.chainId}
-              />
             </div>
 
             {/* Protocol Benchmark Comparison Section */}
