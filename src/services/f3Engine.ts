@@ -1523,10 +1523,9 @@ export interface AVF06RiskConclusionResult {
  * Cross-checks stated review.riskLevel against real, externally-sourced and
  * verifiable security/risk signals:
  * 1. Security sub-score (scores.security)
- * 2. Overall mathematical score (overallScore)
- * 3. Contract deployment & verified GoPlus / RugCheck scan results
- * 4. Symbolic execution benchmark flags (reentrancy, flash loan cascade, proxy admin lock)
- * 5. Category-level speculative baseline (Memecoin / Speculative)
+ * 2. Contract deployment & verified GoPlus / RugCheck scan results
+ * 3. Symbolic execution benchmark flags (reentrancy, flash loan cascade, proxy admin lock)
+ * 4. Recorded Evaluation Score (/100) (maintained as an independent assessment output)
  * 
  * Returns CONSISTENT if all verified risk signals align with declared riskLevel.
  * Returns CONFLICT if a direct, material contradiction is detected (e.g. Honeypot/cannot-sell flags or low security score paired with 'Low Risk').
@@ -1638,42 +1637,17 @@ export function verifyAVF06RiskConclusion(
     });
   }
 
-  // Signal 2: Overall Score Aggregation (overallScore)
+  // Signal 2: Numerical Evaluation Score Record (Independent Assessment Output)
   if (typeof review.overallScore === 'number') {
     const overall = review.overallScore;
-    let scoreImpliedRisk = 'Low';
-    let scoreRank = 1;
-
-    if (overall < 40) {
-      scoreImpliedRisk = 'Critical';
-      scoreRank = 4;
-    } else if (overall < 60) {
-      scoreImpliedRisk = 'High';
-      scoreRank = 3;
-    } else if (overall < 75) {
-      scoreImpliedRisk = 'Medium';
-      scoreRank = 2;
-    } else {
-      scoreImpliedRisk = 'Low';
-      scoreRank = 1;
-    }
-
-    if (scoreRank > maxImpliedRank) maxImpliedRank = scoreRank;
-
-    const isContradiction = (scoreRank >= 3 && declaredRank === 1) || (scoreRank === 4 && declaredRank <= 2);
-    if (isContradiction) {
-      contradictions.push(
-        `Overall Score Contradiction: Composite score (${overall}/100) indicates ${scoreImpliedRisk} Risk, contradicting headline '${declaredRisk} Risk'.`
-      );
-    }
 
     signalsChecked.push({
-      signalName: 'Overall Composite Score',
+      signalName: 'Numerical Evaluation Score',
       source: 'Aggregated F1/F2 Evaluation Score',
       observedValue: `${overall}/100`,
-      impliedRisk: scoreImpliedRisk,
-      isContradiction,
-      notes: `Overall evaluation score ${overall}/100`
+      impliedRisk: declaredRisk, // Decoupled: Numerical score is an independent output, not a score-to-risk classifier
+      isContradiction: false,
+      notes: `Evaluation score of ${overall}/100 tracked as independent assessment output.`
     });
   }
 
@@ -1908,23 +1882,17 @@ export function verifyAVF06RiskConclusion(
     }
   }
 
-  // Signal 5: Category-Level Risk Baseline (Taxonomic profile, evaluated against evidence)
+  // Signal 5: Category Taxonomy Context (Evaluated purely against concrete evidence)
   if (review.category && typeof review.category === 'string') {
     const lowerCat = review.category.toLowerCase();
     if (lowerCat.includes('meme') || lowerCat.includes('speculative')) {
-      // Taxonomic context: Note category market volatility without forcing an artificial contradiction
-      // if underlying security invariants (clean honeypot, renounced ownership, fixed supply) are verified.
-      materialFindings.push(
-        `Category Context: Protocol is classified under '${review.category}' taxonomy (speculative market profile; risk evaluated from verified on-chain invariants).`
-      );
-
       signalsChecked.push({
-        signalName: 'Category Speculative Context',
+        signalName: 'Category Taxonomy Profile',
         source: 'Taxonomy Risk Profile',
         observedValue: review.category,
         impliedRisk: declaredRisk,
         isContradiction: false,
-        notes: `Asset taxonomy: ${review.category} (evaluated against concrete security evidence)`
+        notes: `Asset taxonomy: ${review.category} (risk evaluated against verified on-chain security invariants)`
       });
     }
   }

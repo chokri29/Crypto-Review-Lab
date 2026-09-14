@@ -1302,24 +1302,25 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0 mt-0.5 sm:mt-0">
+              <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0">
                     <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-orbitron font-extrabold text-[13px] sm:text-base md:text-xl text-slate-100 tracking-wide sm:tracking-wider leading-snug sm:leading-tight break-words">
+                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight break-words">
                       Evaluation Blueprint Terminal
                     </h2>
-                    <p className="text-[8.5px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider sm:tracking-widest leading-relaxed mt-0.5 break-words">
+                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider sm:tracking-widest leading-normal mt-0.5 truncate">
                       ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE
                     </p>
                   </div>
                 </div>
 
-                <div className="self-start sm:self-auto flex items-center gap-1.5 text-[8.5px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-sm tracking-wider shrink-0">
+                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
-                  <span>LIVE CONSOLE</span>
+                  <span className="hidden xs:inline sm:inline">LIVE CONSOLE</span>
+                  <span className="inline xs:hidden sm:hidden">LIVE</span>
                 </div>
               </div>
 
@@ -2111,7 +2112,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     confidenceScore: generatedReview.confidenceScore ?? 98,
                     confidenceLevel: generatedReview.confidenceLevel ?? 'HIGH',
                     lastSyncedAt: generatedReview.lastSyncedAt ?? new Date().toLocaleTimeString(),
-                    syncRuleApplied: generatedReview.syncRuleApplied ?? 'Tri-Oracle Consensus: Median (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)',
+                    syncRuleApplied: generatedReview.syncRuleApplied ?? 'Multi-Source Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)',
                     multiSourceConvergence: generatedReview.multiSourceConvergence
                   }}
                   onRefresh={handleRefreshMarketMetrics}
@@ -2372,14 +2373,14 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
                 {/* Data Engine & Evaluation Blueprint Overview */}
                 <div className="border-t border-slate-800/60 pt-3 space-y-3 text-left">
-                  {/* Tri-Oracle Data Source Provenance Badge */}
+                  {/* Multi-Source Market Data Convergence Provenance Badge */}
                   <div className="bg-slate-950/80 border border-slate-800/80 p-3 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shadow-md">
                     <span className="flex items-center gap-2 text-emerald-400 font-bold">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Tri-Sync
+                      Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Multi-Source Convergence
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
-                      Cross-validated real-time market depth, historical candle feeds & tri-oracle rank synchronization
+                      Cross-validated real-time market depth, historical candle feeds & multi-source rank synchronization
                     </span>
                   </div>
 
@@ -2390,7 +2391,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                       Evaluation Blueprint Overview
                     </h4>
                     <p className="text-xs font-sans text-slate-200 leading-relaxed">
-                      <strong className="text-white font-bold">{generatedReview.name} ({generatedReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.
+                      <strong className="text-white font-bold">{generatedReview.name} ({generatedReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.
                     </p>
                   </div>
                 </div>
@@ -2672,7 +2673,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                         </div>
                         <div className="flex items-start gap-1.5">
                           <span className="text-amber-400 font-bold">2)</span>
-                          <span><strong>Scan & AVF Verification</strong> &rarr; Bytecode decompilation & TVL stress testing</span>
+                          <span><strong>Scan & AVF Verification</strong> &rarr; Bytecode decompilation & security verification</span>
                         </div>
                         <div className="flex items-start gap-1.5">
                           <span className="text-cyan-400 font-bold">3)</span>

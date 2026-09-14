@@ -1187,7 +1187,7 @@ export const AuditorReviewConsole: React.FC<{
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-[11px] font-mono text-slate-400 block mb-1">
-                        Name and Title of Authorized Senior Auditor/Official:
+                        Name and Title of Authorized Verification Lead / Reviewer:
                       </label>
                       <div className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs font-mono text-cyan-300 font-bold flex items-center justify-between">
                         <span>Crypto Review Lab</span>
@@ -1218,7 +1218,7 @@ export const AuditorReviewConsole: React.FC<{
                       value={auditorComments}
                       onChange={e => setAuditorComments(e.target.value)}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500/50"
-                      placeholder="Type official verification remarks and technical notes to be included in final PDF report & email..."
+                      placeholder="Type verification remarks and technical notes to be included in final PDF report & email..."
                     />
                   </div>
                 </div>
@@ -1564,7 +1564,7 @@ export const AuditorReviewConsole: React.FC<{
                 {/* Authorizing Entity Field */}
                 <div>
                   <label className="text-[11px] font-mono text-slate-300 block mb-1">
-                    Name and Title of Authorized Senior Auditor/Official:
+                    Name and Title of Authorized Verification Lead / Reviewer:
                   </label>
                   <div className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-purple-300 font-bold flex items-center justify-between">
                     <span>Crypto Review Lab</span>

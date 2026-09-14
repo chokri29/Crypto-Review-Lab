@@ -427,7 +427,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
       `================================================================================`,
       `Date:       ${dateStr}`,
       `Framework:  Evaluation Blueprint (25% Utility, 25% Tokenomics, 25% Security, 15% Team, 10% Community)`,
-      `Data Feed:  CoinGecko + CoinMarketCap + CoinStats Tri-Sync Engine`,
+      `Data Feed:  CoinGecko + CoinMarketCap + CoinStats Multi-Source Convergence Engine`,
       `Engine:     AI Auditor Console`,
       title ? `Topic:      ${title}` : null,
       `--------------------------------------------------------------------------------`,
@@ -435,7 +435,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
       bodyContent,
       ``,
       `--------------------------------------------------------------------------------`,
-      `Official Verification: Framework Verified | Crypto Review Lab`,
+      `Algorithmic Verification: Framework Verified | Crypto Review Lab`,
       `================================================================================`
     ].filter(Boolean).join('\n');
   };

@@ -434,9 +434,9 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
         ? `Conservative Stance: Declared [${avf06.declaredRisk}] stricter than implied [${avf06.verifiedRiskLevel}]`
         : `Evaluated Level: ${avf06?.verifiedRiskLevel || selectedProject?.riskLevel || 'Low'} (${avf06?.contradictions?.length ? `${avf06.contradictions.length} Contradictions` : 'Consistent'})`,
-      details: avf06?.details || 'Verdict, score alignment, and declared risk level consistency verified.',
+      details: avf06?.details || 'Verdict, security telemetry, and declared risk level consistency verified.',
       checks: [
-        { name: 'Risk Assessment Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION', detail: 'Composite score aligns with declared risk assessment findings' },
+        { name: 'Risk Assessment Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION', detail: 'Security telemetry and on-chain findings align with assessed risk level' },
         { name: 'Contradiction Detection', status: (avf06?.contradictions?.length ?? 0) === 0 ? 'VERIFIED' : 'FLAGGED', detail: (avf06?.contradictions?.length ?? 0) === 0 ? 'No conflicting narrative assertions found' : avf06?.contradictions?.join('; ') || '' },
         { name: 'Verdict Semantic Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : (avf06?.status === 'REQUIRES_REVIEW' ? 'ATTENTION' : (selectedProject?.verdict ? 'PASSED' : 'NOT_PERFORMED')), detail: avf06?.status === 'CONSISTENT' ? 'Summary tone and verdict align with rubric classification' : (avf06?.status === 'REQUIRES_REVIEW' ? 'Semantic discrepancy detected between narrative and risk findings' : (selectedProject?.verdict ? 'Verdict narrative present (uncalibrated tone scan)' : 'Verdict statement missing')) }
       ]
@@ -1217,7 +1217,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-slate-400 block mb-1">Name and Title of Authorized Senior Auditor/Official:</label>
+                  <label className="text-slate-400 block mb-1">Name and Title of Authorized Verification Lead / Reviewer:</label>
                   <div className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-purple-300 font-mono font-bold flex items-center justify-between">
                     <span>Crypto Review Lab</span>
                     <span className="text-[10px] text-purple-400 font-normal">Automated Verification Layer</span>

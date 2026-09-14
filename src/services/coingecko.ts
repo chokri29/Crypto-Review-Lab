@@ -218,7 +218,7 @@ export interface DualEngineMetrics {
 }
 
 /**
- * Applies the Tri-Oracle Multi-Source Convergence Architecture:
+ * Applies the Multi-Source Market Data Convergence Architecture:
  * 1. Collects live market data from independent sources: CoinGecko, CoinMarketCap (via Proxy), and CoinStats.
  * 2. Reconciles Price (±1.0%), Market Cap (±1.5%), Volume (±3.0%), and Rank (±1).
  * 3. 3-source consensus uses median; 2-source consensus flags outlier; divergence surfaces unresolved metrics.
@@ -269,7 +269,7 @@ export async function applyDualSyncArchitecture(
   const csVolume = coinstatsData?.volume;
   const csRank = coinstatsData?.rank;
 
-  // Run full Tri-Oracle Multi-Source Convergence Reconciliation
+  // Run full Multi-Source Market Data Convergence Reconciliation
   const convergence = computeMultiSourceConvergence({
     cgPrice,
     cgMarketCap,
@@ -457,13 +457,11 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
   const community = isMemeToken ? 9 : Math.min(10, Math.max(5, Math.round(10 - Math.log10(Math.max(1, rank)) * 2.2)));
 
   const computedScores = { utility, tokenomics, security, team, community };
-  const { overallScore, riskLevel, isMemeCoinPenaltyActive } = calculateBlueprintScore(computedScores, category);
+  const { overallScore, riskLevel } = calculateBlueprintScore(computedScores, category);
 
   const dateStr = new Date().toISOString().split('T')[0];
 
-  const verdictText = isMemeCoinPenaltyActive
-    ? `⚠️ MEME COIN PENALTY FLAG TRIGGERED: ${name} (${symbol}) has Utility (${utility}/10) ≤ 2 and Team (${team}/10) ≤ 3. Overall score is hard-capped at 60/100 (${riskLevel} Risk) under Evaluation Blueprint.`
-    : `${name} (${symbol}) evaluated under the locked Evaluation Blueprint rubric with real-time CoinGecko + CoinMarketCap (CMC) dual-engine market consensus.`;
+  const verdictText = `${name} (${symbol}) evaluated under the locked Evaluation Blueprint rubric with real-time Multi-Source Market Data Convergence.`;
 
   const created: CryptoReview = {
     id: `cg-${cleanId}`,
@@ -478,11 +476,11 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     scores: computedScores,
     riskLevel,
     createdAt: dateStr,
-    author: 'Tri-Sync Engine (CoinGecko + CMC + CoinStats)',
+    author: 'Multi-Source Convergence Engine (CoinGecko + CMC + CoinStats)',
     logoUrl: finalLogo,
     ...dualMetrics,
     summary: `### Evaluation Blueprint Overview
-**${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.`,
+**${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.`,
     pros: [
       `Cross-verified across CoinGecko, CoinMarketCap & CoinStats (CG Rank #${dualMetrics.liveRank} | CMC Rank #${dualMetrics.cmcRank}).`,
       `Verified under locked Evaluation Blueprint rubric (Score ${overallScore}/100, Confidence ${dualMetrics.confidenceScore}%).`,
@@ -490,7 +488,7 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     ],
     cons: [
       `Market volatility reflected in real-time (${dualMetrics.liveChange24h >= 0 ? '+' : ''}${dualMetrics.liveChange24h.toFixed(2)}% 24h).`,
-      `Dynamic floating metrics subject to regular Tri-Sync Engine data refreshes.`
+      `Dynamic floating metrics subject to regular Multi-Source Convergence data refreshes.`
     ]
   };
 

@@ -79,7 +79,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
               generateBlueprintFormulaPdf('evaluation_blueprint_master_formula.pdf');
             }}
             className="px-3 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-bold transition-all cursor-pointer text-xs font-mono flex items-center gap-1.5 shrink-0 shadow-sm"
-            title="Download official PDF specification of the Evaluation Blueprint Standard & Formula"
+            title="Download PDF specification of the Evaluation Blueprint Methodology & Formula"
           >
             <Download className="w-3.5 h-3.5 text-cyan-300" />
             <span>Formula PDF</span>
@@ -371,7 +371,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-teal-400 font-bold">AVF-06: Semantic Consistency</span>
-                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Ensures declared risk level and evaluation score match without contradictions.</p>
+                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Ensures declared risk classification and verified security telemetry align without contradictions.</p>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-indigo-400 font-bold">AVF-07: Calibrated Confidence</span>

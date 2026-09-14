@@ -1091,9 +1091,9 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
 
   const gate1Checks = [
     {
-      name: 'Tri-Oracle Market Data Provenance',
+      name: 'Multi-Source Market Data Convergence',
       status: 'VERIFIED' as const,
-      detail: review.dataEngine ? `Engine: ${review.dataEngine}` : 'Tri-Sync Engine (CoinGecko + CMC + CoinStats)'
+      detail: review.dataEngine ? `Engine: ${review.dataEngine}` : 'Convergence Engine (CoinGecko + CMC + CoinStats)'
     },
     {
       name: 'Price & Supply Divergence Tolerance',

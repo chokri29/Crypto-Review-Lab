@@ -276,7 +276,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
               onClick={onRefresh}
               disabled={isRefreshing}
               className="p-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan transition-all cursor-pointer disabled:opacity-50"
-              title="Refresh Tri-Oracle Market Metrics"
+              title="Refresh Multi-Source Market Metrics"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -473,7 +473,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
         <span className="truncate max-w-md flex items-center gap-1">
           <ShieldCheck className="w-3 h-3 text-cyber-cyan shrink-0" />
           <strong className="text-cyber-cyan">Rule:</strong>{' '}
-          {syncRuleApplied || 'Tri-Oracle Consensus: Median (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank, Depth Supply Sync)'}
+          {syncRuleApplied || 'Multi-Source Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank, Depth Supply Sync)'}
         </span>
         <span className="flex items-center gap-2">
           <span>

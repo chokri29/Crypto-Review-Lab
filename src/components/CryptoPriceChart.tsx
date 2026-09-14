@@ -195,7 +195,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
 
   const isStockEffective = isStock ?? isStockAsset(symbol, coinId, name);
 
-  // Dynamically computed technical indicators reflecting the tri-oracle consensus anchor point
+  // Dynamically computed technical indicators reflecting multi-source market data convergence
   // Filtered by NYSE market hours for stock assets so flat off-hours don't skew indicators
   const activeIndicators = useMemo(() => {
     if (activePrices.length === 0) return chartData?.indicators;

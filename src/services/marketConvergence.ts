@@ -536,12 +536,12 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     : [
         'CoinGecko API v3 (Primary Feed)',
         'CoinMarketCap Pro API (Liquidity & Depth)',
-        'CoinStats Apps Script Web App Proxy (Tri-Oracle Validation)'
+        'CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)'
       ];
 
   let syncRuleApplied = input.isXStock
     ? 'Market Data Cross-Check (xStocks): Strict Cross-Validation (±1.0% Price, ±1.5% Cap, ±3.0% Vol)'
-    : 'Tri-Oracle Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)';
+    : 'Multi-Source Market Data Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank)';
 
   if (overallStatus === 'FULL_CONSENSUS') {
     syncRuleApplied = input.isXStock
@@ -600,7 +600,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     confidenceLevel,
     dataEngine: input.isXStock
       ? `CoinGecko RWA + CMC Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`
-      : `CoinGecko + CMC + CoinStats Tri-Oracle Sync (${activeSourcesCount} Sources Active)`,
+      : `CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`,
     dataSources: dataSourcesList,
     syncRuleApplied,
     circulatingSupply: estimatedCircSupply,

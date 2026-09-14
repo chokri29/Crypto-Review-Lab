@@ -146,8 +146,8 @@ export function resolveGatedPdfFilename(
 }
 
 /**
- * Generates an official, dedicated PDF report for the Evaluation Blueprint Master Standard & Formula.
- * Does NOT display a fake audit score; instead displays the full Rubric, Formula, Penalty Rules & Grade Boundaries.
+ * Generates an evaluation specification PDF report for the Evaluation Blueprint Framework & Formula.
+ * Displays the complete Rubric, Formula, and Verification Methodology.
  */
 export function generateBlueprintFormulaPdf(customFilename = 'evaluation_blueprint_master_formula.pdf'): void {
   const doc = new jsPDF({
@@ -199,13 +199,13 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('Official Standard Methodology & Rubric Reference', margin, y);
+  doc.text('Evaluation Blueprint Methodology & Rubric Reference', margin, y);
   y += 5;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text('This specification governs all AI Auditor analyses, risk ratings, and protocol evaluations across Crypto Review Lab.', margin, y);
+  doc.text('This specification details the assessment methodology, score calculation, and verification framework across Crypto Review Lab.', margin, y);
   y += 8;
 
   // 3. Formula Highlight Box
@@ -275,25 +275,25 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     y += 7;
   });
 
-  // 5. Supplementary Rules & Penalty Notes
+  // 5. Supplementary Rules & Assessment Decoupling Notes
   y += 8;
-  doc.setFillColor(254, 243, 199); // Amber-100
-  doc.setDrawColor(245, 158, 11); // Amber-500
+  doc.setFillColor(241, 245, 249); // Slate-100
+  doc.setDrawColor(203, 213, 225); // Slate-300
   doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.setTextColor(180, 83, 9); // Amber-700
-  doc.text('N.B. MEME COIN PENALTY RULE:', margin + 4, y + 5.5);
+  doc.setTextColor(30, 41, 59); // Slate-800
+  doc.text('EVALUATION BLUEPRINT VERIFICATION PRINCIPLES:', margin + 4, y + 5.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  doc.setTextColor(120, 53, 15);
-  doc.text('If an evaluated asset has Utility <= 2/10 AND Team <= 3/10 (pure speculative token model), the overall score', margin + 4, y + 9.5);
-  doc.text('is capped at a maximum of 60/100 (High Risk classification) regardless of community metrics or audit status.', margin + 4, y + 12.8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Evaluation Scores (/100) and assessed risk classification operate as separate, independent assessment outputs.', margin + 4, y + 9.5);
+  doc.text('Verified on-chain security telemetry, smart contract invariants, and liquidity depth govern risk severity.', margin + 4, y + 12.8);
 
   // Footer
-  addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Master Evaluation Blueprint Specification Manual');
+  addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Evaluation Blueprint Specification Manual');
 
   doc.save(customFilename);
 }
@@ -586,7 +586,7 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
     y += 22;
   }
 
-  // 3. Verification Status & Blueprint Master Standard Matrix
+  // 3. Verification Status & Evaluation Blueprint Framework Matrix
   const categoryType = normalizeProtocolCategory(data.category || data.queryTopic);
   const weights = getCategoryDimensionWeights(categoryType);
 
@@ -622,7 +622,7 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
 
   doc.setTextColor(badgeColor[0], badgeColor[1], badgeColor[2]);
   doc.setFont('helvetica', 'bold');
-  doc.text('EVALUATION BLUEPRINT MASTER STANDARD (AVF-01..AVF-08)', margin + 70, y + 16.5);
+  doc.text('EVALUATION BLUEPRINT FRAMEWORK (AVF-01..AVF-08)', margin + 70, y + 16.5);
 
   y += 28;
 

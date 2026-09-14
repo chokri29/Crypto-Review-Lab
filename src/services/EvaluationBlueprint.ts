@@ -955,12 +955,12 @@ export function calculateBlueprintScore(
   if (options?.declaredRiskLevel) {
     riskLevel = options.declaredRiskLevel;
   } else {
-    // Evidence-based risk evaluation from core security and tokenomics invariants
+    // Evidence-based risk evaluation from core security and tokenomics invariants (independent from numerical score)
     if (security < 4.0) {
       riskLevel = 'Critical';
     } else if (security < 6.0 || tokenomics < 4.0) {
       riskLevel = 'High';
-    } else if (security < 7.5 || overallScore < 70) {
+    } else if (security < 7.5 || tokenomics < 6.0) {
       riskLevel = 'Medium';
     } else {
       riskLevel = 'Low';

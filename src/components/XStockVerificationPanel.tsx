@@ -413,26 +413,32 @@ export default function XStockVerificationPanel({
 
       <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-md">
         <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800/80 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shrink-0">
-                <Building2 className="w-4 h-4" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800/80 pb-3">
+            <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1.5 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider truncate">
+                  Issuer &amp; Custody Overview
+                </h3>
               </div>
-              <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
-                Issuer &amp; Custody Overview
-              </h3>
+              <span className="sm:hidden text-[9px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+                Self-Reported
+              </span>
             </div>
-            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-              <span className="text-[9.5px] sm:text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+
+            <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-800/40">
+              <span className="hidden sm:inline-block text-[9.5px] sm:text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
                 Self-Reported Specifications
               </span>
               <button
                 type="button"
                 onClick={() => setShowFullIssuerDetails(!showFullIssuerDetails)}
-                className="text-[11px] sm:text-xs font-mono text-cyber-cyan hover:text-cyan-300 flex items-center gap-1 font-bold cursor-pointer transition-colors shrink-0"
+                className="w-full sm:w-auto text-[11px] sm:text-xs font-mono text-cyber-cyan hover:text-cyan-300 flex items-center justify-center sm:justify-end gap-1.5 font-bold cursor-pointer transition-colors py-1 px-2.5 rounded-lg sm:rounded-none bg-slate-900/60 sm:bg-transparent border sm:border-0 border-slate-800/60 shrink-0"
               >
                 <span>{showFullIssuerDetails ? 'Hide Issuer & Legal Details' : 'Full Issuer & Legal Details'}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showFullIssuerDetails ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${showFullIssuerDetails ? 'rotate-180' : ''}`} />
               </button>
             </div>
           </div>

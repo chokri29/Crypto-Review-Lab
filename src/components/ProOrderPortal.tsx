@@ -501,7 +501,6 @@ export const ProOrderPortal: React.FC<{
                     signature={order.auditSignature || review?.auditSignature || order.humanNotes?.auditSignature}
                     scores={review?.scores}
                     verdict={review?.verdict}
-                    grade={review?.grade}
                     timestamp={order.deliveredAt || review?.createdAt}
                   />
                 )}

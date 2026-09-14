@@ -1989,14 +1989,14 @@ export default function BlogPreviewer({
 
             {/* Data Engine Provenance Badge & Evaluation Blueprint Overview & Security Alerts */}
             <div className="space-y-3.5 my-3 text-left">
-              {/* Tri-Oracle Data Source Provenance Badge */}
+              {/* Multi-Source Market Data Convergence Provenance Badge */}
               <div className="bg-slate-950/80 border border-cyber-cyan/20 p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shadow-md">
                 <span className="flex items-center gap-2 text-cyber-cyan font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Tri-Sync
+                  Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Multi-Source Convergence
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  Cross-validated real-time market depth, historical candle feeds & tri-oracle rank synchronization
+                  Cross-validated real-time market depth, historical candle feeds & multi-source rank synchronization
                 </span>
               </div>
 
@@ -2007,7 +2007,7 @@ export default function BlogPreviewer({
                   Evaluation Blueprint Overview
                 </h3>
                 <p className="text-xs md:text-sm font-sans text-slate-200 leading-relaxed">
-                  <strong className="text-white font-bold">{activeReview.name} ({activeReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with tri-oracle market cross-validation.
+                  <strong className="text-white font-bold">{activeReview.name} ({activeReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.
                 </p>
               </div>
             </div>
