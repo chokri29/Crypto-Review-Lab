@@ -142,7 +142,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       const targetId = target.orderId || targetReview.id || targetReview.symbol;
       
       // STRICT PIPELINE GATE: F3 executes ONLY when F2 score is >= 95% (Gate 3 PASS) or authorized Admin Override
-      const isEligible = isF2GatePassed(targetReview) || Boolean(target.adminOverride || targetReview.adminOverride);
+      const isEligible = isF2GatePassed(targetReview) || Boolean(target.adminOverride || targetReview.adminOverride || (targetId && adminOverrides[targetId]));
       if (isEligible && targetId && targetId !== lastProcessedReviewRef.current) {
         lastProcessedReviewRef.current = targetId;
         setSelectedProjectId(targetId);
@@ -155,7 +155,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
     return () => {
       window.removeEventListener('crl_f2_passed', handleF2Passed);
     };
-  }, [runDeterministicF3, setSelectedProjectId]);
+  }, [runDeterministicF3, setSelectedProjectId, adminOverrides]);
 
   // Get current F3 Result for selected project
   const currentF3Result = useMemo(() => {

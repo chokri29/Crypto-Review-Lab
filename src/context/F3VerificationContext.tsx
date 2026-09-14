@@ -340,13 +340,25 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     };
 
     const handleF2Passed = (e: any) => {
+      const target = e.detail;
+      if (!target) return;
+      const review = target.finalReview || target.systemDraft || target;
+      const targetId = target?.orderId || target?.id || target?.symbol;
+
+      // STRICT PIPELINE GATE: F3 executes ONLY when F2 score is >= 95% (Gate 3 PASS) or authorized Admin Override
+      const isEligible = isF2GatePassed(review) || Boolean(
+        target.adminOverride || 
+        review?.adminOverride || 
+        (targetId && adminOverrides[targetId])
+      );
+      if (!isEligible) {
+        return;
+      }
+
       // Phase 2 (F2) Re-Control passed with score >= 95%: Project is now eligible for Stage 3 (F3) Matrix
       refreshPipelineData();
-      const target = e.detail;
-      const targetId = target?.orderId || target?.id || target?.symbol;
       if (targetId) {
         setSelectedProjectId(targetId);
-        const review = target.finalReview || target.systemDraft || target;
         if (review?.f3Verification) {
           setF3Results(prev => ({
             ...prev,
