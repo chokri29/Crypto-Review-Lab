@@ -412,22 +412,24 @@ export default function XStockVerificationPanel({
       </div>
 
       <div className="rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-md">
-        <div className="p-4 sm:p-5 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+        <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800/80 pb-3">
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-cyber-cyan" />
+              <div className="p-1.5 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shrink-0">
+                <Building2 className="w-4 h-4" />
+              </div>
               <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider">
                 Issuer &amp; Custody Overview
               </h3>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+              <span className="text-[9.5px] sm:text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
                 Self-Reported Specifications
               </span>
               <button
                 type="button"
                 onClick={() => setShowFullIssuerDetails(!showFullIssuerDetails)}
-                className="text-xs font-mono text-cyber-cyan hover:text-cyan-300 flex items-center gap-1 font-bold cursor-pointer transition-colors"
+                className="text-[11px] sm:text-xs font-mono text-cyber-cyan hover:text-cyan-300 flex items-center gap-1 font-bold cursor-pointer transition-colors shrink-0"
               >
                 <span>{showFullIssuerDetails ? 'Hide Issuer & Legal Details' : 'Full Issuer & Legal Details'}</span>
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showFullIssuerDetails ? 'rotate-180' : ''}`} />
@@ -435,56 +437,67 @@ export default function XStockVerificationPanel({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 font-mono text-xs">
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
-                <Landmark className="w-3.5 h-3.5 text-slate-400" />
-                <span>Issuer</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 font-mono text-xs">
+            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 hover:border-slate-700/80 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <Landmark className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+                  <span>Issuer</span>
+                </div>
+                <span className="text-[9px] text-slate-500 font-mono">Token Mint</span>
               </div>
-              <div className="text-white font-bold text-sm truncate" title={selectedStock.issuer || 'Backed Finance'}>
+              <div className="text-white font-bold text-sm leading-snug break-words" title={selectedStock.issuer || 'Backed Finance'}>
                 {selectedStock.issuer || 'Backed Finance'}
               </div>
-              <div className="text-[10px] text-slate-500 truncate">
+              <div className="text-[10.5px] text-slate-400 leading-normal">
                 Token Mint &amp; Architecture
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Custodian</span>
+            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 hover:border-slate-700/80 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+                  <span>Custodian</span>
+                </div>
+                <span className="text-[9px] text-slate-500 font-mono">Asset Vault</span>
               </div>
-              <div className="text-white font-bold text-sm truncate" title={selectedStock.custodian || 'InCore Bank AG / Alpaca Securities LLC'}>
+              <div className="text-white font-bold text-sm leading-snug break-words" title={selectedStock.custodian || 'InCore Bank AG / Alpaca Securities LLC'}>
                 {selectedStock.custodian || 'InCore Bank AG / Alpaca Securities LLC'}
               </div>
-              <div className="text-[10px] text-slate-500 truncate">
+              <div className="text-[10.5px] text-slate-400 leading-normal">
                 Segregated Share Custody
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
-                <Scale className="w-3.5 h-3.5 text-slate-400" />
-                <span>Jurisdiction</span>
+            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 hover:border-slate-700/80 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <Scale className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+                  <span>Jurisdiction</span>
+                </div>
+                <span className="text-[9px] text-slate-500 font-mono">Statutory DLT</span>
               </div>
-              <div className="text-white font-bold text-sm truncate" title={selectedStock.jurisdiction || 'Switzerland'}>
+              <div className="text-white font-bold text-sm leading-snug break-words" title={selectedStock.jurisdiction || 'Switzerland'}>
                 {selectedStock.jurisdiction ? selectedStock.jurisdiction.split('(')[0].trim() : 'Switzerland'}
               </div>
-              <div className="text-[10px] text-slate-500 truncate">
+              <div className="text-[10.5px] text-slate-400 leading-normal">
                 Swiss DLT Legal Framework
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-cyber-cyan" />
-                <span>Backing Ratio</span>
+            <div className="p-3 sm:p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5 hover:border-slate-700/80 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+                  <span>Backing Ratio</span>
+                </div>
+                <span className="text-[9px] font-normal text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">Reported</span>
               </div>
-              <div className="text-emerald-300 font-bold text-sm flex items-center gap-1">
+              <div className="text-emerald-300 font-bold text-sm flex items-center gap-1.5 leading-snug">
                 <span>1:1 Backing</span>
-                <span className="text-[9px] font-normal text-slate-400 bg-slate-800 px-1 py-0.2 rounded border border-slate-700">Reported</span>
               </div>
-              <div className="text-[10px] text-slate-500 truncate">
+              <div className="text-[10.5px] text-slate-400 leading-normal">
                 1 Token = 1 Real Equity Share
               </div>
             </div>
@@ -543,7 +556,7 @@ export default function XStockVerificationPanel({
                   Self-reported • Unverified by CRL
                 </span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4 font-mono text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 font-mono text-xs">
                 <div className="p-3.5 sm:p-4 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-colors space-y-1.5 shadow-sm">
                   <div className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1.5 font-bold">
                     <Building2 className="w-3.5 h-3.5 text-cyber-cyan" />
@@ -575,10 +588,10 @@ export default function XStockVerificationPanel({
                     <Landmark className="w-3.5 h-3.5 text-slate-400" />
                     <span>Reported Issuer</span>
                   </div>
-                  <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.issuer}>
+                  <div className="text-white font-bold text-sm sm:text-base break-words leading-snug" title={selectedStock.issuer}>
                     {selectedStock.issuer}
                   </div>
-                  <div className="text-[10.5px] text-slate-400 truncate" title={selectedStock.jurisdiction}>
+                  <div className="text-[10.5px] text-slate-400 leading-normal" title={selectedStock.jurisdiction}>
                     Jurisdiction: {selectedStock.jurisdiction}
                   </div>
                 </div>
@@ -588,10 +601,10 @@ export default function XStockVerificationPanel({
                     <Lock className="w-3.5 h-3.5 text-slate-400" />
                     <span>Reported Custodian</span>
                   </div>
-                  <div className="text-white font-bold text-sm sm:text-base truncate" title={selectedStock.custodian}>
+                  <div className="text-white font-bold text-sm sm:text-base break-words leading-snug" title={selectedStock.custodian}>
                     {selectedStock.custodian}
                   </div>
-                  <div className="text-[10.5px] text-slate-400 flex items-center gap-1">
+                  <div className="text-[10.5px] text-slate-400 flex items-center gap-1 leading-normal">
                     <FileText className="w-3 h-3 text-slate-500 shrink-0" />
                     <span>Issuer-reported custody structure</span>
                   </div>

@@ -580,7 +580,8 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
     doc.setTextColor(120, 53, 15);
     doc.text(`• Verified Contract/Repo: ${data.contractAddress || 'Mainnet On-Chain Verification'}`, margin + 4, y + 9.5);
     doc.text(`• Methodology: Unified Bytecode & Evidence-Backed Verification`, margin + 4, y + 13.5);
-    doc.text(`• TVL Stress Simulation: ${data.stressSimulation !== false ? 'ACTIVE (Simulated Multi-Vector Liquidity Attack)' : 'DISABLED'}`, margin + 105, y + 13.5);
+    const simLabel = data.stressSimulation ? '• TVL Stress Simulation: ACTIVE' : '• Verification Depth: Protocol & Contract Diagnostics';
+    doc.text(simLabel, margin + 105, y + 13.5);
 
     y += 22;
   }

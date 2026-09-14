@@ -289,7 +289,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     return !isDetectedNative;
   }, [assetType, isDetectedNative]);
   const verificationDepth = 'Unified Bytecode & Evidence Verification';
-  const [stressSimulation, setStressSimulation] = useState(true);
   const [showProModal, setShowProModal] = useState(false);
   const [showFeaturesAccordion, setShowFeaturesAccordion] = useState(false);
   const [showPromoAccordion, setShowPromoAccordion] = useState(false);
@@ -843,7 +842,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             contractAddress: trimmedContract,
             securityScan: workingEvidence.securityScan || undefined,
             marketSnapshot: workingEvidence.marketSnapshot || undefined,
-            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract || 'Native Base Currency'}, TVL Stress Simulation: ${stressSimulation ? 'ACTIVE' : 'DISABLED'}] ${focusArea.trim()}`
+            focusArea: `[SECURITY & RISK ASSESSMENT SCAN - Network: ${selectedChainInfo.name}, Contract: ${trimmedContract || 'Native Base Currency'}] ${focusArea.trim()}`
           }),
         });
 
@@ -1079,7 +1078,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             contractAddress: contractAddress || undefined,
             focusArea: focusArea || 'Smart Contract Security Audit & TVL Resilience',
             verificationDepth: verificationDepth,
-            stressSimulation: stressSimulation,
             systemDraft: completeReview,
             paymentReference: verifiedPaymentRef || undefined
           })
@@ -1298,27 +1296,29 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
         {/* Configuration & Inputs panel (Terminal) */}
         <div className="lg:col-span-6 flex flex-col h-full">
-          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] relative overflow-hidden transition-all duration-300 group flex flex-col flex-1 h-full">
+          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] relative overflow-hidden transition-all duration-300 group flex flex-col flex-1 h-full">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
             <div className="absolute top-0 right-0 w-44 h-44 bg-cyber-cyan/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0">
-                    <Terminal className="w-5 h-5" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0 mt-0.5 sm:mt-0">
+                    <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <div className="min-w-0">
-                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-wider leading-tight flex items-center gap-2">
-                      <span className="truncate">Evaluation Blueprint Terminal</span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="font-orbitron font-extrabold text-[13px] sm:text-base md:text-xl text-slate-100 tracking-wide sm:tracking-wider leading-snug sm:leading-tight break-words">
+                      Evaluation Blueprint Terminal
                     </h2>
-                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-widest truncate">ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE</p>
+                    <p className="text-[8.5px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider sm:tracking-widest leading-relaxed mt-0.5 break-words">
+                      ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0">
-                  <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
+                <div className="self-start sm:self-auto flex items-center gap-1.5 text-[8.5px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-sm tracking-wider shrink-0">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
                   <span>LIVE CONSOLE</span>
                 </div>
               </div>
@@ -1652,18 +1652,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                       )}
                     </p>
                   </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-[11px] text-slate-300 hover:border-amber-500/40 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={stressSimulation}
-                      onChange={(e) => setStressSimulation(e.target.checked)}
-                      className="rounded border-slate-800 text-amber-500 focus:ring-amber-500 bg-slate-900 cursor-pointer"
-                    />
-                    <span className="font-mono text-[10px] text-slate-300">TVL Stress Simulation (Multi-Vector Liquidity Stress Test)</span>
-                  </label>
                 </div>
               </div>
 

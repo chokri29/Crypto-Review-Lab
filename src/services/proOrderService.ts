@@ -431,7 +431,7 @@ export async function createProOrder(params: {
     contractAddress: params.contractAddress,
     focusArea: params.focusArea,
     verificationDepth: params.verificationDepth || 'Unified Bytecode & Evidence Verification',
-    stressSimulation: params.stressSimulation ?? true,
+    stressSimulation: params.stressSimulation ?? false,
     amountUsd: 149.00,
     paymentStatus: 'PAID',
     paymentMethod: cleanPaymentRef ? `NOWPayments (${cleanPaymentRef})` : 'NOWPayments (Crypto USD)',
