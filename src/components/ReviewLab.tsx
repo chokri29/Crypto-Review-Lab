@@ -1302,22 +1302,22 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
-              <div className="flex items-center justify-between gap-2.5 sm:gap-3">
-                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0">
+              <div className="flex items-start sm:items-center justify-between gap-2.5 sm:gap-3">
+                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0 mt-0.5 sm:mt-0">
                     <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight break-words">
                       Evaluation Blueprint Terminal
                     </h2>
-                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider sm:tracking-widest leading-normal mt-0.5 truncate">
+                    <p className="text-[8px] xs:text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-tight xs:tracking-wider sm:tracking-widest leading-tight mt-1 whitespace-normal break-words">
                       ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0">
+                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0 mt-0.5 sm:mt-0">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
                   <span className="hidden xs:inline sm:inline">LIVE CONSOLE</span>
                   <span className="inline xs:hidden sm:hidden">LIVE</span>
@@ -2371,28 +2371,17 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   );
                 })()}
 
-                {/* Data Engine & Evaluation Blueprint Overview */}
+                {/* Data Engine Provenance Badge */}
                 <div className="border-t border-slate-800/60 pt-3 space-y-3 text-left">
                   {/* Multi-Source Market Data Convergence Provenance Badge */}
                   <div className="bg-slate-950/80 border border-slate-800/80 p-3 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shadow-md">
                     <span className="flex items-center gap-2 text-emerald-400 font-bold">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Data Engine: CoinGecko API v3 + CoinMarketCap (CMC) + CoinStats Multi-Source Convergence
+                      Data Engine: CoinGecko + CoinMarketCap (CMC) + CoinStats Multi-Source Convergence
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono">
                       Cross-validated real-time market depth, historical candle feeds & multi-source rank synchronization
                     </span>
-                  </div>
-
-                  {/* Evaluation Blueprint Overview */}
-                  <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 space-y-1.5 shadow-md">
-                    <h4 className="font-display font-bold text-xs text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-                      <span className="w-1.5 h-3.5 bg-emerald-400 rounded-full"></span>
-                      Evaluation Blueprint Overview
-                    </h4>
-                    <p className="text-xs font-sans text-slate-200 leading-relaxed">
-                      <strong className="text-white font-bold">{generatedReview.name} ({generatedReview.symbol})</strong> is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.
-                    </p>
                   </div>
                 </div>
 
@@ -2797,33 +2786,39 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                         <div className="flex items-start gap-2.5">
                           <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <strong className="text-amber-200 block font-mono text-[11px]">Bytecode & Opcode Security Scan</strong>
-                            <span className="text-slate-400 text-[11px]">Integrates GoPlus and RugCheck security telemetry to evaluate reentrancy, unverified delegatecalls, flash-mint vectors, and honeypot structures.</span>
+                            <strong className="text-amber-200 block font-mono text-[11px]">Smart Contract Security Review</strong>
+                            <span className="text-slate-400 text-[11px]">Integrates GoPlus, RugCheck and Blockscout security telemetry to evaluate reentrancy, unverified delegatecalls, flash-mint vectors, and honeypot structures.</span>
                           </div>
                         </div>
 
                         <div className="flex items-start gap-2.5">
                           <Activity className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <strong className="text-amber-200 block font-mono text-[11px]">Liquidity & TVL Drain Simulation</strong>
-                            <span className="text-slate-400 text-[11px]">Simulates sandwich attack vulnerabilities, pool drain vectors, and oracle slippage traps.</span>
+                            <strong className="text-amber-200 block font-mono text-[11px]">Liquidity & Market Risk Review</strong>
+                            <span className="text-slate-400 text-[11px]">Liquidity, TVL, pool structure, slippage, and market-data consistency.</span>
                           </div>
                         </div>
 
                         <div className="flex items-start gap-2.5">
                           <FileCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <strong className="text-amber-200 block font-mono text-[11px]">Tokenomics Overhang & Unlock Analysis</strong>
-                            <span className="text-slate-400 text-[11px]">Audits insider vesting cliffs, emission schedules, and concentration risk metrics.</span>
+                            <strong className="text-amber-200 block font-mono text-[11px]">Tokenomics Analysis</strong>
+                            <span className="text-slate-400 text-[11px]">Supply, holder concentration, emissions, vesting, and unlock risks.</span>
                           </div>
                         </div>
 
                         <div className="flex items-start gap-2.5">
                           <Building2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <div>
-                            <strong className="text-amber-200 block font-mono text-[11px]">Actionable Remediation Checklist & PDF Dossier</strong>
-                            <span className="text-slate-400 text-[11px]">Prioritized step-by-step developer remediation recommendations in a downloadable PDF.</span>
+                            <strong className="text-amber-200 block font-mono text-[11px]">Findings & PDF Report</strong>
+                            <span className="text-slate-400 text-[11px]">Evidence-based risk findings, limitations, and prioritized remediation guidance.</span>
                           </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-800/80">
+                          <p className="text-[10px] text-amber-300/80 font-mono italic">
+                            Advisory assessment – Not a guarantee or replacement for an independent audit.
+                          </p>
                         </div>
                       </motion.div>
                     )}
