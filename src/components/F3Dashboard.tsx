@@ -348,7 +348,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Taxonomy & Tier Invariant Compliance',
       category: 'Taxonomy',
       scorePct: currentF3Result ? (avf01?.status === 'VERIFIED' ? 100 : 75) : 0,
-      status: currentF3Result ? (avf01?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf01?.status || 'NOT RUN') : 'STANDBY',
       icon: <Layers className="w-4 h-4 text-cyan-400" />,
       metricPrimary: `Tier: ${avf01?.tierMatch ? 'Compliant' : 'Uncalibrated'} (${avf01?.sector || selectedProject?.category || 'General'})`,
       metricSecondary: `Classification: Validated against 2026 Crypto Taxonomy`,
@@ -364,7 +364,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Data Provenance & Source Cross-Verification',
       category: 'Provenance',
       scorePct: currentF3Result ? (avf02?.status === 'VERIFIED' ? 100 : avf02?.status === 'PARTIALLY_VERIFIED' ? 80 : 50) : 0,
-      status: currentF3Result ? (avf02?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf02?.status || 'NOT RUN') : 'STANDBY',
       icon: <Database className="w-4 h-4 text-purple-400" />,
       metricPrimary: `Primary Sources: ${avf02?.primarySourcesCount ?? (selectedProject?.citations?.length || 2)} Feeds`,
       metricSecondary: `On-Chain Stream: ${avf02?.hasSecurityTelemetry ? 'Active (GoPlus / RugCheck)' : 'Telemetry Integrated'}`,
@@ -380,7 +380,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Methodology & Weighting Compliance',
       category: 'Methodology',
       scorePct: currentF3Result ? (avf03?.status === 'VERIFIED' ? 100 : 60) : 0,
-      status: currentF3Result ? (avf03?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf03?.status || 'NOT RUN') : 'STANDBY',
       icon: <Scale className="w-4 h-4 text-blue-400" />,
       metricPrimary: 'Weights Sum: 100.0% Compliant',
       metricSecondary: 'Utility 25% | Tokenomics 25% | Security 25% | Team 15% | Community 10%',
@@ -396,7 +396,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Scenario Bounds & Liquidity Stress Testing',
       category: 'Simulation',
       scorePct: currentF3Result ? (avf04?.status === 'VERIFIED' ? 100 : avf04?.status === 'PARTIALLY_EXECUTED' ? 70 : 40) : 0,
-      status: currentF3Result ? (avf04?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf04?.status || 'NOT RUN') : 'STANDBY',
       icon: <Activity className="w-4 h-4 text-amber-400" />,
       metricPrimary: `Stress Mode: ${avf04?.simulationExecuted ? 'Symbolic Executed' : 'Narrative Bounds'}`,
       metricSecondary: `Scenarios Tested: ${avf04?.scenariosTestedCount ?? 3} Attack Vectors`,
@@ -412,7 +412,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Score Arithmetic & Weight Verification',
       category: 'Arithmetic',
       scorePct: currentF3Result ? (avf05?.status === 'VERIFIED' ? 100 : 0) : 0,
-      status: currentF3Result ? (avf05?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf05?.status || 'NOT RUN') : 'STANDBY',
       icon: <Binary className="w-4 h-4 text-emerald-400" />,
       metricPrimary: `Reported: ${avf05?.reportedScore ?? selectedProject?.overallScore ?? 0}/100`,
       metricSecondary: `Discrepancy: ${avf05?.discrepancy !== null && avf05?.discrepancy !== undefined ? `${avf05.discrepancy} pts` : '0.00 pts (Exact Match)'}`,
@@ -428,7 +428,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Risk-Conclusion Semantic Consistency',
       category: 'Semantic',
       scorePct: currentF3Result ? (avf06?.status === 'CONSISTENT' ? 100 : avf06?.status === 'REQUIRES_REVIEW' ? 65 : 20) : 0,
-      status: currentF3Result ? (avf06?.status || 'CONSISTENT') : 'STANDBY',
+      status: currentF3Result ? (avf06?.status || 'NOT RUN') : 'STANDBY',
       icon: <FileCheck className="w-4 h-4 text-teal-400" />,
       metricPrimary: `Declared Risk: ${avf06?.declaredRisk || selectedProject?.riskLevel || 'Low'}`,
       metricSecondary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
@@ -446,7 +446,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Deterministic Multi-Source Confidence',
       category: 'Confidence',
       scorePct: currentF3Result ? Math.round(avf07?.confidencePct ?? (overallConfidence * 100)) : 0,
-      status: currentF3Result ? (avf07?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf07?.status || 'NOT RUN') : 'STANDBY',
       icon: <Cpu className="w-4 h-4 text-indigo-400" />,
       metricPrimary: currentF3Result ? `Calculated: ${avf07?.confidencePct ?? Math.round(overallConfidence * 100)}% (${getConfidenceLevel(overallConfidence)})` : 'Awaiting Execution',
       metricSecondary: `Score Math: 100% | Taxonomy: 95% | On-Chain: 85%`,
@@ -462,7 +462,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       title: 'Traceability & Cryptographic Integrity',
       category: 'Cryptography',
       scorePct: currentF3Result ? (avf08?.status === 'VERIFIED' ? 100 : avf08?.status === 'UNSIGNED' ? 80 : 0) : 0,
-      status: currentF3Result ? (avf08?.status || 'VERIFIED') : 'STANDBY',
+      status: currentF3Result ? (avf08?.status || 'NOT RUN') : 'STANDBY',
       icon: <Lock className="w-4 h-4 text-rose-400" />,
       metricPrimary: `Digest: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 16)}...` : 'Deterministic SHA-256'}`,
       metricSecondary: `Ed25519: ${avf08?.isSigned ? 'Digitally Signed & Verified' : 'Canonical Stamp Ready'}`,
@@ -779,6 +779,26 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                   const isPro = (r as any).isProOrder || (r as any).orderId || r.id?.startsWith('CRL-');
                   const orderStatus = (r as any).proOrderStatus;
 
+                  let statusBadgeText = '';
+                  let statusBadgeClass = '';
+
+                  if ((r as any).f3Verification) {
+                    const f3Status = (r as any).f3Verification.overallStatus;
+                    statusBadgeText = f3Status;
+                    statusBadgeClass = f3Status === 'VERIFIED'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
+                  } else if (orderStatus === 'PENDING_REGENERATION') {
+                    statusBadgeText = 'F2 REGEN REQUIRED';
+                    statusBadgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+                  } else if (orderStatus === 'IN_HUMAN_REVIEW') {
+                    statusBadgeText = 'F2 PASSED';
+                    statusBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+                  } else if (orderStatus === 'PENDING_F2' || !orderStatus) {
+                    statusBadgeText = 'AWAITING F2';
+                    statusBadgeClass = 'bg-slate-800 text-amber-300/90 border-slate-700';
+                  }
+
                   return (
                     <button
                       key={r.id}
@@ -799,17 +819,24 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                             ({r.symbol})
                           </span>
                         </div>
-                        {isPro && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shrink-0">
-                            PRO
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isPro && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shrink-0">
+                              PRO
+                            </span>
+                          )}
+                          {statusBadgeText && (
+                            <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border font-bold shrink-0 ${statusBadgeClass}`}>
+                              {statusBadgeText}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                         <span className="truncate max-w-[130px]">{r.category}</span>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="font-bold text-slate-200">Score: {r.overallScore ?? 90}/100</span>
+                          <span className="font-bold text-slate-200">{r.overallScore != null ? `Score: ${r.overallScore}/100` : 'Score: Pending'}</span>
                         </div>
                       </div>
 
@@ -970,7 +997,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black font-orbitron text-slate-100">
-              {currentF3Result ? (avf05?.status === 'VERIFIED' ? '100%' : 'FLAGGED') : 'STANDBY'}
+              {currentF3Result ? (avf05?.status === 'VERIFIED' ? '100%' : (avf05?.status || 'NOT RUN')) : 'STANDBY'}
             </span>
             <span className="text-[11px] font-mono text-emerald-400">
               Δ 0.00 pts

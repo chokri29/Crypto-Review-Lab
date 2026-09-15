@@ -13,7 +13,7 @@ export interface CryptoReviewScores {
   community: number;   // 1-10
 }
 
-export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'INPUT_MISSING' | 'DRAFT_UNAVAILABLE';
+export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'INPUT_MISSING' | 'DRAFT_UNAVAILABLE' | 'Pending';
 
 export interface ProSecurityBenchmarks {
   crlAuditStatus: string;
@@ -53,9 +53,9 @@ export interface CryptoReview {
   name: string;
   symbol: string;
   category: string;
-  overallScore: number; // 1-100
-  verdict: string;      // Summary verdict sentence
-  scores: CryptoReviewScores;
+  overallScore?: number | null;
+  verdict: string;
+  scores?: CryptoReviewScores;
   summary: string;      // Markdown review detail
   pros: string[];
   cons: string[];
