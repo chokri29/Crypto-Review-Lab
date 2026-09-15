@@ -1876,14 +1876,26 @@ export function verifyAVF06RiskConclusion(
         notes: `Flagged threat vectors detected: ${flaggedVectors}`
       });
     } else {
-      signalsChecked.push({
-        signalName: 'Symbolic Threat Matrix',
-        source: 'Automated Symbolic Execution Engine',
-        observedValue: 'ALL_PASSED',
-        impliedRisk: 'Low',
-        isContradiction: false,
-        notes: 'Reentrancy, flash loan cascade, and proxy admin vectors all passed.'
-      });
+      const allPassed = matrix.reentrancyVector === 'PASSED' && matrix.flashLoanDrainCascade === 'PASSED' && matrix.proxyAdminLock === 'PASSED';
+      if (allPassed) {
+        signalsChecked.push({
+          signalName: 'Symbolic Threat Matrix',
+          source: 'Automated Symbolic Execution Engine',
+          observedValue: 'ALL_PASSED',
+          impliedRisk: 'Low',
+          isContradiction: false,
+          notes: 'Reentrancy, flash loan cascade, and proxy admin vectors all passed.'
+        });
+      } else {
+        signalsChecked.push({
+          signalName: 'Symbolic Threat Matrix',
+          source: 'Automated Symbolic Execution Engine',
+          observedValue: 'NOT_PERFORMED',
+          impliedRisk: declaredRisk,
+          isContradiction: false,
+          notes: 'Symbolic execution threat vector simulations not performed or unverified.'
+        });
+      }
     }
   }
 

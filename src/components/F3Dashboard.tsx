@@ -354,9 +354,9 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: `Classification: Validated against 2026 Crypto Taxonomy`,
       details: avf01?.details || 'Validates token category taxonomy, sector clustering, and invariant rubric constraints.',
       checks: [
-        { name: 'Category Classification', status: 'VERIFIED', detail: `Assigned category: ${selectedProject?.category || 'DeFi'}` },
-        { name: 'Symbol & Asset ID Parity', status: 'VERIFIED', detail: `Symbol: ${selectedProject?.symbol || 'PRO'} | ID: ${selectedProject?.id || 'N/A'}` },
-        { name: 'Score Bounding Check', status: (selectedProject?.overallScore ?? 0) <= 100 ? 'VERIFIED' : 'FLAGGED', detail: 'Composite score bounded strictly between 0 and 100' }
+        { name: 'Category Classification', status: currentF3Result ? (avf01?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: `Assigned category: ${selectedProject?.category || 'DeFi'}` },
+        { name: 'Symbol & Asset ID Parity', status: currentF3Result ? (avf01?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: `Symbol: ${selectedProject?.symbol || 'PRO'} | ID: ${selectedProject?.id || 'N/A'}` },
+        { name: 'Score Bounding Check', status: currentF3Result ? (((selectedProject?.overallScore ?? 0) <= 100 && (selectedProject?.overallScore ?? 0) >= 0) ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: 'Composite score bounded strictly between 0 and 100' }
       ]
     },
     {
@@ -366,13 +366,13 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       scorePct: currentF3Result ? (avf02?.status === 'VERIFIED' ? 100 : avf02?.status === 'PARTIALLY_VERIFIED' ? 80 : 50) : 0,
       status: currentF3Result ? (avf02?.status || 'NOT RUN') : 'STANDBY',
       icon: <Database className="w-4 h-4 text-purple-400" />,
-      metricPrimary: `Primary Sources: ${avf02?.primarySourcesCount ?? (selectedProject?.citations?.length || 2)} Feeds`,
-      metricSecondary: `On-Chain Stream: ${avf02?.hasSecurityTelemetry ? 'Active (GoPlus / RugCheck)' : 'Telemetry Integrated'}`,
+      metricPrimary: `Primary Sources: ${avf02?.primarySourcesCount ?? (selectedProject?.citations?.length || 0)} Feeds`,
+      metricSecondary: `On-Chain Stream: ${avf02?.hasSecurityTelemetry ? 'Active (GoPlus / RugCheck)' : 'Telemetry Unavailable'}`,
       details: avf02?.details || 'Cross-references citations, real on-chain feeds, block explorers, and live security scanners.',
       checks: [
-        { name: 'Citation Feed Verification', status: (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0) ? 'VERIFIED' : 'PASSED', detail: `${Array.isArray(selectedProject?.citations) ? selectedProject.citations.length : 0} external audit and telemetry source links confirmed` },
-        { name: 'Smart Contract Deployment', status: avf02?.contractAddressPresent || selectedProject?.contractAddress ? 'VERIFIED' : 'ATTENTION', detail: selectedProject?.contractAddress ? `Target contract: ${selectedProject.contractAddress.slice(0, 12)}...` : 'Native Layer 1 genesis asset / verified chain deploy' },
-        { name: 'On-Chain Security Cross-Check', status: avf02?.hasSecurityTelemetry ? 'VERIFIED' : 'PASSED', detail: avf02?.hasSecurityTelemetry ? 'GoPlus / RugCheck live telemetry stream integrated' : 'Deterministic score cross-verification active' }
+        { name: 'Citation Feed Verification', status: currentF3Result ? ((Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0) ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: `${Array.isArray(selectedProject?.citations) ? selectedProject.citations.length : 0} external audit and telemetry source links confirmed` },
+        { name: 'Smart Contract Deployment', status: currentF3Result ? (avf02?.contractAddressPresent || selectedProject?.contractAddress ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: selectedProject?.contractAddress ? `Target contract: ${selectedProject.contractAddress.slice(0, 12)}...` : 'Native Layer 1 genesis asset / verified chain deploy' },
+        { name: 'On-Chain Security Cross-Check', status: currentF3Result ? (avf02?.hasSecurityTelemetry ? 'VERIFIED' : 'UNAVAILABLE') : 'NOT_PERFORMED', detail: avf02?.hasSecurityTelemetry ? 'GoPlus / RugCheck live telemetry stream integrated' : 'Deterministic score cross-verification active (live external scan telemetry unavailable)' }
       ]
     },
     {
@@ -386,9 +386,9 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: 'Utility 25% | Tokenomics 25% | Security 25% | Team 15% | Community 10%',
       details: avf03?.details || 'Weight distribution fully complies with Blueprint v2.4 specification.',
       checks: [
-        { name: 'Sum-to-100% Invariant', status: avf03?.isVerified ?? true ? 'VERIFIED' : 'FLAGGED', detail: 'Sum of all 5 dimension multipliers equals exactly 1.000 (100%)' },
-        { name: 'Weight Calibration Lock', status: 'VERIFIED', detail: 'Formula: (U×0.25) + (T×0.25) + (S×0.25) + (TM×0.15) + (C×0.10)' },
-        { name: 'No Missing Dimensions', status: hasAllDimensions ? 'VERIFIED' : 'FLAGGED', detail: hasAllDimensions ? 'All 5 core dimension inputs present and bounded between 0 and 10' : 'Missing or out-of-bounds dimension score inputs' }
+        { name: 'Sum-to-100% Invariant', status: currentF3Result ? (avf03?.isVerified ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: 'Sum of all 5 dimension multipliers equals exactly 1.000 (100%)' },
+        { name: 'Weight Calibration Lock', status: currentF3Result ? (avf03?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: 'Formula: (U×0.25) + (T×0.25) + (S×0.25) + (TM×0.15) + (C×0.10)' },
+        { name: 'No Missing Dimensions', status: currentF3Result ? (hasAllDimensions ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: hasAllDimensions ? 'All 5 core dimension inputs present and bounded between 0 and 10' : 'Missing or out-of-bounds dimension score inputs' }
       ]
     },
     {
@@ -398,13 +398,13 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       scorePct: currentF3Result ? (avf04?.status === 'VERIFIED' ? 100 : avf04?.status === 'PARTIALLY_EXECUTED' ? 70 : 40) : 0,
       status: currentF3Result ? (avf04?.status || 'NOT RUN') : 'STANDBY',
       icon: <Activity className="w-4 h-4 text-amber-400" />,
-      metricPrimary: `Stress Mode: ${avf04?.simulationExecuted ? 'Symbolic Executed' : 'Narrative Bounds'}`,
-      metricSecondary: `Scenarios Tested: ${avf04?.scenariosTestedCount ?? 3} Attack Vectors`,
-      details: avf04?.details || 'Liquidity drain, oracle failure, and price shock boundary scenarios evaluated.',
+      metricPrimary: `Stress Mode: ${avf04?.simulationExecuted ? 'Symbolic Executed' : (currentF3Result ? 'Narrative Bounds' : 'STANDBY')}`,
+      metricSecondary: `Scenarios Tested: ${avf04?.scenariosTestedCount !== undefined ? avf04.scenariosTestedCount : 0} Attack Vectors`,
+      details: avf04?.details || (currentF3Result ? 'Liquidity drain, oracle failure, and price shock boundary scenarios evaluated narrative bounds.' : 'Scenario stress testing standby.'),
       checks: [
-        { name: 'Liquidity Shock Bounds', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.realTvl ? 'PASSED' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Simulated liquidity shock and automated slippage boundaries evaluated' : (selectedProject?.realTvl ? 'Baseline TVL observed (simulation unperformed)' : 'Liquidity shock stress simulation not performed') },
-        { name: 'Oracle Exploit Vector', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.priceDivergencePct !== undefined ? 'PASSED' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Price feed manipulation tolerance verified under simulation' : (selectedProject?.priceDivergencePct !== undefined ? `Oracle feed price divergence observed: ${selectedProject.priceDivergencePct}%` : 'Automated oracle exploit simulation not performed') },
-        { name: 'Flash Loan Drain Resistance', status: avf04?.simulationExecuted ? 'VERIFIED' : 'PASSED', detail: 'Simulated multi-vector reentrancy and atomic borrow invariants' }
+        { name: 'Liquidity Shock Bounds', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.realTvl ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Simulated liquidity shock and automated slippage boundaries evaluated' : (selectedProject?.realTvl ? 'Baseline TVL observed (simulation unperformed)' : 'Liquidity shock stress simulation not performed') },
+        { name: 'Oracle Exploit Vector', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.priceDivergencePct !== undefined ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Price feed manipulation tolerance verified under simulation' : (selectedProject?.priceDivergencePct !== undefined ? `Oracle feed price divergence observed: ${selectedProject.priceDivergencePct}%` : 'Automated oracle exploit simulation not performed') },
+        { name: 'Flash Loan Drain Resistance', status: avf04?.simulationExecuted ? 'VERIFIED' : 'NOT_PERFORMED', detail: avf04?.simulationExecuted ? 'Simulated multi-vector reentrancy and atomic borrow invariants' : 'Flash loan and liquidity drain simulation not performed' }
       ]
     },
     {
@@ -415,12 +415,12 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       status: currentF3Result ? (avf05?.status || 'NOT RUN') : 'STANDBY',
       icon: <Binary className="w-4 h-4 text-emerald-400" />,
       metricPrimary: `Reported: ${avf05?.reportedScore ?? selectedProject?.overallScore ?? 0}/100`,
-      metricSecondary: `Discrepancy: ${avf05?.discrepancy !== null && avf05?.discrepancy !== undefined ? `${avf05.discrepancy} pts` : '0.00 pts (Exact Match)'}`,
+      metricSecondary: `Discrepancy: ${avf05?.discrepancy !== null && avf05?.discrepancy !== undefined ? `${avf05.discrepancy} pts` : 'N/A'}`,
       details: avf05?.details || 'Dimension score mathematical weighted average verified to zero float discrepancy.',
       checks: [
-        { name: 'Mathematical Product Recomputation', status: avf05?.status === 'VERIFIED' ? 'VERIFIED' : 'FLAGGED', detail: `Recomputed ${avf05?.recomputedScore ?? selectedProject?.overallScore ?? 0} vs Reported ${avf05?.reportedScore ?? selectedProject?.overallScore ?? 0}` },
-        { name: 'Delta Tolerance (<= 0.5 pts)', status: avf05?.status === 'VERIFIED' ? 'VERIFIED' : 'FLAGGED', detail: 'Floating point delta complies with deterministic threshold' },
-        { name: 'Rounding & Precision Invariant', status: 'VERIFIED', detail: 'Exact integer rounding conforms to IEEE-754 precision standards' }
+        { name: 'Mathematical Product Recomputation', status: currentF3Result ? (avf05?.status === 'VERIFIED' ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: `Recomputed ${avf05?.recomputedScore ?? selectedProject?.overallScore ?? 0} vs Reported ${avf05?.reportedScore ?? selectedProject?.overallScore ?? 0}` },
+        { name: 'Delta Tolerance (<= 0.5 pts)', status: currentF3Result ? (avf05?.status === 'VERIFIED' ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: 'Floating point delta complies with deterministic threshold' },
+        { name: 'Rounding & Precision Invariant', status: currentF3Result ? (avf05?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: 'Exact integer rounding conforms to IEEE-754 precision standards' }
       ]
     },
     {
@@ -432,13 +432,13 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       icon: <FileCheck className="w-4 h-4 text-teal-400" />,
       metricPrimary: `Declared Risk: ${avf06?.declaredRisk || selectedProject?.riskLevel || 'Low'}`,
       metricSecondary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
-        ? `Conservative Stance: Declared [${avf06.declaredRisk}] stricter than implied [${avf06.verifiedRiskLevel}]`
+        ? `Conservative Stance: Declared [${avf06.declaredRisk}] vs Evaluated [${avf06.verifiedRiskLevel}]`
         : `Evaluated Level: ${avf06?.verifiedRiskLevel || selectedProject?.riskLevel || 'Low'} (${avf06?.contradictions?.length ? `${avf06.contradictions.length} Contradictions` : 'Consistent'})`,
       details: avf06?.details || 'Verdict, security telemetry, and declared risk level consistency verified.',
       checks: [
-        { name: 'Risk Assessment Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION', detail: 'Security telemetry and on-chain findings align with assessed risk level' },
-        { name: 'Contradiction Detection', status: (avf06?.contradictions?.length ?? 0) === 0 ? 'VERIFIED' : 'FLAGGED', detail: (avf06?.contradictions?.length ?? 0) === 0 ? 'No conflicting narrative assertions found' : avf06?.contradictions?.join('; ') || '' },
-        { name: 'Verdict Semantic Alignment', status: avf06?.status === 'CONSISTENT' ? 'VERIFIED' : (avf06?.status === 'REQUIRES_REVIEW' ? 'ATTENTION' : (selectedProject?.verdict ? 'PASSED' : 'NOT_PERFORMED')), detail: avf06?.status === 'CONSISTENT' ? 'Summary tone and verdict align with rubric classification' : (avf06?.status === 'REQUIRES_REVIEW' ? 'Semantic discrepancy detected between narrative and risk findings' : (selectedProject?.verdict ? 'Verdict narrative present (uncalibrated tone scan)' : 'Verdict statement missing')) }
+        { name: 'Risk Assessment Alignment', status: currentF3Result ? (avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: 'Security telemetry and on-chain findings align with assessed risk level' },
+        { name: 'Contradiction Detection', status: currentF3Result ? ((avf06?.contradictions?.length ?? 0) === 0 ? 'VERIFIED' : 'FLAGGED') : 'NOT_PERFORMED', detail: (avf06?.contradictions?.length ?? 0) === 0 ? 'No conflicting narrative assertions found' : avf06?.contradictions?.join('; ') || '' },
+        { name: 'Verdict Semantic Alignment', status: currentF3Result ? (avf06?.status === 'CONSISTENT' ? 'VERIFIED' : (avf06?.status === 'REQUIRES_REVIEW' ? 'ATTENTION' : (selectedProject?.verdict ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'))) : 'NOT_PERFORMED', detail: avf06?.status === 'CONSISTENT' ? 'Summary tone and verdict align with rubric classification' : (avf06?.status === 'REQUIRES_REVIEW' ? 'Semantic discrepancy detected between narrative and risk findings' : (selectedProject?.verdict ? 'Verdict narrative present (uncalibrated tone scan)' : 'Verdict statement missing')) }
       ]
     },
     {
@@ -452,9 +452,9 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: `Score Math: 100% | Taxonomy: 95% | On-Chain: 85%`,
       details: avf07?.details || 'Multi-source statistical confidence computed from deterministic evidence tiers.',
       checks: [
-        { name: 'Deterministic Score Confidence', status: 'VERIFIED', detail: '100% confidence on mathematical computations' },
-        { name: 'Telemetry Integrity Weight', status: avf02?.hasSecurityTelemetry ? 'VERIFIED' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? 'PASSED' : 'NOT_PERFORMED'), detail: avf02?.hasSecurityTelemetry ? 'Weighted by live on-chain telemetry feeds' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? `Weighted across ${selectedProject.citations.length} external source citations` : 'No external telemetry stream attached') },
-        { name: 'Confidence Bounds', status: 'VERIFIED', detail: `Aggregate composite confidence: ${(overallConfidence * 100).toFixed(1)}%` }
+        { name: 'Deterministic Score Confidence', status: currentF3Result ? (avf07?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: '100% confidence on mathematical computations' },
+        { name: 'Telemetry Integrity Weight', status: currentF3Result ? (avf02?.hasSecurityTelemetry ? 'VERIFIED' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? 'NARRATIVE ONLY' : 'UNAVAILABLE')) : 'NOT_PERFORMED', detail: avf02?.hasSecurityTelemetry ? 'Weighted by live on-chain telemetry feeds' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? `Weighted across ${selectedProject.citations.length} external source citations` : 'No external telemetry stream attached') },
+        { name: 'Confidence Bounds', status: currentF3Result ? (avf07?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: `Aggregate composite confidence: ${(overallConfidence * 100).toFixed(1)}%` }
       ]
     },
     {
@@ -468,9 +468,9 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       metricSecondary: `Ed25519: ${avf08?.isSigned ? 'Digitally Signed & Verified' : 'Canonical Stamp Ready'}`,
       details: avf08?.details || 'Cryptographic sha256 hash payload digest and Ed25519 signature verified.',
       checks: [
-        { name: 'Report Payload Digest Parity', status: avf08?.reportHash ? 'VERIFIED' : 'PASSED', detail: `SHA-256 Hash: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 24)}...` : 'Pending execution'}` },
-        { name: 'Cryptographic Signature Check', status: avf08?.isSigned ? 'VERIFIED' : 'PASSED', detail: avf08?.isSigned ? 'Ed25519 signature cryptographic proof confirmed' : 'Canonical signature stamp generated' },
-        { name: 'Audit Trail Immutability', status: avf08?.isSigned ? 'VERIFIED' : (avf08?.reportHash ? 'PASSED' : 'NOT_PERFORMED'), detail: avf08?.isSigned ? 'Report state matches timestamped cryptographic record' : (avf08?.reportHash ? 'SHA-256 digest computed; signature pending' : 'Cryptographic audit record not generated') }
+        { name: 'Report Payload Digest Parity', status: currentF3Result ? (avf08?.reportHash ? 'VERIFIED' : 'UNAVAILABLE') : 'NOT_PERFORMED', detail: `SHA-256 Hash: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 24)}...` : 'Pending execution'}` },
+        { name: 'Cryptographic Signature Check', status: currentF3Result ? (avf08?.isSigned ? 'VERIFIED' : 'UNSIGNED') : 'NOT_PERFORMED', detail: avf08?.isSigned ? 'Ed25519 signature cryptographic proof confirmed' : 'Canonical signature stamp generated' },
+        { name: 'Audit Trail Immutability', status: currentF3Result ? (avf08?.isSigned ? 'VERIFIED' : (avf08?.reportHash ? 'PENDING_SIGNATURE' : 'NOT_PERFORMED')) : 'NOT_PERFORMED', detail: avf08?.isSigned ? 'Report state matches timestamped cryptographic record' : (avf08?.reportHash ? 'SHA-256 digest computed; signature pending' : 'Cryptographic audit record not generated') }
       ]
     }
   ];

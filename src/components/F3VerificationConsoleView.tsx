@@ -149,68 +149,68 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
     {
       id: 'AVF-01',
       title: 'Classification & Taxonomy Verification',
-      status: avf01?.status || 'VERIFIED',
+      status: avf01?.status || 'NOT RUN',
       icon: <Layers className="w-4 h-4 text-cyan-400" />,
-      details: avf01?.details || 'Protocol taxonomy verified against blueprint categories.',
+      details: avf01?.details || 'Protocol taxonomy verification standby.',
       summary: `Assigned: ${avf01?.assignedCategory || 'N/A'}${avf01?.matchedStandardCategory ? ` → Matched: ${avf01.matchedStandardCategory}` : ''}`
     },
     {
       id: 'AVF-02',
       title: 'Evidence & Source Provenance Verification',
-      status: avf02?.status || 'VERIFIED',
+      status: avf02?.status || 'NOT RUN',
       icon: <Database className="w-4 h-4 text-purple-400" />,
-      details: avf02?.details || 'Citations and contract address availability verified.',
+      details: avf02?.details || 'Citations and contract address availability check standby.',
       summary: `Citations: ${avf02?.citationsFound ?? 0} | Contract: ${avf02?.contractAddressPresent ? 'Present' : 'Absent'} | Telemetry: ${avf02?.hasSecurityTelemetry ? 'Connected' : 'Unavailable'}`
     },
     {
       id: 'AVF-03',
       title: 'Methodology & Weighting Compliance',
-      status: avf03?.status || 'VERIFIED',
+      status: avf03?.status || 'NOT RUN',
       icon: <Scale className="w-4 h-4 text-blue-400" />,
-      details: avf03?.details || 'Score weight distribution compliant with Blueprint v2.4.',
+      details: avf03?.details || 'Score weight distribution compliance check standby.',
       summary: `Weights: Utility 25%, Tokenomics 25%, Security 25%, Team 15%, Community 10% (Blueprint v2.4)`
     },
     {
       id: 'AVF-04',
       title: 'Scenario Bounds & Liquidity Stress Testing',
-      status: avf04?.status || 'VERIFIED',
+      status: avf04?.status || 'NOT RUN',
       icon: <Activity className="w-4 h-4 text-amber-400" />,
-      details: avf04?.details || 'Liquidity & price stress testing evaluated.',
-      summary: `Stress Testing Mode: ${avf04?.simulationExecuted ? 'Executed' : 'Narrative'} | Scenarios Evaluated: ${avf04?.scenariosTestedCount ?? 3}`
+      details: avf04?.details || 'Liquidity & price stress testing standby.',
+      summary: `Stress Testing Mode: ${avf04?.simulationExecuted ? 'Executed' : 'Narrative Only'} | Scenarios Evaluated: ${avf04?.scenariosTestedCount ?? 0}`
     },
     {
       id: 'AVF-05',
       title: 'Score Arithmetic & Weight Verification',
-      status: avf05?.status || 'VERIFIED',
+      status: avf05?.status || 'NOT RUN',
       icon: <Binary className="w-4 h-4 text-emerald-400" />,
-      details: avf05?.details || 'Dimension score mathematical weighted average verified.',
-      summary: `Reported: ${avf05?.reportedScore ?? 'N/A'} | Recomputed: ${avf05?.recomputedScore ?? 'N/A'} | Discrepancy: ${avf05?.discrepancy !== null && avf05?.discrepancy !== undefined ? `${avf05.discrepancy} pts` : '0 pts'}`
+      details: avf05?.details || 'Dimension score mathematical weighted average verification standby.',
+      summary: `Reported: ${avf05?.reportedScore ?? 'N/A'} | Recomputed: ${avf05?.recomputedScore ?? 'N/A'} | Discrepancy: ${avf05?.discrepancy !== null && avf05?.discrepancy !== undefined ? `${avf05.discrepancy} pts` : 'N/A'}`
     },
     {
       id: 'AVF-06',
       title: 'Risk-Conclusion Semantic Consistency',
-      status: avf06?.status || 'CONSISTENT',
+      status: avf06?.status || 'NOT RUN',
       icon: <FileCheck className="w-4 h-4 text-teal-400" />,
-      details: avf06?.details || 'Verdict, score, and risk level consistency verified.',
+      details: avf06?.details || 'Verdict, score, and risk level consistency verification standby.',
       summary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
         ? `CONSISTENT (conservative): Declared [${avf06.declaredRisk}] vs Evaluated [${avf06.verifiedRiskLevel}]`
-        : `Declared: ${avf06?.declaredRisk || 'N/A'} | Evaluated: ${avf06?.verifiedRiskLevel || 'N/A'}${avf06?.contradictions && avf06.contradictions.length > 0 ? ` (Contradictions: ${avf06.contradictions.length})` : ' (Consistent)'}`
+        : `Declared: ${avf06?.declaredRisk || 'N/A'} | Evaluated: ${avf06?.verifiedRiskLevel || 'N/A'}${avf06?.contradictions && avf06.contradictions.length > 0 ? ` (Contradictions: ${avf06.contradictions.length})` : (avf06?.status ? ' (Consistent)' : '')}`
     },
     {
       id: 'AVF-07',
       title: 'Deterministic Multi-Source Confidence',
-      status: avf07?.status || 'VERIFIED',
+      status: avf07?.status || 'NOT RUN',
       icon: <Cpu className="w-4 h-4 text-indigo-400" />,
-      details: avf07?.details || 'Multi-source statistical confidence computed.',
-      summary: `Calculated Confidence: ${avf07?.confidencePct ?? Math.round(overallConfidence * 100)}% (${getConfidenceLevel(overallConfidence)})`
+      details: avf07?.details || 'Multi-source statistical confidence computation standby.',
+      summary: avf07?.confidencePct !== undefined ? `Calculated Confidence: ${avf07.confidencePct}% (${getConfidenceLevel(overallConfidence)})` : `Awaiting execution (${getConfidenceLevel(overallConfidence)})`
     },
     {
       id: 'AVF-08',
       title: 'Traceability & Cryptographic Integrity',
-      status: avf08?.status || 'VERIFIED',
+      status: avf08?.status || 'NOT RUN',
       icon: <Lock className="w-4 h-4 text-rose-400" />,
-      details: avf08?.details || 'Cryptographic evaluation signature and canonical hash integrity.',
-      summary: `${avf08?.traceabilityChain?.cryptographicIntegrity?.hashMatches || avf08?.status === 'VERIFIED' ? 'Integrity: Consistent' : 'Integrity: Check Required'} | ${!avf08?.missingFields?.length ? 'Traceability: Complete' : 'Traceability: Limited'} | Digest: ${avf08?.reportHash ? `${avf08.reportHash.slice(0, 16)}...` : 'Canonical Hash'}`
+      details: avf08?.details || 'Cryptographic evaluation signature and canonical hash integrity standby.',
+      summary: avf08 ? `${avf08.traceabilityChain?.cryptographicIntegrity?.hashMatches || avf08.status === 'VERIFIED' ? 'Integrity: Consistent' : 'Integrity: Check Required'} | ${!avf08.missingFields?.length ? 'Traceability: Complete' : 'Traceability: Limited'} | Digest: ${avf08.reportHash ? `${avf08.reportHash.slice(0, 16)}...` : 'Canonical Hash'}` : 'Integrity check standby'
     }
   ];
 

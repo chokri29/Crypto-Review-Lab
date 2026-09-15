@@ -28,14 +28,6 @@ export default function AIXStocksMarketSummary({
   const [internalQuotes, setInternalQuotes] = useState<Record<string, XStockQuoteState>>({});
   const [isLocalFetching, setIsLocalFetching] = useState<boolean>(false);
 
-  // Baseline initial metrics for instant display before live convergence
-  const [fallbackCap] = useState<number>(274.76); // $274.76M
-  const [fallbackCapChange] = useState<number>(0.74); // +0.74%
-  const [fallbackVolume] = useState<number>(61.38); // $61.38M
-  const [fallbackPegParity] = useState<number>(99.7); // 99.7% parity
-  const [fallbackGainer] = useState<{ symbol: string; change: number }>({ symbol: 'COINX', change: 7.80 });
-  const [fallbackLoser] = useState<{ symbol: string; change: number }>({ symbol: 'AMZNX', change: -1.60 });
-
   const isFetching = parentRefreshing || isLocalFetching;
 
   // Direct fetch fallback if quotes are not passed from parent
@@ -203,12 +195,13 @@ export default function AIXStocksMarketSummary({
 
     if (!hasData) {
       return {
-        totalCap: fallbackCap,
-        capChange: fallbackCapChange,
-        totalVolume: fallbackVolume,
-        pegParity: fallbackPegParity,
-        topGainer: fallbackGainer,
-        topLoser: fallbackLoser
+        totalCap: null as number | null,
+        capChange: null as number | null,
+        totalVolume: null as number | null,
+        pegParity: null as number | null,
+        topGainer: null as { symbol: string; change: number } | null,
+        topLoser: null as { symbol: string; change: number } | null,
+        hasLiveData: false
       };
     }
 
@@ -251,20 +244,18 @@ export default function AIXStocksMarketSummary({
       }
     });
 
-    const totalCapMillions = sumCap > 0 ? sumCap / 1e6 : fallbackCap;
-    const totalVolMillions = sumVol > 0 ? sumVol / 1e6 : fallbackVolume;
-    const avgChange = validChangeCount > 0 ? totalChanges / validChangeCount : fallbackCapChange;
-    const avgPegParity = parityCount > 0 ? totalParityScore / parityCount : fallbackPegParity;
+    const hasAnyMetrics = sumCap > 0 || sumVol > 0 || validChangeCount > 0;
 
     return {
-      totalCap: totalCapMillions,
-      capChange: avgChange,
-      totalVolume: totalVolMillions,
-      pegParity: avgPegParity,
-      topGainer: bestItem || fallbackGainer,
-      topLoser: worstItem || fallbackLoser
+      totalCap: sumCap > 0 ? sumCap / 1e6 : null,
+      capChange: validChangeCount > 0 ? totalChanges / validChangeCount : null,
+      totalVolume: sumVol > 0 ? sumVol / 1e6 : null,
+      pegParity: parityCount > 0 ? totalParityScore / parityCount : null,
+      topGainer: bestItem,
+      topLoser: worstItem,
+      hasLiveData: hasAnyMetrics
     };
-  }, [stockQuotes, internalQuotes, fallbackCap, fallbackCapChange, fallbackVolume, fallbackPegParity, fallbackGainer, fallbackLoser]);
+  }, [stockQuotes, internalQuotes]);
 
   return (
     <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] relative overflow-hidden group flex flex-col justify-between h-full select-none transition-all duration-300">
@@ -284,9 +275,15 @@ export default function AIXStocksMarketSummary({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[9px] text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/35 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm">
-            LIVE INTEL
-          </span>
+          {metrics.hasLiveData ? (
+            <span className="font-mono text-[9px] text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/35 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm">
+              LIVE CONVERGENCE
+            </span>
+          ) : (
+            <span className="font-mono text-[9px] text-slate-400 bg-slate-800/80 border border-slate-700/60 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm">
+              {isFetching ? 'FETCHING INTEL...' : 'DATA PENDING'}
+            </span>
+          )}
           <button 
             type="button"
             onClick={fetchDirectMetrics}
@@ -307,19 +304,25 @@ export default function AIXStocksMarketSummary({
             <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
               TOTAL MARKET CAP
             </div>
-            <span className={`font-mono text-[11px] font-black px-1.5 py-0.5 rounded border shrink-0 flex items-center ${
-              metrics.capChange >= 0 
-                ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' 
-                : 'text-rose-300 bg-rose-500/15 border-rose-500/30'
-            }`}>
-              {metrics.capChange >= 0 ? '+' : ''}{metrics.capChange.toFixed(2)}%
-            </span>
+            {metrics.capChange !== null ? (
+              <span className={`font-mono text-[11px] font-black px-1.5 py-0.5 rounded border shrink-0 flex items-center ${
+                metrics.capChange >= 0 
+                  ? 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30' 
+                  : 'text-rose-300 bg-rose-500/15 border-rose-500/30'
+              }`}>
+                {metrics.capChange >= 0 ? '+' : ''}{metrics.capChange.toFixed(2)}%
+              </span>
+            ) : (
+              <span className="font-mono text-[10px] text-slate-500 bg-slate-800/40 border border-slate-700/40 px-1.5 py-0.5 rounded">
+                UNAVAILABLE
+              </span>
+            )}
           </div>
           <div className="font-display font-black text-xl sm:text-2xl text-white tracking-tight drop-shadow-[0_0_12px_rgba(0,229,255,0.2)] py-1">
-            {formatCompactCap(metrics.totalCap, 'M')}
+            {metrics.totalCap !== null ? formatCompactCap(metrics.totalCap, 'M') : 'UNAVAILABLE'}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            24h aggregate valuation
+            {metrics.totalCap !== null ? '24h aggregate valuation' : 'No verified market cap data'}
           </div>
         </div>
 
@@ -329,10 +332,10 @@ export default function AIXStocksMarketSummary({
             24H VOLUME
           </div>
           <div className="font-display font-black text-xl sm:text-2xl text-cyber-cyan tracking-tight py-1">
-            {formatCompactCap(metrics.totalVolume, 'M')}
+            {metrics.totalVolume !== null ? formatCompactCap(metrics.totalVolume, 'M') : 'UNAVAILABLE'}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            on-chain secondary vol
+            {metrics.totalVolume !== null ? 'on-chain secondary vol' : 'No verified volume data'}
           </div>
         </div>
 
@@ -342,10 +345,10 @@ export default function AIXStocksMarketSummary({
             AVG PEG PARITY
           </div>
           <div className="font-display font-black text-xl sm:text-2xl text-amber-300 tracking-tight py-1">
-            {metrics.pegParity.toFixed(1)}%
+            {metrics.pegParity !== null ? `${metrics.pegParity.toFixed(1)}%` : 'UNAVAILABLE'}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            on-chain vs equity parity
+            {metrics.pegParity !== null ? 'on-chain vs equity parity' : 'Underlying feed uncalibrated'}
           </div>
         </div>
 
@@ -355,15 +358,23 @@ export default function AIXStocksMarketSummary({
             TOP GAINER (24H)
           </div>
           <div className="flex items-baseline gap-1.5 py-1">
-            <span className="font-mono font-black text-base sm:text-lg text-white">
-              {metrics.topGainer.symbol}
-            </span>
-            <span className="font-mono font-black text-xs text-emerald-400">
-              +{metrics.topGainer.change.toFixed(2)}%
-            </span>
+            {metrics.topGainer ? (
+              <>
+                <span className="font-mono font-black text-base sm:text-lg text-white">
+                  {metrics.topGainer.symbol}
+                </span>
+                <span className="font-mono font-black text-xs text-emerald-400">
+                  {metrics.topGainer.change >= 0 ? '+' : ''}{metrics.topGainer.change.toFixed(2)}%
+                </span>
+              </>
+            ) : (
+              <span className="font-mono text-sm text-slate-500">
+                UNAVAILABLE
+              </span>
+            )}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            active market leader
+            {metrics.topGainer ? 'active market leader' : 'Awaiting market returns'}
           </div>
         </div>
 
@@ -373,15 +384,23 @@ export default function AIXStocksMarketSummary({
             TOP LOSER (24H)
           </div>
           <div className="flex items-baseline gap-1.5 py-1">
-            <span className="font-mono font-black text-base sm:text-lg text-white">
-              {metrics.topLoser.symbol}
-            </span>
-            <span className="font-mono font-black text-xs text-rose-400">
-              {metrics.topLoser.change.toFixed(2)}%
-            </span>
+            {metrics.topLoser ? (
+              <>
+                <span className="font-mono font-black text-base sm:text-lg text-white">
+                  {metrics.topLoser.symbol}
+                </span>
+                <span className="font-mono font-black text-xs text-rose-400">
+                  {metrics.topLoser.change >= 0 ? '+' : ''}{metrics.topLoser.change.toFixed(2)}%
+                </span>
+              </>
+            ) : (
+              <span className="font-mono text-sm text-slate-500">
+                UNAVAILABLE
+              </span>
+            )}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            24h drawdown stock
+            {metrics.topLoser ? '24h drawdown stock' : 'Awaiting market returns'}
           </div>
         </div>
       </div>

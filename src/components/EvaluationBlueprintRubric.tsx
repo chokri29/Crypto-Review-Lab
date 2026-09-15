@@ -363,7 +363,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-amber-400 font-bold">AVF-04: Scenario Stress Bounds</span>
-                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Simulates -30%, -60%, -85% price shock & liquidity drain cascade resilience.</p>
+                        <p className="text-slate-400 text-[10px] font-sans mt-0.5">Evaluates price shock & liquidity drain cascade resilience bounds.</p>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
                         <span className="text-emerald-400 font-bold">AVF-05: Score Arithmetic</span>

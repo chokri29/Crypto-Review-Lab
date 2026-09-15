@@ -225,13 +225,13 @@ interface TickerItem {
 }
 
 const FALLBACK_TICKER_ITEMS: TickerItem[] = [
-  { id: 't1', category: 'ALERT', text: 'RE-ENTRANCY ATTACK VECTOR DETECTED: Compromised DeFi yield optimizer contract drained $1.8M.' },
-  { id: 't2', category: 'VULN', text: 'ORACLE EXPLOIT WARNING: Unchecked spot price index references identified in legacy ERC-20 staking vaults.' },
-  { id: 't3', category: 'SYSTEM', text: 'NODE CONNECTIVITY OK: 256 secure validation proxies online. Audit latency: <120ms.' },
-  { id: 't4', category: 'NEWS', text: 'Satoshi-era wallet containing 500 BTC activated after 15.2 years of cryptographic dormant state.' },
-  { id: 't5', category: 'ALERT', text: 'BRIDGE COMPROMISE: Flash loan vectors bypass cross-chain proof validators in multi-chain rollup.' },
-  { id: 't6', category: 'VULN', text: 'OWNERSHIP RECLAIM RISK: Hidden administrative backdoor flagged in unverified token allocation modifier.' },
-  { id: 't7', category: 'SYSTEM', text: 'REAL-TIME HEURISTICS: Deep security scanner actively parsing new mempool transaction batches.' }
+  { id: 't1', category: 'SYSTEM', text: 'AVF TRIPARTITE CORE: AVF-01 through AVF-08 verification enforces deterministic arithmetic & evidence checks.' },
+  { id: 't2', category: 'VULN', text: 'SECURITY STANDARD: Smart contracts must pass GoPlus/RugCheck bytecode scans and proxy admin timelock verification.' },
+  { id: 't3', category: 'SYSTEM', text: 'AUDIT RIGOR: Invariant evaluations require multi-source convergence before verification-grade claims.' },
+  { id: 't4', category: 'NEWS', text: 'CRYPTO REVIEW LAB: Algorithmic assessment framework enforces zero synthetic metrics on market data.' },
+  { id: 't5', category: 'ALERT', text: 'RISK PROTOCOL: Declared risk classifications must align with verified telemetry without uncalibrated optimism.' },
+  { id: 't6', category: 'VULN', text: 'METHODOLOGY COMPLIANCE: 25/25/25/15/10 weight invariant applies strictly across all evaluated assets.' },
+  { id: 't7', category: 'SYSTEM', text: 'PROVENANCE MANDATE: Missing telemetry feeds are labelled UNAVAILABLE; synthetic data prohibited.' }
 ];
 
 interface AuditorChatProps {
