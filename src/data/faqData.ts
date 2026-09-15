@@ -91,13 +91,6 @@ export const REVIEW_LAB_FAQ_ITEMS: FAQItem[] = [
     definition: 'A private technical diagnostic evaluation for engineering teams, protocol founders, and treasuries — conducted prior to public launch, major contract upgrades, or whenever a detailed security check is required.',
     tip: 'Delivers actionable security findings, risk analysis, provider evidence, and step-by-step remediation recommendations.',
     answer: 'The Security & Risk Assessment is an automated diagnostic advisory service built specifically for web3 developers, protocol teams, launchpads, and treasury managers. It is conducted prior to public launch, major contract upgrades, or whenever detailed security verification is required.\n\nEach assessment delivers a structured advisory package:\n\n- Automated Multi-Source Security Scanning — Bytecode vulnerability profiling across GoPlus, RugCheck, and Blockscout explorers.\n- TVL & Liquidity Bounds Analysis — Quantitative evaluation of pool concentration, historical price volatility bounds, and oracle architecture.\n- Technical Verification Dossier — Private report featuring vulnerability classifications, severity breakdowns, provider evidence, and step-by-step remediation guidance.'
-  },
-  {
-    category: 'lab',
-    question: 'How does Review Lab evaluate crypto prop trading firms and funded accounts under the AVF model?',
-    definition: 'Prop trading evaluation framework rating payout reliability, trailing drawdown thresholds, leverage rules, and profit splits up to 90%.',
-    tip: 'Verifies real broker liquidity feeds and on-chain payout transactions before issuing an AVF prop trading rating.',
-    answer: 'Review Lab evaluates crypto proprietary trading firms and funded account providers using a strict 5-pillar assessment:\n\n1. Drawdown Rules — Distinction between static versus trailing drawdown rules, daily loss limits, and account reset fairness.\n\n2. Payout Reliability — Verification of on-chain payout transactions, average processing speed, and verified banking settlement corridors.\n\n3. Profit Share Matrix — Transparency of profit split tiers (ranging up to 90%) and scaling plan benchmarks.\n\n4. Broker Execution & Feeds — Quality of live market feeds, execution latency, slippage boundaries, and spread markups.\n\n5. Historical Trader Outcomes — Verified pass rates, payout consistency over trailing quarters, and regulatory registration.'
   }
 ];
 

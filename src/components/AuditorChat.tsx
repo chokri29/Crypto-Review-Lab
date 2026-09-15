@@ -43,7 +43,6 @@ import { ChatMessage, CryptoReview } from '../types';
 import { EVALUATION_BLUEPRINT_DIMENSIONS } from '../services/EvaluationBlueprint';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { 
-  ACADEMY_FAQ_ITEMS, 
   REVIEW_LAB_FAQ_ITEMS, 
   AVF_SECURITY_FAQ_ITEMS, 
   ALL_FAQ_ITEMS, 
@@ -295,13 +294,13 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
   const verdictsPerPage = 4;
 
   // FAQ Accordion & Search State
-  const [faqCategory, setFaqCategory] = useState<'all' | 'avf' | 'xstocks' | 'lab' | 'academy'>('all');
+  const [faqCategory, setFaqCategory] = useState<'avf' | 'xstocks' | 'lab'>('avf');
   const [faqSearch, setFaqSearch] = useState('');
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const filteredFaqs = useMemo(() => {
     return ALL_FAQ_ITEMS.filter((item) => {
-      const matchesCategory = faqCategory === 'all' || item.category === faqCategory;
+      const matchesCategory = item.category === faqCategory;
       const q = faqSearch.trim().toLowerCase();
       const matchesSearch =
         !q ||
@@ -1132,18 +1131,21 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
 
         {/* Category Filter Tabs */}
         <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-cyber-cyan/20 text-xs font-mono flex-wrap">
-          {(['all', 'avf', 'xstocks', 'lab', 'academy'] as const).map((cat) => (
+          {(['avf', 'xstocks', 'lab'] as const).map((cat) => (
             <button
               key={cat}
               type="button"
-              onClick={() => setFaqCategory(cat)}
+              onClick={() => {
+                setFaqCategory(cat);
+                setOpenFaqIndex(null);
+              }}
               className={`px-3 py-1 rounded-lg uppercase tracking-wider font-bold transition-all cursor-pointer ${
                 faqCategory === cat
                   ? 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              {cat === 'all' ? 'All' : cat === 'xstocks' ? 'xStocks' : cat.toUpperCase()}
+              {cat === 'xstocks' ? 'xStocks' : cat.toUpperCase()}
             </button>
           ))}
         </div>
@@ -1155,7 +1157,10 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
         <input
           type="text"
           value={faqSearch}
-          onChange={(e) => setFaqSearch(e.target.value)}
+          onChange={(e) => {
+            setFaqSearch(e.target.value);
+            setOpenFaqIndex(null);
+          }}
           placeholder="Search questions, opcode checks, tokenomics models, or audit terms..."
           className="w-full bg-slate-950 border border-cyber-cyan/30 focus:border-cyber-cyan rounded-xl pl-9 pr-4 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none transition-all font-mono"
         />
