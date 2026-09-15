@@ -807,7 +807,7 @@ export function computeProtocolTypeMultiFactorModifier(
 
 export interface BlueprintScoreResult {
   overallScore: number;
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' | 'Low Risk' | 'Medium Risk' | 'Declared Risk';
   baseWeightedSum?: number;
   adjustedScore?: number;
   expandedScore?: number;
@@ -951,7 +951,7 @@ export function calculateBlueprintScore(
   const isMemeCoinPenaltyTriggered = false;
   const isCapped = false;
 
-  let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  let riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' | 'Low Risk' | 'Medium Risk' | 'Declared Risk';
   if (options?.declaredRiskLevel) {
     riskLevel = options.declaredRiskLevel;
   } else {

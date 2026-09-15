@@ -166,7 +166,7 @@
             "notes": "Data source divergence (0.00%) or lower confidence (70/100) requires pricing check.",
             "checks": [
               {
-                "name": "Tri-Oracle Market Data Provenance",
+                "name": "Multi-Source Market Data Convergence",
                 "status": "VERIFIED",
                 "detail": "Tri-Sync Engine (CoinGecko + CMC + CoinStats)"
               },
@@ -992,7 +992,7 @@
             "notes": "Data source divergence (0.00%) or lower confidence (70/100) requires pricing check.",
             "checks": [
               {
-                "name": "Tri-Oracle Market Data Provenance",
+                "name": "Multi-Source Market Data Convergence",
                 "status": "VERIFIED",
                 "detail": "Tri-Sync Engine (CoinGecko + CMC + CoinStats)"
               },

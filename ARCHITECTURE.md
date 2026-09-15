@@ -72,8 +72,9 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Discrepancy Threshold:** Must be $\le 0.5\text{ pts}$ to receive `VERIFIED`.
 
 ### Module 6: AVF-06 — Risk-Conclusion Semantic Consistency
-- **Purpose:** Verifies that declared risk findings and risk level are semantically consistent with calculated scores and verified security telemetry signals.
-- **Output:** `CONSISTENT` (0 contradictions), `REQUIRES_REVIEW` (material divergence), or `CONFLICT` (critical contradiction).
+- **Purpose:** Verifies whether the declared official risk classification (`Low Risk`, `Medium Risk`, `Declared Risk`) is supported by independent evidence and verified security telemetry (GoPlus, RugCheck, bytecode invariants, symbolic execution).
+- **Decoupled Architecture:** AVF-06 does **not** calculate, replace, or automatically assign the official risk classification from the numerical Evaluation Score. The official risk classification, numerical Evaluation Score (/100), evidence status, risk findings, and severity levels are separate, independent outputs.
+- **Output:** `CONSISTENT` (0 contradictions; declared risk supported by evidence), `REQUIRES_REVIEW` (insufficient evidence or elevated telemetry findings requiring auditor review), or `CONFLICT` (critical contradiction between declared classification and detected exploit vectors).
 
 ### Module 7: AVF-07 — Deterministic Multi-Source Confidence
 - **Purpose:** Computes composite statistical confidence across underlying modules.

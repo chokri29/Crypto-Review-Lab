@@ -1586,9 +1586,14 @@ export function verifyAVF06RiskConclusion(
   // Risk rank mapping: Low (1) < Medium (2) < High (3) < Critical (4)
   const riskRank: Record<string, number> = {
     Low: 1,
+    'Low Risk': 1,
     Medium: 2,
+    'Medium Risk': 2,
+    'Declared Risk': 2,
     High: 3,
-    Critical: 4
+    'High Risk': 3,
+    Critical: 4,
+    'Critical Risk': 4
   };
 
   const declaredRank = riskRank[declaredRisk] ?? 2;
@@ -1619,11 +1624,11 @@ export function verifyAVF06RiskConclusion(
     const isContradiction = (secRank >= 3 && declaredRank === 1) || (secRank === 4 && declaredRank <= 2);
     if (isContradiction) {
       contradictions.push(
-        `Critical Security Score Contradiction: Security sub-score (${secScore}/10) implies ${secImpliedRisk} Risk, but report declares '${declaredRisk} Risk'.`
+        `Critical Security Score Contradiction: Security sub-score (${secScore}/10) exhibits ${secImpliedRisk} severity telemetry, directly contradicting the declared '${declaredRisk}' classification.`
       );
     } else if (secRank > declaredRank) {
       materialFindings.push(
-        `Elevated Security Risk: Sub-score (${secScore}/10) indicates ${secImpliedRisk} Risk while headline reports '${declaredRisk} Risk'.`
+        `Elevated Security Findings: Sub-score (${secScore}/10) indicates ${secImpliedRisk} severity telemetry, showing insufficient evidence to substantiate a '${declaredRisk}' classification without audit review.`
       );
     }
 
@@ -1714,7 +1719,7 @@ export function verifyAVF06RiskConclusion(
 
       if (isContradiction) {
         contradictions.push(
-          `Critical Security Scan Contradiction: On-chain scan (${securityScan?.source || scanData.source || 'GoPlus/RugCheck'}) identified critical exploit vector(s) (${exploitList}) while report declares '${declaredRisk} Risk'.`
+          `Critical Security Scan Contradiction: On-chain scan (${securityScan?.source || scanData.source || 'GoPlus/RugCheck'}) identified critical exploit vector(s) (${exploitList}), directly contradicting the declared '${declaredRisk}' classification.`
         );
       } else {
         materialFindings.push(
@@ -1751,7 +1756,7 @@ export function verifyAVF06RiskConclusion(
         scanImpliedRisk = 'Medium';
         if (declaredRank === 1) {
           materialFindings.push(
-            `Unrenounced Wallet Privileges: GoPlus scan reveals unrenounced ownership by a non-contract wallet (EOA), which does not support a 'Low Risk' classification without audit review.`
+            `Unrenounced Wallet Privileges: GoPlus scan reveals unrenounced ownership by a non-contract wallet (EOA), which provides insufficient evidence to substantiate a '${declaredRisk}' classification without audit review.`
           );
         }
       }
@@ -1763,7 +1768,7 @@ export function verifyAVF06RiskConclusion(
         scanImpliedRisk = 'Medium';
         if (declaredRank === 1) {
           materialFindings.push(
-            `Active Mint Authority: On-chain bytecode inspection reveals mintable token supply while report declares 'Low Risk'.`
+            `Active Mint Authority: On-chain bytecode inspection reveals mintable token supply, indicating insufficient evidence to substantiate a '${declaredRisk}' classification.`
           );
         }
       }
@@ -1775,7 +1780,7 @@ export function verifyAVF06RiskConclusion(
         scanImpliedRisk = 'High';
         if (declaredRank === 1) {
           contradictions.push(
-            `Unverified Bytecode Contradiction: Smart contract source is closed-source / unverified on block explorer while report declares 'Low Risk'.`
+            `Unverified Bytecode Contradiction: Smart contract source is closed-source / unverified on block explorer, directly contradicting the declared '${declaredRisk}' classification.`
           );
         }
       }
@@ -1798,7 +1803,7 @@ export function verifyAVF06RiskConclusion(
 
     if (declaredRank === 1) {
       materialFindings.push(
-        `Unverified On-Chain Bytecode: Smart contract address is on file (${review.contractAddress}), but external GoPlus/RugCheck security scan results are absent. Declaring 'Low Risk' without verified on-chain bytecode scan requires auditor review.`
+        `Unverified On-Chain Bytecode: Smart contract address is on file (${review.contractAddress}), but external GoPlus/RugCheck security scan results are absent. A '${declaredRisk}' classification lacks independent telemetry support and requires auditor review.`
       );
     }
 
@@ -1818,7 +1823,7 @@ export function verifyAVF06RiskConclusion(
     const isNativeL1 = typeof review.category === 'string' && review.category.toLowerCase().includes('layer 1');
     if (declaredRank === 1 && !isNativeL1) {
       materialFindings.push(
-        `Unanchored Deployment: No verifiable smart contract address on file. Declaring 'Low Risk' without on-chain bytecode verification requires audit review.`
+        `Unanchored Deployment: No verifiable smart contract address on file. A '${declaredRisk}' classification lacks on-chain bytecode evidence support and requires audit review.`
       );
     }
 
@@ -1854,7 +1859,7 @@ export function verifyAVF06RiskConclusion(
       const isContradiction = declaredRank <= 2;
       if (isContradiction) {
         contradictions.push(
-          `Symbolic Threat Contradiction: Active critical vulnerability flags detected (${flaggedVectors}) while stated risk is '${declaredRisk}'.`
+          `Symbolic Threat Contradiction: Active critical vulnerability flags detected (${flaggedVectors}), directly contradicting the declared '${declaredRisk}' classification.`
         );
       } else {
         materialFindings.push(
@@ -1924,14 +1929,14 @@ export function verifyAVF06RiskConclusion(
   let details = '';
   if (status === 'CONSISTENT') {
     if (declaredRisk && verifiedRiskLevel && declaredRisk !== verifiedRiskLevel) {
-      details = `CONSISTENT (conservative): Declared [${declaredRisk}] is stricter than signal-implied [${verifiedRiskLevel}] — no material contradiction.`;
+      details = `Risk-Conclusion CONSISTENT: Declared '${declaredRisk}' classification is supported by independent evidence and security telemetry (${signalsChecked.length} signals verified; no material contradictions).`;
     } else {
-      details = `Risk-Conclusion CONSISTENT: Declared '${declaredRisk} Risk' aligns with verified security signals (implied level: ${verifiedRiskLevel} Risk, ${signalsChecked.length} signals verified).`;
+      details = `Risk-Conclusion CONSISTENT: Declared '${declaredRisk}' classification is supported by independent evidence and security telemetry (${signalsChecked.length} signals verified).`;
     }
   } else if (status === 'CONFLICT') {
-    details = `Risk-Conclusion CONFLICT DETECTED: Declared '${declaredRisk} Risk' materially contradicts verified signals (verified: ${verifiedRiskLevel} Risk). Contradictions: ${contradictions.join(' ')}`;
+    details = `Risk-Conclusion CONFLICT DETECTED: Declared '${declaredRisk}' classification materially contradicts verified security telemetry (telemetry indicates ${verifiedRiskLevel} severity findings). Contradictions: ${contradictions.join(' ')}`;
   } else {
-    details = `Risk-Conclusion REQUIRES REVIEW: Declared '${declaredRisk} Risk' diverges from verified implied risk level '${verifiedRiskLevel} Risk'. Findings: ${materialFindings.join(' ')}`;
+    details = `Risk-Conclusion REQUIRES REVIEW: Declared '${declaredRisk}' classification lacks sufficient independent telemetry support or exhibits elevated findings (telemetry indicates ${verifiedRiskLevel} severity findings). Findings: ${materialFindings.join(' ')}`;
   }
 
   return {

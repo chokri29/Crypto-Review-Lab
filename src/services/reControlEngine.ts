@@ -1530,14 +1530,14 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   // GATE 6: RISK LEVEL EVIDENCE EVALUATION
   // Independent from locked score-to-risk boundaries: evaluates whether declared risk is supported
   // by concrete evidence (e.g. absence of active honeypots or critical unrenounced mint rug vectors).
-  const validRiskTiers = ['Low', 'Medium', 'High', 'Critical'];
+  const validRiskTiers = ['Low', 'Medium', 'High', 'Critical', 'Low Risk', 'Medium Risk', 'Declared Risk'];
   const isValidRisk = validRiskTiers.includes(review.riskLevel);
   const g6SecScan = review.securityScan?.data || review.securityScan;
   const isHoneypotFlag = Boolean(g6SecScan?.is_honeypot === '1' || g6SecScan?.is_honeypot === true || g6SecScan?.isHoneypot);
   const hasCriticalExploit = isHoneypotFlag || g6SecScan?.cannot_sell_all === '1';
 
-  // Stated risk is flagged only if it claims 'Low' while an active critical exploit is present
-  const isContradictoryRisk = hasCriticalExploit && review.riskLevel === 'Low';
+  // Stated risk is flagged only if it claims 'Low' / 'Low Risk' while an active critical exploit is present
+  const isContradictoryRisk = hasCriticalExploit && (review.riskLevel === 'Low' || review.riskLevel === 'Low Risk');
   const gate6Passed = isValidRisk && !isContradictoryRisk;
   const gate6Score = gate6Passed ? 100 : 80;
 
@@ -1775,8 +1775,8 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
 
   // 2. Compute canonical Evaluation Blueprint overall score and risk level
   const bpResult = calculateBlueprintScore(calibratedScores, category, {
-    declaredRiskLevel: review.riskLevel && ['Low', 'Medium', 'High', 'Critical'].includes(review.riskLevel)
-      ? (review.riskLevel as 'Low' | 'Medium' | 'High' | 'Critical')
+    declaredRiskLevel: review.riskLevel && ['Low', 'Medium', 'High', 'Critical', 'Low Risk', 'Medium Risk', 'Declared Risk'].includes(review.riskLevel)
+      ? (review.riskLevel as any)
       : undefined
   });
   const overallScore = bpResult.overallScore;

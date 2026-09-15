@@ -13,7 +13,17 @@ export interface CryptoReviewScores {
   community: number;   // 1-10
 }
 
-export type RiskLevel = 'Low' | 'Medium' | 'High' | 'Critical' | 'INPUT_MISSING' | 'DRAFT_UNAVAILABLE' | 'Pending';
+export type RiskLevel =
+  | 'Low'
+  | 'Medium'
+  | 'High'
+  | 'Critical'
+  | 'Low Risk'
+  | 'Medium Risk'
+  | 'Declared Risk'
+  | 'INPUT_MISSING'
+  | 'DRAFT_UNAVAILABLE'
+  | 'Pending';
 
 export interface ProSecurityBenchmarks {
   crlAuditStatus: string;

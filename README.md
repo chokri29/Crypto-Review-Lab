@@ -24,7 +24,7 @@ The proprietary **Algorithmic Verification Framework (AVF)** replaces subjective
   3. *AVF-03:* Methodology & Weighting Compliance (Blueprint v2.4)
   4. *AVF-04:* Scenario Bounds & Liquidity Stress Testing
   5. *AVF-05:* Double-Precision Score Arithmetic Verification
-  6. *AVF-06:* Risk-Conclusion Semantic Consistency Audit
+  6. *AVF-06:* Risk-Conclusion Semantic Consistency Audit (Verifies whether declared official risk classification is supported by independent evidence and security telemetry; decoupled from numerical score calculation)
   7. *AVF-07:* Calibrated Multi-Source Statistical Confidence
   8. *AVF-08:* Cryptographic Report Traceability & Integrity
 
