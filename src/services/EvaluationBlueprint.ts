@@ -338,9 +338,9 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
 
     case 'Privacy / Cryptographic (FHE / ZK / MPC)':
       return {
-        title: '2. FORMAL VERIFICATION & CRYPTOGRAPHIC SOUNDNESS CHECKLIST',
+        title: '2. CRYPTOGRAPHIC SOUNDNESS & CIRCUIT SPECIFICATION CHECKLIST',
         moduleType: 'FORMAL_VERIFICATION',
-        subtitle: 'CRYPTOGRAPHIC SOUNDNESS & FORMAL PROOF VERIFICATION MATRIX',
+        subtitle: 'CRYPTOGRAPHIC SOUNDNESS & CIRCUIT DESIGN MATRIX',
         items: [
           { target: 'Circuit Constraint Completeness', check: 'R1CS/PlonK Under-Constrained Signals', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
           { target: 'Zero-Knowledge Soundness Setup', check: 'Toxic Waste Destruction Attestation', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
@@ -698,7 +698,7 @@ export function computeProtocolTypeMultiFactorModifier(
         architecturalRiskNote = 'Elevated operator stake concentration & intersubjective slashing ambiguity penalty applied.';
       } else if (scores.security >= 8.5 && scores.team >= 8) {
         riskAdjustment = 2.5;
-        architecturalRiskNote = 'Hardened AVS quorum diversity & battle-tested slashing escrow architecture bonus awarded.';
+        architecturalRiskNote = 'Hardened AVS quorum diversity & audited slashing escrow architecture bonus awarded.';
       }
       break;
 
@@ -722,7 +722,7 @@ export function computeProtocolTypeMultiFactorModifier(
         architecturalRiskNote = 'Cryptographic risk sensitivity: Unverified MPC key ceremony & ciphertext malleability exposure penalty.';
       } else if (scores.security >= 8.5 && scores.team >= 8) {
         riskAdjustment = 3.0;
-        architecturalRiskNote = 'Verified constant-time precompiles & formal ZK/FHE proof soundness bonus awarded.';
+        architecturalRiskNote = 'Documented constant-time precompiles & peer-reviewed ZK/FHE proof circuit specifications bonus awarded.';
       }
       break;
 
@@ -744,7 +744,7 @@ export function computeProtocolTypeMultiFactorModifier(
         architecturalRiskNote = 'Sequencer centralization & L1 emergency exit fallback hazard penalty applied.';
       } else if (scores.security >= 8.5 && scores.utility >= 8) {
         riskAdjustment = 2.0;
-        architecturalRiskNote = 'Verifiable validity proof circuit soundness & L1 force exit invariant bonus awarded.';
+        architecturalRiskNote = 'Documented validity proof circuit architecture & L1 force exit invariant bonus awarded.';
       }
       break;
 
@@ -755,7 +755,7 @@ export function computeProtocolTypeMultiFactorModifier(
         architecturalRiskNote = 'Liquidity pool flash loan drain & oracle cascade exposure penalty applied.';
       } else if (scores.security >= 8.5 && scores.tokenomics >= 8) {
         riskAdjustment = 2.0;
-        architecturalRiskNote = 'Battle-tested reentrancy guards & TWAP fallback solvency bonus awarded.';
+        architecturalRiskNote = 'Multi-audited reentrancy protections & TWAP fallback solvency bonus awarded.';
       }
       break;
 
@@ -766,7 +766,7 @@ export function computeProtocolTypeMultiFactorModifier(
         architecturalRiskNote = 'Custodial counterparty risk & legal reserve attestation lag penalty applied.';
       } else if (scores.security >= 8.5 && scores.utility >= 8) {
         riskAdjustment = 2.5;
-        architecturalRiskNote = 'On-chain proof of physical reserves & audited bankruptcy-remote SPV bonus awarded.';
+        architecturalRiskNote = 'Third-party reserve attestations & audited bankruptcy-remote SPV structure bonus awarded.';
       }
       break;
 
@@ -862,9 +862,9 @@ export const EVALUATION_BLUEPRINT_DIMENSIONS: EvaluationDimension[] = [
     name: 'Smart Contract & Network Security',
     weight: 0.25,
     percentageText: '25%',
-    description: 'Assesses third-party audit coverage, battle-tested smart contract code, multisig dependencies, and exploit resistance.',
+    description: 'Assesses third-party audit coverage, smart contract deployment history, multisig dependencies, and exploit resistance.',
     keyCriteria: [
-      'Formal verification & third-party audits',
+      'Third-party audits & code verification',
       'Multisig timelocks & emergency pause vectors',
       'Exploit history & bounty programs',
       'Consensus fault tolerance'

@@ -1181,7 +1181,7 @@ export default function App() {
     } else {
       if (activeTab === 'lab') {
         title = "AVF Review Lab — Algorithmic Crypto Risk & Code Evaluation Terminal | Crypto Review Lab";
-        descriptionText = "Execute instant algorithmic smart contract audits, flash-loan drain simulations, TVL stress testing, and quantitative risk appraisals using AVF Engine.";
+        descriptionText = "Execute algorithmic evaluations, multi-source market data convergence, on-chain security telemetry, and quantitative risk appraisals using AVF Engine.";
         keywords = "AVF review lab, crypto security audit, smart contract vulnerability scanner, crypto risk assessment, DeFi protocol security";
       } else if (activeTab === 'blog') {
         title = "Market Intelligence Portal | Crypto Review Lab";
@@ -1570,7 +1570,7 @@ export default function App() {
                     </h2>
 
                     <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
-                      Algorithmic Verification Framework (AVF Engine) performing symbolic execution, flash-loan drain simulation, TVL stress analysis, and live multi-exchange market surveillance. An independent crypto intelligence and verification suite for digital assets.
+                      Algorithmic Verification Framework (AVF Engine) performing deterministic scoring verification, multi-source market data convergence, on-chain telemetry corroboration, and quantitative risk assessments. An independent crypto intelligence and verification suite for digital assets.
                     </p>
                   </div>
 

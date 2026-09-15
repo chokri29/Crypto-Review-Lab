@@ -179,7 +179,7 @@ Uniswap (UNI) is the undisputed king of decentralized liquidity. Pioneering the 
 Securing billions in liquidity pools across Ethereum, Arbitrum, Polygon, and Base, Uniswap handles trading volumes that frequently surpass major centralized exchanges. The launch of Uniswap V4 with customizable "hooks" introduces limitless protocol flexibility.
 
 ### Tokenomics & Security
-Uniswap contracts are historically the most battle-tested and audited pieces of code in Web3 history. Despite various frontend DNS attacks in the broader industry, the core protocol has never suffered a smart contract exploit. The "fee switch" activation remains a highly anticipated catalyst.
+Uniswap contracts are historically among the most extensively audited and resilient pieces of code in Web3 history. Despite various frontend DNS attacks in the broader industry, the core protocol has never suffered a smart contract exploit. The "fee switch" activation remains a highly anticipated catalyst.
 
 ### Conclusion
 Uniswap is the critical core infrastructure of decentralized finance. Its security record and relentless innovation cement it as a premier financial protocol.`,
@@ -439,7 +439,7 @@ Jupiter's core routing engine utilizes advanced pathfinding algorithms to split 
 The tokenomics of JUP present a classic high-FDV, low-float challenge. With a total supply of 10 billion tokens, the gradual release of team and strategic allocations poses long-term dilution risks. On the security front, Jupiter avoids EVM-specific vulnerabilities like reentrancy but is exposed to Solana-specific vectors, including account ownership validation errors and oracle latency. The perpetuals exchange relies heavily on real-time oracle feeds; any latency or manipulation on Pyth or Switchboard during high-congestion events could trigger bad debt or liquidation cascade insolvency.
 
 ### Conclusion
-Jupiter is a highly functional, battle-tested DeFi giant with unmatched ecosystem integration. While the platform's operational metrics are stellar, investors must weigh the high utility of the protocol against the inflationary tokenomics and governance-centric design of the JUP token.`,
+Jupiter is a highly functional DeFi powerhouse with unmatched ecosystem integration. While the platform's operational metrics are strong, investors must weigh the high utility of the protocol against the inflationary tokenomics and governance-centric design of the JUP token.`,
     pros: [
       'Dominant market share in Solana routing, capturing over 60-70% of organic ecosystem transaction volume.',
       'Highly optimized routing algorithm utilizing multi-hop trades and split-trade execution to minimize slippage across diverse liquidity sources.',

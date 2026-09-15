@@ -625,7 +625,7 @@ export default function BlogPreviewer({
                 LIVE CRYPTO MARKETS STREAM
               </span>
               <span className="text-slate-400 text-xs font-mono">
-                Multi-Chain Surveillance &amp; Dual-Oracle Feed
+                Multi-Chain Surveillance &amp; Multi-Source Market Data Convergence
               </span>
             </div>
 
@@ -638,7 +638,7 @@ export default function BlogPreviewer({
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
-              Real-time global crypto market surveillance, algorithmic cross-chain metrics, and dual-oracle intelligence powered by the AVF Engine.
+              Real-time global crypto market surveillance, algorithmic cross-chain metrics, and multi-source market data intelligence powered by the AVF Engine.
             </p>
           </div>
 
@@ -663,12 +663,12 @@ export default function BlogPreviewer({
             </div>
 
             <p className="text-[10.5px] font-mono text-slate-300 leading-relaxed border-t border-slate-800/80 pt-2">
-              Global cryptocurrency markets operate 24/7/365 without exchange holidays. Dual-oracle feeds stream continuous real-time liquidity and pricing data.
+              Global cryptocurrency markets operate 24/7/365 without exchange holidays. Multi-source market data feeds stream continuous real-time liquidity and pricing data.
             </p>
 
             <div className="flex items-center justify-between text-[9.5px] font-mono text-cyber-cyan pt-1.5 border-t border-slate-800/60">
-              <span className="text-slate-400">Oracle Synchronization:</span>
-              <span className="font-bold text-white">Dual-Feed Real-Time</span>
+              <span className="text-slate-400">Market Convergence:</span>
+              <span className="font-bold text-white">Multi-Source Real-Time</span>
             </div>
           </div>
         </div>

@@ -63,7 +63,7 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Output:** `VERIFIED` if underlying weighted math matches declared rubric.
 
 ### Module 4: AVF-04 — Scenario Bounds & Liquidity Stress Testing
-- **Purpose:** Evaluates price shock scenarios (-30%, -60%, -85%) and liquidity drain thresholds.
+- **Purpose:** Evaluates price shock scenarios (-30%, -60%, -85%) and liquidity drain thresholds using bounded heuristic arithmetic models based on observed TVL and volume. Does not perform live multi-pool smart contract exploit executions or live flash loan transaction simulations.
 - **Output:** Status returns `PASSED` (100% scenario resilience), `SIMULATED_WITH_WARNINGS` (70%), `NARRATIVE_ONLY` (40%), or `FAILED` / `INPUT_MISSING`.
 
 ### Module 5: AVF-05 — Score Arithmetic & Weight Verification
@@ -72,8 +72,9 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Discrepancy Threshold:** Must be $\le 0.5\text{ pts}$ to receive `VERIFIED`.
 
 ### Module 6: AVF-06 — Risk-Conclusion Semantic Consistency
-- **Purpose:** Verifies whether the declared official risk classification (`Low Risk`, `Medium Risk`, `Declared Risk`) is supported by independent evidence and verified security telemetry (GoPlus, RugCheck, bytecode invariants, symbolic execution).
-- **Decoupled Architecture:** AVF-06 does **not** calculate, replace, or automatically assign the official risk classification from the numerical Evaluation Score. The official risk classification, numerical Evaluation Score (/100), evidence status, risk findings, and severity levels are separate, independent outputs.
+- **Purpose:** Verifies whether the declared official risk classification (`Low Risk`, `Medium Risk`, `Declared Risk`) is supported by independent evidence and verified security telemetry (GoPlus, RugCheck, bytecode invariants, threat vector checks).
+- **Evidence-Consistency Role:** AVF-06 is strictly an evidence-consistency check. It verifies whether the official declared risk classification is supported by independent evidence and security telemetry. It does not derive, replace, or automatically assign the official classification from the numerical Evaluation Score. It does not silently create a replacement rating or risk-tier system.
+- **Decoupled Architecture:** The official risk classification, numerical Evaluation Score (/100), evidence status, risk findings, risk severity, and executed verification versus descriptive capability are separate, decoupled outputs.
 - **Output:** `CONSISTENT` (0 contradictions; declared risk supported by evidence), `REQUIRES_REVIEW` (insufficient evidence or elevated telemetry findings requiring auditor review), or `CONFLICT` (critical contradiction between declared classification and detected exploit vectors).
 
 ### Module 7: AVF-07 — Deterministic Multi-Source Confidence
@@ -128,5 +129,29 @@ $$\text{Payload} = \text{SHA256}(\text{Scores} \parallel \text{Verdict} \paralle
    - The lead auditor inspects the draft, applies notes, and executes cryptographic signing.
    - Generates an Ed25519 digital signature (`auditSignature.signatureHash`).
    - AVF-08 verifies signature authenticity, timestamp integrity, and public key fingerprint, transitioning status to `VERIFIED` / `HASH_MATCH`.
+
+---
+
+## 6. Evaluation Taxonomies & Decoupled Metrics Framework
+
+Crypto Review Lab enforces strict separation between distinct evaluation layers:
+
+1. **Official Risk Classification (`riskLevel`):**
+   Authoritative protocol risk tiers: `Low Risk`, `Medium Risk`, and `Declared Risk`. These categorical levels represent the overarching risk designation.
+
+2. **Numerical Evaluation Score (`score`):**
+   A continuous composite rating on a 0–100 scale computed via category-weighted dimensions (Utility, Tokenomics, Security, Team, Community).
+
+3. **Evidence Status:**
+   Granular provenance tracking for each individual data signal: `VERIFIED` (demonstrably executed on live data), `UNVERIFIED` (pending corroboration), `STANDBY` (awaiting input), `NOT_PERFORMED` (simulation or scan not executed), and `NARRATIVE_ONLY` (heuristic or literature bound).
+
+4. **Risk Findings:**
+   Itemized, specific technical observations (e.g., unrenounced mint authority, active fee switch, multisig quorum configuration, lack of public audits).
+
+5. **Risk Severity:**
+   Standardized four-tier severity classification: `Low`, `Medium`, `High`, and `Critical`.
+
+6. **Executed Verification vs. Descriptive Capability:**
+   Explicitly distinguishes operations algorithmically executed and confirmed against active on-chain data from conceptual rubric descriptions, static provider heuristics, or planned audit features. No operation is displayed as `VERIFIED` or `PASSED` unless the corresponding check actually ran and yielded verifiable evidence.
 3. **Immutability Protection:**
    - Any modification to dimension scores or verdict text invalidates the digital signature hash immediately (`HASH_MISMATCH` / `SIGNATURE_INVALID`).

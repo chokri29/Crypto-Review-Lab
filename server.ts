@@ -590,7 +590,7 @@ EVIDENCE-GROUNDING INSTRUCTIONS:
    - NEVER use EVM reentrancy checks for Move, Rust, or Wasm native L1s or privacy middleware where they do not apply.
    - NEVER use $1.2B TVL drain scenarios for projects that do not hold locked TVL or lack liquidity pool mechanics.
 
-3. ADAPTIVE & UNCOMPRESSED SCORING: Provide realistic, uncompressed scores across the full 1-10 range for each dimension (Utility, Tokenomics, Security, Team, Community). Un-audited, closed-source, or high-insider projects MUST be scored strictly lower (4-6/10), while battle-tested top-tier protocols receive 8-9.5/10.
+3. ADAPTIVE & UNCOMPRESSED SCORING: Provide realistic, uncompressed scores across the full 1-10 range for each dimension (Utility, Tokenomics, Security, Team, Community). Un-audited, closed-source, or high-insider projects MUST be scored strictly lower (4-6/10), while thoroughly audited, historically resilient top-tier protocols receive 8-9.5/10.
 
 4. DYNAMIC WEIGHTING ALIGNMENT:
    - Overall score will be calculated dynamically based on category risk profile (e.g. 35% Security weight for fund-holding DeFi & Bridges, 35% Tech/Security for Cryptographic Middleware).

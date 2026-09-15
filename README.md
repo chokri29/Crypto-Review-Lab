@@ -34,12 +34,24 @@ The proprietary **Algorithmic Verification Framework (AVF)** replaces subjective
 The **Security & Risk Assessment** suite is an automated diagnostic advisory module built for protocol founders, web3 engineering teams, and digital asset treasuries prior to token launches, major contract upgrades, or collateral listings:
 
 * **Multi-Source On-Chain Scanning:** Automated bytecode exploit inspection, honeypot analysis, mint/freeze authority checks, and blacklist flags integrated across GoPlus Security, RugCheck, and Blockscout.
-* **TVL & Liquidity Stress Modeling:** Dynamic simulation of sudden liquidity drain thresholds, flash loan vectors, oracle latency divergence, and Checks-Effects-Interactions (CEI) violations.
+* **TVL & Liquidity Bounds Analysis:** Quantitative evaluation of liquidity pool concentration, price shock boundary scenarios, market data feed divergences, and static access control invariants.
 * **Technical Verification Dossiers:** Generates structured security dossiers detailing identified vulnerabilities, severity ratings, provider evidence chains, and actionable remediation recommendations.
 
 ---
 
-### 3. Verification & Integrity Panel (Tokenized Stocks / xStocks)
+### 3. Decoupled Taxonomies & Evaluation Semantics
+
+To prevent false equivalence or conflation between different assessment outputs, CRL strictly decouples evaluation metrics:
+
+* **Official Risk Classification (`riskLevel`):** Official categorical risk status (`Low Risk`, `Medium Risk`, `Declared Risk`). Represents the authoritative protocol risk categorization.
+* **Numerical Evaluation Score (`score`):** A continuous composite score on a 0–100 scale evaluating multidimensional project fundamentals (Utility, Tokenomics, Tech, Team, Community).
+* **Evidence Status:** Deterministic tracking of signal provenance (`VERIFIED`, `UNVERIFIED`, `STANDBY`, `NOT_PERFORMED`, `NARRATIVE_ONLY`). Signals are only labeled `VERIFIED` when executed against verifiable data.
+* **Risk Findings & Severity:** Granular technical observations (e.g. mint authority retained, fee switch active) mapped to industry severity levels (`Low`, `Medium`, `High`, `Critical`).
+* **AVF-06 Evidence-Consistency Verification:** Evaluates whether the declared official risk classification is supported by independent external evidence and security telemetry (GoPlus, RugCheck, public audit disclosures). AVF-06 **does not** derive, replace, or automatically overwrite the official classification from the numerical score.
+
+---
+
+### 4. Verification & Integrity Panel (Tokenized Stocks / xStocks)
 A dedicated surveillance and integrity engine designed specifically for **tokenized equities** (such as Backed Finance collateralized tracker certificates on Solana and EVM):
 
 * **Market-Price Consistency:** Cross-corroborates token market prices across independent crypto aggregators (CoinGecko and CoinMarketCap) to ensure pricing consensus across decentralized liquidity pools.

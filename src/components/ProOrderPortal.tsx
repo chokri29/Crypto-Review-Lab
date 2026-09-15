@@ -403,7 +403,7 @@ export const ProOrderPortal: React.FC<{
                       <p className="text-[11px] text-slate-300">
                         {isDelivered
                           ? `Email confirmation sent to ${order.clientEmail}. Private access token active.`
-                          : `Guaranteed delivery within 24 hours of payment confirmation.`
+                          : `Estimated delivery within 24 hours of payment confirmation.`
                         }
                       </p>
                       {order.emailLogs?.[1] && (
@@ -433,7 +433,7 @@ export const ProOrderPortal: React.FC<{
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/50 uppercase">
                               Status: Pending
                             </span>
-                            <span className="text-[10px] text-slate-400">Guaranteed Delivery &lt; 24h</span>
+                            <span className="text-[10px] text-slate-400">Target Delivery &lt; 24h</span>
                           </div>
                           <h4 className="text-sm font-bold text-slate-100 font-mono mt-1">
                             Security Assessment & Algorithmic Verification Pending

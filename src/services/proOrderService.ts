@@ -103,7 +103,7 @@ export function buildConfirmationEmailHtml(orderId: string, clientEmail: string,
           <td style="padding: 8px 0; color: #34d399; font-mono;">${PRINCIPAL_EMAIL}</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; color: #94a3b8;">Guaranteed Delivery ETA:</td>
+          <td style="padding: 8px 0; color: #94a3b8;">Target Delivery Window:</td>
           <td style="padding: 8px 0; color: #e2e8f0; font-weight: bold;">Within 24 Hours</td>
         </tr>
       </table>
@@ -112,7 +112,7 @@ export function buildConfirmationEmailHtml(orderId: string, clientEmail: string,
         <h4 style="margin: 0 0 8px 0; color: #94a3b8; font-size: 12px; text-transform: uppercase;">Advisory Delivery Pipeline</h4>
         <p style="margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.5;">
           1. <strong>Automated Diagnostic Draft:</strong> Generated using Bytecode Invariant Engine & Liquidity Scanners.<br/>
-          2. <strong>Security Engineer Sign-Off:</strong> Deep symbolic verification of vulnerabilities & TVL risk.<br/>
+          2. <strong>Security Engineer Sign-Off:</strong> Independent verification of vulnerability classifications & TVL risk.<br/>
           3. <strong>Actionable Remediation Dossier:</strong> You will receive a second email with your private advisory PDF report & developer fix recommendations.
         </p>
       </div>

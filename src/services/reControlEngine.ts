@@ -62,8 +62,8 @@ export interface MixtureReviewerScores {
 }
 
 /**
- * Security Critic: Evaluates smart contract AST symbolic execution, reentrancy risk,
- * flash loan drain vectors, proxy admin locks, and third-party audit status.
+ * Security Critic: Evaluates smart contract access controls, reentrancy risks,
+ * liquidity pool concentration, proxy admin locks, and third-party audit status.
  * Derived ONLY from project evidence on review — NEVER reads F1 generated scores or narrative text.
  */
 export function critiqueSecurity(review: CryptoReview): CriticResult {
@@ -1224,7 +1224,7 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
     }
   }
 
-  // 9. Symbolic execution benchmarks
+  // 9. Threat vector benchmarks
   const matrix = review.proBenchmarks?.symbolicExecutionMatrix;
   if (matrix) {
     const reentrancy = (matrix.reentrancyVector || '').trim().toUpperCase();
@@ -1742,7 +1742,7 @@ function generateEvidenceBasedFindings(
  * arithmetic, cross-framework, or formatting discrepancies flagged in Phase 2.
  * 
  * NOTE: Strictly adheres to honest data labeling. Does NOT fabricate security audit 
- * verifications, third-party audit claims, or passing symbolic execution verdicts when 
+ * verifications, third-party audit claims, or passing security verdicts when 
  * no live automated verification integration exists.
  */
 export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoReview {

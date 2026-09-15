@@ -976,7 +976,7 @@ function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, margin: nu
 
 /**
  * Generates a Premium 3-Page Security & Risk Assessment Report.
- * Specifically crafted for deep symbolic execution, TVL drain simulations,
+ * Specifically crafted for threat vector analysis, TVL concentration assessments,
  * and CRL Risk Model evaluations.
  */
 function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: string): void {

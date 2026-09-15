@@ -398,13 +398,13 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       scorePct: currentF3Result ? (avf04?.status === 'VERIFIED' ? 100 : avf04?.status === 'PARTIALLY_EXECUTED' ? 70 : 40) : 0,
       status: currentF3Result ? (avf04?.status || 'NOT RUN') : 'STANDBY',
       icon: <Activity className="w-4 h-4 text-amber-400" />,
-      metricPrimary: `Stress Mode: ${avf04?.simulationExecuted ? 'Symbolic Executed' : (currentF3Result ? 'Narrative Bounds' : 'STANDBY')}`,
-      metricSecondary: `Scenarios Tested: ${avf04?.scenariosTestedCount !== undefined ? avf04.scenariosTestedCount : 0} Attack Vectors`,
-      details: avf04?.details || (currentF3Result ? 'Liquidity drain, oracle failure, and price shock boundary scenarios evaluated narrative bounds.' : 'Scenario stress testing standby.'),
+      metricPrimary: `Stress Mode: ${avf04?.simulationExecuted ? 'Simulation Executed' : (currentF3Result ? 'Narrative Bounds' : 'STANDBY')}`,
+      metricSecondary: `Scenarios Evaluated: ${avf04?.scenariosTestedCount !== undefined ? avf04.scenariosTestedCount : 0} Scenarios`,
+      details: avf04?.details || (currentF3Result ? 'Liquidity concentration, market feed divergence, and price shock boundary scenarios evaluated under narrative bounds.' : 'Scenario stress testing standby.'),
       checks: [
-        { name: 'Liquidity Shock Bounds', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.realTvl ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Simulated liquidity shock and automated slippage boundaries evaluated' : (selectedProject?.realTvl ? 'Baseline TVL observed (simulation unperformed)' : 'Liquidity shock stress simulation not performed') },
-        { name: 'Oracle Exploit Vector', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.priceDivergencePct !== undefined ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Price feed manipulation tolerance verified under simulation' : (selectedProject?.priceDivergencePct !== undefined ? `Oracle feed price divergence observed: ${selectedProject.priceDivergencePct}%` : 'Automated oracle exploit simulation not performed') },
-        { name: 'Flash Loan Drain Resistance', status: avf04?.simulationExecuted ? 'VERIFIED' : 'NOT_PERFORMED', detail: avf04?.simulationExecuted ? 'Simulated multi-vector reentrancy and atomic borrow invariants' : 'Flash loan and liquidity drain simulation not performed' }
+        { name: 'Liquidity Shock Bounds', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.realTvl ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Simulated liquidity shock and slippage boundaries evaluated' : (selectedProject?.realTvl ? 'Baseline TVL observed (simulation not performed)' : 'Liquidity shock stress simulation not performed') },
+        { name: 'Feed Discrepancy Vector', status: avf04?.simulationExecuted ? 'VERIFIED' : (selectedProject?.priceDivergencePct !== undefined ? 'NARRATIVE ONLY' : 'NOT_PERFORMED'), detail: avf04?.simulationExecuted ? 'Price feed deviation tolerance evaluated under simulation' : (selectedProject?.priceDivergencePct !== undefined ? `Market data feed price divergence observed: ${selectedProject.priceDivergencePct}%` : 'Automated feed exploit simulation not performed') },
+        { name: 'Flash Loan / Solvency Bounds', status: avf04?.simulationExecuted ? 'VERIFIED' : 'NOT_PERFORMED', detail: avf04?.simulationExecuted ? 'Liquidity pool concentration and solvency bounds evaluated' : 'Flash loan and liquidity drain scenario simulations not performed' }
       ]
     },
     {

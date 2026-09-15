@@ -1769,7 +1769,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 </div>
 
                 <div className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-right">
-                  <span className="text-[10px] font-mono text-slate-400 block uppercase">Guaranteed Delivery</span>
+                  <span className="text-[10px] font-mono text-slate-400 block uppercase">Target Delivery Window</span>
                   <span className="text-xs font-mono font-bold text-emerald-400">Within 24 Hours</span>
                 </div>
               </div>
@@ -2268,16 +2268,16 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                             <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-2.5 space-y-1">
                               <div className="text-[10px] font-mono font-bold text-purple-400 flex items-center gap-1">
                                 <Building2 className="w-3 h-3 text-purple-400" />
-                                Formal Invariants
+                                Architectural Invariants
                               </div>
-                              <p className="text-[10px] text-slate-400 font-mono">Formal Proof Bounds & Code Rigor</p>
+                              <p className="text-[10px] text-slate-400 font-mono">Rubric Invariant Rigor &amp; Blueprint Bounds</p>
                             </div>
                             <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-2.5 space-y-1">
                               <div className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-1">
                                 <Cpu className="w-3 h-3 text-emerald-400" />
-                                Symbolic Matrix
+                                Threat Vector Matrix
                               </div>
-                              <p className="text-[10px] text-slate-400 font-mono">TVL Liquidity Drain & Reentrancy Tests</p>
+                              <p className="text-[10px] text-slate-400 font-mono">Access Controls &amp; Vulnerability Patterns</p>
                             </div>
                           </div>
 
@@ -2329,26 +2329,26 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                               </p>
                             </div>
 
-                            {/* Formal Invariant Verification */}
+                            {/* Architectural Invariants Verification */}
                             <div className="bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 space-y-1">
                               <div className="flex items-center justify-between text-[11px] font-mono">
                                 <span className="text-purple-400 font-bold flex items-center gap-1">
                                   <Building2 className="w-3.5 h-3.5 text-purple-400" />
-                                  Formal Invariants
+                                  Architectural Invariants
                                 </span>
                                 <span className="text-purple-300 font-bold">{verifScoreDisplay}/100</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
-                                Formal proof bounds met. Smart contract threat boundary verified.
+                                Rubric invariant boundaries evaluated against category criteria.
                               </p>
                             </div>
                           </div>
 
-                          {/* Symbolic Execution Matrix */}
+                          {/* Threat Vector Matrix */}
                           <div className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 text-[11px] font-mono text-slate-300 flex flex-wrap justify-between items-center gap-2">
                             <span className="text-slate-400 text-[10px] uppercase font-bold flex items-center gap-1">
                               <Cpu className="w-3 h-3 text-amber-400" />
-                              CRL Symbolic Vector Matrix:
+                              CRL Threat Vector Matrix:
                             </span>
                             <div className="flex items-center gap-2.5 text-[10px] flex-wrap">
                               <span className={benchmarks.symbolicExecutionMatrix?.reentrancyVector === 'PASSED' ? 'text-emerald-400 font-semibold' : 'text-slate-400 font-semibold'}>

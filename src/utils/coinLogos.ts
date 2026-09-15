@@ -83,7 +83,7 @@ export const DEFAULT_COIN_LOGOS: Record<string, string> = {
 };
 
 /**
- * Returns a guaranteed, clean, official coin logo URL for any crypto project.
+ * Returns a standardized, clean coin logo URL for any crypto project.
  * Priority:
  * 1. Provided logoUrl (e.g. from CoinGecko API 'image' field) if present, valid, and not a banner.
  * 2. Lookup by coingeckoId in the verified static map.

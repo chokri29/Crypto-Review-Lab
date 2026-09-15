@@ -1524,7 +1524,7 @@ export interface AVF06RiskConclusionResult {
  * verifiable security/risk signals:
  * 1. Security sub-score (scores.security)
  * 2. Contract deployment & verified GoPlus / RugCheck scan results
- * 3. Symbolic execution benchmark flags (reentrancy, flash loan cascade, proxy admin lock)
+ * 3. Threat vector benchmark flags (reentrancy, flash loan cascade, proxy admin lock)
  * 4. Recorded Evaluation Score (/100) (maintained as an independent assessment output)
  * 
  * Returns CONSISTENT if all verified risk signals align with declared riskLevel.
@@ -1837,7 +1837,7 @@ export function verifyAVF06RiskConclusion(
     });
   }
 
-  // Signal 4: Symbolic Execution Benchmark Vectors (proBenchmarks)
+  // Signal 4: Threat Vector Benchmark Matrix (proBenchmarks)
   if (review.proBenchmarks?.symbolicExecutionMatrix) {
     const matrix = review.proBenchmarks.symbolicExecutionMatrix;
     const reentrancyFlag = matrix.reentrancyVector === 'FLAGGED';
@@ -1859,17 +1859,17 @@ export function verifyAVF06RiskConclusion(
       const isContradiction = declaredRank <= 2;
       if (isContradiction) {
         contradictions.push(
-          `Symbolic Threat Contradiction: Active critical vulnerability flags detected (${flaggedVectors}), directly contradicting the declared '${declaredRisk}' classification.`
+          `Threat Vector Contradiction: Active critical vulnerability flags detected (${flaggedVectors}), directly contradicting the declared '${declaredRisk}' classification.`
         );
       } else {
         materialFindings.push(
-          `Flagged Symbolic Vectors: ${flaggedVectors} observed in threat matrix.`
+          `Flagged Threat Vectors: ${flaggedVectors} observed in threat matrix.`
         );
       }
 
       signalsChecked.push({
-        signalName: 'Symbolic Threat Matrix',
-        source: 'Automated Symbolic Execution Engine',
+        signalName: 'Threat Vector Matrix',
+        source: 'Automated Threat Vector Evaluation',
         observedValue: flaggedVectors,
         impliedRisk: symImpliedRisk,
         isContradiction,
@@ -1879,8 +1879,8 @@ export function verifyAVF06RiskConclusion(
       const allPassed = matrix.reentrancyVector === 'PASSED' && matrix.flashLoanDrainCascade === 'PASSED' && matrix.proxyAdminLock === 'PASSED';
       if (allPassed) {
         signalsChecked.push({
-          signalName: 'Symbolic Threat Matrix',
-          source: 'Automated Symbolic Execution Engine',
+          signalName: 'Threat Vector Matrix',
+          source: 'Automated Threat Vector Evaluation',
           observedValue: 'ALL_PASSED',
           impliedRisk: 'Low',
           isContradiction: false,
@@ -1888,12 +1888,12 @@ export function verifyAVF06RiskConclusion(
         });
       } else {
         signalsChecked.push({
-          signalName: 'Symbolic Threat Matrix',
-          source: 'Automated Symbolic Execution Engine',
+          signalName: 'Threat Vector Matrix',
+          source: 'Automated Threat Vector Evaluation',
           observedValue: 'NOT_PERFORMED',
           impliedRisk: declaredRisk,
           isContradiction: false,
-          notes: 'Symbolic execution threat vector simulations not performed or unverified.'
+          notes: 'Threat vector simulations not performed or unverified.'
         });
       }
     }
