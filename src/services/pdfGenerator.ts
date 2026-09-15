@@ -233,6 +233,9 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   y += 4;
 
   const tableHeaderY = y;
+  const colCriteriaX = margin + 88;
+  const criteriaWidth = contentWidth - 88 - 4; // 180 - 88 - 4 = 88mm available width
+
   doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
   doc.rect(margin, tableHeaderY, contentWidth, 7, 'F');
 
@@ -240,9 +243,9 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.text('DIMENSION', margin + 4, tableHeaderY + 4.8);
-  doc.text('WEIGHT', margin + 68, tableHeaderY + 4.8, { align: 'center' });
-  doc.text('MAX PTS', margin + 98, tableHeaderY + 4.8, { align: 'center' });
-  doc.text('KEY EVALUATION CRITERIA', margin + 120, tableHeaderY + 4.8);
+  doc.text('WEIGHT', margin + 58, tableHeaderY + 4.8, { align: 'center' });
+  doc.text('MAX PTS', margin + 74, tableHeaderY + 4.8, { align: 'center' });
+  doc.text('KEY EVALUATION CRITERIA', colCriteriaX, tableHeaderY + 4.8);
 
   y += 7;
 
@@ -256,30 +259,62 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
 
   dims.forEach((row, idx) => {
     const rowY = y;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    const criteriaLines = doc.splitTextToSize(row.criteria, criteriaWidth);
+    const numLines = Math.max(1, criteriaLines.length);
+    const rowHeight = numLines > 1 ? 9.5 : 8.0;
+
+    // Row Background (zebra striping)
     if (idx % 2 === 0) {
       doc.setFillColor(248, 250, 252);
-      doc.rect(margin, rowY, contentWidth, 7, 'F');
+    } else {
+      doc.setFillColor(255, 255, 255);
     }
+    doc.rect(margin, rowY, contentWidth, rowHeight, 'F');
+
+    // Bottom subtle border
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, rowY + rowHeight, margin + contentWidth, rowY + rowHeight);
+
+    // Dimension Name
     doc.setTextColor(textDark[0], textDark[1], textDark[2]);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.text(row.name, margin + 4, rowY + 4.8);
+    const midBaseline = rowY + (rowHeight / 2) + 1.2;
+    doc.text(row.name, margin + 4, midBaseline);
+
+    // Weight
     doc.setFont('helvetica', 'normal');
-    doc.text(row.weight, margin + 68, rowY + 4.8, { align: 'center' });
+    doc.text(row.weight, margin + 58, midBaseline, { align: 'center' });
+
+    // Max Points
     doc.setFont('helvetica', 'bold');
-    doc.text(row.maxPts, margin + 98, rowY + 4.8, { align: 'center' });
+    doc.text(row.maxPts, margin + 74, midBaseline, { align: 'center' });
+
+    // Key Criteria with proper line wrapping
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.text(row.criteria, margin + 120, rowY + 4.8);
+    if (numLines === 1) {
+      doc.text(criteriaLines[0], colCriteriaX, midBaseline);
+    } else {
+      criteriaLines.forEach((line: string, lIdx: number) => {
+        doc.text(line, colCriteriaX, rowY + 3.8 + (lIdx * 3.6));
+      });
+    }
 
-    y += 7;
+    y += rowHeight;
   });
+
+  // Outer border for the complete table
+  doc.setDrawColor(203, 213, 225);
+  doc.rect(margin, tableHeaderY, contentWidth, y - tableHeaderY, 'D');
 
   // 5. Supplementary Rules & Assessment Decoupling Notes
   y += 8;
   doc.setFillColor(241, 245, 249); // Slate-100
   doc.setDrawColor(203, 213, 225); // Slate-300
-  doc.roundedRect(margin, y, contentWidth, 14, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 16, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
@@ -289,8 +324,8 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
-  doc.text('Evaluation Scores (/100) and assessed risk classification operate as separate, independent assessment outputs.', margin + 4, y + 9.5);
-  doc.text('Verified on-chain security telemetry, smart contract invariants, and liquidity depth govern risk severity.', margin + 4, y + 12.8);
+  doc.text('Evaluation Scores (/100) and assessed risk classification operate as separate, independent assessment outputs.', margin + 4, y + 9.8);
+  doc.text('Verified on-chain security telemetry, smart contract invariants, and liquidity depth govern risk severity.', margin + 4, y + 13.5);
 
   // Footer
   addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Evaluation Blueprint Specification Manual');
@@ -970,7 +1005,7 @@ function addFooter(doc: jsPDF, pageWidth: number, pageHeight: number, margin: nu
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text(`Crypto Review Lab — ${docLabel || 'Security & Risk Assessment Report'} | Data: CoinGecko + CMC Dual Engine`, margin, footerY);
+  doc.text(`Crypto Review Lab — ${docLabel || 'Security & Risk Assessment Report'} | Data: Multi-Source Market & Security Telemetry`, margin, footerY);
   doc.text(`Page ${pageNum}`, pageWidth - margin, footerY, { align: 'right' });
 }
 
