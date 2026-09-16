@@ -1151,6 +1151,8 @@ export interface AVF04ScenarioResult {
  *
  * Hard Constraint: Purely deterministic. ZERO AI / LLM calls.
  *
+ * Verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address). Tracks F1/F2 convergence-loop execution. Full numerical price-shock, liquidity-drain and slippage simulations are not currently attached.
+ *
  * Lifecycle states: DEFINED → EXECUTABLE → EXECUTED → VERIFIED
  *
  * Current scope:

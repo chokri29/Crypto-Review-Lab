@@ -175,7 +175,7 @@ export const F3VerificationConsoleView: React.FC<F3VerificationConsoleViewProps>
       title: 'Scenario Readiness & Stress-Input Verification',
       status: avf04?.status || 'NOT RUN',
       icon: <Activity className="w-4 h-4 text-amber-400" />,
-      details: avf04?.details || 'Verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address).',
+      details: avf04?.details || 'Verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address). Tracks F1/F2 convergence-loop execution. Full numerical price-shock, liquidity-drain and slippage simulations are not currently attached.',
       summary: `Stress Mode: ${avf04?.simulationExecuted ? 'Simulation Executed' : 'Readiness / Narrative Only'} | Scenarios Evaluated: ${avf04?.scenariosTestedCount ?? 0}`
     },
     {
