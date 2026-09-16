@@ -322,7 +322,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   const pillars = [
     {
       title: 'Pillar 1: 5-Dimension Master Scoring Rubric',
-      detail: 'Mathematically fixed 25/25/25/15/10 category weight distribution with absolute separation between evaluative utility scores and empirical security risk.'
+      detail: 'Weights are category-specific and deterministically fixed per protocol category (not a single universal split), sourced from getCategoryDimensionWeights() in EvaluationBlueprint.ts, with absolute separation between evaluative utility scores and empirical security risk.'
     },
     {
       title: 'Pillar 2: Phase Two Automated Re-Control',
@@ -366,71 +366,153 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   y = 26;
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
+  doc.setFontSize(10.5);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
   doc.text('1. THE 100-POINT MASTER SCORING FORMULA', margin, y);
-  y += 5;
+  y += 4.5;
 
   doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 19, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(7.8);
   doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
-  doc.text('STANDARDIZED LINEAR WEIGHT FORMULATION', margin + 4, y + 5.5);
+  doc.text('CATEGORY-SPECIFIC LINEAR WEIGHT FORMULATION', margin + 4, y + 4.8);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('Score (100) = (Utility × 2.5) + (Tokenomics × 2.5) + (Security × 2.5) + (Team × 1.5) + (Community × 1.0)', margin + 4, y + 11.5);
+  doc.text('Score (100) = (Utility × M_U) + (Tokenomics × M_T) + (Security × M_S) + (Team × M_Tm) + (Community × M_C)', margin + 4, y + 10.2);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.7);
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text('Where each raw dimension is evaluated on a strict 1.0 to 10.0 scale under calibrated reference bounds.', margin + 4, y + 15.5);
+  doc.text('Multipliers (M_i = Weight × 10) vary by category per the table below (e.g. DeFi Protocol uses ×2.5/×2.0/×3.5/×1.0/×1.0, Layer 1 uses', margin + 4, y + 14.2);
+  doc.text('×2.5/×2.0/×3.0/×1.0/×1.5, Specialized default uses ×2.5/×2.5/×2.5/×1.5/×1.0), rather than presenting one fixed formula. Raw dimensions: 1.0 to 10.0.', margin + 4, y + 17.2);
 
-  y += 24;
+  y += 23;
 
-  // The 5 Core Dimensions Table
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('2. DIMENSION WEIGHTS & EVALUATION CRITERIA', margin, y);
-  y += 4;
+  doc.text('2. CATEGORY-SPECIFIC DETERMINISTIC WEIGHT MATRIX', margin, y);
+  y += 3.8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Weights are category-specific and deterministically fixed per protocol category (not a single universal split), sourced from getCategoryDimensionWeights() in EvaluationBlueprint.ts:', margin, y);
+  y += 3.8;
+
+  const categoryWeightRows = [
+    { category: 'DeFi Protocol (AMM / Lending)', u: '25% (×2.5)', t: '20% (×2.0)', s: '35% (×3.5)', tm: '10% (×1.0)', c: '10% (×1.0)', split: '25/20/35/10/10' },
+    { category: 'Layer 1 Blockchain', u: '25% (×2.5)', t: '20% (×2.0)', s: '30% (×3.0)', tm: '10% (×1.0)', c: '15% (×1.5)', split: '25/20/30/10/15' },
+    { category: 'Restaking / Shared Security / AVS', u: '25% (×2.5)', t: '15% (×1.5)', s: '35% (×3.5)', tm: '15% (×1.5)', c: '10% (×1.0)', split: '25/15/35/15/10' },
+    { category: 'Privacy / Cryptographic (FHE / ZK / MPC)', u: '25% (×2.5)', t: '10% (×1.0)', s: '35% (×3.5)', tm: '20% (×2.0)', c: '10% (×1.0)', split: '25/10/35/20/10' },
+    { category: 'Layer 2 / Scaling', u: '25% (×2.5)', t: '15% (×1.5)', s: '35% (×3.5)', tm: '10% (×1.0)', c: '15% (×1.5)', split: '25/15/35/10/15' },
+    { category: 'Infrastructure (Oracle / Bridge)', u: '25% (×2.5)', t: '15% (×1.5)', s: '35% (×3.5)', tm: '15% (×1.5)', c: '10% (×1.0)', split: '25/15/35/15/10' },
+    { category: 'RWA (Tokenization / TradFi Bridge)', u: '25% (×2.5)', t: '20% (×2.0)', s: '35% (×3.5)', tm: '10% (×1.0)', c: '10% (×1.0)', split: '25/20/35/10/10' },
+    { category: 'DePIN (Compute / Storage / Wireless)', u: '30% (×3.0)', t: '20% (×2.0)', s: '25% (×2.5)', tm: '15% (×1.5)', c: '10% (×1.0)', split: '30/20/25/15/10' },
+    { category: 'Memecoin / Speculative', u: '10% (×1.0)', t: '30% (×3.0)', s: '20% (×2.0)', tm: '10% (×1.0)', c: '30% (×3.0)', split: '10/30/20/10/30' },
+    { category: 'Specialized / Experimental (Default)', u: '25% (×2.5)', t: '25% (×2.5)', s: '25% (×2.5)', tm: '15% (×1.5)', c: '10% (×1.0)', split: '25/25/25/15/10' }
+  ];
+
+  const catTableHeaderY = y;
+  const catHeaderHeight = 4.6;
+  doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+  doc.rect(margin, catTableHeaderY, contentWidth, catHeaderHeight, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(6.4);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PROTOCOL CATEGORY', margin + 3, catTableHeaderY + 3.2);
+  doc.text('UTILITY', margin + 69, catTableHeaderY + 3.2, { align: 'center' });
+  doc.text('TOKENOMICS', margin + 91, catTableHeaderY + 3.2, { align: 'center' });
+  doc.text('SECURITY', margin + 113, catTableHeaderY + 3.2, { align: 'center' });
+  doc.text('TEAM', margin + 133, catTableHeaderY + 3.2, { align: 'center' });
+  doc.text('COMMUNITY', margin + 153, catTableHeaderY + 3.2, { align: 'center' });
+  doc.text('WEIGHT SET', margin + 171, catTableHeaderY + 3.2, { align: 'center' });
+
+  y += catHeaderHeight;
+
+  const catRowHeight = 3.5;
+  categoryWeightRows.forEach((crow, cidx) => {
+    const rowY = y;
+    if (cidx % 2 === 0) {
+      doc.setFillColor(248, 250, 252);
+    } else {
+      doc.setFillColor(255, 255, 255);
+    }
+    doc.rect(margin, rowY, contentWidth, catRowHeight, 'F');
+
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, rowY + catRowHeight, margin + contentWidth, rowY + catRowHeight);
+
+    doc.setFontSize(6.0);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    const baseline = rowY + 2.5;
+    doc.text(crow.category, margin + 3, baseline);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    doc.text(crow.u, margin + 69, baseline, { align: 'center' });
+    doc.text(crow.t, margin + 91, baseline, { align: 'center' });
+    doc.text(crow.s, margin + 113, baseline, { align: 'center' });
+    doc.text(crow.tm, margin + 133, baseline, { align: 'center' });
+    doc.text(crow.c, margin + 153, baseline, { align: 'center' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+    doc.text(crow.split, margin + 171, baseline, { align: 'center' });
+
+    y += catRowHeight;
+  });
+
+  doc.setDrawColor(203, 213, 225);
+  doc.rect(margin, catTableHeaderY, contentWidth, y - catTableHeaderY, 'D');
+
+  y += 5;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('3. DIMENSION EVALUATION CRITERIA', margin, y);
+  y += 3.5;
 
   const tableHeaderY = y;
   const colCriteriaX = margin + 88;
-  const criteriaWidth = contentWidth - 88 - 4; // 88 mm
+  const criteriaWidth = contentWidth - 88 - 4;
 
   doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
-  doc.rect(margin, tableHeaderY, contentWidth, 7, 'F');
+  doc.rect(margin, tableHeaderY, contentWidth, 5.5, 'F');
 
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
-  doc.text('DIMENSION', margin + 4, tableHeaderY + 4.8);
-  doc.text('WEIGHT', margin + 58, tableHeaderY + 4.8, { align: 'center' });
-  doc.text('MAX PTS', margin + 74, tableHeaderY + 4.8, { align: 'center' });
-  doc.text('KEY EVALUATION CRITERIA', colCriteriaX, tableHeaderY + 4.8);
+  doc.text('DIMENSION', margin + 4, tableHeaderY + 3.8);
+  doc.text('WEIGHT RANGE', margin + 58, tableHeaderY + 3.8, { align: 'center' });
+  doc.text('MAX PTS', margin + 74, tableHeaderY + 3.8, { align: 'center' });
+  doc.text('KEY EVALUATION CRITERIA', colCriteriaX, tableHeaderY + 3.8);
 
-  y += 7;
+  y += 5.5;
 
   const dims = [
-    { name: '1. Utility & Protocol Function', weight: '25%', maxPts: '25.0 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, fee generation, protocol utility.' },
-    { name: '2. Tokenomics & Economic Model', weight: '25%', maxPts: '25.0 pts', criteria: 'Supply inflation, circulating vs. max supply ratio, staking sinks, emission unlock overhang.' },
-    { name: '3. Smart Contract Security', weight: '25%', maxPts: '25.0 pts', criteria: 'Third-party audits, code verification, multisig admin controls, static exploit history.' },
-    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Core developer experience, independent backers, multisig transparency, public KYC track.' },
-    { name: '5. Community & Governance', weight: '10%', maxPts: '10.0 pts', criteria: 'Developer ecosystem activity, organic user base, voting quorum participation, social reach.' },
+    { name: '1. Utility & Protocol Function', weight: '10%–30%', maxPts: '10–30 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, fee generation, protocol utility.' },
+    { name: '2. Tokenomics & Economic Model', weight: '10%–30%', maxPts: '10–30 pts', criteria: 'Supply inflation, circulating vs. max supply ratio, staking sinks, emission unlock overhang.' },
+    { name: '3. Smart Contract Security', weight: '20%–35%', maxPts: '20–35 pts', criteria: 'Third-party audits, code verification, multisig admin controls, static exploit history.' },
+    { name: '4. Team & Backer Track Record', weight: '10%–20%', maxPts: '10–20 pts', criteria: 'Core developer experience, independent backers, multisig transparency, public KYC track.' },
+    { name: '5. Community & Governance', weight: '10%–30%', maxPts: '10–30 pts', criteria: 'Developer ecosystem activity, organic user base, voting quorum participation, social reach.' },
   ];
 
   dims.forEach((row, idx) => {
     const rowY = y;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7);
     const criteriaLines = doc.splitTextToSize(row.criteria, criteriaWidth);
     const numLines = Math.max(1, criteriaLines.length);
-    const rowHeight = numLines > 1 ? 9.5 : 8.0;
+    const rowHeight = numLines > 1 ? 8.5 : 6.5;
 
     if (idx % 2 === 0) {
       doc.setFillColor(248, 250, 252);
@@ -444,8 +526,8 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
 
     doc.setTextColor(textDark[0], textDark[1], textDark[2]);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    const midBaseline = rowY + (rowHeight / 2) + 1.2;
+    doc.setFontSize(7.5);
+    const midBaseline = rowY + (rowHeight / 2) + 1.1;
     doc.text(row.name, margin + 4, midBaseline);
 
     doc.setFont('helvetica', 'normal');
@@ -455,12 +537,12 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     doc.text(row.maxPts, margin + 74, midBaseline, { align: 'center' });
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
+    doc.setFontSize(7);
     if (numLines === 1) {
       doc.text(criteriaLines[0], colCriteriaX, midBaseline);
     } else {
       criteriaLines.forEach((line: string, lIdx: number) => {
-        doc.text(line, colCriteriaX, rowY + 3.8 + (lIdx * 3.6));
+        doc.text(line, colCriteriaX, rowY + 3.2 + (lIdx * 3.3));
       });
     }
 
@@ -470,35 +552,33 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   doc.setDrawColor(203, 213, 225);
   doc.rect(margin, tableHeaderY, contentWidth, y - tableHeaderY, 'D');
 
-  y += 10;
+  y += 5.5;
 
-  // The Decoupling Principle
   doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 22, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('THE FUNDAMENTAL DECOUPLING PRINCIPLE (SCORE VS. RISK SEVERITY)', margin + 4, y + 5.5);
+  doc.text('THE FUNDAMENTAL DECOUPLING PRINCIPLE (SCORE VS. RISK SEVERITY)', margin + 4, y + 4.8);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7);
   doc.setTextColor(71, 85, 105);
   const decoupleText = 'A central axiom of the Crypto Review Lab methodology is the complete decoupling of numerical evaluative scores (/100) from assessed risk severity classifications. High user adoption, exceptional developer activity, or deep liquidity can legitimately grant a protocol a high Utility and Community score (e.g., 85/100). However, if automated security scans (GoPlus, RugCheck, Blockscout) detect centralized mint functions, unverified delegatecalls, or extreme treasury custody concentration, the protocol is assigned an overriding HIGH or CRITICAL risk severity. Evaluative scores measure product-market strength; risk classifications measure empirical capital vulnerability.';
   const splitDecouple = doc.splitTextToSize(decoupleText, contentWidth - 8);
   splitDecouple.forEach((line: string, idx: number) => {
-    doc.text(line, margin + 4, y + 10.5 + (idx * 3.5));
+    doc.text(line, margin + 4, y + 9.0 + (idx * 3.1));
   });
 
-  y += 34;
+  y += 26;
 
-  // Risk Classification Table
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(9.5);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('3. RISK SEVERITY TAXONOMY & THRESHOLDS', margin, y);
-  y += 4;
+  doc.text('4. RISK SEVERITY TAXONOMY & THRESHOLDS', margin, y);
+  y += 3.5;
 
   const riskLevels = [
     { tag: 'LOW RISK (80–100 PTS)', color: emeraldAccent, desc: 'Verified open-source contracts, multi-party audits, distributed token supply (<15% top 10), and timelocked multisig governance.' },
@@ -510,22 +590,22 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   riskLevels.forEach((rl) => {
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(margin, y, contentWidth, 14.5, 2, 2, 'FD');
+    doc.roundedRect(margin, y, contentWidth, 12, 1.5, 1.5, 'FD');
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(rl.color[0], rl.color[1], rl.color[2]);
-    doc.text(rl.tag, margin + 3, y + 5);
+    doc.text(rl.tag, margin + 3, y + 4.2);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
+    doc.setFontSize(6.8);
     doc.setTextColor(71, 85, 105);
     const splitRl = doc.splitTextToSize(rl.desc, contentWidth - 6);
     splitRl.forEach((line: string, idx: number) => {
-      doc.text(line, margin + 3, y + 9.2 + (idx * 3.4));
+      doc.text(line, margin + 3, y + 7.8 + (idx * 3.1));
     });
 
-    y += 16.5;
+    y += 13.5;
   });
 
   addWhitepaperFooter(2);
@@ -805,7 +885,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   const avfModules = [
     { id: 'AVF-01', name: 'Classification & Taxonomy Verification', desc: 'Validates protocol asset classification against standardized CoinGecko and DEX market taxonomy to prevent categorical misrepresentation.' },
     { id: 'AVF-02', name: 'Evidence & Provenance Traceability', desc: 'Verifies public documentation links, official blockchain explorer contract registries, and real-time security telemetry feeds.' },
-    { id: 'AVF-03', name: 'Methodology & Weighting Compliance', desc: 'Verifies that the canonical 25/25/25/15/10 percentage weighting distribution was strictly applied without ad-hoc parameter tampering.' },
+    { id: 'AVF-03', name: 'Methodology & Weighting Compliance', desc: 'Verifies that weights are category-specific and deterministically fixed per protocol category (not a single universal split), sourced from getCategoryDimensionWeights() in EvaluationBlueprint.ts, and were strictly applied without ad-hoc parameter tampering.' },
     { id: 'AVF-04', name: 'Scenario Readiness & Stress-Input Verification', desc: 'Verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address). Tracks F1/F2 convergence-loop execution. Full numerical price-shock, liquidity-drain and slippage simulations are not currently attached.' },
     { id: 'AVF-05', name: 'Score Arithmetic & Zero-Drift Verification', desc: 'Algorithmically recomputes weighted averages and confirms that score aggregation math is exact within a strict ±0.5 point tolerance.' },
     { id: 'AVF-06', name: 'Semantic Risk Consistency Check', desc: 'Ensures declared risk classifications and empirical security telemetry findings align without logical contradictions or omissions.' }
