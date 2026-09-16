@@ -252,11 +252,11 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                   </div>
                   <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
                     <span className="text-cyan-400 font-bold block">1. Source Triangulation</span>
-                    <span className="text-[10px] text-slate-400 font-sans">Dual CoinGecko + CMC cross-ref</span>
+                    <span className="text-[10px] text-slate-400 font-sans">CoinGecko + CMC + CoinStats cross-ref</span>
                   </div>
                   <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
                     <span className="text-purple-400 font-bold block">2. On-Chain Cross-Check</span>
-                    <span className="text-[10px] text-slate-400 font-sans">GoPlus open-source, mint, honeypot & blacklist scan</span>
+                    <span className="text-[10px] text-slate-400 font-sans">GoPlus, RugCheck & Blockscout open-source, mint, honeypot & blacklist scan</span>
                   </div>
                   <div className="bg-slate-900 p-2.5 rounded border border-slate-800">
                     <span className="text-emerald-400 font-bold block">3. Cross-Framework Consistency Check</span>
@@ -282,7 +282,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
 
                 <div className="flex flex-wrap items-center gap-3 bg-slate-900/90 p-2.5 rounded border border-slate-800/80 text-[11px]">
                   <span className="text-emerald-400 font-bold">PASS (95%+):</span>
-                  <span className="text-slate-300">Human Approval → 24 h Delivery</span>
+                  <span className="text-slate-300">Deterministic F3 → Human Approval → 24 h Delivery</span>
                   <span className="text-slate-600">|</span>
                   <span className="text-rose-400 font-bold">FAIL (&lt;95%):</span>
                   <span className="text-slate-300">Auto-flag → Trigger Auto-Regeneration</span>
@@ -374,11 +374,11 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                         <p className="text-slate-400 text-[10px] font-sans mt-0.5">Ensures declared risk classification and verified security telemetry align without contradictions.</p>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
-                        <span className="text-indigo-400 font-bold">AVF-07: Calibrated Confidence</span>
+                        <span className="text-indigo-400 font-bold">AVF-07: Deterministic Confidence</span>
                         <p className="text-slate-400 text-[10px] font-sans mt-0.5">Calculates composite multi-source confidence across taxonomy, telemetry, & stress models.</p>
                       </div>
                       <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
-                        <span className="text-rose-400 font-bold">AVF-08: Cryptographic Signing</span>
+                        <span className="text-rose-400 font-bold">AVF-08: Cryptographic Integrity & Signing</span>
                         <p className="text-slate-400 text-[10px] font-sans mt-0.5">Generates SHA-256 canonical hash & requires Ed25519 cryptographic sign-off for delivery.</p>
                       </div>
                     </div>
@@ -386,33 +386,75 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
 
                   {/* Mathematical Formula & Signing Details */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-slate-950 p-3 rounded-xl border border-indigo-500/30 space-y-1.5">
+                    <div className="bg-slate-950 p-3 rounded-xl border border-indigo-500/30 space-y-2">
                       <div className="text-indigo-400 font-bold text-xs uppercase flex items-center gap-1.5">
                         <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-                        AVF-07 Confidence Formula
+                        AVF-07 — Deterministic Confidence Rule
                       </div>
                       <div className="bg-slate-900 p-2 rounded text-[11px] text-indigo-300 font-mono">
                         Confidence = (0.20 × C_class) + (0.30 × C_prov) + (0.30 × C_scen) + (0.20 × C_risk)
                       </div>
-                      <ul className="text-[10px] text-slate-400 space-y-0.5 list-disc pl-4 font-sans">
-                        <li><strong>C_scen:</strong> 100% for PASSED/VERIFIED; 70% for NARRATIVE_ONLY; 20% for FAILED</li>
-                        <li><strong>C_prov:</strong> Telemetry + Citation count completeness</li>
-                        <li><strong>Thresholds:</strong> ≥85% HIGH | 70–84% MODERATE | &lt;70% LOW</li>
+                      <ul className="text-[10px] text-slate-400 space-y-1.5 font-sans leading-relaxed">
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">C_class:</strong> Deterministic classification consistency and completeness</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">C_prov:</strong> Verified telemetry and citation/provenance completeness</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">C_scen:</strong> 100% for PASSED / VERIFIED · 70% for NARRATIVE_ONLY · 20% for FAILED</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">C_risk:</strong> Deterministic risk-evidence completeness derived from verified inputs</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Confidence thresholds:</strong> ≥85% HIGH · 70–84% MODERATE · &lt;70% LOW</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-indigo-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Deterministic rule:</strong> F3 calculates confidence exclusively from verified inputs and defined evidence states; no AI-generated confidence adjustment is permitted.</div>
+                        </li>
                       </ul>
                     </div>
 
-                    <div className="bg-slate-950 p-3 rounded-xl border border-rose-500/30 space-y-1.5">
+                    <div className="bg-slate-950 p-3 rounded-xl border border-rose-500/30 space-y-2">
                       <div className="text-rose-400 font-bold text-xs uppercase flex items-center gap-1.5">
                         <Lock className="w-3.5 h-3.5 text-rose-400" />
-                        AVF-08 Cryptographic Signing Rule
+                        AVF-08 — Cryptographic Integrity & Signing Rule
                       </div>
                       <div className="bg-slate-900 p-2 rounded text-[11px] text-rose-300 font-mono">
-                        Digest = SHA256(Symbol ∥ Scores ∥ Timestamp)
+                        Digest = SHA-256(Canonical Audit Payload)
                       </div>
-                      <ul className="text-[10px] text-slate-400 space-y-0.5 list-disc pl-4 font-sans">
-                        <li><strong>Draft:</strong> Status = <code>UNSIGNED</code> (pre-audit draft preview)</li>
-                        <li><strong>Final Delivery:</strong> Crypto Review Lab applies Ed25519 digital signature</li>
-                        <li><strong>Immutability:</strong> Any post-sign score drift fails verification (<code>HASH_MISMATCH</code>)</li>
+                      <ul className="text-[10px] text-slate-400 space-y-1.5 font-sans leading-relaxed">
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Canonical Payload:</strong> The deterministic audit data used for verification is normalized into a canonical representation before hashing.</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Draft:</strong> &quot;Status = UNSIGNED&quot; — preliminary audit output; no cryptographic verification claim.</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Final Delivery:</strong> Crypto Review Lab applies an Ed25519 digital signature to the finalized audit payload.</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Integrity:</strong> The signature and digest must validate against the exact finalized payload.</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Immutability:</strong> Any post-signature modification to signed audit data causes verification failure and returns HASH_MISMATCH.</div>
+                        </li>
+                        <li className="flex items-start gap-1.5">
+                          <span className="text-rose-400 shrink-0 text-[9px] mt-0.5">▪️</span>
+                          <div><strong className="text-slate-200 font-mono text-[10px]">Verification:</strong> F3 uses the established cryptographic signing and verification layer; cryptographic operations are not reimplemented inside the F3 engine.</div>
+                        </li>
                       </ul>
                     </div>
                   </div>
