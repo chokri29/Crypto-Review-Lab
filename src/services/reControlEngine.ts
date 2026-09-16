@@ -1588,9 +1588,9 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
 
   const gate7Checks = [
     {
-      name: 'Blueprint Markdown Structure',
+      name: 'Core Narrative Sections',
       status: (hasCoreThesis && hasMarketUtility && hasTokenomics && hasConclusion) ? ('VERIFIED' as const) : ('FLAGGED' as const),
-      detail: 'Core Thesis, Market, Tokenomics, and Conclusion sections checked'
+      detail: 'Core Thesis, Market, Tokenomics, and Conclusion narrative sections checked via keyword'
     },
     {
       name: 'Pros & Cons Symmetry',
@@ -1607,10 +1607,10 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   gates.push({
     gateNumber: 7,
     gateName: 'Formatting Integrity',
-    description: 'Validates required markdown section headings, pros/cons balance, executive verdict, and formal formatting.',
+    description: 'Checks presence of core narrative sections (via keyword), pros/cons balance (≥3 each), and verdict length.',
     scorePct: gate7Score,
     passed: gate7Passed,
-    notes: gate7Passed ? `Report formatting, section structure, and pros/cons balance verified clean (Score: ${gate7Score}%).` : 'Formatting or section structure incomplete.',
+    notes: gate7Passed ? `Report formatting verified clean: core narrative sections, pros/cons balance (≥3 each), and verdict length satisfied (Score: ${gate7Score}%).` : 'Formatting incomplete: core narrative sections, pros/cons balance (≥3 each), or verdict length not met.',
     checks: gate7Checks
   });
 

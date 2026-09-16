@@ -587,9 +587,9 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
       desc: 'Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.'
     },
     {
-      gate: 'Gate 7: Formatting & Reporting Integrity',
+      gate: 'Gate 7: Formatting Integrity',
       badge: 'Structural Quality',
-      desc: 'Validates Markdown syntax, citation formatting, footnote integrity, and pros/cons structural balance to ensure flawless executive and structured readability.'
+      desc: 'Checks presence of core narrative sections (via keyword), pros/cons balance (≥3 each), and verdict length.'
     }
   ];
 
