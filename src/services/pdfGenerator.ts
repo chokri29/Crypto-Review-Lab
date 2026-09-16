@@ -806,15 +806,18 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     { id: 'AVF-01', name: 'Classification & Taxonomy Verification', desc: 'Validates protocol asset classification against standardized CoinGecko and DEX market taxonomy to prevent categorical misrepresentation.' },
     { id: 'AVF-02', name: 'Evidence & Provenance Traceability', desc: 'Verifies public documentation links, official blockchain explorer contract registries, and real-time security telemetry feeds.' },
     { id: 'AVF-03', name: 'Methodology & Weighting Compliance', desc: 'Verifies that the canonical 25/25/25/15/10 percentage weighting distribution was strictly applied without ad-hoc parameter tampering.' },
-    { id: 'AVF-04', name: 'Scenario Stress Testing & Liquidity Bounds', desc: 'Evaluates simulated price shock resistance, liquidity drain cascades, and slippage curves across automated market maker pools.' },
+    { id: 'AVF-04', name: 'Scenario Readiness & Stress-Input Verification', desc: 'Verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address). Tracks whether the F1/F2 convergence loop has executed. Full numerical simulation of price-shock resistance, liquidity-drain cascades, and slippage curves is not currently attached.' },
     { id: 'AVF-05', name: 'Score Arithmetic & Zero-Drift Verification', desc: 'Algorithmically recomputes weighted averages and confirms that score aggregation math is exact within a strict ±0.5 point tolerance.' },
     { id: 'AVF-06', name: 'Semantic Risk Consistency Check', desc: 'Ensures declared risk classifications and empirical security telemetry findings align without logical contradictions or omissions.' }
   ];
 
   avfModules.forEach((mod) => {
+    const splitMDesc = doc.splitTextToSize(mod.desc, contentWidth - 6);
+    const cardHeight = Math.max(12.5, 6.5 + (splitMDesc.length * 3.2));
+
     doc.setFillColor(255, 255, 255);
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(margin, y, contentWidth, 12.5, 1.5, 1.5, 'FD');
+    doc.roundedRect(margin, y, contentWidth, cardHeight, 1.5, 1.5, 'FD');
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
@@ -824,12 +827,11 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.8);
     doc.setTextColor(71, 85, 105);
-    const splitMDesc = doc.splitTextToSize(mod.desc, contentWidth - 6);
     splitMDesc.forEach((line: string, idx: number) => {
       doc.text(line, margin + 3, y + 8.2 + (idx * 3.2));
     });
 
-    y += 14.5;
+    y += cardHeight + 2;
   });
 
   y += 1;

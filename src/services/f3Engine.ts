@@ -1147,18 +1147,20 @@ export interface AVF04ScenarioResult {
 }
 
 /**
- * AVF-04: Scenario & Simulation Verification (F3 Deterministic Verification Layer)
- * 
- * Hard Constraint: Purely deterministic computation with ZERO AI / LLM calls.
- * Enforces explicit 4-stage lifecycle state machine:
- * DEFINED → EXECUTABLE → EXECUTED → VERIFIED
- * 
- * - DEFINED: Scenario parameters and invariants exist in the blueprint model.
- * - EXECUTABLE: Live/on-chain inputs necessary to execute the simulation are captured.
- * - EXECUTED: Computation has actually run against the captured inputs.
- * - VERIFIED: Results meet convergence thresholds or invariant safety bounds.
- * 
- * Rule: NEVER treat narrative-only scenarios as executed.
+ * AVF-04: Scenario Readiness & Stress-Input Verification (F3 Deterministic Layer)
+ *
+ * Hard Constraint: Purely deterministic. ZERO AI / LLM calls.
+ *
+ * Lifecycle states: DEFINED → EXECUTABLE → EXECUTED → VERIFIED
+ *
+ * Current scope:
+ * - Checks whether required inputs exist (TVL, live price, contract address)
+ * - Tracks real execution of the F1/F2 convergence loop when telemetry is supplied
+ * - Marks stress scenarios as UNEXECUTED_NARRATIVE_ONLY when no simulation engine is attached
+ *
+ * Note: Numerical price-shock, liquidity-drain, and slippage simulations are
+ * not implemented. This module only verifies input readiness and lifecycle state.
+ * Static security flags from GoPlus / RugCheck / Blockscout are handled by other modules (Gate 2 / AVF-06).
  */
 export function verifyAVF04Scenarios(
   review?: Partial<CryptoReview> | null,

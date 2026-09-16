@@ -334,11 +334,11 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
 
                     <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2 text-xs font-mono">
                       <div className="flex items-center justify-between text-cyan-300 font-bold">
-                        <span>AVF-04 to AVF-06: Simulation &amp; Risk Alignment</span>
+                        <span>AVF-04 to AVF-06: Scenario Readiness &amp; Risk Alignment</span>
                         <span className="text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-500/30">INVARIANT</span>
                       </div>
                       <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-                        Recomputes mathematical aggregations, verifies liquidation stress scenarios, and ensures findings map to deterministic risk tiers.
+                        Verifies scenario readiness and lifecycle states for stress-test inputs, recomputes mathematical aggregations, and ensures findings map to deterministic risk tiers.
                       </p>
                     </div>
 
