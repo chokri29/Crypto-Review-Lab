@@ -287,7 +287,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                     <span>Stage 3: F3 Deterministic Layer</span>
                   </div>
                   <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-                    Runs 8 deterministic verification modules with ZERO AI calls, verifying arithmetic invariants, GoPlus/RugCheck/Blockscout scans, and Ed25519 signing.
+                    Runs 8 deterministic verification modules with zero AI estimation inside F3 (pure deterministic code verification), verifying arithmetic invariants, GoPlus/RugCheck/Blockscout scans, and Ed25519 signing.
                   </p>
                 </div>
               </div>

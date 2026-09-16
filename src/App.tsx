@@ -2258,7 +2258,7 @@ export default function App() {
                     </div>
 
                     <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                      The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation, the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation to enforce mathematical rigor, cryptographic integrity, and deterministic verification standards.
+                      The <strong>Algorithmic Verification Framework (AVF)</strong> operates via a three-stage <strong>Tripartite Core</strong> architecture: the <strong>F1 Candidate Engine</strong> drafts the comprehensive evaluation (using generative assistance), the <strong>F2 Reviewer</strong> independently stress-tests findings to drive score convergence, and the <strong>F3 Verification Layer</strong> executes 8 deterministic algorithmic verification modules with zero AI estimation inside F3 to enforce mathematical rigor, cryptographic integrity, and deterministic verification standards.
                     </p>
 
                     {/* Key Innovations / Tripartite Core Stages */}
@@ -2289,7 +2289,7 @@ export default function App() {
                           <span>Stage 3: F3 Verification Layer</span>
                         </div>
                         <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-                          F3 deterministically executes 8 AVF verification modules (AVF-01 through AVF-08) with zero AI calls, verifying math aggregation, rubric methodology, risk consistency, and Ed25519/SHA-256 traceability.
+                          F3 deterministically executes 8 AVF verification modules (AVF-01 through AVF-08) with zero AI estimation inside F3, verifying math aggregation, rubric methodology, risk consistency, and Ed25519/SHA-256 traceability.
                         </p>
                       </div>
                     </div>

@@ -61,8 +61,8 @@ export const REVIEW_LAB_FAQ_ITEMS: FAQItem[] = [
     category: 'lab',
     question: 'How does the Algorithmic Verification Framework (AVF) conduct automated smart contract security audits?',
     definition: 'AVF operates on a three-stage Tripartite Core architecture (F1 Candidate Engine + F2 Reviewer + F3 Deterministic Verification Layer) executing multi-pass analysis, cross-validation convergence, and 8 algorithmic verification modules.',
-    tip: 'Combines F1 evaluation drafting, F2 independent reviewer critique, and F3 zero-AI deterministic verification in under 60 seconds.',
-    answer: 'The Review Lab utilizes the proprietary Algorithmic Verification Framework (AVF) powered by a three-stage Tripartite Core:\n\nF1 — Candidate Engine: Generates initial multi-dimensional assessments by inspecting contract opcodes, tokenomics curves, and on-chain telemetry.\n\nF2 — Independent Reviewer: Stress-tests initial findings, challenges edge-case liquidity assumptions, and drives score drift convergence below <3.0 points.\n\nF3 — Deterministic Verification Layer: Executes 8 zero-AI deterministic verification modules (covering classification, evidence provenance, methodology weights, simulation validation, score arithmetic, risk-conclusion alignment, calibrated confidence, and cryptographic report traceability).'
+    tip: 'Combines F1 evaluation drafting, F2 independent reviewer critique, and F3 deterministic verification in under 60 seconds.',
+    answer: 'The Review Lab utilizes the proprietary Algorithmic Verification Framework (AVF) powered by a three-stage Tripartite Core:\n\nF1 — Candidate Engine: Generates initial multi-dimensional assessments by inspecting contract opcodes, tokenomics curves, and on-chain telemetry (F1 candidate drafting may use generative assistance; F3 does not).\n\nF2 — Independent Reviewer: Stress-tests initial findings, challenges edge-case liquidity assumptions, and drives score drift convergence below <3.0 points.\n\nF3 — Deterministic Verification Layer: Executes 8 deterministic verification modules with zero AI estimation inside the F3 verification layer (covering classification, evidence provenance, methodology weights, simulation validation, score arithmetic, risk-conclusion alignment, calibrated confidence, and cryptographic report traceability).'
   },
   {
     category: 'lab',
@@ -105,9 +105,9 @@ export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
   {
     category: 'avf',
     question: 'How does the AVF Tripartite Core (F1 / F2 / F3) architecture secure smart contract audits?',
-    definition: 'A three-stage architecture where F1 drafts the candidate evaluation, F2 acts as an independent reviewer to achieve convergence, and F3 executes 8 deterministic verification modules with zero AI calls.',
+    definition: 'A three-stage architecture where F1 drafts the candidate evaluation (with generative assistance), F2 acts as an independent reviewer to achieve convergence, and F3 executes 8 deterministic verification modules with zero AI estimation inside the F3 layer.',
     tip: 'F2 converges score drift below <3.0, while F3 algorithmically verifies math, evidence provenance, risk consistency, and cryptographic integrity.',
-    answer: 'AVF operates through its tripartite core architecture to ensure unbiased, verifiable findings:\n\nF1 — Candidate Engine: Generates the initial comprehensive evaluation draft from raw bytecode and telemetry.\n\nF2 — Independent Reviewer: Iteratively challenges findings, checks rubric edge cases, and drives composite score drift below <3.0 points.\n\nF3 — Deterministic Verification Layer: Validates mathematical aggregation, methodology compliance, scenario bounds, and cryptographic Ed25519/SHA-256 traceability without AI estimation.'
+    answer: 'AVF operates through its tripartite core architecture to ensure unbiased, verifiable findings:\n\nF1 — Candidate Engine: Generates the initial comprehensive evaluation draft from raw bytecode and telemetry (F1 candidate drafting may use generative assistance; F3 does not).\n\nF2 — Independent Reviewer: Iteratively challenges findings, checks rubric edge cases, and drives composite score drift below <3.0 points.\n\nF3 — Deterministic Verification Layer: Validates mathematical aggregation, methodology compliance, scenario bounds, and cryptographic Ed25519/SHA-256 traceability with zero AI estimation inside the F3 verification layer.'
   },
   {
     category: 'avf',
