@@ -70,20 +70,12 @@ $$\text{Score (100)} = (\text{Utility} \times M_U) + (\text{Tokenomics} \times M
 Where each multiplier $M_i = \text{Weight}_i \times 10$. Multipliers are **not** a single fixed split; they vary deterministically by protocol category.
 
 ### Deterministic Category Dimension Weights
-Weights are sourced directly from `getCategoryDimensionWeights()` in `src/services/EvaluationBlueprint.ts`:
+Weights are category-specific (not a single fixed split) and sourced from `getCategoryDimensionWeights()` in `EvaluationBlueprint.ts`. Examples:
+- DeFi: 25/20/35/10/10 (Security emphasized)
+- Layer 1: 25/20/30/10/15
+- Default / Specialized: 25/25/25/15/10
 
-| Protocol Category | Utility | Tokenomics | Security | Team | Community | Weight Set |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **DeFi Protocol (AMM / Lending)** | 25% (×2.5) | 20% (×2.0) | 35% (×3.5) | 10% (×1.0) | 10% (×1.0) | **25/20/35/10/10** |
-| **Layer 1 Blockchain** | 25% (×2.5) | 20% (×2.0) | 30% (×3.0) | 10% (×1.0) | 15% (×1.5) | **25/20/30/10/15** |
-| **Restaking / Shared Security / AVS** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 15% (×1.5) | 10% (×1.0) | **25/15/35/15/10** |
-| **Privacy / Cryptographic (FHE / ZK / MPC)** | 25% (×2.5) | 10% (×1.0) | 35% (×3.5) | 20% (×2.0) | 10% (×1.0) | **25/10/35/20/10** |
-| **Layer 2 / Scaling** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 10% (×1.0) | 15% (×1.5) | **25/15/35/10/15** |
-| **Infrastructure (Oracle / Bridge)** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 15% (×1.5) | 10% (×1.0) | **25/15/35/15/10** |
-| **RWA (Tokenization / TradFi Bridge)** | 25% (×2.5) | 20% (×2.0) | 35% (×3.5) | 10% (×1.0) | 10% (×1.0) | **25/20/35/10/10** |
-| **DePIN (Compute / Storage / Wireless)** | 30% (×3.0) | 20% (×2.0) | 25% (×2.5) | 15% (×1.5) | 10% (×1.0) | **30/20/25/15/10** |
-| **Memecoin / Speculative** | 10% (×1.0) | 30% (×3.0) | 20% (×2.0) | 10% (×1.0) | 30% (×3.0) | **10/30/20/10/30** |
-| **Specialized / Experimental (Default)** | 25% (×2.5) | 25% (×2.5) | 25% (×2.5) | 15% (×1.5) | 10% (×1.0) | **25/25/25/15/10** |
+Full matrix by protocol category is in ARCHITECTURE.md and the Technical Whitepaper.
 
 ---
 
