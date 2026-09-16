@@ -582,9 +582,9 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
       desc: 'Deterministic calculation engine recomputes category-weighted linear algebra across all five dimensions. Zero tolerance for calculation drift; discrepancy above ±0.5 points triggers immediate failure.'
     },
     {
-      gate: 'Gate 6: Risk Assessment Semantic Consistency',
+      gate: 'Gate 6: Risk Level Evidence Check',
       badge: 'Finding Corroboration',
-      desc: 'Validates semantic alignment between identified security telemetry findings and declared risk classifications. Prevents contradictory outputs (e.g., claiming "Low Risk" while reporting an active mint authority).'
+      desc: 'Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.'
     },
     {
       gate: 'Gate 7: Formatting & Reporting Integrity',

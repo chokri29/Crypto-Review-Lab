@@ -46,7 +46,7 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
     { num: 3, name: 'Cross-Framework Consistency Check' },
     { num: 4, name: 'Tokenomics Re-verification' },
     { num: 5, name: 'Score Arithmetic Check' },
-    { num: 6, name: 'Risk Evidence Alignment' },
+    { num: 6, name: 'Risk Level Evidence Check' },
     { num: 7, name: 'Formatting Integrity' }
   ];
 

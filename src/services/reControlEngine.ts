@@ -1527,9 +1527,9 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
     checks: gate5Checks
   });
 
-  // GATE 6: RISK LEVEL EVIDENCE EVALUATION
-  // Independent from locked score-to-risk boundaries: evaluates whether declared risk is supported
-  // by concrete evidence (e.g. absence of active honeypots or critical unrenounced mint rug vectors).
+  // GATE 6: RISK LEVEL EVIDENCE CHECK
+  // Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot
+  // or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.
   const validRiskTiers = ['Low', 'Medium', 'High', 'Critical', 'Low Risk', 'Medium Risk', 'Declared Risk'];
   const isValidRisk = validRiskTiers.includes(review.riskLevel);
   const g6SecScan = review.securityScan?.data || review.securityScan;
@@ -1543,24 +1543,24 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
 
   const gate6Checks = [
     {
-      name: 'Risk Level Evaluation',
+      name: 'Risk Level Evidence Check',
       status: gate6Passed ? ('PASSED' as const) : ('FLAGGED' as const),
-      detail: `Assessed Risk: ${review.riskLevel} | Evidence Basis: ${hasCriticalExploit ? 'Critical Vulnerability Present' : 'Consistent with Security Findings'}`
+      detail: `Assessed Risk: ${review.riskLevel} | Evidence Basis: ${hasCriticalExploit ? 'Critical Vulnerability Present' : 'No Critical Honeypot / Cannot-Sell Contradiction'}`
     },
     {
       name: 'Risk Assessment Consistency',
       status: 'VERIFIED' as const,
-      detail: 'Assessed risk level is evaluated from concrete evidence rather than locked score tiers'
+      detail: 'Broader multi-factor risk consistency is verified deterministically in AVF-06 (F3 layer)'
     }
   ];
 
   gates.push({
     gateNumber: 6,
-    gateName: 'Risk Level Evidence Evaluation',
-    description: 'Verifies that the assessed risk level is supported by concrete security telemetry.',
+    gateName: 'Risk Level Evidence Check',
+    description: 'Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.',
     scorePct: gate6Score,
     passed: gate6Passed,
-    notes: gate6Passed ? 'Risk assessment is supported by verified security findings.' : 'Risk assessment contradicts critical security telemetry.',
+    notes: gate6Passed ? 'Risk level evidence check passed: no critical exploit contradiction.' : 'Risk assessment contradicts critical security telemetry.',
     checks: gate6Checks
   });
 
