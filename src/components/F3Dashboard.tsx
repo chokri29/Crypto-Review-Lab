@@ -449,10 +449,10 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       status: currentF3Result ? (avf07?.status || 'NOT RUN') : 'STANDBY',
       icon: <Cpu className="w-4 h-4 text-indigo-400" />,
       metricPrimary: currentF3Result ? `Calculated: ${avf07?.confidencePct ?? Math.round(overallConfidence * 100)}% (${getConfidenceLevel(overallConfidence)})` : 'Awaiting Execution',
-      metricSecondary: `Score Math: 100% | Taxonomy: 95% | On-Chain: 85%`,
+      metricSecondary: `Score Math: Exact | Taxonomy: 95% | On-Chain: 85%`,
       details: avf07?.details || 'Multi-source statistical confidence computed from deterministic evidence tiers.',
       checks: [
-        { name: 'Deterministic Score Confidence', status: currentF3Result ? (avf07?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: '100% confidence on mathematical computations' },
+        { name: 'Deterministic Score Confidence', status: currentF3Result ? (avf07?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: 'Deterministic confidence on mathematical computations' },
         { name: 'Telemetry Integrity Weight', status: currentF3Result ? (avf02?.hasSecurityTelemetry ? 'VERIFIED' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? 'NARRATIVE ONLY' : 'UNAVAILABLE')) : 'NOT_PERFORMED', detail: avf02?.hasSecurityTelemetry ? 'Weighted by live on-chain telemetry feeds' : (Array.isArray(selectedProject?.citations) && selectedProject.citations.length > 0 ? `Weighted across ${selectedProject.citations.length} external source citations` : 'No external telemetry stream attached') },
         { name: 'Confidence Bounds', status: currentF3Result ? (avf07?.status === 'VERIFIED' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: `Aggregate composite confidence: ${(overallConfidence * 100).toFixed(1)}%` }
       ]
@@ -997,7 +997,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-black font-orbitron text-slate-100">
-              {currentF3Result ? (avf05?.status === 'VERIFIED' ? '100%' : (avf05?.status || 'NOT RUN')) : 'STANDBY'}
+              {currentF3Result ? (avf05?.status === 'VERIFIED' ? 'Exact' : (avf05?.status || 'NOT RUN')) : 'STANDBY'}
             </span>
             <span className="text-[11px] font-mono text-emerald-400">
               Δ 0.00 pts

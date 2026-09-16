@@ -1003,7 +1003,7 @@ export const AuditorReviewConsole: React.FC<{
                         </span>
                       ) : getF3Result(selectedOrder.orderId)?.overallStatus === 'VERIFIED' ? (
                         <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
-                          F3 VERIFIED (100% INVARIANT MATCH)
+                          F3 VERIFIED (Invariants Matched)
                         </span>
                       ) : (
                         <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-1.5 py-0.2 rounded font-bold">
