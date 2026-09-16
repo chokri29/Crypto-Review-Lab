@@ -80,8 +80,8 @@ export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Reco
         if (item && item.id && typeof item.current_price === 'number') {
           const verifiedItem: CoinGeckoMarketItem = {
             ...item,
-            dataEngine: 'CoinGecko API v3 (Live External Oracle)',
-            dataSources: ['CoinGecko API v3 Live Feed'],
+            dataEngine: 'CoinGecko (Live External Oracle)',
+            dataSources: ['CoinGecko Live Feed'],
             isFallback: false,
             provenance: 'LIVE'
           };
@@ -479,8 +479,7 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     author: 'Multi-Source Convergence Engine (CoinGecko + CMC + CoinStats)',
     logoUrl: finalLogo,
     ...dualMetrics,
-    summary: `### Evaluation Blueprint Overview
-**${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.`,
+    summary: `**${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.`,
     pros: [
       `Cross-verified across CoinGecko, CoinMarketCap & CoinStats (CG Rank #${dualMetrics.liveRank} | CMC Rank #${dualMetrics.cmcRank}).`,
       `Verified under locked Evaluation Blueprint rubric (Score ${overallScore}/100, Confidence ${dualMetrics.confidenceScore}%).`,

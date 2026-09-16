@@ -1308,19 +1308,21 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight break-words">
+                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight">
                       Evaluation Blueprint Terminal
                     </h2>
-                    <p className="text-[8px] xs:text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-tight xs:tracking-wider sm:tracking-widest leading-tight mt-1 whitespace-normal break-words">
-                      ALGORITHMIC SECURITY INTELLIGENCE • AVF ENGINE
+                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider leading-relaxed mt-1 flex flex-wrap items-center gap-x-1.5">
+                      <span>ALGORITHMIC SECURITY INTELLIGENCE</span>
+                      <span className="text-slate-500 hidden sm:inline">•</span>
+                      <span className="text-purple-400">AVF ENGINE</span>
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0 mt-0.5 sm:mt-0">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
-                  <span className="hidden xs:inline sm:inline">LIVE CONSOLE</span>
-                  <span className="inline xs:hidden sm:hidden">LIVE</span>
+                  <span className="hidden sm:inline">LIVE CONSOLE</span>
+                  <span className="inline sm:hidden">LIVE</span>
                 </div>
               </div>
 

@@ -534,7 +534,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
         'CoinMarketCap Market Aggregator (Cross-Check)'
       ]
     : [
-        'CoinGecko API v3 (Primary Feed)',
+        'CoinGecko (Primary Feed)',
         'CoinMarketCap Pro API (Liquidity & Depth)',
         'CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)'
       ];

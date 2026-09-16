@@ -146,10 +146,11 @@ export function resolveGatedPdfFilename(
 }
 
 /**
- * Generates an evaluation specification PDF report for the Evaluation Blueprint Framework & Formula.
- * Displays the complete Rubric, Formula, and Verification Methodology.
+ * Generates the official 6-Page Technical Whitepaper & Evaluation Blueprint Specification PDF for Crypto Review Lab.
+ * Comprehensive, authoritative documentation of the 5-Dimension Master Scoring Rubric, 7-Gate Phase Two
+ * Re-Control Engine, AVF Tripartite Core (F1/F2/F3), and the 8 Deterministic Verification Modules (AVF-01 to AVF-08).
  */
-export function generateBlueprintFormulaPdf(customFilename = 'evaluation_blueprint_master_formula.pdf'): void {
+export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_technical_whitepaper.pdf'): void {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -159,82 +160,244 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   const pageWidth = doc.internal.pageSize.getWidth(); // 210 mm
   const pageHeight = doc.internal.pageSize.getHeight(); // 297 mm
   const margin = 15;
-  const contentWidth = pageWidth - (margin * 2);
+  const contentWidth = pageWidth - (margin * 2); // 180 mm
 
   const primaryDark = [15, 23, 42]; // #0f172a slate-900
   const emeraldAccent = [16, 185, 129]; // #10b981 emerald-500
   const cyanAccent = [6, 182, 212]; // #06b6d4 cyan-500
-  const bgLight = [248, 250, 252]; // #f8fafc
-  const textDark = [30, 41, 59]; // #1e293b
-  const textMuted = [100, 116, 139]; // #64748b
+  const purpleAccent = [99, 102, 241]; // #6366f1 indigo-500
+  const roseAccent = [225, 29, 72]; // #e11d48 rose-600
+  const amberAccent = [245, 158, 11]; // #f59e0b amber-500
+  const bgLight = [248, 250, 252]; // #f8fafc slate-50
+  const textDark = [30, 41, 59]; // #1e293b slate-800
+  const textMuted = [100, 116, 139]; // #64748b slate-500
 
+  const nowStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  function addWhitepaperHeader(sectionTitle: string, sectionNumber: string) {
+    doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+    doc.rect(0, 0, pageWidth, 18, 'F');
+
+    doc.setFillColor(cyanAccent[0], cyanAccent[1], cyanAccent[2]);
+    doc.rect(0, 17.5, pageWidth, 0.5, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text('CRYPTO REVIEW LAB (CRL) — TECHNICAL WHITEPAPER', margin, 11);
+
+    doc.setTextColor(56, 189, 248); // sky blue
+    doc.text(`${sectionNumber}: ${sectionTitle}`.toUpperCase(), pageWidth - margin, 11, { align: 'right' });
+  }
+
+  function addWhitepaperFooter(pageNum: number, totalPages = 6) {
+    const footerY = pageHeight - 9;
+
+    doc.setDrawColor(226, 232, 240);
+    doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
+    doc.text('Crypto Review Lab • Locked Evaluation Blueprint Standard v3.2 • Multi-Source Telemetry & Verification Engine', margin, footerY);
+    doc.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, footerY, { align: 'right' });
+  }
+
+  // ==========================================
+  // PAGE 1: EXECUTIVE SUMMARY & ARCHITECTURAL FOUNDATION
+  // ==========================================
   let y = margin;
 
-  // 1. Header Banner
+  // Cover Banner
   doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
-  doc.rect(0, 0, pageWidth, 32, 'F');
+  doc.rect(0, 0, pageWidth, 38, 'F');
 
   doc.setFillColor(cyanAccent[0], cyanAccent[1], cyanAccent[2]);
-  doc.rect(0, 31, pageWidth, 1.5, 'F');
+  doc.rect(0, 36.5, pageWidth, 1.5, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(15);
-  doc.text('CRYPTO REVIEW LAB', margin, 13);
+  doc.setFontSize(16);
+  doc.text('CRYPTO REVIEW LAB (CRL)', margin, 14);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(56, 189, 248);
+  doc.text('TECHNICAL WHITEPAPER & EVALUATION BLUEPRINT SPECIFICATION', margin, 21);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.5);
-  doc.setTextColor(56, 189, 248); // sky blue
-  doc.text('MASTER EVALUATION BLUEPRINT & SCORING FORMULA SPECIFICATION', margin, 20);
+  doc.setFontSize(7.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text('ALGORITHMIC VERIFICATION FRAMEWORK (AVF) • TRIPARTITE CORE (F1/F2/F3) • LOCKED STANDARD', margin, 28);
 
-  const nowStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(251, 191, 36);
+  doc.text('REF: CRL-WP-2026-V3.2', pageWidth - margin, 14, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
   doc.setTextColor(203, 213, 225);
-  doc.text(`EFFECTIVE: ${nowStr}`, pageWidth - margin, 13, { align: 'right' });
-  doc.text('VERSION: LOCKED STANDARD', pageWidth - margin, 19, { align: 'right' });
+  doc.text(`EFFECTIVE: ${nowStr}`, pageWidth - margin, 20, { align: 'right' });
+  doc.text('CLASSIFICATION: PUBLIC SPECIFICATION', pageWidth - margin, 26, { align: 'right' });
+  doc.text('STATUS: LOCKED STANDARD', pageWidth - margin, 32, { align: 'right' });
 
-  y = 40;
+  y = 46;
 
-  // 2. Overview Title
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('Evaluation Blueprint Methodology & Rubric Reference', margin, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text('This specification details the assessment methodology, score calculation, and verification framework across Crypto Review Lab.', margin, y);
-  y += 8;
-
-  // 3. Formula Highlight Box
-  doc.setFillColor(241, 245, 249);
+  // Executive Abstract
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 16, 2, 2, 'FD');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
-  doc.text('MASTER SCORING FORMULA (100 PTS MAX)', margin + 4, y + 5.5);
+  doc.roundedRect(margin, y, contentWidth, 34, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('Score = (Utility × 2.5) + (Tokenomics × 2.5) + (Security × 2.5) + (Team × 1.5) + (Community × 1.0)', margin + 4, y + 11.5);
+  doc.text('EXECUTIVE ABSTRACT', margin + 4, y + 6);
 
-  y += 21;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  const abstractText = 'The Algorithmic Verification Framework (AVF) establishes a deterministic, verifiable standard for digital asset risk evaluation and security assessment. Historically, crypto reviews have been plagued by subjective heuristics, promotional bias, generative AI hallucinations, and the dangerous conflation of token market performance with smart contract security. Crypto Review Lab decouples evaluative scoring from security telemetry, orchestrating a multi-stage architecture: the F1 Candidate Engine drafts the assessment, the F2 Reviewer independently stress-tests findings to enforce score convergence, and the F3 Deterministic Layer executes 8 algorithmic verification modules with zero AI estimation to enforce mathematical exactness, telemetry provenance, and cryptographic integrity.';
+  const splitAbstract = doc.splitTextToSize(abstractText, contentWidth - 8);
+  splitAbstract.forEach((line: string, idx: number) => {
+    doc.text(line, margin + 4, y + 11.5 + (idx * 3.6));
+  });
 
-  // 4. Dimensions Table
+  y += 40;
+
+  // Section: Fundamental Problems in Contemporary Audits
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text('THE 5 CORE DIMENSIONS & WEIGHT ALLOCATIONS', margin, y);
+  doc.text('1. THE THREE CORE DEFECTS OF TRADITIONAL DIGITAL ASSET REVIEWS', margin, y);
+  y += 5;
+
+  const problems = [
+    {
+      title: 'A. Unstandardized Heuristics & Promotional Bias',
+      desc: 'Most third-party rating platforms rely on arbitrary score weightings, qualitative impressions, or paid promotional listings without transparent, reproducible criteria. Scores fluctuate without audited provenance.'
+    },
+    {
+      title: 'B. Generative AI Hallucination & Math Drift',
+      desc: 'LLMs deployed for automated research frequently invent contract addresses, hallucinate audit dates, or introduce mathematical calculation errors across composite weighted averages unless constrained by deterministic execution.'
+    },
+    {
+      title: 'C. The Conflation Defect (Market Adoption vs. Security)',
+      desc: 'High market capitalization, active trading volume, or prominent venture backing are routinely mistaken for protocol safety. In reality, heavily backed protocols can harbor critical backdoors, mint vulnerabilities, or honeypot vectors.'
+    }
+  ];
+
+  problems.forEach((prob) => {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentWidth, 16, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+    doc.text(prob.title, margin + 3, y + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    const splitDesc = doc.splitTextToSize(prob.desc, contentWidth - 6);
+    splitDesc.forEach((line: string, idx: number) => {
+      doc.text(line, margin + 3, y + 9.2 + (idx * 3.4));
+    });
+
+    y += 18.5;
+  });
+
+  y += 2;
+
+  // Section: The CRL Architectural Foundation (The 3 Pillars)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('2. THE CRYPTO REVIEW LAB VERIFICATION ARCHITECTURE', margin, y);
+  y += 5;
+
+  const pillars = [
+    {
+      title: 'Pillar 1: 5-Dimension Master Scoring Rubric',
+      detail: 'Mathematically fixed 25/25/25/15/10 category weight distribution with absolute separation between evaluative utility scores and empirical security risk.'
+    },
+    {
+      title: 'Pillar 2: Phase Two Automated Re-Control',
+      detail: '7-Gate multi-source automated pipeline (CoinGecko, CMC, CoinStats, GoPlus, RugCheck, Blockscout) ensuring telemetry consensus and sub-3.0 point score convergence.'
+    },
+    {
+      title: 'Pillar 3: F3 Deterministic Verification Layer',
+      detail: '8 automated rule modules (AVF-01 to AVF-08) executing with strictly ZERO AI / LLM calls, deterministic confidence calculations, and Ed25519 cryptographic signing.'
+    }
+  ];
+
+  pillars.forEach((pil) => {
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(margin, y, contentWidth, 15, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+    doc.text(pil.title, margin + 3, y + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+    const splitPil = doc.splitTextToSize(pil.detail, contentWidth - 6);
+    splitPil.forEach((line: string, idx: number) => {
+      doc.text(line, margin + 3, y + 9.2 + (idx * 3.4));
+    });
+
+    y += 17.5;
+  });
+
+  addWhitepaperFooter(1);
+
+  // ==========================================
+  // PAGE 2: THE MASTER EVALUATION BLUEPRINT & SCORING RUBRIC
+  // ==========================================
+  doc.addPage();
+  addWhitepaperHeader('Master Evaluation Blueprint & Rubric', 'Section 1');
+
+  y = 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('1. THE 100-POINT MASTER SCORING FORMULA', margin, y);
+  y += 5;
+
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(margin, y, contentWidth, 18, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+  doc.text('STANDARDIZED LINEAR WEIGHT FORMULATION', margin + 4, y + 5.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('Score (100) = (Utility × 2.5) + (Tokenomics × 2.5) + (Security × 2.5) + (Team × 1.5) + (Community × 1.0)', margin + 4, y + 11.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
+  doc.text('Where each raw dimension is evaluated on a strict 1.0 to 10.0 scale under calibrated reference bounds.', margin + 4, y + 15.5);
+
+  y += 24;
+
+  // The 5 Core Dimensions Table
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('2. DIMENSION WEIGHTS & EVALUATION CRITERIA', margin, y);
   y += 4;
 
   const tableHeaderY = y;
   const colCriteriaX = margin + 88;
-  const criteriaWidth = contentWidth - 88 - 4; // 180 - 88 - 4 = 88mm available width
+  const criteriaWidth = contentWidth - 88 - 4; // 88 mm
 
   doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
   doc.rect(margin, tableHeaderY, contentWidth, 7, 'F');
@@ -250,11 +413,11 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
   y += 7;
 
   const dims = [
-    { name: '1. Utility & Protocol Function', weight: '25%', maxPts: '25.0 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, protocol utility.' },
-    { name: '2. Tokenomics & Economic Model', weight: '25%', maxPts: '25.0 pts', criteria: 'Inflation schedule, supply concentration, staking sinks, emission control.' },
-    { name: '3. Smart Contract Security', weight: '25%', maxPts: '25.0 pts', criteria: 'Third-party audits, code verification, multisig admin, exploit history.' },
-    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Dev experience, strategic backers, multisig transparency, KYC.' },
-    { name: '5. Community & Governance', weight: '10%', maxPts: '10.0 pts', criteria: 'Active dev ecosystem, organic user base, voting participation, social reach.' },
+    { name: '1. Utility & Protocol Function', weight: '25%', maxPts: '25.0 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, fee generation, protocol utility.' },
+    { name: '2. Tokenomics & Economic Model', weight: '25%', maxPts: '25.0 pts', criteria: 'Supply inflation, circulating vs. max supply ratio, staking sinks, emission unlock overhang.' },
+    { name: '3. Smart Contract Security', weight: '25%', maxPts: '25.0 pts', criteria: 'Third-party audits, code verification, multisig admin controls, static exploit history.' },
+    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Core developer experience, institutional backers, multisig transparency, public KYC track.' },
+    { name: '5. Community & Governance', weight: '10%', maxPts: '10.0 pts', criteria: 'Developer ecosystem activity, organic user base, voting quorum participation, social reach.' },
   ];
 
   dims.forEach((row, idx) => {
@@ -265,7 +428,6 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     const numLines = Math.max(1, criteriaLines.length);
     const rowHeight = numLines > 1 ? 9.5 : 8.0;
 
-    // Row Background (zebra striping)
     if (idx % 2 === 0) {
       doc.setFillColor(248, 250, 252);
     } else {
@@ -273,26 +435,21 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     }
     doc.rect(margin, rowY, contentWidth, rowHeight, 'F');
 
-    // Bottom subtle border
     doc.setDrawColor(226, 232, 240);
     doc.line(margin, rowY + rowHeight, margin + contentWidth, rowY + rowHeight);
 
-    // Dimension Name
     doc.setTextColor(textDark[0], textDark[1], textDark[2]);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     const midBaseline = rowY + (rowHeight / 2) + 1.2;
     doc.text(row.name, margin + 4, midBaseline);
 
-    // Weight
     doc.setFont('helvetica', 'normal');
     doc.text(row.weight, margin + 58, midBaseline, { align: 'center' });
 
-    // Max Points
     doc.setFont('helvetica', 'bold');
     doc.text(row.maxPts, margin + 74, midBaseline, { align: 'center' });
 
-    // Key Criteria with proper line wrapping
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     if (numLines === 1) {
@@ -306,29 +463,579 @@ export function generateBlueprintFormulaPdf(customFilename = 'evaluation_bluepri
     y += rowHeight;
   });
 
-  // Outer border for the complete table
   doc.setDrawColor(203, 213, 225);
   doc.rect(margin, tableHeaderY, contentWidth, y - tableHeaderY, 'D');
 
-  // 5. Supplementary Rules & Assessment Decoupling Notes
-  y += 8;
-  doc.setFillColor(241, 245, 249); // Slate-100
-  doc.setDrawColor(203, 213, 225); // Slate-300
-  doc.roundedRect(margin, y, contentWidth, 16, 2, 2, 'FD');
+  y += 10;
+
+  // The Decoupling Principle
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(margin, y, contentWidth, 28, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59); // Slate-800
-  doc.text('EVALUATION BLUEPRINT VERIFICATION PRINCIPLES:', margin + 4, y + 5.5);
+  doc.setFontSize(8.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('THE FUNDAMENTAL DECOUPLING PRINCIPLE (SCORE VS. RISK SEVERITY)', margin + 4, y + 5.5);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
-  doc.text('Evaluation Scores (/100) and assessed risk classification operate as separate, independent assessment outputs.', margin + 4, y + 9.8);
-  doc.text('Verified on-chain security telemetry, smart contract invariants, and liquidity depth govern risk severity.', margin + 4, y + 13.5);
+  const decoupleText = 'A central axiom of the Crypto Review Lab methodology is the complete decoupling of numerical evaluative scores (/100) from assessed risk severity classifications. High user adoption, exceptional developer activity, or deep liquidity can legitimately grant a protocol a high Utility and Community score (e.g., 85/100). However, if automated security scans (GoPlus, RugCheck, Blockscout) detect centralized mint functions, unverified delegatecalls, or extreme treasury custody concentration, the protocol is assigned an overriding HIGH or CRITICAL risk severity. Evaluative scores measure product-market strength; risk classifications measure empirical capital vulnerability.';
+  const splitDecouple = doc.splitTextToSize(decoupleText, contentWidth - 8);
+  splitDecouple.forEach((line: string, idx: number) => {
+    doc.text(line, margin + 4, y + 10.5 + (idx * 3.5));
+  });
 
-  // Footer
-  addFooter(doc, pageWidth, pageHeight, margin, textMuted, 'Evaluation Blueprint Specification Manual');
+  y += 34;
+
+  // Risk Classification Table
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('3. RISK SEVERITY TAXONOMY & THRESHOLDS', margin, y);
+  y += 4;
+
+  const riskLevels = [
+    { tag: 'LOW RISK (80–100 PTS)', color: emeraldAccent, desc: 'Verified open-source contracts, multi-party audits, distributed token supply (<15% top 10), and timelocked multisig governance.' },
+    { tag: 'MODERATE RISK (65–79 PTS)', color: cyanAccent, desc: 'Established market depth, verified source code, minor emission schedule overhang, standard governance dependencies.' },
+    { tag: 'HIGH RISK (50–64 PTS)', color: amberAccent, desc: 'Significant token concentration (>40% top 10), centralized single-owner admin keys, unverified external dependencies, or high slippage.' },
+    { tag: 'CRITICAL RISK (<50 PTS)', color: roseAccent, desc: 'Identified exploit history, active honeypot characteristics, unverified bytecode, blacklist capabilities, or severe liquidity drain exposure.' },
+  ];
+
+  riskLevels.forEach((rl) => {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentWidth, 14.5, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(rl.color[0], rl.color[1], rl.color[2]);
+    doc.text(rl.tag, margin + 3, y + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    const splitRl = doc.splitTextToSize(rl.desc, contentWidth - 6);
+    splitRl.forEach((line: string, idx: number) => {
+      doc.text(line, margin + 3, y + 9.2 + (idx * 3.4));
+    });
+
+    y += 16.5;
+  });
+
+  addWhitepaperFooter(2);
+
+  // ==========================================
+  // PAGE 3: PHASE TWO RE-CONTROL ARCHITECTURE (AUTOMATED QUALITY GATES)
+  // ==========================================
+  doc.addPage();
+  addWhitepaperHeader('Phase Two Re-Control Architecture', 'Section 2');
+
+  y = 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('1. AUTOMATED RE-CONTROL PIPELINE SPECIFICATION', margin, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Every candidate evaluation dossier undergoes an autonomous 5–10 minute secondary verification pass across 8 sequential quality gates.', margin, y);
+  y += 6;
+
+  const gates = [
+    {
+      gate: 'Gate 0: Structural Completeness Check',
+      badge: 'Deterministic Pre-Pass',
+      desc: 'Verifies presence of mandatory structural tokens: Title, Verdict, 5 Dimension Scores, Pros/Cons symmetry, Section 4 dual-scoring, 5-row delta table, and telemetry scan blocks before deeper compute.'
+    },
+    {
+      gate: 'Gate 1: Multi-Source Market Triangulation',
+      badge: 'CoinGecko + CMC + CoinStats',
+      desc: 'Cross-references price, 24h volume, liquidity depth, and circulating supply across CoinGecko, CoinMarketCap, and CoinStats. Flagged if multi-source price deviation exceeds ±3.5% or volume variance exceeds 15%.'
+    },
+    {
+      gate: 'Gate 2: On-Chain Security Cross-Check',
+      badge: 'GoPlus + RugCheck + Blockscout',
+      desc: 'Ingests verified real-time security scans from GoPlus Security, RugCheck (Solana), and Blockscout. Automatically flags mint authorities, freeze flags, unverified bytecode, honeypot functions, and blacklist vectors.'
+    },
+    {
+      gate: 'Gate 3: Cross-Framework Consistency Check',
+      badge: 'Score Drift Stabilization',
+      desc: 'Framework 2 (CRL Pro Risk Model) independently rescores all five dimensions. Enforces strict mathematical convergence where composite score drift between F1 and F2 must stabilize strictly below <3.0 points.'
+    },
+    {
+      gate: 'Gate 4: Tokenomics & Emission Re-Check',
+      badge: 'Supply Parity',
+      desc: 'Re-evaluates circulating vs. total vs. max supply ratios, scheduled cliff unlocks, vesting schedules, and treasury reserves to identify near-term liquidity dilution overhang.'
+    },
+    {
+      gate: 'Gate 5: Score Arithmetic Exactness',
+      badge: 'Zero Math Drift (±0.5 pt)',
+      desc: 'Deterministic calculation engine recomputes category-weighted linear algebra across all five dimensions. Zero tolerance for calculation drift; discrepancy above ±0.5 points triggers immediate failure.'
+    },
+    {
+      gate: 'Gate 6: Risk Assessment Semantic Consistency',
+      badge: 'Finding Corroboration',
+      desc: 'Validates semantic alignment between identified security telemetry findings and declared risk classifications. Prevents contradictory outputs (e.g., claiming "Low Risk" while reporting an active mint authority).'
+    },
+    {
+      gate: 'Gate 7: Formatting & Reporting Integrity',
+      badge: 'Structural Quality',
+      desc: 'Validates Markdown syntax, citation formatting, footnote integrity, and pros/cons structural balance to ensure flawless executive and institutional readability.'
+    }
+  ];
+
+  gates.forEach((g) => {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentWidth, 19, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+    doc.text(g.gate, margin + 3, y + 5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(cyanAccent[0], cyanAccent[1], cyanAccent[2]);
+    doc.text(`[${g.badge.toUpperCase()}]`, pageWidth - margin - 3, y + 5, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    const splitGDesc = doc.splitTextToSize(g.desc, contentWidth - 6);
+    splitGDesc.forEach((line: string, idx: number) => {
+      doc.text(line, margin + 3, y + 9.2 + (idx * 3.4));
+    });
+
+    y += 21.5;
+  });
+
+  y += 2;
+
+  // Gate Decision Flow
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(margin, y, contentWidth, 23, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('THE AUTOMATED RE-CONTROL DECISION MATRIX', margin + 4, y + 5.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+  doc.text('PASS THRESHOLD (≥95% CUMULATIVE GATE SCORE):', margin + 4, y + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  const passLines = doc.splitTextToSize('The evaluation candidate advances directly to Stage 3 (Deterministic F3 Verification) → Auditor Final Sign-off → Delivery.', contentWidth - 8);
+  passLines.forEach((l: string, lIdx: number) => {
+    doc.text(l, margin + 4, y + 15 + (lIdx * 3.4));
+  });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+  doc.text('FAIL THRESHOLD (<95% CUMULATIVE GATE SCORE):', margin + 4, y + 20);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+  const failLines = doc.splitTextToSize('Evaluation is automatically quarantined. Re-control directives are fed back to F1/F2 for automated regeneration loop.', contentWidth - 8);
+  failLines.forEach((l: string, lIdx: number) => {
+    doc.text(l, margin + 4, y + 24 + (lIdx * 3.4));
+  });
+
+  addWhitepaperFooter(3);
+
+  // ==========================================
+  // PAGE 4: AVF TRIPARTITE CORE ARCHITECTURE (F1 / F2 / F3)
+  // ==========================================
+  doc.addPage();
+  addWhitepaperHeader('AVF Tripartite Core Architecture', 'Section 3');
+
+  y = 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('1. THE TRIPARTITE MULTI-AGENT ENGINE SPECIFICATION', margin, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('The Algorithmic Verification Framework (AVF) segregates duties across three distinct, isolated functional engines:', margin, y);
+  y += 6;
+
+  const engines = [
+    {
+      name: 'Stage 1: F1 Candidate Engine (Draft Synthesis)',
+      role: 'Autonomous Multi-Source Telemetry Ingestion & Evaluation Drafting',
+      color: cyanAccent,
+      specs: [
+        'Ingests real-time feeds from CoinGecko, CoinMarketCap, CoinStats, and DefiLlama.',
+        'Pulls smart contract bytecode and static security findings from GoPlus, RugCheck, and Blockscout.',
+        'Synthesizes the initial 5-dimension scoring profile, narrative analysis, and pros/cons catalog.'
+      ]
+    },
+    {
+      name: 'Stage 2: F2 Reviewer Convergence Engine (Adversarial Critique)',
+      role: 'Independent Rescoring & Score Drift Stabilization (<3.0 pt)',
+      color: purpleAccent,
+      specs: [
+        'Acts as an autonomous adversarial reviewer, cross-examining candidate findings against exploit registers.',
+        'Executes independent Framework 2 rescoring across all dimensions to detect outlier optimism or bias.',
+        'Enforces score convergence loops: if delta exceeds 3.0 points, issues structured correction directives.'
+      ]
+    },
+    {
+      name: 'Stage 3: F3 Deterministic Layer (Algorithmic Verification)',
+      role: 'Zero-AI Invariant Verification & Cryptographic Attestation',
+      color: emeraldAccent,
+      specs: [
+        'Operates with strictly ZERO AI / LLM calls to prevent generative hallucination or subjective drift.',
+        'Executes 8 deterministic rule modules (AVF-01 through AVF-08) verifying arithmetic, taxonomy, and citations.',
+        'Normalizes canonical audit payloads, computes SHA-256 digests, and validates Ed25519 digital signatures.'
+      ]
+    }
+  ];
+
+  engines.forEach((eng) => {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentWidth, 31, 2, 2, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(eng.color[0], eng.color[1], eng.color[2]);
+    doc.text(eng.name, margin + 3, y + 5.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
+    doc.text(eng.role, margin + 3, y + 9.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(71, 85, 105);
+    eng.specs.forEach((spec, sIdx) => {
+      doc.text(`• ${spec}`, margin + 5, y + 14.5 + (sIdx * 4.5));
+    });
+
+    y += 33.5;
+  });
+
+  y += 2;
+
+  // Architectural Workflow State Machine
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('2. TRIPARTITE EXECUTION & VERIFICATION LIFECYCLE', margin, y);
+  y += 5;
+
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(203, 213, 225);
+  doc.roundedRect(margin, y, contentWidth, 68, 2, 2, 'FD');
+
+  const lifecycleSteps = [
+    { step: '01. Telemetry Ingestion', detail: 'Real-time multi-oracle pull (CoinGecko, CMC, CoinStats, DefiLlama, GoPlus, RugCheck, Blockscout).' },
+    { step: '02. F1 Draft Generation', detail: 'F1 models initial 5-dimension rubric scores and identifies contract risk parameters.' },
+    { step: '03. F2 Adversarial Review', detail: 'F2 runs independent scoring matrix and tests invariants against historical protocol failure records.' },
+    { step: '04. Convergence Assessment', detail: 'Score drift metric evaluated: ΔScore = |F1 - F2|. Must satisfy ΔScore < 3.0 pts across all dimensions.' },
+    { step: '05. Phase 2 Quality Gates', detail: 'Candidate evaluation is subjected to the 8-Gate automated Re-Control pipeline (Gate 0 to Gate 7).' },
+    { step: '06. F3 Deterministic Execution', detail: '8 algorithmic verification modules run with ZERO AI calls to produce canonical verification verdict.' },
+    { step: '07. Cryptographic Attestation', detail: 'Normalized canonical payload is SHA-256 digested and signed with CRL Advisory Division Ed25519 key.' }
+  ];
+
+  lifecycleSteps.forEach((ls, lIdx) => {
+    const stepY = y + 5 + (lIdx * 8.8);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(cyanAccent[0], cyanAccent[1], cyanAccent[2]);
+    doc.text(ls.step, margin + 4, stepY);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(71, 85, 105);
+    const detailLines = doc.splitTextToSize(ls.detail, contentWidth - 44);
+    if (detailLines.length === 1) {
+      doc.text(detailLines[0], margin + 42, stepY);
+    } else {
+      detailLines.forEach((dl: string, dlIdx: number) => {
+        doc.text(dl, margin + 42, stepY - 1 + (dlIdx * 3.2));
+      });
+    }
+
+    if (lIdx < lifecycleSteps.length - 1) {
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin + 4, stepY + 2.5, margin + contentWidth - 4, stepY + 2.5);
+    }
+  });
+
+  addWhitepaperFooter(4);
+
+  // ==========================================
+  // PAGE 5: THE 8 DETERMINISTIC RULE MODULES (AVF-01 THROUGH AVF-08)
+  // ==========================================
+  doc.addPage();
+  addWhitepaperHeader('Deterministic Verification Modules', 'Section 4');
+
+  y = 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('1. THE 8 DETERMINISTIC VERIFICATION MODULES (AVF-01 TO AVF-08)', margin, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(71, 85, 105);
+  doc.text('F3 executes 8 automated algorithmic modules. All checks are executed by deterministic code with zero AI approximation:', margin, y);
+  y += 5;
+
+  const avfModules = [
+    { id: 'AVF-01', name: 'Classification & Taxonomy Verification', desc: 'Validates protocol asset classification against standardized CoinGecko and DEX market taxonomy to prevent categorical misrepresentation.' },
+    { id: 'AVF-02', name: 'Evidence & Provenance Traceability', desc: 'Verifies public documentation links, official blockchain explorer contract registries, and real-time security telemetry feeds.' },
+    { id: 'AVF-03', name: 'Methodology & Weighting Compliance', desc: 'Verifies that the canonical 25/25/25/15/10 percentage weighting distribution was strictly applied without ad-hoc parameter tampering.' },
+    { id: 'AVF-04', name: 'Scenario Stress Testing & Liquidity Bounds', desc: 'Evaluates simulated price shock resistance, liquidity drain cascades, and slippage curves across automated market maker pools.' },
+    { id: 'AVF-05', name: 'Score Arithmetic & Zero-Drift Verification', desc: 'Algorithmically recomputes weighted averages and confirms that score aggregation math is exact within a strict ±0.5 point tolerance.' },
+    { id: 'AVF-06', name: 'Semantic Risk Consistency Check', desc: 'Ensures declared risk classifications and empirical security telemetry findings align without logical contradictions or omissions.' }
+  ];
+
+  avfModules.forEach((mod) => {
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margin, y, contentWidth, 12.5, 1.5, 1.5, 'FD');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(cyanAccent[0], cyanAccent[1], cyanAccent[2]);
+    doc.text(`${mod.id}: ${mod.name}`, margin + 3, y + 4.5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(71, 85, 105);
+    const splitMDesc = doc.splitTextToSize(mod.desc, contentWidth - 6);
+    splitMDesc.forEach((line: string, idx: number) => {
+      doc.text(line, margin + 3, y + 8.2 + (idx * 3.2));
+    });
+
+    y += 14.5;
+  });
+
+  y += 1;
+
+  // AVF-07: Deterministic Confidence Rule
+  const confBoxY = y;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  const confPoints = [
+    '▪ C_class: Deterministic classification consistency and completeness.',
+    '▪ C_prov: Verified telemetry and citation/provenance completeness.',
+    '▪ C_scen: 100% for PASSED / VERIFIED · 70% for NARRATIVE_ONLY · 20% for FAILED.',
+    '▪ C_risk: Deterministic risk-evidence completeness derived from verified inputs.',
+    '▪ Confidence Thresholds: ≥85% HIGH CONFIDENCE · 70–84% MODERATE CONFIDENCE · <70% LOW CONFIDENCE.',
+    '▪ Deterministic Rule: F3 calculates confidence exclusively from verified inputs and defined evidence states; no AI-generated confidence adjustment is permitted.'
+  ];
+  let confTextLines: string[] = [];
+  confPoints.forEach((cp) => {
+    const wrapped = doc.splitTextToSize(cp, contentWidth - 8);
+    confTextLines = confTextLines.concat(wrapped);
+  });
+  const confBoxHeight = 17 + (confTextLines.length * 3.4);
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(purpleAccent[0], purpleAccent[1], purpleAccent[2]);
+  doc.roundedRect(margin, confBoxY, contentWidth, confBoxHeight, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(purpleAccent[0], purpleAccent[1], purpleAccent[2]);
+  doc.text('AVF-07 — DETERMINISTIC CONFIDENCE RULE', margin + 4, confBoxY + 5.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('Confidence = (0.20 × C_class) + (0.30 × C_prov) + (0.30 × C_scen) + (0.20 × C_risk)', margin + 4, confBoxY + 10.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(71, 85, 105);
+  confTextLines.forEach((line, lineIdx) => {
+    doc.text(line, margin + 4, confBoxY + 15 + (lineIdx * 3.4));
+  });
+
+  y = confBoxY + confBoxHeight + 4;
+
+  // AVF-08: Cryptographic Integrity & Signing Rule
+  const signBoxY = y;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  const signPoints = [
+    '▪ Canonical Payload: The deterministic audit data used for verification is normalized into a canonical representation before hashing.',
+    '▪ Draft: "Status = UNSIGNED" — preliminary audit output; no cryptographic verification claim.',
+    '▪ Final Delivery: Crypto Review Lab applies an Ed25519 digital signature to the finalized audit payload.',
+    '▪ Integrity: The signature and digest must validate against the exact finalized payload.',
+    '▪ Immutability: Any post-signature modification to signed audit data causes verification failure and returns HASH_MISMATCH.',
+    '▪ Verification: F3 uses the established cryptographic signing and verification layer; cryptographic operations are not reimplemented inside the F3 engine.'
+  ];
+  let signTextLines: string[] = [];
+  signPoints.forEach((sp) => {
+    const wrapped = doc.splitTextToSize(sp, contentWidth - 8);
+    signTextLines = signTextLines.concat(wrapped);
+  });
+  const signBoxHeight = 17 + (signTextLines.length * 3.4);
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+  doc.roundedRect(margin, signBoxY, contentWidth, signBoxHeight, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+  doc.text('AVF-08 — CRYPTOGRAPHIC INTEGRITY & SIGNING RULE', margin + 4, signBoxY + 5.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('Digest = SHA-256(Canonical Audit Payload)', margin + 4, signBoxY + 10.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(71, 85, 105);
+  signTextLines.forEach((line, lineIdx) => {
+    doc.text(line, margin + 4, signBoxY + 15 + (lineIdx * 3.4));
+  });
+
+  addWhitepaperFooter(5);
+
+  // ==========================================
+  // PAGE 6: GUARANTEES, LIMITATIONS & GOVERNANCE APPENDIX
+  // ==========================================
+  doc.addPage();
+  addWhitepaperHeader('Guarantees, Limitations & Governance', 'Section 5');
+
+  y = 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('1. VERIFICATION GUARANTEES & OPERATIONAL LIMITATIONS', margin, y);
+  y += 5;
+
+  // Guarantees box
+  const guarBoxY = y;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  const guarPoints = [
+    '• 100% Mathematical Exactness: Score arithmetic and weighting tables are deterministically calculated without AI hallucination.',
+    '• Empirical Multi-Source Corroboration: Market data is triangulated across CoinGecko, CoinMarketCap, and CoinStats.',
+    '• Active Invariant Detection: Static bytecode scans from GoPlus, RugCheck, and Blockscout are verified before final sign-off.',
+    '• Cryptographic Non-Repudiation: Every approved dossier is SHA-256 digested and signed with CRL Ed25519 keys.'
+  ];
+  let guarTextLines: string[] = [];
+  guarPoints.forEach((gp) => {
+    const wrapped = doc.splitTextToSize(gp, contentWidth - 8);
+    guarTextLines = guarTextLines.concat(wrapped);
+  });
+  const guarBoxHeight = 11 + (guarTextLines.length * 3.6);
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+  doc.roundedRect(margin, guarBoxY, contentWidth, guarBoxHeight, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(emeraldAccent[0], emeraldAccent[1], emeraldAccent[2]);
+  doc.text('WHAT THE ALGORITHMIC VERIFICATION FRAMEWORK (AVF) GUARANTEES', margin + 4, guarBoxY + 5.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(71, 85, 105);
+  guarTextLines.forEach((line, lineIdx) => {
+    doc.text(line, margin + 4, guarBoxY + 10 + (lineIdx * 3.6));
+  });
+
+  y = guarBoxY + guarBoxHeight + 4;
+
+  // Limitations box
+  const limBoxY = y;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  const limPoints = [
+    '• Advisory Risk Assessment Only: CRL evaluations are research dossiers. They do NOT constitute financial, investment, or legal advice.',
+    '• Not a Full Bytecode Audit: AVF identifies known vulnerability patterns, honeypot functions, and static telemetry. It does not replace formal manual bytecode auditing, formal mathematical theorem proving, or manual penetration testing.',
+    '• No Price or Economic Guarantee: A high composite score reflects product-market parameters and published telemetry; it does not guarantee token price appreciation, liquidity preservation, or solvency of underlying protocol reserves.',
+    '• Telemetry Latency: On-chain metrics are subject to RPC node propagation and aggregator refresh rates.'
+  ];
+  let limTextLines: string[] = [];
+  limPoints.forEach((lp) => {
+    const wrapped = doc.splitTextToSize(lp, contentWidth - 8);
+    limTextLines = limTextLines.concat(wrapped);
+  });
+  const limBoxHeight = 11 + (limTextLines.length * 3.6);
+  doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
+  doc.setDrawColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+  doc.roundedRect(margin, limBoxY, contentWidth, limBoxHeight, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(roseAccent[0], roseAccent[1], roseAccent[2]);
+  doc.text('SYSTEM BOUNDARIES & REGULATORY DISCLAIMERS', margin + 4, limBoxY + 5.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(71, 85, 105);
+  limTextLines.forEach((line, lineIdx) => {
+    doc.text(line, margin + 4, limBoxY + 10 + (lineIdx * 3.6));
+  });
+
+  y = limBoxY + limBoxHeight + 4;
+
+  // Governance & Versioning
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text('2. STANDARD GOVERNANCE & VERSIONING PROTOCOL', margin, y);
+  y += 5;
+
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, y, contentWidth, 24, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(71, 85, 105);
+  const govText = 'The Crypto Review Lab Evaluation Blueprint and Algorithmic Verification Framework operate under a locked public standard. Any modification to scoring weights, gate thresholds, or deterministic verification formulas requires a formal RFC publication, public consensus period, and version increment. Backwards-compatibility is cryptographically enforced: historical audit digests remain tied to the specific standard version active at the time of signing.';
+  const splitGov = doc.splitTextToSize(govText, contentWidth - 8);
+  splitGov.forEach((line: string, idx: number) => {
+    doc.text(line, margin + 4, y + 5.5 + (idx * 3.5));
+  });
+
+  y += 28;
+
+  // Institutional Sign-Off Block
+  doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
+  doc.roundedRect(margin, y, contentWidth, 42, 2, 2, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.text('OFFICIAL ATTESTATION & SPECIFICATION SIGN-OFF', margin + 5, y + 7);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(203, 213, 225);
+  doc.text('ISSUING BODY: Crypto Review Lab (CRL) Advisory & Algorithmic Verification Division', margin + 5, y + 13);
+  doc.text('SPECIFICATION TITLE: Evaluation Blueprint & AVF Technical Standard v3.2', margin + 5, y + 17.5);
+  doc.text('CANONICAL DIGEST ALGORITHM: SHA-256 (FIPS PUB 180-4)', margin + 5, y + 22);
+  doc.text('ATTESTATION SIGNATURE: Ed25519 Digital Signature Standard', margin + 5, y + 26.5);
+  doc.text(`SPECIFICATION DATE: ${nowStr} • VERIFICATION STATUS: LOCKED PRODUCTION STANDARD`, margin + 5, y + 31);
+  doc.text('OFFICIAL DOCUMENT ARCHIVE: cryptoreviewlab.com/standards/blueprint-v3.2', margin + 5, y + 35.5);
+
+  addWhitepaperFooter(6);
 
   doc.save(customFilename);
 }
@@ -1123,9 +1830,9 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
 
   // Data Freshness & Source Coverage Definitions
   const dataDateStr = data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : fullTimestamp.split(' ')[0];
-  const dataFreshness = `Live Telemetry Synchronized (${dataDateStr}) • CoinGecko API v3 • Block Timestamp: ${fullTimestamp}`;
+  const dataFreshness = `Live Telemetry Synchronized (${dataDateStr}) • CoinGecko • Block Timestamp: ${fullTimestamp}`;
   
-  const activeSourcesList: string[] = ['CoinGecko API v3'];
+  const activeSourcesList: string[] = ['CoinGecko'];
   if (data.contractAddress) activeSourcesList.push('Etherscan / Bytecode Registry');
   if (secScan) activeSourcesList.push(secScan.source || 'GoPlus Security');
   if (data.realTvl && data.realTvl > 0) activeSourcesList.push('DefiLlama');
