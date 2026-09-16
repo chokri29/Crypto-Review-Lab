@@ -510,7 +510,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
                     </span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed font-sans max-w-2xl">
-                    Detailed 6-page institutional specification containing complete Gate 0–7 automated re-control parameters, AVF-01 through AVF-08 deterministic proofs, AVF-07 confidence formulas, and AVF-08 SHA-256 canonical hashing &amp; Ed25519 signing specifications.
+                    Detailed 6-page technical specification containing complete Gate 0–7 automated re-control parameters, AVF-01 through AVF-08 deterministic proofs, AVF-07 confidence formulas, and AVF-08 SHA-256 canonical hashing &amp; Ed25519 signing specifications.
                   </p>
                 </div>
                 <button

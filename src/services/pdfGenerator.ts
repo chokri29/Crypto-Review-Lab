@@ -243,9 +243,15 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   y = 46;
 
   // Executive Abstract
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  const abstractText = 'The Algorithmic Verification Framework (AVF) establishes a deterministic, verifiable standard for digital asset risk evaluation and security assessment. Historically, crypto reviews have been plagued by subjective heuristics, promotional bias, generative AI hallucinations, and the dangerous conflation of token market performance with smart contract security. Crypto Review Lab decouples evaluative scoring from security telemetry, orchestrating a multi-stage architecture: the F1 Candidate Engine drafts the assessment, the F2 Reviewer independently stress-tests findings to enforce score convergence, and the F3 Deterministic Layer executes 8 algorithmic verification modules with zero AI estimation inside the F3 verification layer (F1 candidate drafting may use generative assistance; F3 does not) to enforce mathematical exactness, telemetry provenance, and cryptographic integrity.';
+  const splitAbstract = doc.splitTextToSize(abstractText, contentWidth - 8);
+  const abstractBoxHeight = 11 + (splitAbstract.length * 3.6);
+
   doc.setFillColor(bgLight[0], bgLight[1], bgLight[2]);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 34, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, abstractBoxHeight, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9.5);
@@ -255,13 +261,11 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(71, 85, 105);
-  const abstractText = 'The Algorithmic Verification Framework (AVF) establishes a deterministic, verifiable standard for digital asset risk evaluation and security assessment. Historically, crypto reviews have been plagued by subjective heuristics, promotional bias, generative AI hallucinations, and the dangerous conflation of token market performance with smart contract security. Crypto Review Lab decouples evaluative scoring from security telemetry, orchestrating a multi-stage architecture: the F1 Candidate Engine drafts the assessment, the F2 Reviewer independently stress-tests findings to enforce score convergence, and the F3 Deterministic Layer executes 8 algorithmic verification modules with zero AI estimation to enforce mathematical exactness, telemetry provenance, and cryptographic integrity.';
-  const splitAbstract = doc.splitTextToSize(abstractText, contentWidth - 8);
   splitAbstract.forEach((line: string, idx: number) => {
     doc.text(line, margin + 4, y + 11.5 + (idx * 3.6));
   });
 
-  y += 40;
+  y += abstractBoxHeight + 5;
 
   // Section: Fundamental Problems in Contemporary Audits
   doc.setFont('helvetica', 'bold');
@@ -416,7 +420,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     { name: '1. Utility & Protocol Function', weight: '25%', maxPts: '25.0 pts', criteria: 'Real-world adoption, transaction throughput, TVL depth, fee generation, protocol utility.' },
     { name: '2. Tokenomics & Economic Model', weight: '25%', maxPts: '25.0 pts', criteria: 'Supply inflation, circulating vs. max supply ratio, staking sinks, emission unlock overhang.' },
     { name: '3. Smart Contract Security', weight: '25%', maxPts: '25.0 pts', criteria: 'Third-party audits, code verification, multisig admin controls, static exploit history.' },
-    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Core developer experience, institutional backers, multisig transparency, public KYC track.' },
+    { name: '4. Team & Backer Track Record', weight: '15%', maxPts: '15.0 pts', criteria: 'Core developer experience, independent backers, multisig transparency, public KYC track.' },
     { name: '5. Community & Governance', weight: '10%', maxPts: '10.0 pts', criteria: 'Developer ecosystem activity, organic user base, voting quorum participation, social reach.' },
   ];
 
@@ -585,7 +589,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     {
       gate: 'Gate 7: Formatting & Reporting Integrity',
       badge: 'Structural Quality',
-      desc: 'Validates Markdown syntax, citation formatting, footnote integrity, and pros/cons structural balance to ensure flawless executive and institutional readability.'
+      desc: 'Validates Markdown syntax, citation formatting, footnote integrity, and pros/cons structural balance to ensure flawless executive and structured readability.'
     }
   ];
 
@@ -696,7 +700,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
       role: 'Zero-AI Invariant Verification & Cryptographic Attestation',
       color: emeraldAccent,
       specs: [
-        'Operates with strictly ZERO AI / LLM calls to prevent generative hallucination or subjective drift.',
+        'Operates with strictly ZERO AI / LLM calls inside the F3 verification layer (F1 candidate drafting may use generative assistance; F3 does not).',
         'Executes 8 deterministic rule modules (AVF-01 through AVF-08) verifying arithmetic, taxonomy, and citations.',
         'Normalizes canonical audit payloads, computes SHA-256 digests, and validates Ed25519 digital signatures.'
       ]
@@ -931,10 +935,10 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   const guarPoints = [
-    '• 100% Mathematical Exactness: Score arithmetic and weighting tables are deterministically calculated without AI hallucination.',
+    '• Deterministic Score Arithmetic: Weighted score calculation and dimension aggregation are performed by pure deterministic code with zero AI involvement and a strict ±0.5 point tolerance.',
     '• Empirical Multi-Source Corroboration: Market data is triangulated across CoinGecko, CoinMarketCap, and CoinStats.',
     '• Active Invariant Detection: Static bytecode scans from GoPlus, RugCheck, and Blockscout are verified before final sign-off.',
-    '• Cryptographic Non-Repudiation: Every approved dossier is SHA-256 digested and signed with CRL Ed25519 keys.'
+    '• Cryptographic Integrity: Approved dossiers are SHA-256 digested and signed with Ed25519 when a properly configured signing key is present. Signature verification fails closed if the cryptographic engine or key material is unavailable.'
   ];
   let guarTextLines: string[] = [];
   guarPoints.forEach((gp) => {
@@ -1001,22 +1005,25 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
   doc.text('2. STANDARD GOVERNANCE & VERSIONING PROTOCOL', margin, y);
   y += 5;
 
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin, y, contentWidth, 24, 2, 2, 'FD');
-
+  const govBoxY = y;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(71, 85, 105);
   const govText = 'The Crypto Review Lab Evaluation Blueprint and Algorithmic Verification Framework operate under a locked public standard. Any modification to scoring weights, gate thresholds, or deterministic verification formulas requires a formal RFC publication, public consensus period, and version increment. Backwards-compatibility is cryptographically enforced: historical audit digests remain tied to the specific standard version active at the time of signing.';
   const splitGov = doc.splitTextToSize(govText, contentWidth - 8);
+  const govBoxHeight = 8 + (splitGov.length * 3.5);
+
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(margin, govBoxY, contentWidth, govBoxHeight, 2, 2, 'FD');
+
   splitGov.forEach((line: string, idx: number) => {
-    doc.text(line, margin + 4, y + 5.5 + (idx * 3.5));
+    doc.text(line, margin + 4, govBoxY + 5.5 + (idx * 3.5));
   });
 
-  y += 28;
+  y = govBoxY + govBoxHeight + 5;
 
-  // Institutional Sign-Off Block
+  // Technical Sign-Off Block
   doc.setFillColor(primaryDark[0], primaryDark[1], primaryDark[2]);
   doc.roundedRect(margin, y, contentWidth, 42, 2, 2, 'F');
 
