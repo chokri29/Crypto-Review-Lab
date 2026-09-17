@@ -1244,9 +1244,12 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
         lines.push(`• AVF-06 Security Verification: ${f3.modules.avf06Security.status} (${f3.modules.avf06Security.signalsChecked?.length || 0} on-chain signals verified)`);
       }
       if (review.securityScan) {
-        const isOpenSource = review.securityScan.is_open_source ?? review.securityScan.isOpenSource;
-        const isHoneypot = review.securityScan.is_honeypot ?? review.securityScan.isHoneypot;
-        lines.push(`• On-Chain Bytecode Telemetry: OpenSource=${isOpenSource ? 'YES' : 'NO'}, Honeypot=${isHoneypot ? 'YES' : 'NO'}`);
+        const sec = review.securityScan.data || review.securityScan;
+        const honeypotKnown = (sec.is_honeypot !== undefined && sec.is_honeypot !== null) || (sec.isHoneypot !== undefined && sec.isHoneypot !== null) || (review.securityScan.is_honeypot !== undefined && review.securityScan.is_honeypot !== null) || (review.securityScan.isHoneypot !== undefined && review.securityScan.isHoneypot !== null);
+        const isHoneypot = Boolean(sec.is_honeypot ?? sec.isHoneypot ?? review.securityScan.is_honeypot ?? review.securityScan.isHoneypot);
+        const openSourceKnown = (sec.is_open_source !== undefined && sec.is_open_source !== null) || (sec.isOpenSource !== undefined && sec.isOpenSource !== null) || (review.securityScan.is_open_source !== undefined && review.securityScan.is_open_source !== null) || (review.securityScan.isOpenSource !== undefined && review.securityScan.isOpenSource !== null);
+        const isOpenSource = Boolean(sec.is_open_source ?? sec.isOpenSource ?? review.securityScan.is_open_source ?? review.securityScan.isOpenSource);
+        lines.push(`• On-Chain Bytecode Telemetry: OpenSource=${openSourceKnown ? (isOpenSource ? 'YES' : 'NO') : 'UNKNOWN'}, Honeypot=${honeypotKnown ? (isHoneypot ? 'YES' : 'NO') : 'UNKNOWN'}`);
       }
       if (f3) {
         lines.push(`• AVF Tripartite Verification State: ${f3.overallStatus}`);

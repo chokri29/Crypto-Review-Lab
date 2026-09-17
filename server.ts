@@ -676,6 +676,18 @@ Your entire response must match the specified JSON schema exactly.`;
         parsedReview.overallScore = bpResult.overallScore;
         parsedReview.riskLevel = bpResult.riskLevel;
         parsedReview.category = bpResult.categoryType;
+        if (parsedReview.name && parsedReview.symbol) {
+          parsedReview.verdict = `${parsedReview.name} (${parsedReview.symbol}) is assigned a score of ${bpResult.overallScore}/100 with ${bpResult.riskLevel} Risk assessment under the 5-dimension locked Evaluation Blueprint rubric.`;
+        }
+        if (typeof parsedReview.summary === 'string') {
+          const targetName = parsedReview.name || name;
+          const conclusionText = `### Conclusion\n${targetName} receives an overall Evaluation Blueprint Score of ${bpResult.overallScore}/100, reflecting a ${bpResult.riskLevel} Risk assessment under the locked 5-dimension rubric.`;
+          if (/###\s*Conclusion/i.test(parsedReview.summary)) {
+            parsedReview.summary = parsedReview.summary.replace(/###\s*Conclusion[\s\S]*$/i, conclusionText);
+          } else {
+            parsedReview.summary = `${parsedReview.summary.trim()}\n\n${conclusionText}`;
+          }
+        }
       }
 
       if (parsedReview) {
