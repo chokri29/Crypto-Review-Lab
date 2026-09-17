@@ -27,20 +27,30 @@ The Algorithmic Verification Framework (AVF) is structured as a **Tripartite Cor
 
 ---
 
-## 2. Evaluation Blueprint v2.4 Weight Distribution
+## 2. Evaluation Blueprint v2.4 Weight Distribution & Category Matrix
 
-Under Evaluation Blueprint v2.4, default evaluation weights are strictly calibrated to sum to **100.0%**:
+### 100-Point Master Scoring Formula
+A project's numerical score is calculated across 5 core dimensions (evaluated on a 1.0 to 10.0 scale):
 
-| Evaluation Dimension | Blueprint v2.4 Weight | Description |
-| :--- | :---: | :--- |
-| **Utility** | **25%** (`0.25`) | Protocol value proposition, fee capture, and adoption depth. |
-| **Tokenomics** | **25%** (`0.25`) | Circulating/Total supply ratio, unlock cliff risk, and emission sustainability. |
-| **Security** | **25%** (`0.25`) | Smart contract audits, bytecode invariants, and vulnerability history. |
-| **Team & Backing** | **15%** (`0.15`) | Team transparency, engineering track record, and verified backer ecosystem. |
-| **Community & Ecosystem** | **10%** (`0.10`) | Social engagement, developer activity, and ecosystem liquidity depth. |
-| **Total Composite** | **100%** (`1.00`) | Standard baseline weighted composite score. |
+$$\text{Score (100)} = (\text{Utility} \times M_U) + (\text{Tokenomics} \times M_T) + (\text{Security} \times M_S) + (\text{Team} \times M_{\text{Tm}}) + (\text{Community} \times M_C)$$
 
-*(Note: Category-specific adjustments like DeFi Protocol 35% Security / 10% Team also strictly reconcile to 100.0%).*
+Where each dimension multiplier $M_i = \text{Weight}_i \times 10$. Multipliers are not a single universal split; they vary deterministically based on protocol category to reflect domain-specific risk exposure.
+
+### Deterministic Category Dimension Weight Matrix
+All weights are category-specific and deterministically fixed per protocol category, sourced from `getCategoryDimensionWeights()` in `src/services/EvaluationBlueprint.ts`:
+
+| Protocol Category | Utility | Tokenomics | Security | Team | Community | Weight Set | Key Architectural Focus |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **DeFi Protocol (AMM / Lending)** | 25% (×2.5) | 20% (×2.0) | 35% (×3.5) | 10% (×1.0) | 10% (×1.0) | **25/20/35/10/10** | Smart contract & invariant security prioritized |
+| **Layer 1 Blockchain** | 25% (×2.5) | 20% (×2.0) | 30% (×3.0) | 10% (×1.0) | 15% (×1.5) | **25/20/30/10/15** | Node decentralization, throughput & ecosystem |
+| **Restaking / Shared Security / AVS** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 15% (×1.5) | 10% (×1.0) | **25/15/35/15/10** | Slashing risks, operator security & collateral |
+| **Privacy / Cryptographic (FHE / ZK / MPC)** | 25% (×2.5) | 10% (×1.0) | 35% (×3.5) | 20% (×2.0) | 10% (×1.0) | **25/10/35/20/10** | Cryptographic proof validity & core team rigor |
+| **Layer 2 / Scaling** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 10% (×1.0) | 15% (×1.5) | **25/15/35/10/15** | Sequencer decentralization & bridge proofs |
+| **Infrastructure (Oracle / Bridge)** | 25% (×2.5) | 15% (×1.5) | 35% (×3.5) | 15% (×1.5) | 10% (×1.0) | **25/15/35/15/10** | Data latency, consensus & bridge verification |
+| **RWA (Tokenization / TradFi Bridge)** | 25% (×2.5) | 20% (×2.0) | 35% (×3.5) | 10% (×1.0) | 10% (×1.0) | **25/20/35/10/10** | Legal custody, asset backing & contract safety |
+| **DePIN (Compute / Storage / Wireless)** | 30% (×3.0) | 20% (×2.0) | 25% (×2.5) | 15% (×1.5) | 10% (×1.0) | **30/20/25/15/10** | Hardware network density & real physical utility |
+| **Memecoin / Speculative** | 10% (×1.0) | 30% (×3.0) | 20% (×2.0) | 10% (×1.0) | 30% (×3.0) | **10/30/20/10/30** | Distribution fairness, liquidity sinks & social |
+| **Specialized / Experimental (Default)** | 25% (×2.5) | 25% (×2.5) | 25% (×2.5) | 15% (×1.5) | 10% (×1.0) | **25/25/25/15/10** | Balanced baseline evaluation for novel designs |
 
 ---
 
@@ -62,9 +72,9 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 - **Purpose:** Verifies that the declared Blueprint v2.4 category-specific weighting formula was applied with zero unauthorized formula drift.
 - **Output:** `VERIFIED` if underlying weighted math matches declared rubric.
 
-### Module 4: AVF-04 — Scenario Bounds & Liquidity Stress Testing
-- **Purpose:** Evaluates price shock scenarios (-30%, -60%, -85%) and liquidity drain thresholds using bounded heuristic arithmetic models based on observed TVL and volume. Does not perform live multi-pool smart contract exploit executions or live flash loan transaction simulations.
-- **Output:** Status returns `PASSED` (100% scenario resilience), `SIMULATED_WITH_WARNINGS` (70%), `NARRATIVE_ONLY` (40%), or `FAILED` / `INPUT_MISSING`.
+### Module 4: AVF-04 — Scenario Readiness & Stress-Input Verification
+- **Purpose:** AVF-04 verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address) and tracks F1/F2 convergence-loop execution. Full numerical price-shock, liquidity-drain and slippage simulations are not currently attached.
+- **Output:** Status returns `PASSED` (100% scenario readiness), `SIMULATED_WITH_WARNINGS` (70%), `NARRATIVE_ONLY` (40%), or `FAILED` / `INPUT_MISSING`.
 
 ### Module 5: AVF-05 — Score Arithmetic & Weight Verification
 - **Purpose:** Recomputes the weighted composite score to double precision:

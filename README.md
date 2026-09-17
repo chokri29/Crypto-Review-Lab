@@ -9,7 +9,7 @@
 
 **Crypto Review Lab (CRL)** is an independent cryptocurrency research, security evaluation, and asset verification platform. Designed for decentralized finance (DeFi) protocols, digital asset treasuries, web3 developers, and institutional participants, CRL delivers rigorous, data-driven security evaluations, real-time telemetry surveillance, and independent transparency across native crypto assets and tokenized real-world equities (xStocks).
 
-All evaluations are governed by the deterministic **Algorithmic Verification Framework (AVF)** and audited through an automated 8-Gate Re-Control pipeline and multi-module deterministic verification layer with zero subjective AI tampering.
+All evaluations are governed by the deterministic **Algorithmic Verification Framework (AVF)** and audited through an automated 8-Gate Re-Control pipeline and multi-module deterministic verification layer with deterministic verification with no AI estimation in F3.
 
 ---
 
@@ -37,7 +37,7 @@ Automatically ingests contract bytecode, opcode sequences, tokenomics schedules,
 ### 2. F2 — Phase Two Automated Re-Control Engine
 Candidate evaluations are subjected to an 8-Gate automated quality pipeline (Gate 0 through Gate 7) enforcing strict consistency and convergence:
 
-* **Gate 0 — Structural Syntax & Opcode Integrity:** Validates contract bytecode formatting, opcode sequence validity, and AST tree cleanliness.
+* **Gate 0 — Structural Completeness Check:** Verifies presence of mandatory fields (name, symbol, scores, summary, verdict, pros/cons).
 * **Gate 1 — Multi-Source Triangulation:** Cross-verifies telemetry across redundant RPC nodes, block explorers, and price feeds.
 * **Gate 2 — GoPlus & RugCheck Security:** Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.
 * **Gate 3 — Cross-Framework Consistency Check:** Enforces strict `< 3.0 point` composite score drift convergence between F1 and F2 models.
@@ -92,7 +92,7 @@ CRL enforces an absolute separation between **Numerical Evaluative Scores (/100)
 ## 📑 Technical Whitepaper & Cryptographic Attestation
 
 * **Official 6-Page Technical Whitepaper PDF:** Fully comprehensive, authoritative documentation detailing the 5-Dimension Master Scoring Rubric, the Category Weight Matrix, the 8-Gate Re-Control pipeline, the AVF Tripartite Core (F1/F2/F3), and all 8 Verification Modules. Can be exported directly via the platform UI.
-* **Institutional Audit Dossier PDF:** Exportable comprehensive asset review reports complete with SHA-256 canonical hashing and Ed25519 digital cryptographic signatures for tamper-proof provenance.
+* **Audit Dossier PDF:** Exportable comprehensive asset review reports complete with SHA-256 canonical hashing and Ed25519 digital cryptographic signatures for cryptographic provenance (SHA-256 + Ed25519).
 
 ---
 
@@ -127,8 +127,8 @@ A dedicated surveillance engine designed for tokenized equities (such as Backed 
 ### Installation & Run
 ```bash
 # Clone repository
-git clone https://github.com/ghalmichokri/crypto-review-lab.git
-cd crypto-review-lab
+git clone https://github.com/chokri29/Crypto-Review-Lab.git
+cd Crypto-Review-Lab
 
 # Install dependencies
 npm install
