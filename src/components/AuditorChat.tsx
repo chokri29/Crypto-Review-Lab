@@ -229,7 +229,7 @@ const FALLBACK_TICKER_ITEMS: TickerItem[] = [
   { id: 't3', category: 'SYSTEM', text: 'AUDIT RIGOR: Invariant evaluations require multi-source convergence before verification-grade claims.' },
   { id: 't4', category: 'NEWS', text: 'CRYPTO REVIEW LAB: Algorithmic assessment framework enforces zero synthetic metrics on market data.' },
   { id: 't5', category: 'ALERT', text: 'RISK PROTOCOL: Declared risk classifications must align with verified telemetry without uncalibrated optimism.' },
-  { id: 't6', category: 'VULN', text: 'METHODOLOGY COMPLIANCE: 25/25/25/15/10 weight invariant applies strictly across all evaluated assets.' },
+  { id: 't6', category: 'VULN', text: 'METHODOLOGY COMPLIANCE: Category-specific dimension weights apply deterministically per protocol category via getCategoryDimensionWeights().' },
   { id: 't7', category: 'SYSTEM', text: 'PROVENANCE MANDATE: Missing telemetry feeds are labelled UNAVAILABLE; synthetic data prohibited.' }
 ];
 
