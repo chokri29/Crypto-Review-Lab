@@ -56,6 +56,7 @@ import { fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './serv
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
 import { F3VerificationProvider } from './context/F3VerificationContext';
+import { isOrderReferencePattern, matchesStoredProOrder } from './services/proOrderService';
 
 import BlogPreviewer from './components/BlogPreviewer';
 
@@ -239,6 +240,8 @@ export default function App() {
       return null;
     }
   });
+
+  const [reportUnavailable, setReportUnavailable] = useState<{ id: string; isOrder: boolean } | null>(null);
 
   const [isAdminMaster, setIsAdminMaster] = useState<boolean>(() => {
     try {
@@ -938,9 +941,11 @@ export default function App() {
     }
   }, [selectedReviewId, activeTab]);
 
-  // Auto-fetch CoinGecko data if a review ID is requested via URL or deep-link (e.g., ?tab=blog&review=cg-lorenzo-protocol)
   useEffect(() => {
-    if (!selectedReviewId) return;
+    if (!selectedReviewId) {
+      setReportUnavailable(null);
+      return;
+    }
 
     const targetId = selectedReviewId.trim();
     const cleanCoinId = targetId.replace(/^cg-/, '').toLowerCase();
@@ -963,30 +968,110 @@ export default function App() {
         r.id.toLowerCase() === targetId.toLowerCase()
     );
 
-    if (!existsInSaved && !existsInInitial) {
-      createReviewFromCoinGecko(cleanCoinId)
-        .then((newReview) => {
-          if (newReview) {
-            setSavedReviews((prev) => {
-              if (
-                prev.some(
-                  (r) =>
-                    r.id === newReview.id ||
-                    (r.coingeckoId && r.coingeckoId.toLowerCase() === newReview.coingeckoId.toLowerCase())
-                )
-              ) {
-                return prev;
-              }
-              const updated = [newReview, ...prev];
-              persistReviews(updated);
-              return updated;
-            });
-          }
-        })
-        .catch((err) => {
-          console.warn('Failed to auto-fetch review for:', selectedReviewId, err);
-        });
+    if (existsInSaved || existsInInitial) {
+      setReportUnavailable(null);
+      return;
     }
+
+    const isOrderPattern = isOrderReferencePattern(targetId);
+    const matchesProOrder = matchesStoredProOrder(targetId);
+
+    if (matchesProOrder || isOrderPattern) {
+      setReportUnavailable({
+        id: targetId,
+        isOrder: matchesProOrder
+      });
+      return;
+    }
+
+    fetch('/api/pro-order/list')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((orders: any[]) => {
+        const isStoredOrder = Array.isArray(orders) && orders.some(
+          (o) =>
+            (o.orderId && o.orderId.toLowerCase() === targetId.toLowerCase()) ||
+            (o.id && o.id.toLowerCase() === targetId.toLowerCase()) ||
+            (o.refId && o.refId.toLowerCase() === targetId.toLowerCase()) ||
+            (o.auditRefId && o.auditRefId.toLowerCase() === targetId.toLowerCase()) ||
+            (o.systemDraft?.id && o.systemDraft.id.toLowerCase() === targetId.toLowerCase()) ||
+            (o.finalReview?.id && o.finalReview.id.toLowerCase() === targetId.toLowerCase())
+        );
+
+        if (isStoredOrder) {
+          setReportUnavailable({
+            id: targetId,
+            isOrder: true
+          });
+          return;
+        }
+
+        createReviewFromCoinGecko(cleanCoinId)
+          .then((newReview) => {
+            if (newReview) {
+              setReportUnavailable(null);
+              setSavedReviews((prev) => {
+                if (
+                  prev.some(
+                    (r) =>
+                      r.id === newReview.id ||
+                      (r.coingeckoId && r.coingeckoId.toLowerCase() === newReview.coingeckoId.toLowerCase())
+                  )
+                ) {
+                  return prev;
+                }
+                const updated = [newReview, ...prev];
+                persistReviews(updated);
+                return updated;
+              });
+            } else {
+              setReportUnavailable({
+                id: targetId,
+                isOrder: false
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to auto-fetch review for:', selectedReviewId, err);
+            setReportUnavailable({
+              id: targetId,
+              isOrder: false
+            });
+          });
+      })
+      .catch(() => {
+        createReviewFromCoinGecko(cleanCoinId)
+          .then((newReview) => {
+            if (newReview) {
+              setReportUnavailable(null);
+              setSavedReviews((prev) => {
+                if (
+                  prev.some(
+                    (r) =>
+                      r.id === newReview.id ||
+                      (r.coingeckoId && r.coingeckoId.toLowerCase() === newReview.coingeckoId.toLowerCase())
+                  )
+                ) {
+                  return prev;
+                }
+                const updated = [newReview, ...prev];
+                persistReviews(updated);
+                return updated;
+              });
+            } else {
+              setReportUnavailable({
+                id: targetId,
+                isOrder: false
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn('Failed to auto-fetch review for:', selectedReviewId, err);
+            setReportUnavailable({
+              id: targetId,
+              isOrder: false
+            });
+          });
+      });
   }, [selectedReviewId, savedReviews]);
 
   // Deep linking: automatically open corresponding modals on load or URL navigation
@@ -1649,19 +1734,68 @@ export default function App() {
                 )}
                 
                 {activeTab === 'blog' && (
-                  <BlogPreviewer 
-                    reviews={allReviewsList}
-                    selectedReviewId={selectedReviewId}
-                    setSelectedReviewId={setSelectedReviewId}
-                    setActiveTab={setActiveTab}
-                    headerSearchQuery={headerSearchQuery}
-                    setHeaderSearchQuery={setHeaderSearchQuery}
-                    onOpenCoinGeckoModal={() => setIsCoinGeckoModalOpen(true)}
-                    onSyncCoinGecko={syncCoinGeckoMarkets}
-                    isSyncingCoinGecko={isSyncingCoinGecko}
-                    onLaunchProEvaluation={handleLaunchProEvaluation}
-                    onLaunchRegularEvaluation={handleLaunchRegularEvaluation}
-                  />
+                  reportUnavailable ? (
+                    <div className="max-w-3xl mx-auto bg-slate-900/90 border border-amber-500/40 rounded-2xl p-8 sm:p-12 text-center my-8 shadow-2xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.1),transparent_70%)] pointer-events-none"></div>
+                      <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center mx-auto mb-4 text-amber-400">
+                        <ShieldAlert className="w-7 h-7" />
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] uppercase tracking-widest mb-3">
+                        {reportUnavailable.isOrder ? 'Advisory Order Reference' : 'Registry Notice'}
+                      </div>
+                      <h3 className="font-display font-black text-lg sm:text-xl text-slate-100 uppercase tracking-wide mb-2">
+                        Report Not Found / Not Yet Available
+                      </h3>
+                      <p className="font-mono text-xs text-slate-300 max-w-lg mx-auto mb-6 leading-relaxed">
+                        {reportUnavailable.isOrder
+                          ? `The requested assessment report (${reportUnavailable.id}) is not found or not yet available in the public registry. If you commissioned this advisory order, verification is currently in progress or awaiting dispatch.`
+                          : `The requested review or report reference (${reportUnavailable.id}) is not found or not yet available in the registry.`}
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          onClick={() => {
+                            setReportUnavailable(null);
+                            setSelectedReviewId(null);
+                            try {
+                              const url = new URL(window.location.href);
+                              url.searchParams.delete('review');
+                              url.searchParams.delete('reviewId');
+                              url.searchParams.delete('article');
+                              url.searchParams.delete('id');
+                              window.history.replaceState({}, '', url.toString());
+                            } catch {}
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                        >
+                          Return to Review Library
+                        </button>
+                        <button
+                          onClick={() => {
+                            setReportUnavailable(null);
+                            setSelectedReviewId(null);
+                            setActiveTab('orders');
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/20"
+                        >
+                          Lookup Order Status
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <BlogPreviewer 
+                      reviews={allReviewsList}
+                      selectedReviewId={selectedReviewId}
+                      setSelectedReviewId={setSelectedReviewId}
+                      setActiveTab={setActiveTab}
+                      headerSearchQuery={headerSearchQuery}
+                      setHeaderSearchQuery={setHeaderSearchQuery}
+                      onOpenCoinGeckoModal={() => setIsCoinGeckoModalOpen(true)}
+                      onSyncCoinGecko={syncCoinGeckoMarkets}
+                      isSyncingCoinGecko={isSyncingCoinGecko}
+                      onLaunchProEvaluation={handleLaunchProEvaluation}
+                      onLaunchRegularEvaluation={handleLaunchRegularEvaluation}
+                    />
+                  )
                 )}
                 
                 {activeTab === 'chat' && (

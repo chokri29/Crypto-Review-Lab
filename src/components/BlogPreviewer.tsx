@@ -1721,25 +1721,61 @@ export default function BlogPreviewer({
           )}
         </div>
       ) : activeReviewId && !activeReview ? (
-        /* Loading mode while fetching review dynamically */
-        <div className="max-w-3xl mx-auto bg-cyber-bg-card border border-cyber-cyan/30 rounded-2xl p-8 sm:p-12 text-center my-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,229,255,0.1),transparent_70%)] pointer-events-none"></div>
-          <div className="w-12 h-12 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/40 flex items-center justify-center mx-auto mb-4 animate-spin">
-            <RefreshCw className="w-5 h-5 text-cyber-cyan" />
+        (/^crl-\d+/i.test(activeReviewId) || /^crl-/i.test(activeReviewId) || /^ref-/i.test(activeReviewId)) ? (
+          <div className="max-w-3xl mx-auto bg-slate-900/90 border border-amber-500/40 rounded-2xl p-8 sm:p-12 text-center my-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.1),transparent_70%)] pointer-events-none"></div>
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center mx-auto mb-4 text-amber-400">
+              <AlertTriangle className="w-7 h-7" />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono text-[11px] uppercase tracking-widest mb-3">
+              Advisory Order Reference
+            </div>
+            <h3 className="font-display font-black text-lg sm:text-xl text-slate-100 uppercase tracking-wide mb-2">
+              Report Not Found / Not Yet Available
+            </h3>
+            <p className="font-mono text-xs text-slate-300 max-w-lg mx-auto mb-6 leading-relaxed">
+              The requested assessment report reference <span className="text-amber-400 font-bold">{activeReviewId}</span> is not found or not yet available in the public library. If you commissioned this assessment, verification is currently in progress or awaiting dispatch.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={handleBackToList}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Return to Review Library
+              </button>
+              {setActiveTab && (
+                <button
+                  onClick={() => {
+                    handleBackToList();
+                    setActiveTab('orders');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-amber-500/20"
+                >
+                  Lookup Order Status
+                </button>
+              )}
+            </div>
           </div>
-          <h3 className="font-display font-black text-base sm:text-lg text-cyber-text-primary uppercase tracking-wide mb-2">
-            Synchronizing Evaluation & Verification...
-          </h3>
-          <p className="font-mono text-xs text-cyber-text-secondary max-w-md mx-auto mb-6">
-            Retrieving live cryptographic review and security metrics for <span className="text-cyber-cyan font-bold">{activeReviewId.replace(/^cg-/, '').toUpperCase()}</span>...
-          </p>
-          <button
-            onClick={handleBackToList}
-            className="px-4 py-2 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
-          >
-            ← Return to Review Library
-          </button>
-        </div>
+        ) : (
+          <div className="max-w-3xl mx-auto bg-cyber-bg-card border border-cyber-cyan/30 rounded-2xl p-8 sm:p-12 text-center my-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,229,255,0.1),transparent_70%)] pointer-events-none"></div>
+            <div className="w-12 h-12 rounded-full bg-cyber-cyan/10 border border-cyber-cyan/40 flex items-center justify-center mx-auto mb-4 animate-spin">
+              <RefreshCw className="w-5 h-5 text-cyber-cyan" />
+            </div>
+            <h3 className="font-display font-black text-base sm:text-lg text-cyber-text-primary uppercase tracking-wide mb-2">
+              Synchronizing Evaluation & Verification...
+            </h3>
+            <p className="font-mono text-xs text-cyber-text-secondary max-w-md mx-auto mb-6">
+              Retrieving live cryptographic review and security metrics for <span className="text-cyber-cyan font-bold">{activeReviewId.replace(/^cg-/, '').toUpperCase()}</span>...
+            </p>
+            <button
+              onClick={handleBackToList}
+              className="px-4 py-2 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan font-display font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+            >
+              ← Return to Review Library
+            </button>
+          </div>
+        )
       ) : activeReview ? (
         /* Full reading mode */
         <motion.div 

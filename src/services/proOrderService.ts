@@ -22,11 +22,12 @@ import path from 'path';
 export type { ProOrder, ProOrderEmailLog, HumanReviewNotes, ProOrderPaymentStatus, NowPaymentsIpnLog };
 export { PRINCIPAL_EMAIL };
 
-const ORDERS_FILE_PATH = path.join(process.cwd(), 'pro_orders.json');
+const isNodeEnv = typeof process !== 'undefined' && typeof process.cwd === 'function' && typeof window === 'undefined';
+const ORDERS_FILE_PATH = isNodeEnv && path && typeof path.join === 'function' ? path.join(process.cwd(), 'pro_orders.json') : '';
 
 function loadOrdersFromFile(): ProOrder[] {
   try {
-    if (fs.existsSync(ORDERS_FILE_PATH)) {
+    if (isNodeEnv && fs && typeof fs.existsSync === 'function' && ORDERS_FILE_PATH && fs.existsSync(ORDERS_FILE_PATH)) {
       try {
         const raw = fs.readFileSync(ORDERS_FILE_PATH, 'utf-8');
         const parsed = JSON.parse(raw);
@@ -37,14 +38,29 @@ function loadOrdersFromFile(): ProOrder[] {
         console.error("Failed to parse orders from pro_orders.json:", err);
       }
     }
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('crl_pro_orders');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
     if (typeof (getSeedOrders as any) === 'function') {
       const p = getSeedOrders();
       if (p && typeof p.then === 'function') {
         p.then(initialSeed => {
           try {
-            fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(initialSeed, null, 2), 'utf-8');
+            if (isNodeEnv && fs && typeof fs.writeFileSync === 'function' && ORDERS_FILE_PATH) {
+              fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(initialSeed, null, 2), 'utf-8');
+            } else if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+              localStorage.setItem('crl_pro_orders', JSON.stringify(initialSeed));
+            }
           } catch (e) {
-            console.error("Failed to initialize pro_orders.json:", e);
+            console.error("Failed to initialize pro_orders:", e);
           }
         }).catch(() => {});
       }
@@ -58,10 +74,37 @@ function loadOrdersFromFile(): ProOrder[] {
 
 function saveOrdersToFile(orders: ProOrder[]): void {
   try {
-    fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(orders, null, 2), 'utf-8');
+    if (isNodeEnv && fs && typeof fs.writeFileSync === 'function' && ORDERS_FILE_PATH) {
+      fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(orders, null, 2), 'utf-8');
+    } else if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem('crl_pro_orders', JSON.stringify(orders));
+    }
   } catch (e) {
     console.error("Failed to save pro orders:", e);
   }
+}
+
+export function isOrderReferencePattern(id: string): boolean {
+  if (!id) return false;
+  const clean = id.trim().toLowerCase();
+  return /^crl-\d+/i.test(clean) || /^ref-/i.test(clean);
+}
+
+export function matchesStoredProOrder(id: string): boolean {
+  if (!id) return false;
+  const clean = id.trim().toLowerCase();
+  if (clean === 'crl-884291' || clean === 'crl-914802' || clean === 'hype-seed' || clean === 'hype-seed-final' || clean === 'zama-seed') {
+    return true;
+  }
+  const all = getAllOrders();
+  return all.some(o => 
+    (o.orderId && o.orderId.toLowerCase() === clean) ||
+    ((o as any).id && (o as any).id.toLowerCase() === clean) ||
+    ((o as any).refId && (o as any).refId.toLowerCase() === clean) ||
+    ((o as any).auditRefId && (o as any).auditRefId.toLowerCase() === clean) ||
+    (o.systemDraft?.id && o.systemDraft.id.toLowerCase() === clean) ||
+    (o.finalReview?.id && o.finalReview.id.toLowerCase() === clean)
+  );
 }
 
 /**
