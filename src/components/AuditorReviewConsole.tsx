@@ -46,7 +46,7 @@ import {
 } from '../types';
 import { INITIAL_REVIEWS } from '../data';
 import { generateAuditPdfReport } from '../services/pdfGenerator';
-import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
+import { calculateBlueprintScore, getCategoryDimensionWeights } from '../services/EvaluationBlueprint';
 import { EmailViewerModal } from './EmailViewerModal';
 import { PhaseTwoReControlView } from './PhaseTwoReControlView';
 import { runPhaseTwoReControl } from '../services/reControlEngine';
@@ -315,7 +315,9 @@ export const AuditorReviewConsole: React.FC<{
     populateEditorFields(order);
   };
 
-  // Recalculate preview score in real time
+  // Recalculate preview score in real time using category-specific dimension weights
+  const currentCategory = (selectedOrder?.finalReview || selectedOrder?.systemDraft)?.category || selectedOrder?.category || 'DeFi Protocol';
+  const categoryWeights = getCategoryDimensionWeights(currentCategory as any);
   const currentScores = {
     utility: Number(scoreUtility),
     tokenomics: Number(scoreTokenomics),
@@ -323,7 +325,7 @@ export const AuditorReviewConsole: React.FC<{
     team: Number(scoreTeam),
     community: Number(scoreCommunity)
   };
-  const recalculatedBlueprint = calculateBlueprintScore(currentScores);
+  const recalculatedBlueprint = calculateBlueprintScore(currentScores, currentCategory as any);
 
   const isAuditFormValid = Boolean(auditorComments && auditorComments.trim().length > 0);
 
@@ -681,7 +683,7 @@ export const AuditorReviewConsole: React.FC<{
         
         {/* Left Column: Orders Queue List (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative overflow-hidden isolate">
             <div className="flex items-center justify-between">
               <h3 className="font-mono text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-400" />
@@ -812,38 +814,40 @@ export const AuditorReviewConsole: React.FC<{
         {/* Right Column: Workstation & Human Review Desk (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           {selectedOrder ? (
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden isolate">
               
               {/* Workstation Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
-                <div>
+              <div className="flex flex-col gap-3 border-b border-slate-800 pb-4">
+                <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
                     <span>Order #{selectedOrder.orderId}</span>
                     <span>•</span>
                     <span className="text-amber-400 font-semibold">{selectedOrder.paymentMethod}</span>
                   </div>
-                  <h3 className="text-xl font-extrabold text-slate-100 font-sans flex items-center gap-2 mt-0.5">
-                    {selectedOrder.projectName} ({selectedOrder.projectSymbol})
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-100 font-sans break-words">
+                      {selectedOrder.projectName} ({selectedOrder.projectSymbol})
+                    </h3>
                     {selectedOrder.status === 'DELIVERED' ? (
-                      <span className="text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded uppercase font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 shrink-0 self-start sm:self-auto whitespace-nowrap">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         Final Delivery Dispatched
                       </span>
                     ) : !selectedOrder.systemDraft?.phaseTwoReControl ? (
-                      <span className="text-xs font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded uppercase font-bold flex items-center gap-1 animate-pulse">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-xs font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 animate-pulse shrink-0 self-start sm:self-auto whitespace-nowrap">
+                        <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                         Phase 1 Complete — Awaiting Stage 2 Initiation
                       </span>
                     ) : (
-                      <span className="text-xs font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2.5 py-0.5 rounded uppercase font-bold flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                      <span className="text-xs font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 shrink-0 self-start sm:self-auto whitespace-nowrap">
+                        <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                         Phase 2 Verified — Ready for Auditor Approval
                       </span>
                     )}
-                  </h3>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
                   {onNavigateToF3 && (
                     (() => {
                       const rev = selectedOrder.finalReview || selectedOrder.systemDraft;
@@ -857,9 +861,9 @@ export const AuditorReviewConsole: React.FC<{
                               onNavigateToF3(selectedOrder.orderId);
                             }
                           }}
-                          className={`px-3.5 py-2 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-all ${
+                          className={`px-3.5 py-2 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-all shrink-0 ${
                             isF2Passed
-                              ? 'bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 cursor-pointer shadow-sm'
+                              ? 'bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 cursor-pointer shadow-sm'
                               : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
                           }`}
                           title={
@@ -868,19 +872,19 @@ export const AuditorReviewConsole: React.FC<{
                               : "F3 Gated: Phase 2 (F2) Re-Control must pass with score >= 95% first"
                           }
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                          <span>F3 Verification</span>
+                          <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          <span className="whitespace-nowrap">F3 Verification</span>
                         </button>
                       );
                     })()
                   )}
                   <button
                     onClick={() => handleDownloadPreliminaryPdf(selectedOrder)}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-amber-500/40 hover:border-amber-400 rounded-xl font-mono text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-amber-500/40 hover:border-amber-400 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
                     title="Generate preliminary evaluation report draft prior to F3 stage"
                   >
-                    <FileText className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Preliminary PDF (Pre-F3)</span>
+                    <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="whitespace-nowrap">Preliminary PDF (Pre-F3)</span>
                   </button>
                 </div>
               </div>
@@ -985,28 +989,28 @@ export const AuditorReviewConsole: React.FC<{
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded border bg-cyan-950/80 border-cyan-500/40 text-cyan-300">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded border bg-cyan-950/80 border-cyan-500/40 text-cyan-300 shrink-0 whitespace-nowrap">
                         STAGE 3: DETERMINISTIC VERIFICATION MATRIX
                       </span>
                       {adminOverrides[selectedOrder.orderId] || selectedOrder.adminOverride ? (
-                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           ADMIN OVERRIDDEN
                         </span>
                       ) : !selectedOrder.systemDraft?.phaseTwoReControl ? (
-                        <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           STAGE 2 PENDING (F3 GATED)
                         </span>
                       ) : !isF2GatePassed(selectedOrder.systemDraft) ? (
-                        <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           F3 BLOCKED (F2 SCORE &lt; 95%)
                         </span>
                       ) : getF3Result(selectedOrder.orderId)?.overallStatus === 'VERIFIED' ? (
-                        <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           F3 VERIFIED (Invariants Matched)
                         </span>
                       ) : (
-                        <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           F2 PASSED (≥95%) → F3 ELIGIBLE
                         </span>
                       )}
@@ -1085,7 +1089,7 @@ export const AuditorReviewConsole: React.FC<{
                     {/* Utility */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-slate-300">Utility & Protocol Function (25%)</span>
+                        <span className="text-slate-300">Utility & Protocol Function ({Math.round(categoryWeights.utility * 100)}%)</span>
                         <span className="font-bold text-amber-400">{scoreUtility} / 10</span>
                       </div>
                       <input
@@ -1101,7 +1105,7 @@ export const AuditorReviewConsole: React.FC<{
                     {/* Tokenomics */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-slate-300">Tokenomics & Supply Model (25%)</span>
+                        <span className="text-slate-300">Tokenomics & Supply Model ({Math.round(categoryWeights.tokenomics * 100)}%)</span>
                         <span className="font-bold text-amber-400">{scoreTokenomics} / 10</span>
                       </div>
                       <input
@@ -1117,7 +1121,7 @@ export const AuditorReviewConsole: React.FC<{
                     {/* Security */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-slate-300">Smart Contract Security (25%)</span>
+                        <span className="text-slate-300">Smart Contract Security ({Math.round(categoryWeights.security * 100)}%)</span>
                         <span className="font-bold text-amber-400">{scoreSecurity} / 10</span>
                       </div>
                       <input
@@ -1133,7 +1137,7 @@ export const AuditorReviewConsole: React.FC<{
                     {/* Team */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-slate-300">Team & Backer Track Record (15%)</span>
+                        <span className="text-slate-300">Team & Backer Track Record ({Math.round(categoryWeights.team * 100)}%)</span>
                         <span className="font-bold text-amber-400">{scoreTeam} / 10</span>
                       </div>
                       <input
@@ -1149,7 +1153,7 @@ export const AuditorReviewConsole: React.FC<{
                     {/* Community */}
                     <div className="space-y-1.5 sm:col-span-2">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-slate-300">Community & Governance (10%)</span>
+                        <span className="text-slate-300">Community & Governance ({Math.round(categoryWeights.community * 100)}%)</span>
                         <span className="font-bold text-amber-400">{scoreCommunity} / 10</span>
                       </div>
                       <input
@@ -1322,7 +1326,7 @@ export const AuditorReviewConsole: React.FC<{
 
             </div>
           ) : (
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 font-mono text-xs">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 font-mono text-xs">
               Select an order from the queue to start human review.
             </div>
           )}

@@ -85,10 +85,13 @@ body {
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: strict;
 }
 
 /* === SCANLINE OVERLAY === */
-@media (min-width: 768px) {
+@media (min-width: 1024px) and (pointer: fine) {
   .cyber-scanlines::after {
     content: '';
     position: fixed;
@@ -97,11 +100,14 @@ body {
       0deg,
       transparent,
       transparent 2px,
-      rgba(0, 0, 0, 0.05) 2px,
-      rgba(0, 0, 0, 0.05) 4px
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
     );
     pointer-events: none;
     z-index: 1;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: strict;
   }
 }
 
