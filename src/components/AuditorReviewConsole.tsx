@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SignedAuditBadge } from './SignedAuditBadge';
 import { 
@@ -64,6 +64,7 @@ export const AuditorReviewConsole: React.FC<{
   const [orders, setOrders] = useState<ProOrder[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'delivered' | 'all'>('pending');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [keyAgeWarning, setKeyAgeWarning] = useState<string | null>(null);
   const [actionLogs, setActionLogs] = useState<Array<{ id: string; timestamp: string; action: string; details: string }>>([]);
@@ -270,9 +271,21 @@ export const AuditorReviewConsole: React.FC<{
       if (res.ok) {
         const list: ProOrder[] = await res.json();
         setOrders(list);
-        if (list.length > 0 && !selectedOrderId) {
-          setSelectedOrderId(list[0].orderId);
-          populateEditorFields(list[0]);
+        if (list.length > 0) {
+          const hasPending = list.some(o => o.status !== 'DELIVERED');
+          if (!hasPending && activeTab === 'pending') {
+            setActiveTab('all');
+          }
+          if (!selectedOrderId || !list.some(o => o.orderId === selectedOrderId)) {
+            const initialOrder = hasPending ? (list.find(o => o.status !== 'DELIVERED') || list[0]) : list[0];
+            setSelectedOrderId(initialOrder.orderId);
+            populateEditorFields(initialOrder);
+          } else {
+            const current = list.find(o => o.orderId === selectedOrderId);
+            if (current) {
+              populateEditorFields(current);
+            }
+          }
         }
       }
     } catch (err) {
@@ -280,7 +293,39 @@ export const AuditorReviewConsole: React.FC<{
     }
   };
 
-  const selectedOrder = orders.find(o => o.orderId === selectedOrderId) || orders[0];
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      const matchesTab = 
+        activeTab === 'pending' ? (o.status !== 'DELIVERED') :
+        activeTab === 'delivered' ? (o.status === 'DELIVERED') : true;
+
+      if (!matchesTab) return false;
+      if (!searchQuery.trim()) return true;
+
+      const q = searchQuery.trim().toLowerCase();
+      return (
+        o.orderId.toLowerCase().includes(q) ||
+        o.clientEmail.toLowerCase().includes(q) ||
+        o.projectName.toLowerCase().includes(q) ||
+        o.projectSymbol.toLowerCase().includes(q)
+      );
+    });
+  }, [orders, activeTab, searchQuery]);
+
+  const selectedOrder = useMemo(() => {
+    if (filteredOrders.length > 0) {
+      const match = filteredOrders.find(o => o.orderId === selectedOrderId);
+      return match || filteredOrders[0];
+    }
+    return orders.find(o => o.orderId === selectedOrderId) || orders[0] || null;
+  }, [filteredOrders, orders, selectedOrderId]);
+
+  useEffect(() => {
+    if (selectedOrder && selectedOrder.orderId !== selectedOrderId) {
+      setSelectedOrderId(selectedOrder.orderId);
+      populateEditorFields(selectedOrder);
+    }
+  }, [selectedOrder, selectedOrderId]);
 
   const populateEditorFields = (order: ProOrder) => {
     if (!order) return;
@@ -447,7 +492,7 @@ export const AuditorReviewConsole: React.FC<{
   const handleApproveAndDeliver = async () => {
     if (!selectedOrder || !isAuditFormValid) return;
 
-    const baseReview = selectedOrder.systemDraft;
+    const baseReview = selectedOrder.finalReview || selectedOrder.systemDraft;
     const activeAdminOverride = selectedOrder.adminOverride || (selectedOrder.finalReview || selectedOrder.systemDraft)?.adminOverride;
 
     // STRICT 95% GATE: Deliver requires F2 score >= 95% or authorized override
@@ -565,28 +610,6 @@ export const AuditorReviewConsole: React.FC<{
 
     generateAuditPdfReport(publicReport, `${(order.projectSymbol || 'token').toLowerCase()}_preliminary_report_pre_f3.pdf`);
   };
-
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredOrders = orders.filter(o => {
-    // Tab filter: Pending tab includes all non-delivered orders (PENDING_F2, PENDING_REGENERATION, IN_HUMAN_REVIEW, PAYMENT_CONFIRMED)
-    const matchesTab = 
-      activeTab === 'pending' ? (o.status !== 'DELIVERED') :
-      activeTab === 'delivered' ? (o.status === 'DELIVERED') : true;
-
-    if (!matchesTab) return false;
-
-    // Search query filter (Order ID + Email + Project Name + Symbol)
-    if (!searchQuery.trim()) return true;
-
-    const q = searchQuery.trim().toLowerCase();
-    return (
-      o.orderId.toLowerCase().includes(q) ||
-      o.clientEmail.toLowerCase().includes(q) ||
-      o.projectName.toLowerCase().includes(q) ||
-      o.projectSymbol.toLowerCase().includes(q)
-    );
-  });
 
   return (
     <div className="space-y-6">
@@ -776,12 +799,12 @@ export const AuditorReviewConsole: React.FC<{
                             <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
                             Delivered
                           </span>
-                        ) : !ord.systemDraft?.phaseTwoReControl ? (
+                        ) : !(ord.finalReview || ord.systemDraft)?.phaseTwoReControl ? (
                           <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-1 animate-pulse">
                             <Clock className="w-2.5 h-2.5 text-amber-400" />
                             Awaiting Phase 2
                           </span>
-                        ) : !isF2GatePassed(ord.systemDraft) ? (
+                        ) : !isF2GatePassed(ord.finalReview || ord.systemDraft) ? (
                           <span className="text-[9px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.5 rounded uppercase font-bold flex items-center gap-1">
                             <AlertTriangle className="w-2.5 h-2.5 text-rose-400" />
                             F3 Blocked (&lt;95%)
@@ -833,7 +856,7 @@ export const AuditorReviewConsole: React.FC<{
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         Final Delivery Dispatched
                       </span>
-                    ) : !selectedOrder.systemDraft?.phaseTwoReControl ? (
+                    ) : !(selectedOrder.finalReview || selectedOrder.systemDraft)?.phaseTwoReControl ? (
                       <span className="text-xs font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 animate-pulse shrink-0 self-start sm:self-auto whitespace-nowrap">
                         <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                         Phase 1 Complete — Awaiting Stage 2 Initiation
@@ -997,11 +1020,11 @@ export const AuditorReviewConsole: React.FC<{
                         <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           ADMIN OVERRIDDEN
                         </span>
-                      ) : !selectedOrder.systemDraft?.phaseTwoReControl ? (
+                      ) : !(selectedOrder.finalReview || selectedOrder.systemDraft)?.phaseTwoReControl ? (
                         <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           STAGE 2 PENDING (F3 GATED)
                         </span>
-                      ) : !isF2GatePassed(selectedOrder.systemDraft) ? (
+                      ) : !isF2GatePassed(selectedOrder.finalReview || selectedOrder.systemDraft) ? (
                         <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
                           F3 BLOCKED (F2 SCORE &lt; 95%)
                         </span>
@@ -1032,7 +1055,7 @@ export const AuditorReviewConsole: React.FC<{
                           disabled={!isF2Passed}
                           onClick={() => {
                             if (isF2Passed) {
-                              onNavigateToF3((selectedOrder.finalReview || selectedOrder.systemDraft)?.id || selectedOrder.orderId);
+                              onNavigateToF3(selectedOrder.orderId);
                             }
                           }}
                           className={`px-3.5 py-2 font-bold rounded-xl transition-all flex items-center gap-1.5 ${

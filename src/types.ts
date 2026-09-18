@@ -407,6 +407,10 @@ export interface PublicCryptoReviewReport {
   adminOverride?: AdminOverrideLog;
   f3Verification?: PublicF3VerificationResult;
   auditSignature?: CryptoAuditSignature;
+  overallScore?: number | null;
+  scores?: CryptoReviewScores;
+  riskLevel?: RiskLevel;
+  phaseTwoReControl?: PhaseTwoReControlReport;
 }
 
 export type MetricReconciliationStatus =

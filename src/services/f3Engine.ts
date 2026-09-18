@@ -2197,7 +2197,11 @@ export function projectToPublicCryptoReviewReport(
     f3Verification: review.f3Verification
       ? projectToPublicF3Verification(review.f3Verification)
       : undefined,
-    auditSignature: review.auditSignature
+    auditSignature: review.auditSignature,
+    overallScore: (review as any).overallScore,
+    scores: (review as any).scores,
+    riskLevel: (review as any).riskLevel,
+    phaseTwoReControl: (review as any).phaseTwoReControl
   };
 }
 

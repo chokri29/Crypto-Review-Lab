@@ -318,7 +318,7 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
   switch (categoryType) {
     case 'Restaking / Shared Security / AVS':
       return {
-        title: '2. RESTAKING SLASHER, AVS QUORUM & LRT DEPEG SIMULATION',
+        title: '2. RESTAKING SLASHER, AVS QUORUM & LRT DEPEG READINESS MODEL',
         moduleType: 'TVL_STRESS',
         subtitle: `RESTAKING LIQUIDITY & SHARED SECURITY QUORUM MATRIX (REAL TVL: ${tvlStr.toUpperCase()})`,
         items: [
@@ -330,9 +330,9 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           { target: 'Multi-AVS Slashing Cascades', check: 'Correlated Slashing Protection', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
-          `• Real Restaked TVL: ${tvlStr} tracked via on-chain asset escrow.`,
-          '• Intersubjective Slashing: Invariant checked against malicious committee collusion.',
-          '• LRT Depeg Protection: Dynamic reserve buffers benchmarked against mass withdrawal queues.'
+          `• Real Restaked TVL: ${hasTvl ? `${tvlStr} tracked via on-chain asset escrow.` : 'TVL data not available on DefiLlama.'}`,
+          '• Intersubjective Slashing: Slashing dispute window and committee isolation evaluated.',
+          '• LRT Depeg Protection: Baseline liquidity reserve buffer evaluated (numerical depeg simulation not attached).'
         ]
       };
 
@@ -358,7 +358,7 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
 
     case 'DeFi Protocol (AMM / Lending)':
       return {
-        title: '2. TVL STRESS SIMULATION & MULTI-VECTOR LIQUIDITY DRAIN ANALYSIS',
+        title: '2. TVL STRESS READINESS & MULTI-VECTOR LIQUIDITY DRAIN ANALYSIS',
         moduleType: 'TVL_STRESS',
         subtitle: `MULTI-VECTOR LIQUIDITY SHOCK MATRIX (REAL DEFILLAMA TVL: ${tvlStr.toUpperCase()})`,
         items: hasTvl ? [
@@ -377,15 +377,15 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           { target: 'De-pegging & Slippage Threshold', check: 'Dynamic Fee Dampening Model', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
-          `• Real Total Value Locked: ${tvlStr} verified via DefiLlama public API.`,
+          `• Real Total Value Locked: ${hasTvl ? `${tvlStr} verified via DefiLlama public API.` : 'TVL data not available on DefiLlama.'}`,
           '• Oracle Vulnerability Impact: TWAP oracle model benchmarked against multi-block flash-loan manipulation.',
-          '• Liquidation Buffer Standard: Vault health factors verified across extreme market drawdowns.'
+          '• Liquidation Buffer Standard: Baseline vault health factors evaluated (numerical price-shock simulation not attached).'
         ]
       };
 
     case 'Layer 2 / Scaling':
       return {
-        title: '2. SEQUENCER DECENTRALIZATION & DA COMPRESSION STRESS SIMULATION',
+        title: '2. SEQUENCER DECENTRALIZATION & DA COMPRESSION STRESS MODEL',
         moduleType: 'SEQUENCER_DA',
         subtitle: 'L1 FALLBACK, DA THROUGHPUT & PROOF SOUNDNESS MATRIX',
         items: [
@@ -397,19 +397,19 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           { target: 'Bridge Escrow Solvency', check: 'Timelock Withdrawal Escrow Proof', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
-          '• L1 Fallback Escape Hatch: Verifies force inclusion mechanism on L1 during sequencer downtime.',
-          '• Proof Verification Gas Cap: Verifies maximum gas consumption for proof verification smart contracts.',
-          '• Blob Storage Economics: Data availability costs benchmarked against L1 network gas spikes.'
+          '• L1 Fallback Escape Hatch: Evaluates force inclusion mechanism on L1 during sequencer downtime.',
+          '• Proof Verification Gas Cap: Evaluates maximum gas consumption for proof verification smart contracts.',
+          '• Blob Storage Economics: Baseline data availability throughput and EIP-4844 calldata compression bounds evaluated.'
         ]
       };
 
     case 'Layer 1 Blockchain':
       return {
-        title: '2. CONSENSUS BYZANTINE FAULT & STATE BLOAT SHOCK SIMULATION',
+        title: '2. CONSENSUS BYZANTINE FAULT & STATE BLOAT SHOCK MODEL',
         moduleType: 'CONSENSUS_SHOCK',
         subtitle: 'VALIDATOR PARTITION, MEMPOOL SPAM & STATE TRIE MATRIX',
         items: [
-          { target: '33% Validator Partition Shock', check: 'Offline Partition Simulation', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
+          { target: '33% Validator Partition Shock', check: 'Offline Partition Fault Tolerance', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
           { target: 'Mempool Spam & Fee Surge', check: 'High Transaction Volatility', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
           { target: 'State Trie Pruning & Storage', check: 'State Growth Bloat Model', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
           { target: 'Bridge Lock Escrow Solvency', check: 'Cross-Chain Lock Collateral', status: 'Not independently verified', verdict: '[NOT VERIFIED]' },
@@ -417,9 +417,9 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           { target: 'P2P Gossip Network Propagation', check: 'Peer Partition Latency Bound', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
-          '• Sybil Resistance & Quorum Safety: Evaluates BFT quorum resilience against malicious validator collusions.',
+          '• Sybil Resistance & Quorum Safety: Evaluates BFT quorum resilience against validator partition conditions.',
           '• State Pruning Boundary: Evaluates state growth limits to ensure low node sync overhead.',
-          '• Validator Key Slashing Hazard: Double-sign slash conditions evaluated for rogue validator isolation.'
+          '• Validator Key Slashing Hazard: Double-sign slash conditions and offline partition readiness evaluated (numerical network simulation not attached).'
         ]
       };
 
@@ -525,9 +525,9 @@ export function getCategorySpecificModule(categoryType: ProtocolCategoryType, re
           { target: 'Anti-Whale Transfer Boundaries', check: 'Max Wallet / TX Bytecode', status: 'Not independently verified', verdict: '[NOT VERIFIED]' }
         ],
         additionalDetails: [
-          '• Dump Pressure Simulation: Model simulates large holder exits to assess price impact resilience.',
-          '• Anti-Whale Limit: Max transaction limit bytecode inspected to verify uniform transfer rules.',
-          '• Liquidity Lock Verification: Evaluates LP token lock contract parameters and burn status.'
+          '• Dump Pressure Readiness: Evaluates holder concentration input and liquidity baseline for exit stress scenarios (numerical price-shock simulation not attached).',
+          '• Anti-Whale Transfer Boundaries: Max transaction limit bytecode parameters evaluated against available telemetry (not independently verified where unindexed).',
+          '• Liquidity Lock Evaluation: Assesses LP vault lock and burn parameters based on available audit evidence (not independently verified where unindexed).'
         ]
       };
     }
@@ -570,36 +570,36 @@ export function getCategoryStressTestModel(categoryType: ProtocolCategoryType, r
 
   if (categoryType === 'Restaking / Shared Security / AVS') {
     return {
-      title: '2. RESTAKING SLASHER, AVS QUORUM & LRT DEPEG SIMULATION',
+      title: '2. RESTAKING SLASHER, AVS QUORUM & LRT DEPEG READINESS MODEL',
       isTVLDrain: true,
       scenarios: hasTvl ? [
         { label: `Verified DefiLlama TVL Anchor: ${tvlStr}`, details: `Real Total Value Locked fetched directly via DefiLlama public API.` },
-        { label: `Scenario A (15% Mass Unstake - ${formatDefiLlamaTvl(realTvl * 0.15)})`, details: 'Simulated mass unbonding queue; evaluates LRT liquidity reserve buffer & peg stability.' },
-        { label: `Scenario B (Intersubjective Slashing Event - ${formatDefiLlamaTvl(realTvl * 0.25)})`, details: 'Simulated rogue operator slashing; evaluates multi-AVS cascading risk containment.' },
+        { label: `Scenario A (15% Mass Unstake - ${formatDefiLlamaTvl(realTvl * 0.15)})`, details: 'Stress scenario readiness benchmark: evaluates LRT liquidity reserve buffer & peg stability bounds (numerical simulation not attached).' },
+        { label: `Scenario B (Intersubjective Slashing Event - ${formatDefiLlamaTvl(realTvl * 0.25)})`, details: 'Stress scenario readiness benchmark: evaluates multi-AVS cascading risk containment bounds.' },
         { label: 'AVS Operator Quorum Diversity', details: 'Operator set evaluated for stake concentration & decentralization bounds.' },
         { label: 'Dual-Staking Reward Equilibrium', details: 'AVS reward sustainability evaluated against token inflation & staking yields.' }
       ] : [
         { label: 'DefiLlama Listing Status', details: 'TVL data not available' },
-        { label: 'Restaking Stress Simulation', details: 'TVL data not available (project is not listed on DefiLlama).' },
+        { label: 'Restaking Stress Readiness', details: 'TVL data not available (project is not listed on DefiLlama).' },
         { label: 'Intersubjective Slashing Model', details: 'Slashing dispute window and committee consensus checked for quorum safety.' },
-        { label: 'LRT Depeg & Liquidity Buffer', details: 'Dynamic reserve buffers benchmarked against mass withdrawal queues.' }
+        { label: 'LRT Depeg & Liquidity Buffer', details: 'Dynamic reserve buffers benchmarked against mass withdrawal queues (numerical simulation not attached).' }
       ]
     };
   }
 
   if (categoryType === 'DeFi Protocol (AMM / Lending)' || categoryType === 'Layer 2 / Scaling') {
     return {
-      title: '2. TVL DRAIN & MULTI-VECTOR LIQUIDITY STRESS TEST SIMULATION',
+      title: '2. TVL DRAIN & MULTI-VECTOR LIQUIDITY STRESS TEST MODEL',
       isTVLDrain: true,
       scenarios: hasTvl ? [
         { label: `Verified DefiLlama TVL Anchor: ${tvlStr}`, details: `Real Total Value Locked fetched directly via DefiLlama public API.` },
-        { label: `Scenario A (10% Unwind - ${formatDefiLlamaTvl(realTvl * 0.1)})`, details: 'Simulated pool unwind; model evaluates pool depth and solvency resilience.' },
-        { label: `Scenario B (25% Volatility Shock - ${formatDefiLlamaTvl(realTvl * 0.25)})`, details: 'Simulated market volatility shock; evaluates vault collateralization bounds.' },
-        { label: `Scenario C (50% Systemic Stress - ${formatDefiLlamaTvl(realTvl * 0.5)})`, details: 'Simulated liquidation cascade; evaluates automated circuit breaker responsiveness.' },
+        { label: `Scenario A (10% Unwind - ${formatDefiLlamaTvl(realTvl * 0.1)})`, details: 'Stress scenario readiness benchmark: evaluates pool depth and solvency resilience bounds (numerical price-shock simulation not attached).' },
+        { label: `Scenario B (25% Volatility Shock - ${formatDefiLlamaTvl(realTvl * 0.25)})`, details: 'Stress scenario readiness benchmark: evaluates vault collateralization bounds under volatility shock.' },
+        { label: `Scenario C (50% Systemic Stress - ${formatDefiLlamaTvl(realTvl * 0.5)})`, details: 'Stress scenario readiness benchmark: evaluates liquidation cascade and circuit breaker responsiveness.' },
         { label: 'Oracle Vulnerability Impact', details: 'TWAP oracle model benchmarked against multi-block flash-loan manipulation.' }
       ] : [
         { label: 'DefiLlama Listing Status', details: 'TVL data not available' },
-        { label: 'TVL Stress Simulation', details: 'TVL data not available (project is not listed on DefiLlama).' },
+        { label: 'TVL Stress Readiness', details: 'TVL data not available (project is not listed on DefiLlama).' },
         { label: 'Oracle Vulnerability Impact', details: 'TWAP oracle model benchmarked against multi-block flash-loan manipulation.' },
         { label: 'De-pegging & Slippage Threshold', details: 'Dynamic fee model evaluated to dampen arbitrage drain cascades.' }
       ]
@@ -611,9 +611,9 @@ export function getCategoryStressTestModel(categoryType: ProtocolCategoryType, r
       title: '2. CONSENSUS LATENCY, VALIDATOR BYZANTINE FAULT & NETWORK SHOCK MODEL',
       isTVLDrain: false,
       scenarios: [
-        { label: '33% Validator Partition Shock', details: 'Simulated offline partition; model verifies chain maintains liveness without fork split.' },
-        { label: 'Network Congestion & Mempool Spam', details: 'Simulated transaction surge; model evaluates dynamic fee responsiveness to prevent stalling.' },
-        { label: 'State Bloat Storage Stress', details: 'Simulated state growth; model evaluates trie pruning bounds for RPC responsiveness.' },
+        { label: '33% Validator Partition Shock', details: 'Stress scenario readiness benchmark: verifies theoretical consensus bounds without chain partition.' },
+        { label: 'Network Congestion & Mempool Spam', details: 'Stress scenario readiness benchmark: evaluates dynamic fee responsiveness to prevent stalling.' },
+        { label: 'State Bloat Storage Stress', details: 'Stress scenario readiness benchmark: evaluates trie pruning bounds for node sync responsiveness.' },
         { label: 'Cross-Chain Bridge Lock Solvency', details: 'Escrow vault model evaluated for collateralization under multi-chain volatility.' },
         { label: 'Validator Key Slashing Hazard', details: 'Double-sign slash conditions evaluated for rogue validator node isolation.' }
       ]
@@ -653,11 +653,11 @@ export function getCategoryStressTestModel(categoryType: ProtocolCategoryType, r
       title: '2. LIQUIDITY POOL SHOCK, WALLET CONCENTRATION & DUMP PRESSURE MODEL',
       isTVLDrain: false,
       scenarios: [
-        { label: 'Whale Unwind Simulation', details: 'Simulated large supply sell-off; evaluates price impact and pool depth resilience.' },
-        { label: 'Liquidity Lock Verification', details: 'Evaluates LP token lock contract parameters and burn status.' },
-        { label: 'Honeypot / Tax Vulnerability', details: 'Bytecode transfer hooks evaluated to verify max tax boundary rules.' },
-        { label: 'Ownership Renouncement', details: 'Contract ownership storage slot evaluated to confirm null owner invariant.' },
-        { label: 'Viral Volume Surge', details: 'AMM pool depth evaluated against flash sandwich attack vectors during trading volume spikes.' }
+        { label: 'Whale Unwind Readiness', details: 'Stress scenario readiness benchmark: evaluates large holder concentration input and pool depth resilience (numerical price-shock simulation not attached).' },
+        { label: 'Liquidity Lock Evaluation', details: 'Assesses LP token lock contract parameters and burn status based on available disclosures (not independently verified where unindexed).' },
+        { label: 'Honeypot / Tax Hooks', details: 'Bytecode transfer hooks evaluated against tax boundaries and trading restrictions.' },
+        { label: 'Ownership Status', details: 'Contract ownership storage slot evaluated against admin key privileges and null owner invariants.' },
+        { label: 'Volume Surge Readiness', details: 'AMM pool depth baseline evaluated against sudden trading volume surges.' }
       ]
     };
   }

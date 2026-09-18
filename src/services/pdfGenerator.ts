@@ -12,6 +12,7 @@ import {
   getCategoryDimensionWeights,
   calculateDataConfidence,
   calculateEvidenceCoverage,
+  calculateBlueprintScore,
   ProtocolCategoryType
 } from './EvaluationBlueprint';
 
@@ -1169,16 +1170,16 @@ function getAvfModulesList(f3: F3VerificationResult | PublicF3VerificationResult
     },
     {
       id: 'AVF-04',
-      name: 'Scenario Simulation',
+      name: 'Scenario Readiness & Stress-Input Verification',
       status: avf04 ? (avf04.status || 'UNVERIFIED') : 'Input unavailable',
       details: !avf04
         ? 'Input unavailable'
         : (() => {
             const rate = avf04.scenarioExecutionRate !== undefined && avf04.scenarioExecutionRate !== null
-              ? `Execution Rate: ${Math.round(avf04.scenarioExecutionRate * 100)}%`
+              ? `Readiness Rate: ${Math.round(avf04.scenarioExecutionRate * 100)}%`
               : '';
             const d = avf04.details || '';
-            return [rate, d].filter(Boolean).join(' • ') || 'Scenario execution verified';
+            return [rate, d].filter(Boolean).join(' • ') || 'Scenario readiness verified';
           })()
     },
     {
@@ -1223,6 +1224,183 @@ function getAvfModulesList(f3: F3VerificationResult | PublicF3VerificationResult
       details: avf08 ? (avf08.details || 'Cryptographic signing and report digest verified') : 'Input unavailable'
     }
   ];
+}
+
+export function resolveReportScores(data: AuditPdfData, categoryType: ProtocolCategoryType) {
+  let overallScore: number | undefined = undefined;
+  let dimensionScores: { utility: number; tokenomics: number; security: number; team: number; community: number } | undefined = undefined;
+
+  const rawDims = data.dimensionScores || (data as any).scores;
+  if (rawDims && typeof rawDims === 'object') {
+    const u = Number(rawDims.utility);
+    const t = Number(rawDims.tokenomics);
+    const s = Number(rawDims.security);
+    const tm = Number(rawDims.team);
+    const c = Number(rawDims.community);
+    if (!isNaN(u) && !isNaN(t) && !isNaN(s) && !isNaN(tm) && !isNaN(c) && (u > 0 || t > 0 || s > 0 || tm > 0 || c > 0)) {
+      dimensionScores = { utility: u, tokenomics: t, security: s, team: tm, community: c };
+    }
+  }
+
+  if (typeof data.overallScore === 'number' && !isNaN(data.overallScore) && data.overallScore > 0) {
+    overallScore = data.overallScore;
+  } else if (typeof (data as any).crlVerificationScore === 'number' && (data as any).crlVerificationScore > 0) {
+    overallScore = (data as any).crlVerificationScore;
+  } else if (typeof (data.f3Verification as any)?.modules?.avf05Score?.declaredScore === 'number' && (data.f3Verification as any).modules.avf05Score.declaredScore > 0) {
+    overallScore = (data.f3Verification as any).modules.avf05Score.declaredScore;
+  } else if (typeof data.phaseTwoReControl?.overallScorePct === 'number' && data.phaseTwoReControl.overallScorePct > 0) {
+    overallScore = data.phaseTwoReControl.overallScorePct;
+  } else if (dimensionScores) {
+    const calc = calculateBlueprintScore(dimensionScores, categoryType);
+    if (calc && calc.overallScore > 0) {
+      overallScore = calc.overallScore;
+    }
+  }
+
+  if (overallScore === undefined && data.analysisText) {
+    const match = data.analysisText.match(/(?:Overall Evaluation Score|Evaluation Score|Overall Score|Composite Score|Score)[:\s]+(\d+(?:\.\d+)?)\s*(?:\/|out of)\s*100/i);
+    if (match && match[1]) {
+      const parsed = parseFloat(match[1]);
+      if (!isNaN(parsed) && parsed > 0) {
+        overallScore = parsed;
+      }
+    }
+  }
+
+  if (!dimensionScores && data.analysisText) {
+    const uMatch = data.analysisText.match(/Utility[^\d]*[:\s]+(\d+(?:\.\d+)?)/i);
+    const tMatch = data.analysisText.match(/Tokenomics[^\d]*[:\s]+(\d+(?:\.\d+)?)/i);
+    const sMatch = data.analysisText.match(/Security[^\d]*[:\s]+(\d+(?:\.\d+)?)/i);
+    const tmMatch = data.analysisText.match(/Team[^\d]*[:\s]+(\d+(?:\.\d+)?)/i);
+    const cMatch = data.analysisText.match(/Community[^\d]*[:\s]+(\d+(?:\.\d+)?)/i);
+    if (uMatch && tMatch && sMatch && tmMatch && cMatch) {
+      dimensionScores = {
+        utility: parseFloat(uMatch[1]),
+        tokenomics: parseFloat(tMatch[1]),
+        security: parseFloat(sMatch[1]),
+        team: parseFloat(tmMatch[1]),
+        community: parseFloat(cMatch[1])
+      };
+    }
+  }
+
+  const hasValidDimensions = Boolean(
+    dimensionScores &&
+    dimensionScores.utility > 0 &&
+    dimensionScores.tokenomics > 0 &&
+    dimensionScores.security > 0 &&
+    dimensionScores.team > 0 &&
+    dimensionScores.community > 0
+  );
+
+  const isScorePublished = Boolean(overallScore !== undefined && overallScore > 0 && hasValidDimensions);
+
+  return {
+    overallScore: isScorePublished ? overallScore : undefined,
+    isScorePublished,
+    dimensionScores: hasValidDimensions ? dimensionScores : undefined
+  };
+}
+
+export function getGovernanceAndControlBullets(
+  categoryType: ProtocolCategoryType,
+  categoryModule: { items: { target: string; check: string; status: string; verdict: string }[] },
+  projName: string
+): { title: string; bullets: string[] } {
+  const items = categoryModule?.items || [];
+  const findItem = (kw: string) => items.find(i => i.target.toLowerCase().includes(kw));
+
+  const isMemeOrSpeculative =
+    categoryType.toLowerCase().includes('meme') ||
+    categoryType.toLowerCase().includes('speculative') ||
+    projName.toLowerCase().includes('pepe');
+
+  if (isMemeOrSpeculative) {
+    const lpItem = findItem('liquidity pool') || findItem('lp');
+    const ownItem = findItem('ownership') || findItem('owner');
+    const mintItem = findItem('mint');
+    const taxItem = findItem('tax') || findItem('honeypot');
+    const whaleItem = findItem('anti-whale') || findItem('whale');
+
+    const bullets: string[] = [];
+
+    if (ownItem) {
+      const v = (ownItem.verdict || '').toUpperCase();
+      if (v.includes('RENOUNCED')) {
+        bullets.push('• Ownership Renouncement: Confirmed renounced — contract storage slot indicates null address invariant.');
+      } else if (v.includes('CONTRACT_OWNER')) {
+        bullets.push(`• Contract Ownership: Contract Owner detected (${ownItem.status}) — administrative capabilities governed by contract.`);
+      } else if (v.includes('EOA_OWNER')) {
+        bullets.push(`• Contract Ownership: EOA Owner detected (${ownItem.status}) — admin privileges retained by private key address (not renounced).`);
+      } else if (v.includes('NOT VERIFIED') || v.includes('UNAVAILABLE') || v.includes('PENDING')) {
+        bullets.push('• Ownership Renouncement: NOT INDEPENDENTLY VERIFIED — owner storage slot telemetry is unavailable / unindexed on file.');
+      } else {
+        bullets.push(`• Contract Ownership: ${ownItem.status} (${ownItem.verdict}) — aligned with audit matrix.`);
+      }
+    } else {
+      bullets.push('• Ownership Renouncement: NOT INDEPENDENTLY VERIFIED — owner storage slot telemetry is unavailable / unindexed on file.');
+    }
+
+    if (lpItem) {
+      const v = (lpItem.verdict || '').toUpperCase();
+      if (v.includes('VERIFIED') || v.includes('LOCKED') || v.includes('PASSED')) {
+        bullets.push(`• Liquidity Pool Lock Status: Verified on-chain (${lpItem.status}) — LP token vault lock / burn proof confirmed.`);
+      } else {
+        bullets.push('• Liquidity Pool Lock Status: NOT INDEPENDENTLY VERIFIED — LP token vault lock duration and burn proofs require independent verification.');
+      }
+    } else {
+      bullets.push('• Liquidity Pool Lock Status: NOT INDEPENDENTLY VERIFIED — LP token vault lock duration and burn proofs require independent verification.');
+    }
+
+    const mintV = (mintItem?.verdict || '').toUpperCase();
+    const taxV = (taxItem?.verdict || '').toUpperCase();
+    let mintStr = 'Mint Status [UNVERIFIED]';
+    if (mintV.includes('DISABLED')) {
+      mintStr = 'Mint Authority Disabled';
+    } else if (mintV.includes('MINTABLE')) {
+      mintStr = 'Mint Authority Active [FLAGGED]';
+    } else if (mintV.includes('NOT VERIFIED') || mintV.includes('UNAVAILABLE') || mintV.includes('PENDING')) {
+      mintStr = 'Mint Authority Not Independently Verified';
+    }
+
+    let taxStr = 'Tax Hook [UNVERIFIED]';
+    if (taxV.includes('TRADABLE')) {
+      taxStr = `Transfer Hooks Tradable (${taxItem?.status || 'Tax Bounded'})`;
+    } else if (taxV.includes('HONEYPOT')) {
+      taxStr = 'Honeypot Logic Detected [CRITICAL ALERT]';
+    } else if (taxV.includes('HIGH TAX')) {
+      taxStr = `High Transaction Tax [FLAGGED] (${taxItem?.status || 'High Tax'})`;
+    } else if (taxV.includes('NOT VERIFIED') || taxV.includes('UNAVAILABLE') || taxV.includes('PENDING')) {
+      taxStr = 'Tax & Honeypot Telemetry Not Independently Verified';
+    }
+    bullets.push(`• Mint & Transfer Hook Security: ${mintStr} • ${taxStr} (aligned with audit matrix).`);
+
+    if (whaleItem) {
+      const v = (whaleItem.verdict || '').toUpperCase();
+      if (v.includes('VERIFIED') || v.includes('PASSED')) {
+        bullets.push(`• Anti-Whale Transfer Boundaries: Verified on-chain (${whaleItem.status}) — transfer limit rules confirmed.`);
+      } else {
+        bullets.push('• Anti-Whale & Control Framework: NOT INDEPENDENTLY VERIFIED — max wallet limits, team vesting schedules, and formal treasury isolation are unindexed or not applicable.');
+      }
+    } else {
+      bullets.push('• Control Framework Scope: Formal treasury isolation, team vesting schedules, and anti-whale caps are unindexed on file or not applicable.');
+    }
+
+    return {
+      title: 'GOVERNANCE & SPECULATIVE ASSET CONTROL INVARIANTS',
+      bullets
+    };
+  } else {
+    return {
+      title: 'GOVERNANCE INVARIANT & VESTING MODEL ASSESSMENT',
+      bullets: [
+        '• Multi-Sig Authorization Standard: Evaluates non-custodial multi-sig quorum requirements for admin & treasury operations (independent verification required where unindexed).',
+        '• Upgrade Timelock Standard: Evaluates presence of mandatory delay timelocks on core smart contract upgrade functions.',
+        '• Vesting & Allocation Assessment: Evaluates team/investor vesting schedules and token cliff parameters based on available disclosures.',
+        '• Treasury Isolation Standard: Evaluates separation of protocol operational funds from liquidity reserve vaults.'
+      ]
+    };
+  }
 }
 
 /**
@@ -1273,7 +1451,11 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
       confidenceScore: review.confidenceScore,
       confidenceLevel: review.confidenceLevel,
       adminOverride: review.adminOverride || (review.f3Verification as any)?.adminOverride,
-      securityScan: review.securityScan
+      securityScan: review.securityScan,
+      overallScore: typeof review.overallScore === 'number' ? review.overallScore : ((review as any).scores ? calculateBlueprintScore((review as any).scores, normalizeProtocolCategory(review.category)).overallScore : undefined),
+      riskLevel: review.riskLevel,
+      dimensionScores: (review as any).scores || (review as any).dimensionScores,
+      phaseTwoReControl: review.phaseTwoReControl
     };
   } else {
     data = inputData as AuditPdfData;
@@ -1414,7 +1596,7 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
     doc.setTextColor(120, 53, 15);
     doc.text(`• Verified Contract/Repo: ${data.contractAddress || 'Mainnet On-Chain Verification'}`, margin + 4, y + 9.5);
     doc.text(`• Methodology: Unified Bytecode & Evidence-Backed Verification`, margin + 4, y + 13.5);
-    const simLabel = data.stressSimulation ? '• TVL Stress Simulation: ACTIVE' : '• Verification Depth: Protocol & Contract Diagnostics';
+    const simLabel = data.stressSimulation ? '• TVL Stress Readiness: ACTIVE' : '• Verification Depth: Protocol & Contract Diagnostics';
     doc.text(simLabel, margin + 105, y + 13.5);
 
     y += 22;
@@ -1475,19 +1657,28 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.text('DIMENSION', margin + 4, tableHeaderY + 4.5);
-  doc.text('WEIGHT', margin + 90, tableHeaderY + 4.5, { align: 'center' });
-  doc.text('STATUS', margin + 125, tableHeaderY + 4.5, { align: 'center' });
+  doc.text('WEIGHT', margin + 85, tableHeaderY + 4.5, { align: 'center' });
+  doc.text('SCORE / STATUS', margin + 120, tableHeaderY + 4.5, { align: 'center' });
   doc.text('SPECIFICATION INVARIANT', margin + 165, tableHeaderY + 4.5, { align: 'center' });
 
   y += 6.5;
 
-  const dimStatus = isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'PENDING');
+  const stdScores = resolveReportScores(data, categoryType);
+  const stdDimScores = stdScores.dimensionScores;
+  const stdDefaultStatus = isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'PENDING');
+  const formatStdDim = (score?: number) => {
+    if (score !== undefined && !isNaN(score) && stdScores.isScorePublished) {
+      return `${score.toFixed(1)}/10 • ${isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'EVALUATED')}`;
+    }
+    return stdDefaultStatus;
+  };
+
   const dimensionRows = [
-    { name: 'Utility & Protocol Function', weight: `${Math.round(weights.utility * 100)}%`, status: dimStatus, invariant: 'Functional Vector Invariant' },
-    { name: 'Tokenomics & Economic Model', weight: `${Math.round(weights.tokenomics * 100)}%`, status: dimStatus, invariant: 'Supply & Emission Dynamics' },
-    { name: 'Smart Contract & Network Security', weight: `${Math.round(weights.security * 100)}%`, status: dimStatus, invariant: 'Bytecode & Invariant Invariance' },
-    { name: 'Team & Backer Track Record', weight: `${Math.round(weights.team * 100)}%`, status: dimStatus, invariant: 'Provenance Cross-Referenced' },
-    { name: 'Community & Governance Strength', weight: `${Math.round(weights.community * 100)}%`, status: dimStatus, invariant: 'Decentralization & Governance' }
+    { name: 'Utility & Protocol Function', weight: `${Math.round(weights.utility * 100)}%`, status: formatStdDim(stdDimScores?.utility), invariant: 'Functional Vector Invariant' },
+    { name: 'Tokenomics & Economic Model', weight: `${Math.round(weights.tokenomics * 100)}%`, status: formatStdDim(stdDimScores?.tokenomics), invariant: 'Supply & Emission Dynamics' },
+    { name: 'Smart Contract & Network Security', weight: `${Math.round(weights.security * 100)}%`, status: formatStdDim(stdDimScores?.security), invariant: 'Bytecode & Invariant Invariance' },
+    { name: 'Team & Backer Track Record', weight: `${Math.round(weights.team * 100)}%`, status: formatStdDim(stdDimScores?.team), invariant: 'Provenance Cross-Referenced' },
+    { name: 'Community & Governance Strength', weight: `${Math.round(weights.community * 100)}%`, status: formatStdDim(stdDimScores?.community), invariant: 'Decentralization & Governance' }
   ];
 
   dimensionRows.forEach((row, idx) => {
@@ -1502,9 +1693,9 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
     doc.text(row.name, margin + 4, rowY + 4.2);
 
     doc.setFont('helvetica', 'normal');
-    doc.text(row.weight, margin + 90, rowY + 4.2, { align: 'center' });
+    doc.text(row.weight, margin + 85, rowY + 4.2, { align: 'center' });
     doc.setFont('helvetica', 'bold');
-    doc.text(row.status, margin + 125, rowY + 4.2, { align: 'center' });
+    doc.text(row.status, margin + 120, rowY + 4.2, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.text(row.invariant, margin + 165, rowY + 4.2, { align: 'center' });
 
@@ -2044,10 +2235,15 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFont('helvetica', 'bold');
   doc.text(`VERIFICATION STATUS: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 8);
 
+  const resolvedScores = resolveReportScores(data, categoryType);
+  const isScorePublished = resolvedScores.isScorePublished;
+  const dimScores = resolvedScores.dimensionScores;
+
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.text(`EVALUATION SCORE: ${data.overallScore || 0}/100 | FINAL CRL STATE: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 13);
+  const scoreDisplay = isScorePublished ? `${resolvedScores.overallScore}/100` : 'PENDING';
+  doc.text(`EVALUATION SCORE: ${scoreDisplay} | FINAL CRL STATE: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 13);
 
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
@@ -2076,19 +2272,26 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.text('DIMENSION', margin + 4, tableHeaderY + 4.5);
-  doc.text('WEIGHT', margin + 90, tableHeaderY + 4.5, { align: 'center' });
-  doc.text('STATUS', margin + 125, tableHeaderY + 4.5, { align: 'center' });
+  doc.text('WEIGHT', margin + 85, tableHeaderY + 4.5, { align: 'center' });
+  doc.text('SCORE / STATUS', margin + 120, tableHeaderY + 4.5, { align: 'center' });
   doc.text('METHODOLOGY CHECK', margin + 165, tableHeaderY + 4.5, { align: 'center' });
 
   y += 6.5;
 
-  const proDimStatus = isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'PENDING');
+  const proDefaultStatus = isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'PENDING');
+  const formatProDim = (score?: number) => {
+    if (score !== undefined && !isNaN(score) && isScorePublished) {
+      return `${score.toFixed(1)}/10 • ${isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'EVALUATED')}`;
+    }
+    return proDefaultStatus;
+  };
+
   const dimensionRows = [
-    { name: 'Utility & Protocol Function', weight: `${Math.round(categoryWeights.utility * 100)}%`, status: proDimStatus, check: 'Functional Vector Invariant' },
-    { name: 'Tokenomics & Economic Model', weight: `${Math.round(categoryWeights.tokenomics * 100)}%`, status: proDimStatus, check: 'Supply Dynamics Validated' },
-    { name: 'Smart Contract & Network Security', weight: `${Math.round(categoryWeights.security * 100)}%`, status: proDimStatus, check: 'Bytecode & Invariant Checked' },
-    { name: 'Team & Backer Track Record', weight: `${Math.round(categoryWeights.team * 100)}%`, status: proDimStatus, check: 'Provenance Cross-Referenced' },
-    { name: 'Community & Governance Strength', weight: `${Math.round(categoryWeights.community * 100)}%`, status: proDimStatus, check: 'Governance Active' }
+    { name: 'Utility & Protocol Function', weight: `${Math.round(categoryWeights.utility * 100)}%`, status: formatProDim(dimScores?.utility), check: 'Functional Vector Invariant' },
+    { name: 'Tokenomics & Economic Model', weight: `${Math.round(categoryWeights.tokenomics * 100)}%`, status: formatProDim(dimScores?.tokenomics), check: 'Supply Dynamics Validated' },
+    { name: 'Smart Contract & Network Security', weight: `${Math.round(categoryWeights.security * 100)}%`, status: formatProDim(dimScores?.security), check: 'Bytecode & Invariant Checked' },
+    { name: 'Team & Backer Track Record', weight: `${Math.round(categoryWeights.team * 100)}%`, status: formatProDim(dimScores?.team), check: 'Provenance Cross-Referenced' },
+    { name: 'Community & Governance Strength', weight: `${Math.round(categoryWeights.community * 100)}%`, status: formatProDim(dimScores?.community), check: 'Governance Active' }
   ];
 
   dimensionRows.forEach((row, idx) => {
@@ -2103,9 +2306,9 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     doc.text(row.name, margin + 4, rowY + 4.2);
 
     doc.setFont('helvetica', 'normal');
-    doc.text(row.weight, margin + 90, rowY + 4.2, { align: 'center' });
+    doc.text(row.weight, margin + 85, rowY + 4.2, { align: 'center' });
     doc.setFont('helvetica', 'bold');
-    doc.text(row.status, margin + 125, rowY + 4.2, { align: 'center' });
+    doc.text(row.status, margin + 120, rowY + 4.2, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.text(row.check, margin + 165, rowY + 4.2, { align: 'center' });
 
@@ -2240,7 +2443,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   // =========================================================================
   doc.addPage();
 
-  addProPageHeader(doc, pageWidth, margin, refId, `SECTION 2: DYNAMIC TECHNICAL VECTORS & CATEGORY RISK SIMULATION`);
+  addProPageHeader(doc, pageWidth, margin, refId, `SECTION 2: DYNAMIC TECHNICAL VECTORS & CATEGORY RISK READINESS`);
   y = 22;
 
   // 1. Dynamic Category Technical Vectors Table
@@ -2387,36 +2590,27 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.text('3. GOVERNANCE & EVALUATED CONTROL FRAMEWORK', margin, y);
   y += 4;
 
+  const govFramework = getGovernanceAndControlBullets(categoryType, categoryModule, projName);
+  const govBoxHeight = Math.max(30, govFramework.bullets.length * 5.2 + 8);
+
   doc.setFillColor(254, 243, 199);
   doc.setDrawColor(245, 158, 11);
-  doc.roundedRect(margin, y, contentWidth, 30, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, govBoxHeight, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.setTextColor(180, 83, 9);
-  
-  const isMemeOrSpeculative = categoryType.toLowerCase().includes('meme') || categoryType.toLowerCase().includes('speculative') || projName.toLowerCase().includes('pepe');
-  if (isMemeOrSpeculative) {
-    doc.text('GOVERNANCE & SPECULATIVE ASSET CONTROL INVARIANTS', margin + 4, y + 5.5);
+  doc.text(govFramework.title, margin + 4, y + 5.5);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(120, 53, 15);
-    doc.text('• Ownership Renouncement: Contract storage slot verified for null address invariant (renounced admin key privileges).', margin + 4, y + 11.5);
-    doc.text('• Liquidity Pool Lock Status: Model inspects DEX pair liquidity token burn or permanent timelock proof on-chain.', margin + 4, y + 16.5);
-    doc.text('• External Dependency Isolation: Project operates as standard ERC-20 token; no oracle or bridge dependencies detected.', margin + 4, y + 21.5);
-    doc.text('• Unverified Controls Disclosure: Formal treasury isolation and vesting schedules are unindexed on file or not applicable.', margin + 4, y + 25.5);
-  } else {
-    doc.text('GOVERNANCE INVARIANT & VESTING MODEL ASSESSMENT', margin + 4, y + 5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.2);
+  doc.setTextColor(120, 53, 15);
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(120, 53, 15);
-    doc.text('• Multi-Sig Authorization Standard: Model evaluates non-custodial multi-sig quorum requirements for admin & treasury operations.', margin + 4, y + 11.5);
-    doc.text('• Upgrade Timelock Standard: Model evaluates presence of mandatory delay timelocks on core smart contract upgrade functions.', margin + 4, y + 16.5);
-    doc.text('• Vesting & Allocation Assessment: Evaluates team/investor vesting schedules to identify token cliff pressure.', margin + 4, y + 21.5);
-    doc.text('• Treasury Isolation Standard: Evaluates separation of protocol operational funds from liquidity reserve vaults.', margin + 4, y + 25.5);
-  }
+  let govTextY = y + 10.5;
+  govFramework.bullets.forEach((bullet) => {
+    doc.text(bullet, margin + 4, govTextY, { maxWidth: contentWidth - 8 });
+    govTextY += 5.0;
+  });
 
   addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, 2);
 
@@ -2442,6 +2636,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     .replace(/[&]\s?[þÞ]/g, '[!]')
     .replace(/\n{3,}/g, '\n\n');
 
+  const isMemeOrSpeculative = categoryType.toLowerCase().includes('meme') || categoryType.toLowerCase().includes('speculative') || projName.toLowerCase().includes('pepe');
   if (isMemeOrSpeculative) {
     cleanedText = cleanedText
       .split('\n')

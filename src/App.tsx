@@ -979,7 +979,7 @@ export default function App() {
     if (matchesProOrder || isOrderPattern) {
       setReportUnavailable({
         id: targetId,
-        isOrder: matchesProOrder
+        isOrder: true
       });
       return;
     }
