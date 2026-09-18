@@ -74,7 +74,7 @@ The F3 verification layer runs 8 deterministic modules sequentially:
 
 ### Module 4: AVF-04 — Scenario Readiness & Stress-Input Verification
 - **Purpose:** AVF-04 verifies scenario readiness and lifecycle state for stress-test inputs (TVL, live price, contract address) and tracks F1/F2 convergence-loop execution. Full numerical price-shock, liquidity-drain and slippage simulations are not currently attached.
-- **Output:** Status returns `PASSED` (100% scenario readiness), `SIMULATED_WITH_WARNINGS` (70%), `NARRATIVE_ONLY` (40%), or `FAILED` / `INPUT_MISSING`.
+- **Output:** Status returns neutral verification indicators: `PASSED`, `PARTIALLY_EXECUTED`, `UNEXECUTED` / `NARRATIVE_ONLY`, or `INPUT_MISSING`.
 
 ### Module 5: AVF-05 — Score Arithmetic & Weight Verification
 - **Purpose:** Recomputes the weighted composite score to double precision:
@@ -109,7 +109,7 @@ $$\text{Confidence} = (0.20 \times C_{\text{class}}) + (0.30 \times C_{\text{pro
 2. **$C_{\text{prov}}$ (Provenance Confidence — 30%):**
    - Direct confidence from AVF-02 evidence coverage (`avf02.evidenceCoveragePct`, 0.0 to 1.0).
 3. **$C_{\text{scen}}$ (Scenario Confidence — 30%):**
-   - Direct execution rate from AVF-04 stress simulations (`avf04.scenarioExecutionRate`, 0.0 to 1.0).
+   - Direct execution rate from AVF-04 scenario execution / readiness rate (`avf04.scenarioExecutionRate`, 0.0 to 1.0).
 4. **$C_{\text{risk}}$ (Semantic Consistency Confidence — 20%):**
    - `1.0` (100%) when AVF-06 status is `CONSISTENT`.
    - `0.60` (60%) when AVF-06 status is `REQUIRES_REVIEW`.

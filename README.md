@@ -7,7 +7,7 @@
 
 ## 📌 Overview
 
-**Crypto Review Lab (CRL)** is an independent cryptocurrency research, security evaluation, and asset verification platform. Designed for decentralized finance (DeFi) protocols, digital asset treasuries, web3 developers, and institutional participants, CRL delivers rigorous, data-driven security evaluations, real-time telemetry surveillance, and independent transparency across native crypto assets and tokenized real-world equities (xStocks).
+**Crypto Review Lab (CRL)** is an independent cryptocurrency research, security evaluation, and asset verification platform. Designed for decentralized finance (DeFi) protocols, digital asset treasuries, web3 developers, and market participants, CRL delivers rigorous, data-driven security evaluations, real-time telemetry surveillance, and independent transparency across native crypto assets and tokenized real-world equities (xStocks).
 
 All evaluations are governed by the deterministic **Algorithmic Verification Framework (AVF)** and audited through an automated 8-Gate Re-Control pipeline and multi-module deterministic verification layer with deterministic verification with no AI estimation in F3.
 
@@ -32,13 +32,13 @@ The AVF architecture operates three sequential execution layers to ensure mathem
 ```
 
 ### 1. F1 — Candidate Engine
-Automatically ingests contract bytecode, opcode sequences, tokenomics schedules, and multi-node on-chain telemetry (GoPlus, RugCheck, Blockscout, CoinGecko, CoinMarketCap) to generate initial multidimensional evaluation vectors.
+Automatically ingests contract bytecode, tokenomics schedules, and multi-node on-chain telemetry (GoPlus, RugCheck, Blockscout, CoinGecko, CoinMarketCap) to generate initial multidimensional evaluation vectors.
 
 ### 2. F2 — Phase Two Automated Re-Control Engine
 Candidate evaluations are subjected to an 8-Gate automated quality pipeline (Gate 0 through Gate 7) enforcing strict consistency and convergence:
 
 * **Gate 0 — Structural Completeness Check:** Verifies presence of mandatory fields (name, symbol, scores, summary, verdict, pros/cons).
-* **Gate 1 — Multi-Source Triangulation:** Cross-verifies telemetry across redundant RPC nodes, block explorers, and price feeds.
+* **Gate 1 — Multi-Source Triangulation:** Cross-verifies market telemetry across CoinGecko, CMC, and related price/volume feeds.
 * **Gate 2 — GoPlus & RugCheck Security:** Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.
 * **Gate 3 — Cross-Framework Consistency Check:** Enforces strict `< 3.0 point` composite score drift convergence between F1 and F2 models.
 * **Gate 4 — Tokenomics Re-Verification:** Evaluates token distribution models, circulating vs. max supply ratios, and unlock overhang.

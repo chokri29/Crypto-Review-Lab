@@ -97,10 +97,10 @@ export const REVIEW_LAB_FAQ_ITEMS: FAQItem[] = [
 export const AVF_SECURITY_FAQ_ITEMS: FAQItem[] = [
   {
     category: 'avf',
-    question: 'What are the 7 Automated Security Gates in the AVF Engine pipeline?',
-    definition: 'A 7-stage verification chain: Gate 0 (Syntax/Opcode), Gate 1 (Triangulation), Gate 2 (GoPlus), Gate 3 (Cross-Framework Drift), Gate 4 (Tokenomics), Gate 5 (Score Arithmetic), and Gate 6 (Risk Level Evidence Check).',
-    tip: 'Every candidate evaluation must pass all 7 gates sequentially; failing any gate triggers automatic re-calibration.',
-    answer: 'The Algorithmic Verification Framework (AVF) operates 7 sequential automated security gates that every evaluation candidate must satisfy:\n\nGate 0 — Structural Syntax & Opcode Integrity: Validates contract bytecode formatting, opcode sequence validity, and AST tree cleanliness.\n\nGate 1 — Multi-Source Triangulation: Cross-verifies telemetry across redundant RPC nodes, block explorers, and price feeds.\n\nGate 2 — GoPlus & RugCheck Security: Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.\n\nGate 3 — Cross-Framework Consistency Check: Enforces strict <3.0 point composite score drift convergence between F1 and F2 models.\n\nGate 4 — Tokenomics Re-Verification: Evaluates token distribution models, circulating vs. max supply ratios, and unlock overhang.\n\nGate 5 — Score Arithmetic Check: Recomputes category-weighted dimension math to ensure exact mathematical consistency without drift.\n\nGate 6 — Risk Level Evidence Check: Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.'
+    question: 'What are the 8 Automated Security Gates in the AVF Engine pipeline?',
+    definition: 'An 8-stage verification chain: Gate 0 (Structural Completeness), Gate 1 (Triangulation), Gate 2 (GoPlus), Gate 3 (Cross-Framework Drift), Gate 4 (Tokenomics), Gate 5 (Score Arithmetic), Gate 6 (Risk Level Evidence Check), and Gate 7 (Formatting Integrity).',
+    tip: 'Every candidate evaluation must pass all 8 gates sequentially; failing any gate triggers automatic re-calibration.',
+    answer: 'The Algorithmic Verification Framework (AVF) operates 8 sequential automated security gates that every evaluation candidate must satisfy:\n\nGate 0 — Structural Completeness Check: Verifies presence of mandatory fields (name, symbol, scores, summary, verdict, pros/cons).\n\nGate 1 — Multi-Source Triangulation: Cross-verifies market telemetry across CoinGecko, CMC, and related price/volume feeds.\n\nGate 2 — GoPlus & RugCheck Security: Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.\n\nGate 3 — Cross-Framework Consistency Check: Enforces strict <3.0 point composite score drift convergence between F1 and F2 models.\n\nGate 4 — Tokenomics Re-Verification: Evaluates token distribution models, circulating vs. max supply ratios, and unlock overhang.\n\nGate 5 — Score Arithmetic Check: Recomputes category-weighted dimension math to ensure exact mathematical consistency without drift.\n\nGate 6 — Risk Level Evidence Check: Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.\n\nGate 7 — Formatting Integrity: Checks presence of core narrative sections (via keyword), pros/cons balance (≥3 each), and verdict length.'
   },
   {
     category: 'avf',
@@ -214,7 +214,7 @@ export function generateAvfSecurityProtocolsStructuredData() {
     '@type': 'TechArticle',
     '@id': 'https://www.cryptoreviewlab.com/?m=1#avf-security-protocols-schema',
     'headline': 'AVF Engine Security Protocols & Tripartite Core Architecture',
-    'description': 'Comprehensive documentation of the Algorithmic Verification Framework (AVF) Tripartite Core (F1 Candidate Engine, F2 Reviewer Convergence, and F3 Deterministic Verification Layer) and 7-Gate Quality Control Pipeline.',
+    'description': 'Comprehensive documentation of the Algorithmic Verification Framework (AVF) Tripartite Core (F1 Candidate Engine, F2 Reviewer Convergence, and F3 Deterministic Verification Layer) and 8-Gate Quality Control Pipeline.',
     'author': {
       '@type': 'Organization',
       'name': 'Crypto Review Lab Security Research'
