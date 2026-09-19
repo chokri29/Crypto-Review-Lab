@@ -1931,7 +1931,7 @@ export default function App() {
                 <div className="flex flex-col text-left min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-orbitron font-extrabold text-xs md:text-sm text-slate-100 group-hover:text-cyber-cyan transition-colors tracking-wider uppercase">
-                      Top Crypto Platforms to Start Your Trading Journey
+                      Top Crypto Platforms to Start Your {(activeTab === 'xstocks' || activeTab === 'academy') ? 'xStocks' : 'Crypto'} Trading Journey
                     </span>
                   </div>
                   <span className="text-[10px] md:text-xs text-cyber-text-muted font-mono leading-normal pt-0.5 break-words">
