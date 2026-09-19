@@ -55,6 +55,7 @@ export const DEFAULT_COIN_LOGOS: Record<string, string> = {
   MOVEMENT: 'https://coin-images.coingecko.com/coins/images/34500/large/movement.png',
   EIGEN: 'https://coin-images.coingecko.com/coins/images/37392/large/eigenlayer.png',
   EIGENLAYER: 'https://coin-images.coingecko.com/coins/images/37392/large/eigenlayer.png',
+  EIGENCLOUD: 'https://coin-images.coingecko.com/coins/images/37392/large/eigenlayer.png',
   ENA: 'https://coin-images.coingecko.com/coins/images/36530/large/ethena.png',
   ETHENA: 'https://coin-images.coingecko.com/coins/images/36530/large/ethena.png',
   TIA: 'https://coin-images.coingecko.com/coins/images/31967/large/celestia.png',

@@ -85,6 +85,7 @@ interface ReviewLabProps {
 const CATEGORY_OPTIONS = [
   { value: 'Layer 1 Blockchain', label: 'Layer 1 Blockchain', icon: Layers, badge: 'L1 Blockchain', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { value: 'Layer 2 / Scaling', label: 'Layer 2 / Scaling', icon: Zap, badge: 'L2 / Rollups', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  { value: 'Restaking / Shared Security / AVS', label: 'Restaking / Shared Security / AVS', icon: Lock, badge: 'Restaking & AVS', color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
   { value: 'DeFi Protocol (AMM / Lending)', label: 'DeFi Protocol (AMM / Lending)', icon: Activity, badge: 'DeFi & Vaults', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
   { value: 'RWA (Tokenization / TradFi Bridge)', label: 'RWA (Tokenization / TradFi Bridge)', icon: Building2, badge: 'RWA & TradFi', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
   { value: 'DePIN (Compute / Storage / Wireless)', label: 'DePIN (Compute / Storage / Wireless)', icon: HardDrive, badge: 'DePIN & Compute', color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
@@ -100,7 +101,8 @@ const ACCELERATOR_POOL = [
   { name: 'Berachain', symbol: 'BERA', category: 'Smart Contract / Layer 1' },
   { name: 'Monad', symbol: 'MONAD', category: 'Smart Contract / Layer 1' },
   { name: 'Movement', symbol: 'MOVE', category: 'Smart Contract / Layer 1' },
-  { name: 'EigenLayer', symbol: 'EIGEN', category: 'DeFi Protocol (AMM / Lending)' },
+  { name: 'EigenCloud', symbol: 'EIGEN', category: 'Restaking / Shared Security / AVS' },
+  { name: 'EigenLayer', symbol: 'EIGEN', category: 'Restaking / Shared Security / AVS' },
   { name: 'Ethena', symbol: 'ENA', category: 'DeFi Protocol (AMM / Lending)' },
   { name: 'Celestia', symbol: 'TIA', category: 'Layer 2 / Scaling' },
   { name: 'Ondo Finance', symbol: 'ONDO', category: 'RWA (Tokenization / TradFi Bridge)' },
@@ -126,6 +128,9 @@ export const matchCategory = (cat?: string): string => {
   if (direct) return direct.value;
 
   const lower = cat.toLowerCase();
+  if (lower.includes('restak') || lower.includes('eigen') || lower.includes('avs') || lower.includes('shared security') || lower.includes('symbiotic') || lower.includes('karak')) {
+    return 'Restaking / Shared Security / AVS';
+  }
   if (lower.includes('rwa') || lower.includes('tokenization') || lower.includes('tradfi') || lower.includes('real world') || lower.includes('asset')) {
     return 'RWA (Tokenization / TradFi Bridge)';
   }

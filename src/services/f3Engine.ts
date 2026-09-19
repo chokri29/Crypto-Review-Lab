@@ -437,7 +437,7 @@ export function matchCategoryFromText(catOrDescription?: string): string {
   if (!catOrDescription) return 'Layer 1 Blockchain';
   const lower = catOrDescription.toLowerCase();
 
-  if (lower.includes('restak') || lower.includes('eigen') || lower.includes('shared security') || lower.includes('avs') || lower.includes('actively validated service')) {
+  if (lower.includes('restak') || lower.includes('eigen') || lower.includes('shared security') || lower.includes('avs') || lower.includes('actively validated service') || lower.includes('symbiotic') || lower.includes('karak')) {
     return 'Restaking / Shared Security / AVS';
   }
   if (lower.includes('rwa') || lower.includes('tokenization') || lower.includes('tradfi') || lower.includes('real world asset') || lower.includes('real-world')) {

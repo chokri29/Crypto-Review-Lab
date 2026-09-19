@@ -46,14 +46,16 @@ import {
   HardDrive,
   Code,
   Bell,
-  BellRing
+  BellRing,
+  Lock
 } from 'lucide-react';
 
-// All 9 standardized categories + All options with icons and badges matching ReviewLab style
+// All 10 standardized categories + All options with icons and badges matching ReviewLab style
 const CATEGORY_OPTIONS = [
   { value: 'All', label: 'All Categories', badge: 'All Audit Reports', icon: BookOpen, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { value: 'Layer 1 Blockchain', label: 'Layer 1 Blockchain', badge: 'L1 Blockchain', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { value: 'Layer 2 / Scaling', label: 'Layer 2 / Scaling', badge: 'L2 / Rollups', icon: Zap, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  { value: 'Restaking / Shared Security / AVS', label: 'Restaking / Shared Security / AVS', badge: 'Restaking & AVS', icon: Lock, color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
   { value: 'DeFi Protocol (AMM / Lending)', label: 'DeFi Protocol (AMM / Lending)', badge: 'DeFi & Vaults', icon: Activity, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
   { value: 'RWA (Tokenization / TradFi Bridge)', label: 'RWA (Tokenization / TradFi Bridge)', badge: 'RWA & TradFi', icon: Building2, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
   { value: 'DePIN (Compute / Storage / Wireless)', label: 'DePIN (Compute / Storage / Wireless)', badge: 'DePIN & Compute', icon: HardDrive, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
