@@ -1068,12 +1068,26 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
               ACTION REQUIRED
             </span>
           </div>
-          <ul className="list-disc list-inside space-y-1 pl-1 text-slate-300">
-            {discrepancies.map((disc, idx) => (
-              <li key={idx}>
-                <strong>{disc.module}:</strong> {disc.detail} (Recomputed: <code className="text-rose-300">{String(disc.recomputed)}</code> vs Reported: <code className="text-slate-400">{String(disc.reported)}</code>)
-              </li>
-            ))}
+          <ul className="list-disc list-inside space-y-1.5 pl-1 text-slate-300">
+            {discrepancies.map((disc, idx) => {
+              if (typeof disc === 'string') {
+                return (
+                  <li key={idx} className="break-words leading-relaxed">
+                    <span>{disc}</span>
+                  </li>
+                );
+              }
+              const d = disc as any;
+              return (
+                <li key={idx} className="break-words leading-relaxed">
+                  {d.module && <strong>{d.module}: </strong>}
+                  {d.detail || JSON.stringify(d)}
+                  {d.recomputed !== undefined && d.reported !== undefined && (
+                    <span className="text-slate-400"> (Recomputed: <code className="text-rose-300">{String(d.recomputed)}</code> vs Reported: <code className="text-slate-300">{String(d.reported)}</code>)</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -1081,68 +1095,116 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       {/* 2. Top Metric Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Card 1: Mathematical Parity */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Arithmetic Parity</span>
-            <Binary className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black font-orbitron text-slate-100">
-              {currentF3Result ? (avf05?.status === 'VERIFIED' ? 'Exact' : (avf05?.status || 'NOT RUN')) : 'STANDBY'}
-            </span>
-            <span className="text-[11px] font-mono text-emerald-400">
-              Δ 0.00 pts
-            </span>
-          </div>
-          <p className="text-[11px] font-mono text-slate-400">
-            Weighted product zero-float delta
-          </p>
-        </div>
+        {/* Card 1: Mathematical Parity (Mobile Optimized) */}
+        {(() => {
+          const isVerifiedParity = Boolean(currentF3Result && avf05?.status === 'VERIFIED');
+          const isDiscrepancy = Boolean(currentF3Result && avf05?.status === 'DISCREPANCY_FOUND');
+          const isMissingInput = Boolean(currentF3Result && avf05?.status === 'INPUT_MISSING');
+
+          return (
+            <div className={`rounded-2xl p-4 space-y-2 transition-all overflow-hidden ${
+              isDiscrepancy 
+                ? 'bg-gradient-to-b from-rose-950/20 to-slate-900/90 border-2 border-rose-500/40 shadow-sm shadow-rose-950/30' 
+                : isMissingInput
+                ? 'bg-slate-900/90 border border-amber-500/40'
+                : 'bg-slate-900/90 border border-slate-800'
+            }`}>
+              <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                <span className="font-semibold text-slate-300">Arithmetic Parity</span>
+                <Binary className={`w-4 h-4 shrink-0 ${
+                  isDiscrepancy ? 'text-rose-400' : isVerifiedParity ? 'text-emerald-400' : isMissingInput ? 'text-amber-400' : 'text-slate-400'
+                }`} />
+              </div>
+
+              <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={`text-lg sm:text-xl md:text-2xl font-black font-orbitron tracking-tight truncate ${
+                    isDiscrepancy ? 'text-rose-400' : isVerifiedParity ? 'text-slate-100' : isMissingInput ? 'text-amber-400' : 'text-slate-400'
+                  }`}>
+                    {currentF3Result 
+                      ? (isVerifiedParity ? 'Exact' : isDiscrepancy ? 'Discrepancy' : isMissingInput ? 'Missing Input' : (avf05?.status || 'NOT RUN'))
+                      : 'STANDBY'}
+                  </span>
+                  {isDiscrepancy && (
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded border border-rose-500/30 shrink-0">
+                      FOUND
+                    </span>
+                  )}
+                </div>
+
+                <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded shrink-0 ${
+                  isDiscrepancy
+                    ? 'text-rose-300 bg-rose-950/70 border border-rose-500/40'
+                    : isVerifiedParity
+                    ? 'text-emerald-400 bg-emerald-950/60 border border-emerald-500/30'
+                    : 'text-slate-400 bg-slate-800/60 border border-slate-700/50'
+                }`}>
+                  {currentF3Result && avf05?.discrepancy !== undefined && avf05.discrepancy !== null
+                    ? `Δ ${avf05.discrepancy > 0 ? '+' : ''}${avf05.discrepancy.toFixed(2)} pts`
+                    : currentF3Result ? 'Δ 0.00 pts' : 'Δ -- pts'}
+                </span>
+              </div>
+
+              {/* Contextual score detail when discrepancy exists */}
+              {isDiscrepancy && avf05 && (
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-1 border-t border-rose-500/20">
+                  <span className="truncate">Reported: <strong className="text-slate-200">{avf05.reportedScore ?? '--'}</strong></span>
+                  <span className="truncate">Recomputed: <strong className="text-rose-300">{avf05.recomputedScore ?? '--'}</strong></span>
+                </div>
+              )}
+
+              <p className="text-[11px] font-mono text-slate-400 leading-tight">
+                {isDiscrepancy 
+                  ? 'Weighted sum mismatch vs reported score' 
+                  : 'Weighted product zero-float delta'}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Card 2: Multi-Source Confidence */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2 overflow-hidden">
           <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Evidence Confidence</span>
-            <Cpu className="w-4 h-4 text-indigo-400" />
+            <span className="font-semibold text-slate-300">Evidence Confidence</span>
+            <Cpu className="w-4 h-4 text-indigo-400 shrink-0" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black font-orbitron text-slate-100">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 min-w-0">
+            <span className="text-xl sm:text-2xl font-black font-orbitron text-slate-100">
               {currentF3Result ? `${confidencePct}%` : 'STANDBY'}
             </span>
-            <span className="text-[11px] font-mono text-indigo-400">
+            <span className="text-[11px] font-mono font-bold text-indigo-300 bg-indigo-950/60 border border-indigo-500/30 px-2 py-0.5 rounded shrink-0">
               {getConfidenceLevel(overallConfidence)}
             </span>
           </div>
-          <p className="text-[11px] font-mono text-slate-400">
+          <p className="text-[11px] font-mono text-slate-400 leading-tight">
             Deterministic evidence score
           </p>
         </div>
 
         {/* Card 3: Weight Compliance */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2 overflow-hidden">
           <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Methodology Weights</span>
-            <Scale className="w-4 h-4 text-blue-400" />
+            <span className="font-semibold text-slate-300">Methodology Weights</span>
+            <Scale className="w-4 h-4 text-blue-400 shrink-0" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black font-orbitron text-slate-100">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 min-w-0">
+            <span className="text-xl sm:text-2xl font-black font-orbitron text-slate-100">
               100.0%
             </span>
-            <span className="text-[11px] font-mono text-blue-400">
+            <span className="text-[11px] font-mono font-bold text-blue-300 bg-blue-950/60 border border-blue-500/30 px-2 py-0.5 rounded shrink-0">
               Sum Locked
             </span>
           </div>
-          <p className="text-[11px] font-mono text-slate-400">
+          <p className="text-[11px] font-mono text-slate-400 leading-tight">
             Blueprint v2.4 5-dim constraints
           </p>
         </div>
 
         {/* Card 4: Integrity & Traceability */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2 overflow-hidden">
           <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Integrity & Traceability</span>
-            <Lock className="w-4 h-4 text-cyan-400" />
+            <span className="font-semibold text-slate-300">Integrity & Traceability</span>
+            <Lock className="w-4 h-4 text-cyan-400 shrink-0" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] font-mono">
