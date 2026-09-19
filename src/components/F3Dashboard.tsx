@@ -87,6 +87,20 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
   // Search & Filter state for target projects selector
   const [projectSearch, setProjectSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false);
+
+  // AVF 0-8 Automated Control Gates (Mirrors F2 Gate 0-7 architecture adapted to Stage 3 AVF Tripartite Core)
+  const avfStepList = [
+    { num: 0, name: 'Pipeline Invariant Pre-Check' },
+    { num: 1, name: 'Classification & Taxonomy' },
+    { num: 2, name: 'Data Provenance & Citations' },
+    { num: 3, name: 'Methodology & Weighting' },
+    { num: 4, name: 'Scenario Readiness & Stress' },
+    { num: 5, name: 'Score Arithmetic Integrity' },
+    { num: 6, name: 'Risk-Conclusion Alignment' },
+    { num: 7, name: 'Multi-Source Confidence' },
+    { num: 8, name: 'Cryptographic Hash & Sign' }
+  ];
 
   // Filter modules
   const [moduleFilter, setModuleFilter] = useState<'all' | 'verified' | 'attention' | 'discrepancy'>('all');
@@ -194,6 +208,7 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
   // Manual Trigger for deterministic F3 verification (with step animation)
   const handleExecuteF3 = async () => {
     if (!selectedProject) return;
+    setShowExecutionPanel(true);
     await runDeterministicF3(selectedProject);
   };
 
@@ -663,6 +678,21 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                 </AnimatePresence>
               </div>
 
+              {/* Toggle AVF 0-8 Automated Control Gates Panel */}
+              <button
+                type="button"
+                onClick={() => setShowExecutionPanel(!showExecutionPanel)}
+                className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-mono text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+                  showExecutionPanel
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/10'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                }`}
+                title="Toggle AVF 0-8 Automated Control Gates panel"
+              >
+                <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                <span>AVF 0-8 Gates</span>
+              </button>
+
               {/* Requirement 2: Run Deterministic F3 button remains prominently visible for manual re-validation */}
               <button
                 onClick={handleExecuteF3}
@@ -671,10 +701,72 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
                 title="Execute F3 verification scan"
               >
                 <RefreshCw className={`w-4 h-4 ${isExecutingF3 ? 'animate-spin' : ''}`} />
-                <span>{isExecutingF3 ? `Scanning M0${executingStep}/8...` : 'Run Deterministic F3'}</span>
+                <span>{isExecutingF3 ? `EXECUTING AVF ${executingStep}/8...` : 'Run Deterministic F3'}</span>
               </button>
             </div>
           </div>
+
+          {/* Live Execution Scan Progress Panel (AVF 0-8 Automated Control Gates - Mirrors F2 Gate 0-7) */}
+          {(isExecutingF3 || showExecutionPanel) && (
+            <div className="p-4 rounded-xl bg-slate-950/95 border border-cyan-500/40 space-y-3 font-mono shadow-xl relative">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-cyan-300 font-bold flex items-center gap-2">
+                  <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isExecutingF3 ? 'animate-spin' : ''}`} />
+                  {isExecutingF3 
+                    ? 'Executing AVF 0-8 Automated Control Gates...' 
+                    : 'AVF 0-8 Automated Control Gates Verified'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-[11px]">
+                    AVF {isExecutingF3 ? executingStep : 8} / 8
+                  </span>
+                  {!isExecutingF3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowExecutionPanel(false)}
+                      className="text-slate-400 hover:text-slate-200 text-xs px-1.5 py-0.5 hover:bg-slate-800 rounded cursor-pointer transition-colors"
+                      title="Close panel"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-2 transition-all duration-300"
+                  style={{ width: isExecutingF3 ? `${((executingStep + 1) / 9) * 100}%` : '100%' }}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 text-[10px]">
+                {avfStepList.map((item) => {
+                  const isDone = isExecutingF3 ? executingStep > item.num : Boolean(currentF3Result);
+                  const isCurrent = isExecutingF3 && executingStep === item.num;
+                  return (
+                    <div 
+                      key={item.num}
+                      className={`p-2 rounded border flex items-center justify-between transition-colors ${
+                        isDone ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' :
+                        isCurrent ? 'bg-cyan-950/60 border-cyan-500/60 text-cyan-200 animate-pulse' :
+                        'bg-slate-900/60 border-slate-800 text-slate-500'
+                      }`}
+                    >
+                      <span className="truncate">AVF {item.num}: {item.name}</span>
+                      {isDone ? (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                      ) : isCurrent ? (
+                        <RefreshCw className="w-3 h-3 text-cyan-400 animate-spin shrink-0" />
+                      ) : (
+                        <span className="text-[9px] text-slate-600">WAIT</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Target Reviewed Projects Grid (Real-Time Synchronized from F1-F2 AVF Engine and Auditor Desk) */}
           <div className="pt-3 border-t border-slate-800/80 space-y-3 font-mono">

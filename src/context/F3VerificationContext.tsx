@@ -245,10 +245,10 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     setIsExecutingF3(true);
     setExecutingStep(0);
 
-    for (let step = 1; step <= 8; step++) {
+    for (let step = 0; step <= 8; step++) {
       setExecutingStep(step);
       options?.stepCallback?.(step);
-      await new Promise(r => setTimeout(r, 60));
+      await new Promise(r => setTimeout(r, 200));
     }
 
     targetProject.adminOverride = activeOverride || targetProject.adminOverride;
@@ -258,6 +258,9 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     });
     regenerateNarrativeAfterVerification(targetProject);
     const result = targetProject.f3Verification;
+
+    // Brief delay so user sees final completed state (AVF 8/8, 100%)
+    await new Promise(r => setTimeout(r, 350));
 
     setF3Results(prev => ({
       ...prev,
