@@ -1913,81 +1913,83 @@ export default function App() {
       </main>
 
       {/* 3. Thematic Affiliate Exchange Badges Dropdown Menu */}
-      <section className="border-t border-cyber-cyan/15 bg-cyber-bg-secondary/40 py-4 md:py-5 z-10 w-full flex justify-center">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => setIsExchangesOpen(!isExchangesOpen)}
-            className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-cyber-bg-card/90 hover:bg-cyber-bg-card border border-cyber-cyan/20 hover:border-cyber-cyan/45 transition-all duration-300 group cursor-pointer shadow-sm relative overflow-hidden"
-          >
-            {/* Top highlight glow */}
-            <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/35 to-transparent pointer-events-none" />
-            
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan group-hover:scale-105 transition-transform shrink-0 shadow-xs">
-                <Building2 className="w-4 h-4 stroke-[2.5]" />
-              </div>
-              <div className="flex flex-col text-left min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-orbitron font-extrabold text-xs md:text-sm text-slate-100 group-hover:text-cyber-cyan transition-colors tracking-wider uppercase">
-                    Top Crypto Platforms to Start Your Trading Journey
+      {(activeTab === 'blog' || activeTab === 'xstocks' || activeTab === 'academy') && (
+        <section className="border-t border-cyber-cyan/15 bg-cyber-bg-secondary/40 py-4 md:py-5 z-10 w-full flex justify-center">
+          <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => setIsExchangesOpen(!isExchangesOpen)}
+              className="w-full flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-cyber-bg-card/90 hover:bg-cyber-bg-card border border-cyber-cyan/20 hover:border-cyber-cyan/45 transition-all duration-300 group cursor-pointer shadow-sm relative overflow-hidden"
+            >
+              {/* Top highlight glow */}
+              <div className="absolute top-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/35 to-transparent pointer-events-none" />
+              
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan group-hover:scale-105 transition-transform shrink-0 shadow-xs">
+                  <Building2 className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div className="flex flex-col text-left min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-orbitron font-extrabold text-xs md:text-sm text-slate-100 group-hover:text-cyber-cyan transition-colors tracking-wider uppercase">
+                      Top Crypto Platforms to Start Your Trading Journey
+                    </span>
+                  </div>
+                  <span className="text-[10px] md:text-xs text-cyber-text-muted font-mono leading-normal pt-0.5 break-words">
+                    {isExchangesOpen ? 'Click to hide cryptocurrency exchange platforms' : 'Click to Explore Recommended Crypto Exchanges'}
                   </span>
                 </div>
-                <span className="text-[10px] md:text-xs text-cyber-text-muted font-mono leading-normal pt-0.5 break-words">
-                  {isExchangesOpen ? 'Click to hide cryptocurrency exchange platforms' : 'Click to Explore Recommended Crypto Exchanges'}
+              </div>
+
+              <div className="flex items-center gap-2.5 shrink-0 ml-3">
+                <span className="hidden sm:inline-block text-[9px] font-mono text-cyber-text-muted border border-cyber-cyan/15 px-2.5 py-1 rounded-md bg-cyber-bg-primary/50 uppercase tracking-wider">
+                  AFFILIATE INTEGRATION
                 </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0 ml-3">
-              <span className="hidden sm:inline-block text-[9px] font-mono text-cyber-text-muted border border-cyber-cyan/15 px-2.5 py-1 rounded-md bg-cyber-bg-primary/50 uppercase tracking-wider">
-                AFFILIATE INTEGRATION
-              </span>
-              <div className={`p-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-transform duration-300 ${isExchangesOpen ? 'rotate-180' : ''}`}>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-            </div>
-          </button>
-
-          <AnimatePresence>
-            {isExchangesOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <div className="pt-2 pb-1 grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
-                  {[
-                    { name: 'Binance', logo: 'https://i.imgur.com/tg69xsU.jpeg', link: 'https://www.binance.com/register?ref=10821519' },
-                    { name: 'Bybit', logo: 'https://i.imgur.com/RC14WTx.jpeg', link: 'https://www.bybit.com/invite?ref=LX1Z3J' },
-                    { name: 'Bitget', logo: 'https://i.imgur.com/G7Elaq9.jpeg', link: 'https://bonus.bitget.com/D47VQF' },
-                    { name: 'MEXC', logo: 'https://i.imgur.com/t3Pz2VN.jpeg', link: 'https://promote.mexc.com/r/mGGXb0LtyB' },
-                    { name: 'KuCoin', logo: 'https://i.imgur.com/QHg5liM.jpeg', link: 'https://www.kucoin.com/r/rf/QBSD1L7J' },
-                    { name: 'Bitrue', logo: 'https://i.imgur.com/8iKd9hL.jpeg', link: 'https://www.bitrue.com/referral/landing?cn=600000&inviteCode=EWWHGA' },
-                  ].map((exc) => (
-                    <a
-                      key={exc.name}
-                      href={exc.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-cyber-bg-card border border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:shadow-[0_0_15px_rgba(0,229,255,0.15)] rounded-2xl p-3 flex flex-col items-center text-center gap-2 transition-all duration-300 group"
-                    >
-                      <div className="w-9 h-9 md:w-11 md:h-11 rounded-full overflow-hidden border border-cyber-cyan/25 group-hover:scale-105 group-hover:border-cyber-cyan transition-transform shadow-sm">
-                        <img src={exc.logo} alt={exc.name} className="w-full h-full object-cover" />
-                      </div>
-                      <span className="font-display font-bold text-xs text-cyber-text-secondary group-hover:text-cyber-cyan transition-colors">
-                        {exc.name}
-                      </span>
-                    </a>
-                  ))}
+                <div className={`p-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-transform duration-300 ${isExchangesOpen ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {isExchangesOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-2 pb-1 grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
+                    {[
+                      { name: 'Binance', logo: 'https://i.imgur.com/tg69xsU.jpeg', link: 'https://www.binance.com/register?ref=10821519' },
+                      { name: 'Bybit', logo: 'https://i.imgur.com/RC14WTx.jpeg', link: 'https://www.bybit.com/invite?ref=LX1Z3J' },
+                      { name: 'Bitget', logo: 'https://i.imgur.com/G7Elaq9.jpeg', link: 'https://bonus.bitget.com/D47VQF' },
+                      { name: 'MEXC', logo: 'https://i.imgur.com/t3Pz2VN.jpeg', link: 'https://promote.mexc.com/r/mGGXb0LtyB' },
+                      { name: 'KuCoin', logo: 'https://i.imgur.com/QHg5liM.jpeg', link: 'https://www.kucoin.com/r/rf/QBSD1L7J' },
+                      { name: 'Bitrue', logo: 'https://i.imgur.com/8iKd9hL.jpeg', link: 'https://www.bitrue.com/referral/landing?cn=600000&inviteCode=EWWHGA' },
+                    ].map((exc) => (
+                      <a
+                        key={exc.name}
+                        href={exc.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-cyber-bg-card border border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:shadow-[0_0_15px_rgba(0,229,255,0.15)] rounded-2xl p-3 flex flex-col items-center text-center gap-2 transition-all duration-300 group"
+                      >
+                        <div className="w-9 h-9 md:w-11 md:h-11 rounded-full overflow-hidden border border-cyber-cyan/25 group-hover:scale-105 group-hover:border-cyber-cyan transition-transform shadow-sm">
+                          <img src={exc.logo} alt={exc.name} className="w-full h-full object-cover" />
+                        </div>
+                        <span className="font-display font-bold text-xs text-cyber-text-secondary group-hover:text-cyber-cyan transition-colors">
+                          {exc.name}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </section>
+      )}
 
       {/* 4. Complete Cyber Footer */}
       <footer className="border-t border-cyber-cyan/15 bg-cyber-bg-primary pt-10 pb-24 sm:pb-12 z-10 relative w-full flex justify-center">
