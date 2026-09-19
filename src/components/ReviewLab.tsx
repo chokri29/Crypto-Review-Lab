@@ -102,7 +102,6 @@ const ACCELERATOR_POOL = [
   { name: 'Monad', symbol: 'MONAD', category: 'Smart Contract / Layer 1' },
   { name: 'Movement', symbol: 'MOVE', category: 'Smart Contract / Layer 1' },
   { name: 'EigenCloud', symbol: 'EIGEN', category: 'Restaking / Shared Security / AVS' },
-  { name: 'EigenLayer', symbol: 'EIGEN', category: 'Restaking / Shared Security / AVS' },
   { name: 'Ethena', symbol: 'ENA', category: 'DeFi Protocol (AMM / Lending)' },
   { name: 'Celestia', symbol: 'TIA', category: 'Layer 2 / Scaling' },
   { name: 'Ondo Finance', symbol: 'ONDO', category: 'RWA (Tokenization / TradFi Bridge)' },
@@ -1949,7 +1948,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
                     {displayedAccelerators.slice(0, 4).map((accel) => (
                       <button
-                        key={accel.symbol}
+                        key={`${accel.symbol}-${accel.name}`}
                         type="button"
                         onClick={() => handleSuggestionClick(accel)}
                         className="bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/90 hover:border-cyber-cyan/50 rounded-xl p-2.5 transition-all text-left group/accel cursor-pointer flex items-center justify-between shadow-sm hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]"
