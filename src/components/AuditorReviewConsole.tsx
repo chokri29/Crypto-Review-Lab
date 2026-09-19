@@ -49,9 +49,10 @@ import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { calculateBlueprintScore, getCategoryDimensionWeights } from '../services/EvaluationBlueprint';
 import { EmailViewerModal } from './EmailViewerModal';
 import { PhaseTwoReControlView } from './PhaseTwoReControlView';
-import { runPhaseTwoReControl } from '../services/reControlEngine';
+import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from '../services/reControlEngine';
 import { runF3Verification, isF2GatePassed, projectToPublicCryptoReviewReport, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { useF3VerificationState } from '../context/F3VerificationContext';
+import { saveOrderToStorage } from '../services/proOrderService';
 
 export const AuditorReviewConsole: React.FC<{
   onSelectReviewForMainApp?: (review: any) => void;
@@ -149,9 +150,53 @@ export const AuditorReviewConsole: React.FC<{
             window.dispatchEvent(new CustomEvent('crl_f2_passed', { detail: updated }));
           }
         }
+      } else {
+        throw new Error(`Server returned status ${res.status}`);
       }
     } catch (e) {
-      console.error("Failed to run Phase 2 re-control:", e);
+      console.warn("[AuditorConsole] Server re-control endpoint unreachable or network failed. Running client-side deterministic Re-Control fallback...", e);
+      if (selectedOrder) {
+        const draftToProcess = selectedOrder.finalReview || selectedOrder.systemDraft;
+        if (draftToProcess) {
+          const autoCalibrated = autoCalibrateAndRegenerateDraft(draftToProcess);
+          const newReport = runPhaseTwoReControl(autoCalibrated);
+          autoCalibrated.phaseTwoReControl = newReport;
+
+          const isF2Passed = isF2GatePassed(autoCalibrated) || Boolean(selectedOrder.adminOverride || adminOverrides[selectedOrder.orderId]);
+          if (isF2Passed) {
+            try {
+              autoCalibrated.f3Verification = await runF3Verification(autoCalibrated, {
+                securityScan: autoCalibrated.securityScan,
+                citations: autoCalibrated.citations,
+                avfLoopResult: newReport.avfSession || null
+              });
+              regenerateNarrativeAfterVerification(autoCalibrated);
+            } catch (f3Err) {
+              console.warn('F3 verification error in fallback:', f3Err);
+            }
+          } else {
+            autoCalibrated.f3Verification = undefined;
+          }
+
+          const updatedOrder: ProOrder = {
+            ...selectedOrder,
+            status: isF2Passed ? 'IN_HUMAN_REVIEW' : 'PENDING_REGENERATION',
+            systemDraft: autoCalibrated,
+            finalReview: autoCalibrated
+          };
+
+          saveOrderToStorage(updatedOrder);
+          await loadOrders();
+          populateEditorFields(updatedOrder);
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('crl_order_updated', { detail: updatedOrder }));
+            if (isF2Passed) {
+              window.dispatchEvent(new CustomEvent('crl_f2_passed', { detail: updatedOrder }));
+            }
+          }
+        }
+      }
     }
 
     setIsExecutingPhaseTwo(false);

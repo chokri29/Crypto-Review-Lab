@@ -121,7 +121,9 @@ function isQuotaOrDemandError(error: any): boolean {
     errMsg.includes("credits are depleted") ||
     errMsg.includes("rate-limits") ||
     errMsg.includes("rate limit") ||
-    errMsg.includes("tokens_per_model_per_user")
+    errMsg.includes("tokens_per_model_per_user") ||
+    errMsg.includes("dunning") ||
+    errMsg.includes("billing")
   );
 }
 
@@ -153,8 +155,8 @@ function getFriendlyErrorMessage(error: any): string {
       const innerMsg = String(parsed.error.message || "");
       const lowerInner = innerMsg.toLowerCase();
 
-      if (lowerInner.includes("prepayment") || lowerInner.includes("credits are depleted")) {
-        return "Your Gemini API prepayment credits are depleted. Please visit Google AI Studio (https://ai.studio/projects) to manage your project billing and top up your credits.";
+      if (lowerInner.includes("dunning") || lowerInner.includes("billing") || lowerInner.includes("prepayment") || lowerInner.includes("credits are depleted")) {
+        return "Your Google Cloud / Gemini API project billing is currently suspended or unpaid (Lightning dunning decision). Please visit Google Cloud Console / Google AI Studio (https://ai.studio/projects) to update payment information or clear outstanding invoices. CRL Deterministic Fallback Engine remains fully active in the meantime.";
       }
 
       if (code === 429 || status === "RESOURCE_EXHAUSTED" || lowerInner.includes("quota") || lowerInner.includes("rate limit")) {
@@ -171,8 +173,8 @@ function getFriendlyErrorMessage(error: any): string {
 
   const lowerMsg = errMsg.toLowerCase();
 
-  if (lowerMsg.includes("prepayment") || lowerMsg.includes("credits are depleted")) {
-    return "Your Gemini API prepayment credits are depleted. Please visit Google AI Studio (https://ai.studio/projects) to manage your project billing and top up your credits.";
+  if (lowerMsg.includes("dunning") || lowerMsg.includes("billing") || lowerMsg.includes("prepayment") || lowerMsg.includes("credits are depleted")) {
+    return "Your Google Cloud / Gemini API project billing is currently suspended or unpaid (Lightning dunning decision). Please visit Google Cloud Console / Google AI Studio (https://ai.studio/projects) to update payment information or clear outstanding invoices. CRL Deterministic Fallback Engine remains fully active in the meantime.";
   }
   
   if (lowerMsg.includes("quota") || lowerMsg.includes("429") || lowerMsg.includes("resource_exhausted") || lowerMsg.includes("rate limit")) {
@@ -600,7 +602,7 @@ Your entire response must match the specified JSON schema exactly.`;
       let response;
       try {
         response = await ai.models.generateContent({
-          model: "gemini-3.7-flash",
+          model: "gemini-3.8-flash",
           contents: prompt,
           config: {
             systemInstruction: "You are the chief research analyst at Crypto Review Lab. You provide cold, hard, fact-based cryptographic and economic reviews following the locked Evaluation Blueprint rubric. You write with supreme clarity, using professional terminology, avoiding all market-hype words like 'to the moon', 'revolutionary', 'game changer', or 'groundbreaking'. Highlight real potential failure points.",
@@ -611,7 +613,7 @@ Your entire response must match the specified JSON schema exactly.`;
         });
       } catch (firstError: any) {
         if (isQuotaOrDemandError(firstError)) {
-          console.warn("Primary model 'gemini-3.7-flash' rate limited or unavailable. Retrying with 'gemini-3.1-flash-lite' fallback...");
+          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable. Retrying with 'gemini-3.1-flash-lite' fallback...");
           try {
             response = await ai.models.generateContent({
               model: "gemini-3.1-flash-lite",
@@ -2603,7 +2605,7 @@ ${dualSyncContext}`;
       let response;
       try {
         const chat = ai.chats.create({
-          model: "gemini-3.7-flash",
+          model: "gemini-3.8-flash",
           config: {
             systemInstruction: auditorSystemInstruction,
           }
@@ -2611,7 +2613,7 @@ ${dualSyncContext}`;
         response = await chat.sendMessage({ message: formattedPrompt });
       } catch (firstError: any) {
         if (isQuotaOrDemandError(firstError)) {
-          console.warn("Primary model 'gemini-3.7-flash' rate limited or unavailable for chat. Retrying with 'gemini-3.1-flash-lite' fallback...");
+          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable for chat. Retrying with 'gemini-3.1-flash-lite' fallback...");
           try {
             const chatFallback = ai.chats.create({
               model: "gemini-3.1-flash-lite",
