@@ -1119,6 +1119,7 @@ export const AuditorReviewConsole: React.FC<{
                         type="range"
                         min="1"
                         max="10"
+                        step="0.5"
                         value={scoreUtility}
                         onChange={e => setScoreUtility(Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
@@ -1135,6 +1136,7 @@ export const AuditorReviewConsole: React.FC<{
                         type="range"
                         min="1"
                         max="10"
+                        step="0.5"
                         value={scoreTokenomics}
                         onChange={e => setScoreTokenomics(Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
@@ -1151,6 +1153,7 @@ export const AuditorReviewConsole: React.FC<{
                         type="range"
                         min="1"
                         max="10"
+                        step="0.5"
                         value={scoreSecurity}
                         onChange={e => setScoreSecurity(Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
@@ -1167,6 +1170,7 @@ export const AuditorReviewConsole: React.FC<{
                         type="range"
                         min="1"
                         max="10"
+                        step="0.5"
                         value={scoreTeam}
                         onChange={e => setScoreTeam(Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
@@ -1183,6 +1187,7 @@ export const AuditorReviewConsole: React.FC<{
                         type="range"
                         min="1"
                         max="10"
+                        step="0.5"
                         value={scoreCommunity}
                         onChange={e => setScoreCommunity(Number(e.target.value))}
                         className="w-full accent-amber-500 cursor-pointer"
@@ -1340,7 +1345,7 @@ export const AuditorReviewConsole: React.FC<{
                     }`}
                   >
                     <CheckCircle2 className={`w-4 h-4 ${isAuditFormValid ? 'fill-slate-950 text-slate-950' : 'text-slate-500'}`} />
-                    <span>Approve & Deliver Polished Report to Client</span>
+                    <span>{selectedOrder.status === 'DELIVERED' ? 'Re-Approve & Deliver Updated Report' : 'Approve & Deliver Polished Report to Client'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
