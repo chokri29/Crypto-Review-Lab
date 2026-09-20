@@ -151,7 +151,7 @@ export function calculateEvidenceCoverage(
     `On-Chain Bytecode: [${states.bytecode}] ${hasOnChainAddress ? 'Smart contract address & bytecode registered' : 'No contract address supplied'}`,
     `Security Telemetry & Invariants: [${states.securityScan}] ${hasSecurityScan ? 'On-chain vulnerability & honeypot scan active' : 'Automated security scan unavailable'}`,
     `Multi-Source Market Telemetry: [${states.marketTelemetry}] ${hasMarketData ? 'Live price, volume & liquidity indexed' : 'Market telemetry unavailable'}`,
-    `Independent Third-Party Audits: [${states.publicAudits}] ${hasPublicAudits ? 'Verified public security audits on record' : 'No independent audits indexed (unverified qualitative claims)'}`,
+    `Independent Third-Party Audits: [${states.publicAudits}] ${hasPublicAudits ? 'Verified public security audits on record' : 'Audits not independently verified in this run'}`,
     `Reserve / TVL Telemetry: [${states.reserveTvl}] ${hasRealTvl ? 'Active TVL tracking on DefiLlama' : 'TVL telemetry unavailable on DefiLlama'}`
   ];
 
@@ -173,14 +173,14 @@ export function calculateDataConfidence(
 ): DataConfidenceBreakdown {
   const onChain = hasOnChainAddress ? 50 : 0;
   const publicAudits = hasPublicAudits ? 50 : 0;
-  const simulated = 0; // Removed synthetic baseline inflation
+  const simulated = 0;
 
   const totalConfidence = Math.min(100, Math.max(0, onChain + publicAudits));
   const roundedConfidence = Math.round(totalConfidence);
 
   let level: 'HIGH' | 'MODERATE' | 'LOW' = 'LOW';
-  if (roundedConfidence >= 80) level = 'HIGH';
-  else if (roundedConfidence >= 50) level = 'MODERATE';
+  if (roundedConfidence >= 85) level = 'HIGH';
+  else if (roundedConfidence >= 70) level = 'MODERATE';
   else level = 'LOW';
 
   const details: string[] = [
@@ -189,7 +189,7 @@ export function calculateDataConfidence(
       : `On-Chain Bytecode: [MISSING] No direct smart contract address / verified bytecode on file`,
     hasPublicAudits
       ? `Third-Party Security Audits: [VERIFIED] Verified public security audits / AST analysis`
-      : `Third-Party Security Audits: [NOT VERIFIED] No verified public audits on record; qualitative claims unverified`,
+      : `Third-Party Security Audits: [NOT VERIFIED] Audits not independently verified in this run; qualitative claims remain unconfirmed`,
     `Evidence State Integrity: Missing or unindexed inputs remain in explicit UNAVAILABLE / NOT VERIFIED states`
   ];
 

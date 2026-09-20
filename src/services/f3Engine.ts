@@ -1338,8 +1338,9 @@ export type AVF07ConfidenceLevel = 'HIGH' | 'MODERATE' | 'LOW';
  * - LOW if < 0.70
  */
 export function getConfidenceLevel(overallConfidence: number): AVF07ConfidenceLevel {
-  if (overallConfidence >= 0.85) return 'HIGH';
-  if (overallConfidence >= 0.70) return 'MODERATE';
+  const norm = overallConfidence > 1 ? overallConfidence / 100 : overallConfidence;
+  if (norm >= 0.85) return 'HIGH';
+  if (norm >= 0.70) return 'MODERATE';
   return 'LOW';
 }
 
@@ -1450,7 +1451,7 @@ export function verifyAVF07Confidence(
 
   if (isFailedOrContradictory) {
     overallConfidence = Math.min(overallConfidence, 0.55);
-    confidenceLevel = overallConfidence >= 0.5 ? 'MODERATE' : 'LOW';
+    confidenceLevel = getConfidenceLevel(overallConfidence);
   }
   const confidencePct = Math.round(overallConfidence * 100);
 

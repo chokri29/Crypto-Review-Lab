@@ -2090,7 +2090,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     ? {
         ...baseConfidence,
         overallConfidencePct: explicitConfScore,
-        confidenceLevel: (explicitConfScore >= 80 ? 'HIGH' : (explicitConfScore >= 50 ? 'MODERATE' : 'LOW')) as 'HIGH' | 'MODERATE' | 'LOW'
+        confidenceLevel: getConfidenceLevel(explicitConfScore)
       }
     : baseConfidence;
 
@@ -2112,10 +2112,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   if (isFailedOrContradictory && verificationConfidencePct > 55) {
     verificationConfidencePct = 50;
   }
-  let verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = verificationConfidencePct >= 80 ? 'HIGH' : (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW');
-  if (isFailedOrContradictory) {
-    verificationConfidenceLevel = verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW';
-  }
+  let verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = getConfidenceLevel(verificationConfidencePct);
 
   // Data Freshness & Source Coverage Definitions
   const dataDateStr = data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : fullTimestamp.split(' ')[0];
@@ -2208,7 +2205,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.text(`• Reserve / DefiLlama TVL: ${data.realTvl && data.realTvl > 0 ? formatDefiLlamaTvl(data.realTvl) : 'UNAVAILABLE (Not tracked on DefiLlama)'}`, margin + 4, y + 19.5);
   doc.text(`• Data Freshness: ${dataFreshness}`, margin + 4, y + 24);
   doc.text(`• Source Coverage: ${sourceCoverage}`, margin + 4, y + 28.5);
-  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Bytecode [VERIFIED]' : 'Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'Public Audits [VERIFIED]' : 'Public Audits [NOT VERIFIED]'})`, margin + 4, y + 33);
+  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Bytecode [VERIFIED]' : 'Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'Public Audits [VERIFIED]' : 'Public Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]'})`, margin + 4, y + 33);
   doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] | Final CRL State: ${canonicalStatus.toUpperCase()}`, margin + 4, y + 37.5);
 
   y += 42;
@@ -2422,13 +2419,13 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     // 5. Missing Security Evidence (explicitly noted as missing/unverified)
     const missingItems: string[] = [];
     if (!data.auditReports || data.auditReports.length === 0) {
-      missingItems.push('Third-Party Audits [NOT VERIFIED / MISSING EVIDENCE]');
+      missingItems.push('Third-Party Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]');
     }
     if (!data.realTvl || data.realTvl <= 0) {
       missingItems.push('DefiLlama Protocol TVL [UNAVAILABLE]');
     }
     const missingText = missingItems.length > 0 ? missingItems.join(' • ') : 'Full core evidence indexed on file';
-    doc.text(`5. Missing Security Evidence: ${missingText}`, margin + 4, y + 30.5);
+    doc.text(`5. Security Evidence Verification: ${missingText}`, margin + 4, y + 30.5);
 
     // 6. Final CRL State & Confidence
     const line6 = `6. Final CRL State: ${canonicalStatus.toUpperCase()} (Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}])`;
@@ -2438,7 +2435,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     doc.text('2. Market Telemetry Evidence: Spot price and liquidity convergence indexed across active feeds', margin + 4, y + 15.5);
     doc.text('3. Security Invariants & Custody: Telemetry unavailable — contract address required', margin + 4, y + 20.5);
     doc.text('4. Key Risk Findings (Evidence & Provenance): Missing contract bytecode telemetry', margin + 4, y + 25.5);
-    doc.text('5. Missing Security Evidence: Contract Bytecode [MISSING] • Third-Party Audits [MISSING]', margin + 4, y + 30.5);
+    doc.text('5. Security Evidence Verification: Contract Bytecode [MISSING] • Third-Party Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]', margin + 4, y + 30.5);
     doc.text(`6. Final CRL State: ${canonicalStatus.toUpperCase()} (Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}])`, margin + 4, y + 35.5);
   }
 
@@ -2765,7 +2762,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(51, 65, 85);
-  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Contract Bytecode [VERIFIED]' : 'Contract Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'External Audits [VERIFIED]' : 'External Audits [NOT VERIFIED]'})`, margin + 4, y + 9.5);
+  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Contract Bytecode [VERIFIED]' : 'Contract Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'External Audits [VERIFIED]' : 'External Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]'})`, margin + 4, y + 9.5);
   doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] (Deterministic AVF mathematical validation)`, margin + 4, y + 13.7);
   doc.text(`• AVF Verification Status: ${canonicalStatus} (Evidence determines findings; missing inputs remain unverified without positive assumptions)`, margin + 4, y + 17.9);
   doc.text(`• Evidence State Invariant: MISSING, UNAVAILABLE, and NOT VERIFIED states are strictly preserved without synthetic inflation.`, margin + 4, y + 22.1);

@@ -1,27 +1,47 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { CryptoReview } from '../types';
 
 const DEFILLAMA_TVL_API = 'https://api.llama.fi/tvl';
 
-// In-memory cache for TVL values to prevent redundant network calls
 const tvlCache = new Map<string, { value: number | null; timestamp: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
-/**
- * Fetches real Total Value Locked (TVL) in USD from DefiLlama's public API.
- * @param slug DefiLlama protocol slug (e.g. "hyperliquid", "uniswap")
- * @returns TVL as a number, or null if not found or not listed
- */
+interface DefiLlamaProtocolEntry {
+  id?: string;
+  name?: string;
+  slug?: string;
+  symbol?: string;
+  gecko_id?: string | null;
+  tvl?: number | null;
+}
+
+let protocolsCache: { data: DefiLlamaProtocolEntry[]; timestamp: number } | null = null;
+const PROTOCOLS_CACHE_TTL_MS = 15 * 60 * 1000;
+
+async function fetchProtocolsList(): Promise<DefiLlamaProtocolEntry[]> {
+  if (protocolsCache && Date.now() - protocolsCache.timestamp < PROTOCOLS_CACHE_TTL_MS) {
+    return protocolsCache.data;
+  }
+  try {
+    const res = await fetch('https://api.llama.fi/protocols');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        protocolsCache = { data, timestamp: Date.now() };
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('[DefiLlama API] Failed to fetch protocols list:', err);
+  }
+  return protocolsCache ? protocolsCache.data : [];
+}
+
 export async function fetchDefiLlamaTvl(slug: string): Promise<number | null> {
   if (!slug) return null;
   const cleanSlug = slug.trim().toLowerCase();
 
   const cached = tvlCache.get(cleanSlug);
-  if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
     return cached.value;
   }
 
@@ -36,7 +56,6 @@ export async function fetchDefiLlamaTvl(slug: string): Promise<number | null> {
       }
     }
 
-    // Secondary fallback: /protocol/{slug}
     const pRes = await fetch(`https://api.llama.fi/protocol/${cleanSlug}`);
     if (pRes.ok) {
       const pData = await pRes.json();
@@ -54,9 +73,106 @@ export async function fetchDefiLlamaTvl(slug: string): Promise<number | null> {
   }
 }
 
-/**
- * Formats TVL value into USD string or 'TVL data not available'
- */
+export async function resolveProtocolTvl(params: {
+  slug?: string;
+  name?: string;
+  symbol?: string;
+  id?: string;
+}): Promise<{ tvl: number | null; resolvedSlug?: string }> {
+  const candidates: string[] = [];
+
+  if (params.slug) {
+    candidates.push(params.slug.trim().toLowerCase());
+  }
+
+  if (params.name) {
+    const cleanName = params.name.trim().toLowerCase();
+    candidates.push(cleanName);
+    candidates.push(cleanName.replace(/[^a-z0-9]+/g, '-'));
+    candidates.push(cleanName.replace(/[^a-z0-9]/g, ''));
+    const stripped = cleanName.replace(/\s+(dao|protocol|finance|network|exchange|token|dex|v\d+|bridge)/g, '').trim();
+    if (stripped && stripped !== cleanName) {
+      candidates.push(stripped);
+      candidates.push(stripped.replace(/[^a-z0-9]+/g, '-'));
+      candidates.push(stripped.replace(/[^a-z0-9]/g, ''));
+    }
+  }
+
+  if (params.id) {
+    const cleanId = params.id.trim().toLowerCase();
+    candidates.push(cleanId);
+    candidates.push(cleanId.replace(/-(dao|protocol|finance|token|exchange|network)/g, ''));
+  }
+
+  if (params.symbol) {
+    candidates.push(params.symbol.trim().toLowerCase());
+  }
+
+  const uniqueCandidates = Array.from(new Set(candidates.filter(Boolean)));
+
+  for (const c of uniqueCandidates) {
+    const val = await fetchDefiLlamaTvl(c);
+    if (val !== null && val >= 0) {
+      return { tvl: val, resolvedSlug: c };
+    }
+  }
+
+  const protocols = await fetchProtocolsList();
+  if (protocols.length > 0) {
+    const cleanName = (params.name || '').trim().toLowerCase();
+    const cleanSym = (params.symbol || '').trim().toLowerCase();
+    const cleanId = (params.id || '').trim().toLowerCase();
+    const baseName = cleanName.replace(/\s+(dao|protocol|finance|network|exchange|token|dex|v\d+|bridge)/g, '').trim();
+
+    let matched: DefiLlamaProtocolEntry | undefined;
+
+    if (cleanId) {
+      matched = protocols.find(p => p.gecko_id && p.gecko_id.toLowerCase() === cleanId);
+    }
+
+    if (!matched && cleanName) {
+      matched = protocols.find(p => p.slug === cleanName || (p.name && p.name.toLowerCase() === cleanName));
+    }
+
+    if (!matched && baseName) {
+      matched = protocols.find(p => p.slug === baseName || (p.name && p.name.toLowerCase() === baseName));
+    }
+
+    if (!matched && cleanSym && baseName) {
+      const symMatches = protocols.filter(p =>
+        p.symbol &&
+        p.symbol.toLowerCase() === cleanSym &&
+        ((p.name && p.name.toLowerCase().includes(baseName)) || (p.slug && p.slug.includes(baseName)))
+      );
+      if (symMatches.length > 0) {
+        matched = symMatches.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))[0];
+      }
+    }
+
+    if (!matched && baseName && baseName.length >= 3) {
+      const nameMatches = protocols.filter(p =>
+        (p.name && p.name.toLowerCase().includes(baseName)) ||
+        (p.slug && p.slug.includes(baseName))
+      );
+      if (nameMatches.length > 0) {
+        matched = nameMatches.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))[0];
+      }
+    }
+
+    if (matched && matched.slug) {
+      const tvlFromSlug = await fetchDefiLlamaTvl(matched.slug);
+      if (tvlFromSlug !== null) {
+        return { tvl: tvlFromSlug, resolvedSlug: matched.slug };
+      }
+      if (typeof matched.tvl === 'number' && !isNaN(matched.tvl)) {
+        return { tvl: matched.tvl, resolvedSlug: matched.slug };
+      }
+    }
+  }
+
+  return { tvl: null };
+}
+
 export function formatDefiLlamaTvl(tvl: number | null | undefined): string {
   if (tvl === null || tvl === undefined || isNaN(tvl) || tvl < 0) {
     return 'TVL data not available';
@@ -73,25 +189,15 @@ export function formatDefiLlamaTvl(tvl: number | null | undefined): string {
   return `$${tvl.toFixed(2)}`;
 }
 
-/**
- * Enriches a CryptoReview with real DefiLlama TVL data
- */
 export async function enrichReviewWithDefiLlamaTvl(review: CryptoReview): Promise<CryptoReview> {
-  if (!review.defiLlamaSlug) {
-    return {
-      ...review,
-      realTvl: null,
-      proBenchmarks: review.proBenchmarks ? {
-        ...review.proBenchmarks,
-        symbolicExecutionMatrix: {
-          ...review.proBenchmarks.symbolicExecutionMatrix,
-          tvlStressLimit: 'TVL data not available'
-        }
-      } : undefined
-    };
-  }
+  const resolved = await resolveProtocolTvl({
+    slug: review.defiLlamaSlug,
+    name: review.name,
+    symbol: review.symbol,
+    id: review.id
+  });
 
-  const tvlValue = await fetchDefiLlamaTvl(review.defiLlamaSlug);
+  const tvlValue = resolved.tvl;
   const formatted = formatDefiLlamaTvl(tvlValue);
 
   const updatedBenchmarks = review.proBenchmarks ? {
@@ -105,6 +211,7 @@ export async function enrichReviewWithDefiLlamaTvl(review: CryptoReview): Promis
   return {
     ...review,
     realTvl: tvlValue,
+    defiLlamaSlug: resolved.resolvedSlug || review.defiLlamaSlug,
     proBenchmarks: updatedBenchmarks
   };
 }

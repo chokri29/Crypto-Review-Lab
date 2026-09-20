@@ -67,6 +67,7 @@ const CATEGORY_OPTIONS = [
 import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
 import { calculateBlueprintScore, calculateEvidenceCoverage } from '../services/EvaluationBlueprint';
+import { getConfidenceLevel } from '../services/f3Engine';
 import { ProTierBadge } from './ProTierBadge';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
@@ -1963,9 +1964,7 @@ export default function BlogPreviewer({
               if (isFailedOrContradictory && verificationConfidencePct > 55) {
                 verificationConfidencePct = 50;
               }
-              const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = isFailedOrContradictory
-                ? (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW')
-                : (verificationConfidencePct >= 80 ? 'HIGH' : (verificationConfidencePct >= 50 ? 'MODERATE' : 'LOW'));
+              const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = getConfidenceLevel(verificationConfidencePct);
 
               return (
                 <div className="space-y-4">

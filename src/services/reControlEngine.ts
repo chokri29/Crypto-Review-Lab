@@ -18,6 +18,7 @@ import {
 } from '../types';
 import { normalizeProtocolCategory, getCategoryDimensionWeights, calculateBlueprintScore, ProtocolCategoryType } from './EvaluationBlueprint';
 import { formatDefiLlamaTvl } from './defillama';
+import { getConfidenceLevel } from './f3Engine';
 
 function getFsAndPath() {
   if (typeof window === 'undefined') {
@@ -1103,7 +1104,7 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
     {
       name: 'Data Confidence Index',
       status: confidenceScore >= 80 ? ('VERIFIED' as const) : ('FLAGGED' as const),
-      detail: `Confidence Score: ${confidenceScore}/100 (${review.confidenceLevel || (confidenceScore >= 85 ? 'HIGH' : 'MODERATE')})`
+      detail: `Confidence Score: ${confidenceScore}/100 (${review.confidenceLevel || getConfidenceLevel(confidenceScore)})`
     }
   ];
 
@@ -1880,7 +1881,7 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
     verdict,
     // Preserve real confidence metrics if present without inventing hardcoded 96 / 0.4%
     confidenceScore: review.confidenceScore,
-    confidenceLevel: review.confidenceLevel || (review.confidenceScore && review.confidenceScore >= 80 ? 'HIGH' : 'MODERATE'),
+    confidenceLevel: review.confidenceLevel || (review.confidenceScore !== undefined ? getConfidenceLevel(review.confidenceScore) : 'HIGH'),
     priceDivergencePct: review.priceDivergencePct,
     dataEngine: review.dataEngine || 'Dual Sync Engine',
     proBenchmarks,

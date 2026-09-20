@@ -111,7 +111,7 @@ export interface CryptoReview {
   priceDivergencePct?: number;
   supplyDivergencePct?: number;
   confidenceScore?: number;
-  confidenceLevel?: 'HIGH' | 'MODERATE' | 'DIVERGENT';
+  confidenceLevel?: 'HIGH' | 'MODERATE' | 'LOW' | 'DIVERGENT';
   dataEngine?: string;
   dataSources?: string[];
   lastSyncedAt?: string;
@@ -401,7 +401,7 @@ export interface PublicCryptoReviewReport {
   citations?: Record<string, string>;
   dataSources?: string[];
   confidenceScore?: number;
-  confidenceLevel?: 'HIGH' | 'MODERATE' | 'DIVERGENT';
+  confidenceLevel?: 'HIGH' | 'MODERATE' | 'LOW' | 'DIVERGENT';
   multiSourceConvergence?: MultiSourceConvergenceReport;
   publishApproved?: boolean;
   adminOverride?: AdminOverrideLog;

@@ -104,9 +104,9 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-cyan-300 font-bold flex items-center gap-2">
                     <RefreshCw className="w-3.5 h-3.5 animate-spin text-cyan-400" />
-                    Executing Gate 0 & 7 Automated Control Gates...
+                    Executing 8 Automated Control Gates (Gate 0–7)...
                   </span>
-                  <span className="text-slate-400 text-[11px]">Gate {executingStep} / 7</span>
+                  <span className="text-slate-400 text-[11px]">Gate {executingStep} of 8 (Gate 0–7)</span>
                 </div>
 
                 <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -248,19 +248,19 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold">Workflow State:</span>
             {isPass ? (
-              hasRiskFlags ? (
+              hasRiskFlags || (data.gates && data.gates.some(g => !g.passed)) ? (
                 <span className="text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3 text-amber-400" />
-                  Passed QA — {data.riskAttention?.length} risk flag(s) for human review
+                  Passed QA ({data.gates ? data.gates.filter(g => g.passed).length : 8} of {data.gates?.length || 8} passed) — human review required
                 </span>
               ) : (
                 <span className="text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-                  PASS (95%+) → Clean Pass → Manual Audit Sign-off → 24 h Delivery
+                  PASS (95%+) → All 8 Gates Verified Clean → Manual Audit Sign-off → 24 h Delivery
                 </span>
               )
             ) : (
               <span className="text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
-                FAIL (&lt;95%) → Auto-flag → Trigger Auto-Regeneration
+                FAIL (&lt;95%) → {data.gates ? `${data.gates.filter(g => g.passed).length} of ${data.gates.length} passed, ${data.gates.filter(g => !g.passed).length} flagged` : 'Auto-flag'} → Trigger Auto-Regeneration
               </span>
             )}
           </div>
