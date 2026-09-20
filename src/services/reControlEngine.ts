@@ -1120,10 +1120,10 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   });
 
   // GATE 2: ON-CHAIN CROSS-CHECK (GoPlus & RugCheck Security Inspection)
-  const baseSec = (review.scores?.security || 8.0) * 10;
-  let gate2Adjustment = 0;
   const secScanObj = review.securityScan?.data || review.securityScan || review.proBenchmarks?.securityScan;
   const hasRealScan = Boolean(secScanObj && typeof secScanObj === 'object');
+  const baseSec = hasRealScan ? 90 : (review.scores?.security || 8.0) * 10;
+  let gate2Adjustment = 0;
   
   let isOpenSourceStatus: boolean | undefined = undefined;
   let isHoneypotStatus: boolean | undefined = undefined;
