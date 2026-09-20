@@ -65,6 +65,7 @@ export interface TechnicalIndicators {
   confluence?: TechnicalConfluenceResult;
   isUnavailable?: boolean;
   unavailableReason?: string;
+  sessionPointCount?: number;
 }
 
 export interface ChartDataResult {
@@ -503,7 +504,8 @@ export function computeTechnicalIndicators(prices: PricePoint[]): TechnicalIndic
       pivotHighs: [],
       pivotLows: [],
       isUnavailable: true,
-      unavailableReason: (prices as FilteredNysePoints)?.reason || 'Insufficient valid session data (minimum 3 points required)'
+      unavailableReason: (prices as FilteredNysePoints)?.reason || 'Insufficient valid session data (minimum 3 points required)',
+      sessionPointCount: (prices as FilteredNysePoints)?.sessionPointCount ?? (prices?.length || 0)
     };
   }
 
@@ -645,7 +647,8 @@ export function computeTechnicalIndicators(prices: PricePoint[]): TechnicalIndic
     keySupport,
     pivotHighs,
     pivotLows,
-    confluence
+    confluence,
+    sessionPointCount: (prices as FilteredNysePoints)?.sessionPointCount ?? prices.length
   };
 }
 

@@ -390,7 +390,7 @@ export default function XStockPriceChart({
   const fillGradientId = `xstock-grad-${symbol}-${isPositive ? 'pos' : 'neg'}`;
 
   return (
-    <div className="rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl overflow-hidden p-5 sm:p-6 space-y-5 h-full flex flex-col justify-between">
+    <div className="rounded-2xl bg-cyber-bg-card border border-cyber-cyan/30 shadow-xl overflow-hidden p-5 sm:p-6 space-y-5 h-full flex flex-col justify-between">
       {/* Top Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-cyber-cyan/15 pb-4">
         <div>
@@ -486,7 +486,7 @@ export default function XStockPriceChart({
       </div>
 
       {/* SVG Interactive Chart Canvas */}
-      <div ref={containerRef} className="relative w-full min-h-[260px] flex-1 select-none flex items-center justify-center">
+      <div ref={containerRef} className="relative w-full min-h-[260px] flex-1 select-none flex items-center justify-center overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/70 backdrop-blur-sm rounded-xl text-cyber-cyan font-mono text-xs">
             <RefreshCw className="w-5 h-5 animate-spin mb-2" />
@@ -726,49 +726,82 @@ export default function XStockPriceChart({
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-[10px] font-mono">
               {isSynthetic ? (
                 <span className="text-amber-400/90 font-bold">
                   Verification-Grade Indicators: Unavailable
                 </span>
+              ) : activeIndicators?.isUnavailable ? (
+                <span className="text-amber-400/90 font-medium">
+                  NYSE Regular Session: {activeIndicators.sessionPointCount ?? 0} pts (After-Hours Excluded)
+                </span>
               ) : (
-                <span>Computed from {activePrices.length} data points (NYSE Filtered)</span>
+                <span className="text-slate-400">
+                  Computed from {activeIndicators?.sessionPointCount ?? activePrices.length} NYSE session points
+                </span>
               )}
             </div>
           </div>
 
           {/* Prominent Synthetic / Demo Advisory */}
           {isSynthetic && !activeIndicators.isUnavailable && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-300">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5 font-mono">
-                <div className="font-bold flex items-center gap-2 flex-wrap">
-                  <span className="bg-amber-500/25 px-1.5 py-0.5 rounded text-[10px] text-amber-200 border border-amber-500/40">
-                    SYNTHETIC / DEMO
-                  </span>
-                  <span className="text-white">Verification-Grade Indicators Unavailable</span>
+            <div className="p-3.5 sm:p-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-900/95 to-slate-950 shadow-md text-xs text-amber-300">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                 </div>
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Live secondary market historical candles for {symbol} are currently not provided by connected APIs. These indicators are computed on synthetic fallback price history for demonstration only and do NOT represent verification-grade technical indicators.
-                </p>
+                <div className="space-y-1.5 min-w-0 flex-1 font-mono">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                    <span className="self-start px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/25 text-amber-200 border border-amber-500/40 whitespace-nowrap">
+                      SYNTHETIC / DEMO
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      Verification-Grade Indicators Unavailable
+                    </span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-slate-300/90 font-sans leading-relaxed">
+                    Live secondary market historical candles for {symbol} are currently not provided by connected APIs. These indicators are computed on synthetic fallback price history for demonstration only and do NOT represent verification-grade technical indicators.
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {/* Insufficient NYSE Data Advisory */}
           {activeIndicators.isUnavailable && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-300">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-0.5 font-mono">
-                <div className="font-bold flex items-center gap-2 flex-wrap">
-                  <span className="bg-amber-500/25 px-1.5 py-0.5 rounded text-[10px] text-amber-200 border border-amber-500/40">
-                    INSUFFICIENT SESSION DATA
-                  </span>
-                  <span className="text-white">Technical Indicators Unavailable</span>
+            <div className="p-3.5 sm:p-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-slate-900/95 to-slate-950 shadow-md text-xs text-amber-300">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 shrink-0 mt-0.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
                 </div>
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  {activeIndicators.unavailableReason || 'Fewer than 3 valid NYSE regular-session points exist. Weekend and after-hours data are strictly excluded to prevent distorting stock technical indicators.'}
-                </p>
+                <div className="space-y-2 min-w-0 flex-1 font-mono">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                    <span className="self-start px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase bg-amber-500/25 text-amber-200 border border-amber-500/40 whitespace-nowrap">
+                      INSUFFICIENT SESSION DATA
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      Technical Indicators Unavailable
+                    </span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-slate-300/90 font-sans leading-relaxed">
+                    {activeIndicators.unavailableReason || 'Fewer than 3 valid NYSE regular-session points exist. Weekend and after-hours data are strictly excluded to prevent distorting stock technical indicators.'}
+                  </p>
+
+                  {/* Session Metrics Pill Bar */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-500/20 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-500">24H Feed:</span>
+                      <span className="text-slate-200 font-bold">{activePrices.length} ticks</span>
+                    </div>
+                    <span className="text-slate-600">•</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-500">NYSE Regular Session:</span>
+                      <span className="text-amber-400 font-bold">{activeIndicators.sessionPointCount ?? 0} points (min 3)</span>
+                    </div>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-emerald-400/90 font-medium">Zero Synthetic Policy Enforced</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
