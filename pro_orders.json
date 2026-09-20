@@ -1956,7 +1956,7 @@
         "qualityScorePct": 90,
         "status": "FAIL",
         "executionTimeMinutes": 6.5,
-        "completedAt": "2026-09-19 22:03",
+        "completedAt": "2026-09-20 12:56",
         "recommendation": "AUTO_FLAGGED_FOR_REGENERATION",
         "gates": [
           {
@@ -2162,7 +2162,7 @@
         ],
         "narrative": "Phase 2 Automated Re-Control flagged quality parameter discrepancies (quality score 90% < 95.0% threshold). AVF directives generated for automated re-calibration prior to final sign-off.",
         "avfSession": {
-          "sessionId": "AVF-SESSION-MU8XOVDR",
+          "sessionId": "AVF-SESSION-MU9TL1R4",
           "protocolName": "Hyperliquid",
           "initialF1Score": 83,
           "finalF1Score": 83,
@@ -2205,20 +2205,20 @@
               "f1RefinementsApplied": [
                 "Stable Convergence reached at Round 1: All dimensions converged within 2.5 pts (Max Dim Δ: 1.0 pts)."
               ],
-              "timestamp": "2026-09-19T22:03:17.343Z"
+              "timestamp": "2026-09-20T12:56:06.688Z"
             }
           ],
           "summaryDirective": "Algorithmic Verification Framework achieved Tier 1 Stability across 1 round(s). Final F1 Candidate Score (83/100) vs F2 Reviewer (82/100) converged within 1.0 pts. [Self-Calibrating Memory] Project drift (1.0 pts) aligns with Layer 1 Blockchain historical baseline (3.1 ± 1.5 pts, z = -1.40)."
         }
       },
       "contractAddress": "0x9923...fe49 (Arbitrum / L1 Bridge)",
-      "livePrice": 91.23,
+      "livePrice": 91.32,
       "confidenceScore": 75,
       "confidenceLevel": "MODERATE",
       "priceDivergencePct": 0,
       "supplyDivergencePct": 0,
-      "liveMarketCap": 20292071410,
-      "liveVolume24h": 1021855835,
+      "liveMarketCap": 20317577860,
+      "liveVolume24h": 830790699,
       "liveRank": 11,
       "cmcRank": 11,
       "circulatingSupply": 222445714.07414138,
@@ -2250,10 +2250,10 @@
           "price": {
             "metricName": "price",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 91.23,
+            "consensusValue": 91.32,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 91.23
+              "coingecko": 91.32
             },
             "agreeingSources": [
               "coingecko"
@@ -2266,10 +2266,10 @@
           "marketCap": {
             "metricName": "marketCap",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 20292071410,
+            "consensusValue": 20317577860,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 20292071410
+              "coingecko": 20317577860
             },
             "agreeingSources": [
               "coingecko"
@@ -2282,10 +2282,10 @@
           "volume24h": {
             "metricName": "volume24h",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 1021855835,
+            "consensusValue": 830790699,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 1021855835
+              "coingecko": 830790699
             },
             "agreeingSources": [
               "coingecko"
@@ -2315,7 +2315,7 @@
         "confidenceScore": 75,
         "confidenceLevel": "MODERATE",
         "summary": "SINGLE_SOURCE_DEGRADED across 1 independent sources. Price: SINGLE_SOURCE_UNVERIFIED (Δ 0%), MCap: SINGLE_SOURCE_UNVERIFIED (Δ 0%), Vol: SINGLE_SOURCE_UNVERIFIED (Δ 0%), Rank: SINGLE_SOURCE_UNVERIFIED.",
-        "reconciledAt": "10:03 PM (TTL: 3m)",
+        "reconciledAt": "12:56 PM (TTL: 3m)",
         "metricProvenances": {
           "price": "SOURCE",
           "marketCap": "SOURCE",
@@ -2375,7 +2375,7 @@
         "qualityScorePct": 90,
         "status": "FAIL",
         "executionTimeMinutes": 6.5,
-        "completedAt": "2026-09-19 22:03",
+        "completedAt": "2026-09-20 12:56",
         "recommendation": "AUTO_FLAGGED_FOR_REGENERATION",
         "gates": [
           {
@@ -2581,7 +2581,7 @@
         ],
         "narrative": "Phase 2 Automated Re-Control flagged quality parameter discrepancies (quality score 90% < 95.0% threshold). AVF directives generated for automated re-calibration prior to final sign-off.",
         "avfSession": {
-          "sessionId": "AVF-SESSION-MU8XOVDR",
+          "sessionId": "AVF-SESSION-MU9TL1R4",
           "protocolName": "Hyperliquid",
           "initialF1Score": 83,
           "finalF1Score": 83,
@@ -2624,7 +2624,7 @@
               "f1RefinementsApplied": [
                 "Stable Convergence reached at Round 1: All dimensions converged within 2.5 pts (Max Dim Δ: 1.0 pts)."
               ],
-              "timestamp": "2026-09-19T22:03:17.343Z"
+              "timestamp": "2026-09-20T12:56:06.688Z"
             }
           ],
           "summaryDirective": "Algorithmic Verification Framework achieved Tier 1 Stability across 1 round(s). Final F1 Candidate Score (83/100) vs F2 Reviewer (82/100) converged within 1.0 pts. [Self-Calibrating Memory] Project drift (1.0 pts) aligns with Layer 1 Blockchain historical baseline (3.1 ± 1.5 pts, z = -1.40)."
@@ -2639,13 +2639,13 @@
         "canonicalText": "scores:{\"utility\":8.3,\"tokenomics\":7.6,\"security\":8,\"team\":7.8,\"community\":7.8}|verdict:Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.|grade:A|timestamp:2026-08-27T19:18:16.958Z"
       },
       "contractAddress": "0x9923...fe49 (Arbitrum / L1 Bridge)",
-      "livePrice": 91.23,
+      "livePrice": 91.32,
       "confidenceScore": 75,
       "confidenceLevel": "MODERATE",
       "priceDivergencePct": 0,
       "supplyDivergencePct": 0,
-      "liveMarketCap": 20292071410,
-      "liveVolume24h": 1021855835,
+      "liveMarketCap": 20317577860,
+      "liveVolume24h": 830790699,
       "liveRank": 11,
       "cmcRank": 11,
       "circulatingSupply": 222445714.07414138,
@@ -2677,10 +2677,10 @@
           "price": {
             "metricName": "price",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 91.23,
+            "consensusValue": 91.32,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 91.23
+              "coingecko": 91.32
             },
             "agreeingSources": [
               "coingecko"
@@ -2693,10 +2693,10 @@
           "marketCap": {
             "metricName": "marketCap",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 20292071410,
+            "consensusValue": 20317577860,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 20292071410
+              "coingecko": 20317577860
             },
             "agreeingSources": [
               "coingecko"
@@ -2709,10 +2709,10 @@
           "volume24h": {
             "metricName": "volume24h",
             "status": "SINGLE_SOURCE_UNVERIFIED",
-            "consensusValue": 1021855835,
+            "consensusValue": 830790699,
             "validSourcesCount": 1,
             "sourceValues": {
-              "coingecko": 1021855835
+              "coingecko": 830790699
             },
             "agreeingSources": [
               "coingecko"
@@ -2742,7 +2742,7 @@
         "confidenceScore": 75,
         "confidenceLevel": "MODERATE",
         "summary": "SINGLE_SOURCE_DEGRADED across 1 independent sources. Price: SINGLE_SOURCE_UNVERIFIED (Δ 0%), MCap: SINGLE_SOURCE_UNVERIFIED (Δ 0%), Vol: SINGLE_SOURCE_UNVERIFIED (Δ 0%), Rank: SINGLE_SOURCE_UNVERIFIED.",
-        "reconciledAt": "10:03 PM (TTL: 3m)",
+        "reconciledAt": "12:56 PM (TTL: 3m)",
         "metricProvenances": {
           "price": "SOURCE",
           "marketCap": "SOURCE",

@@ -32,7 +32,9 @@ import {
 import { generateAuditPdfReport } from '../services/pdfGenerator';
 import { EmailViewerModal } from './EmailViewerModal';
 import { PhaseTwoReControlView } from './PhaseTwoReControlView';
-import { getConfidenceLevel, projectToPublicCryptoReviewReport } from '../services/f3Engine';
+import { getConfidenceLevel, projectToPublicCryptoReviewReport, isF2GatePassed, runF3Verification, regenerateNarrativeAfterVerification } from '../services/f3Engine';
+import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from '../services/reControlEngine';
+import { saveOrderToStorage } from '../services/proOrderService';
 
 export const ProOrderPortal: React.FC<{
   initialOrderId?: string;
@@ -71,9 +73,53 @@ export const ProOrderPortal: React.FC<{
         if (updated) {
           setMatchingOrders(prev => prev.map(o => o.orderId === orderId ? updated : o));
         }
+      } else {
+        throw new Error(`Server returned status ${res.status}`);
       }
     } catch (e) {
-      console.error("Failed to regenerate report:", e);
+      console.warn("[ProOrderPortal] Server re-control endpoint unreachable. Running local deterministic Re-Control fallback...", e);
+      const targetOrder = matchingOrders.find(o => o.orderId === orderId);
+      if (targetOrder) {
+        const draftToProcess = targetOrder.finalReview || targetOrder.systemDraft;
+        if (draftToProcess) {
+          const autoCalibrated = autoCalibrateAndRegenerateDraft(draftToProcess);
+          const newReport = runPhaseTwoReControl(autoCalibrated);
+          autoCalibrated.phaseTwoReControl = newReport;
+
+          const isF2Passed = isF2GatePassed(autoCalibrated) || Boolean(targetOrder.adminOverride);
+          if (isF2Passed) {
+            try {
+              autoCalibrated.f3Verification = await runF3Verification(autoCalibrated, {
+                securityScan: autoCalibrated.securityScan,
+                citations: autoCalibrated.citations,
+                avfLoopResult: newReport.avfSession || null
+              });
+              regenerateNarrativeAfterVerification(autoCalibrated);
+            } catch (f3Err) {
+              console.warn('F3 verification error in fallback:', f3Err);
+            }
+          } else {
+            autoCalibrated.f3Verification = undefined;
+          }
+
+          const updatedOrder: ProOrder = {
+            ...targetOrder,
+            status: isF2Passed ? 'IN_HUMAN_REVIEW' : 'PENDING_REGENERATION',
+            systemDraft: autoCalibrated,
+            finalReview: autoCalibrated
+          };
+
+          saveOrderToStorage(updatedOrder);
+          setMatchingOrders(prev => prev.map(o => o.orderId === orderId ? updatedOrder : o));
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('crl_order_updated', { detail: updatedOrder }));
+            if (isF2Passed) {
+              window.dispatchEvent(new CustomEvent('crl_f2_passed', { detail: updatedOrder }));
+            }
+          }
+        }
+      }
     }
 
     setIsExecutingPhaseTwo(false);
