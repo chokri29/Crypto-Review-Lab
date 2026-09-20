@@ -2233,11 +2233,11 @@ export default function App() {
                 {activeModal === 'author' && (
                   <div className="space-y-4 text-center flex flex-col items-center">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-cyber-cyan drop-shadow-[0_0_10px_rgba(0,229,255,0.4)]">
-                      <img src="https://i.imgur.com/HPeUnAQ.png" alt="Chokri AlGhanmi" className="w-full h-full object-cover" />
+                      <img src="https://i.imgur.com/HPeUnAQ.png" alt="Shukri AlGhunmi" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <span className="font-mono text-[9px] text-cyber-cyan uppercase tracking-widest">Crypto Review Lab Lead Author</span>
-                      <h3 className="font-display font-bold text-2xl text-cyber-text-primary mt-1">Chokri AlGhanmi</h3>
+                      <h3 className="font-display font-bold text-2xl text-cyber-text-primary mt-1">Shukri AlGhunmi</h3>
                       <p className="text-xs font-mono text-cyber-text-muted uppercase mt-0.5">Analyst since 2017</p>
                     </div>
 
@@ -2261,14 +2261,6 @@ export default function App() {
                         className="border border-cyber-cyan/30 hover:border-cyber-cyan hover:bg-cyber-cyan/5 text-cyber-cyan rounded-xl py-2 text-xs font-display font-bold tracking-wider transition-colors"
                       >
                         LinkedIn
-                      </a>
-                      <a 
-                        href="https://bio.link/chokri29" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="border border-cyber-cyan/30 hover:border-cyber-cyan hover:bg-cyber-cyan/5 text-cyber-cyan rounded-xl py-2 text-xs font-display font-bold tracking-wider transition-colors"
-                      >
-                        Digital Bio Link
                       </a>
                     </div>
                   </div>
@@ -2359,7 +2351,7 @@ export default function App() {
                       <div>
                         <h4 className="font-display font-bold text-cyber-text-primary uppercase tracking-wide mb-1">3. Intellectual Property</h4>
                         <p>
-                          All original content, designs, evaluation frameworks, scoring methodologies, and visual elements on Crypto Review Lab are the exclusive property of Crypto Review Lab and Chokri AlGhanmi. Re-distribution, copying, or embedding of these systems without express written consent is strictly prohibited.
+                          All original content, designs, evaluation frameworks, scoring methodologies, and visual elements on Crypto Review Lab are the exclusive property of Crypto Review Lab and Shukri AlGhunmi. Re-distribution, copying, or embedding of these systems without express written consent is strictly prohibited.
                         </p>
                       </div>
                       <div>
