@@ -39,7 +39,7 @@ Candidate evaluations are subjected to an 8-Gate automated quality pipeline (Gat
 
 * **Gate 0 — Structural Completeness Check:** Verifies presence of mandatory fields (name, symbol, scores, summary, verdict, pros/cons).
 * **Gate 1 — Multi-Source Triangulation:** Cross-verifies market telemetry across CoinGecko, CMC, and related price/volume feeds.
-* **Gate 2 — GoPlus & RugCheck Security:** Ingests real-time security scans covering mint authorities, freeze flags, blacklist functions, and bytecode exploits.
+* **Gate 2 — On-Chain Cross-Check:** Verifies on-chain scan cleanliness and contract parameters (open-source bytecode, honeypot risk, mintable supply, blacklist, taxes, concentration, custody, and exploit vectors). When live GoPlus/RugCheck telemetry is present, Gate 2 is evaluated from a neutral baseline of 90 (applying scan adjustments) rather than anchoring to the F1 subjective security dimension; falls back to F1 security score × 10 only if scan telemetry is unavailable. Requires score ≥ 90% and no honeypot detection to pass.
 * **Gate 3 — Cross-Framework Consistency Check:** Enforces strict `< 3.0 point` composite score drift convergence between F1 and F2 models.
 * **Gate 4 — Tokenomics Re-Verification:** Evaluates token distribution models, circulating vs. max supply ratios, and unlock overhang.
 * **Gate 5 — Score Arithmetic Check:** Recomputes category-weighted dimension math to ensure exact mathematical consistency without drift.

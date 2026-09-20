@@ -22,7 +22,7 @@ The Algorithmic Verification Framework (AVF) is structured as a **Tripartite Cor
 ```
 
 1. **F1 Candidate Engine:** Ingests live telemetry from CoinGecko, CoinMarketCap, and DefiLlama to draft initial dimension ratings, tokenomics projections, and risk summaries.
-2. **F2 Reviewer Stage (Phase 2 Automated Re-Control):** Executes Gate 0 (Structural Completeness) and 7 content verification gates to test invariants and enforce Score Drift convergence strictly below `< 3.0 points`.
+2. **F2 Reviewer Stage (Phase 2 Automated Re-Control):** Executes Gate 0 (Structural Completeness) and 7 content verification gates (including Gate 2 — On-Chain Cross-Check, which verifies on-chain scan cleanliness starting from a neutral baseline of 90 when real GoPlus/RugCheck telemetry exists, rather than anchoring to the F1 subjective security dimension; fallback remains F1 security score × 10 when scan telemetry is absent) to test invariants and enforce Score Drift convergence strictly below `< 3.0 points`.
 3. **F3 Deterministic Verification Layer:** Executes **8 deterministic algorithmic verification modules** with **ZERO AI / LLM calls**, generating verifiable audits with cryptographic proof.
 
 ---

@@ -643,9 +643,9 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
       desc: 'Cross-references price, 24h volume, liquidity depth, and circulating supply across CoinGecko, CoinMarketCap, and CoinStats. Flagged if multi-source price deviation exceeds ±3.5% or volume variance exceeds 15%.'
     },
     {
-      gate: 'Gate 2: On-Chain Security Cross-Check',
+      gate: 'Gate 2: On-Chain Cross-Check',
       badge: 'GoPlus + RugCheck + Blockscout',
-      desc: 'Ingests verified real-time security scans from GoPlus Security, RugCheck (Solana), and Blockscout. Automatically flags mint authorities, freeze flags, unverified bytecode, honeypot functions, and blacklist vectors.'
+      desc: 'Evaluates on-chain scan cleanliness and contract parameters (open-source bytecode, honeypot risk, mintable supply, blacklist, taxes, custody, and exploit vectors). Starts from a neutral baseline of 90 when live GoPlus/RugCheck telemetry exists (falling back to F1 security score only if telemetry is absent). Requires score ≥ 90% and no honeypot detection to pass.'
     },
     {
       gate: 'Gate 3: Cross-Framework Consistency Check',
