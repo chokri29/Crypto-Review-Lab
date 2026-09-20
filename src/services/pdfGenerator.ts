@@ -1343,7 +1343,10 @@ export function getGovernanceAndControlBullets(
 
     if (lpItem) {
       const v = (lpItem.verdict || '').toUpperCase();
-      if (v.includes('VERIFIED') || v.includes('LOCKED') || v.includes('PASSED')) {
+      const s = (lpItem.status || '').toUpperCase();
+      if (v.includes('NOT VERIFIED') || v.includes('UNAVAILABLE') || v.includes('PENDING') || s.includes('NOT INDEPENDENTLY VERIFIED')) {
+        bullets.push('• Liquidity Pool Lock Status: NOT INDEPENDENTLY VERIFIED — LP token vault lock duration and burn proofs require independent verification.');
+      } else if (!v.includes('NOT VERIFIED') && !s.includes('NOT INDEPENDENTLY VERIFIED') && (v.includes('LOCKED') || v.includes('PASSED') || v.includes('VERIFIED'))) {
         bullets.push(`• Liquidity Pool Lock Status: Verified on-chain (${lpItem.status}) — LP token vault lock / burn proof confirmed.`);
       } else {
         bullets.push('• Liquidity Pool Lock Status: NOT INDEPENDENTLY VERIFIED — LP token vault lock duration and burn proofs require independent verification.');
@@ -1377,7 +1380,10 @@ export function getGovernanceAndControlBullets(
 
     if (whaleItem) {
       const v = (whaleItem.verdict || '').toUpperCase();
-      if (v.includes('VERIFIED') || v.includes('PASSED')) {
+      const s = (whaleItem.status || '').toUpperCase();
+      if (v.includes('NOT VERIFIED') || v.includes('UNAVAILABLE') || v.includes('PENDING') || s.includes('NOT INDEPENDENTLY VERIFIED')) {
+        bullets.push('• Anti-Whale & Control Framework: NOT INDEPENDENTLY VERIFIED — max wallet limits, team vesting schedules, and formal treasury isolation are unindexed or not applicable.');
+      } else if (!v.includes('NOT VERIFIED') && !s.includes('NOT INDEPENDENTLY VERIFIED') && (v.includes('PASSED') || v.includes('VERIFIED') || v.includes('BOUNDED'))) {
         bullets.push(`• Anti-Whale Transfer Boundaries: Verified on-chain (${whaleItem.status}) — transfer limit rules confirmed.`);
       } else {
         bullets.push('• Anti-Whale & Control Framework: NOT INDEPENDENTLY VERIFIED — max wallet limits, team vesting schedules, and formal treasury isolation are unindexed or not applicable.');
