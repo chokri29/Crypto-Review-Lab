@@ -57,21 +57,21 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
         <div className="mt-8 border-t border-slate-800/80 pt-8 text-slate-200">
           <div className="p-5 sm:p-6 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-950 shadow-xl space-y-4 relative overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-3.5">
-                <div className="p-3 rounded-xl border bg-amber-500/20 border-amber-500/40 text-amber-300 shrink-0">
+              <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                <div className="p-3 rounded-xl border bg-amber-500/20 border-amber-500/40 text-amber-300 shrink-0 mt-0.5">
                   <ShieldCheck className="w-6 h-6 text-amber-400" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded border bg-amber-950/60 border-amber-700/60 text-amber-300">
+                    <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded border bg-amber-950/60 border-amber-700/60 text-amber-300 break-words max-w-full leading-snug">
                       STAGE 2 RE-CONTROL: F2 & AVF CROSS-VALIDATION ENGINE VERIFICATION
                     </span>
-                    <span className="text-xs font-mono text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-amber-400" />
-                      Phase 1 Complete (Client Draft Ready)
+                    <span className="text-xs font-mono text-slate-400 flex items-center gap-1 shrink-0">
+                      <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Phase 1 Complete (Client Draft Ready)</span>
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold font-mono text-slate-100 mt-1">
+                  <h3 className="text-base sm:text-lg font-bold font-mono text-slate-100 mt-1 break-words">
                     PHASE 2 AUTOMATED RE-CONTROL (GATE 0 + 7 CONTROL GATES)
                   </h3>
                 </div>

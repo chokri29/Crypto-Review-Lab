@@ -85,9 +85,6 @@ body {
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  contain: strict;
 }
 
 /* === SCANLINE OVERLAY === */
@@ -105,9 +102,6 @@ body {
     );
     pointer-events: none;
     z-index: 1;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    contain: strict;
   }
 }
 

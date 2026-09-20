@@ -751,7 +751,7 @@ export const AuditorReviewConsole: React.FC<{
         
         {/* Left Column: Orders Queue List (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative overflow-hidden isolate">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative overflow-hidden">
             <div className="flex items-center justify-between">
               <h3 className="font-mono text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-400" />
@@ -882,40 +882,40 @@ export const AuditorReviewConsole: React.FC<{
         {/* Right Column: Workstation & Human Review Desk (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           {selectedOrder ? (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden isolate">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-6 relative overflow-hidden">
               
               {/* Workstation Header */}
               <div className="flex flex-col gap-3 border-b border-slate-800 pb-4">
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
-                    <span>Order #{selectedOrder.orderId}</span>
-                    <span>•</span>
-                    <span className="text-amber-400 font-semibold">{selectedOrder.paymentMethod}</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-slate-400">
+                    <span className="font-bold text-slate-300 whitespace-nowrap">Order #{selectedOrder.orderId}</span>
+                    <span className="text-slate-600 hidden xs:inline sm:inline">•</span>
+                    <span className="text-amber-400 font-semibold break-words">{selectedOrder.paymentMethod}</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-100 font-sans break-words">
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-100 font-sans break-words min-w-0">
                       {selectedOrder.projectName} ({selectedOrder.projectSymbol})
                     </h3>
                     {selectedOrder.status === 'DELIVERED' ? (
-                      <span className="text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 shrink-0 self-start sm:self-auto whitespace-nowrap">
+                      <span className="text-[11px] sm:text-xs font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-auto max-w-full break-words leading-tight">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        Final Delivery Dispatched
+                        <span>Final Delivery Dispatched</span>
                       </span>
                     ) : !(selectedOrder.finalReview || selectedOrder.systemDraft)?.phaseTwoReControl ? (
-                      <span className="text-xs font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 animate-pulse shrink-0 self-start sm:self-auto whitespace-nowrap">
+                      <span className="text-[11px] sm:text-xs font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1.5 animate-pulse shrink-0 self-start sm:self-auto max-w-full break-words leading-tight">
                         <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        Phase 1 Complete — Awaiting Stage 2 Initiation
+                        <span>Phase 1 Complete — Awaiting Stage 2 Initiation</span>
                       </span>
                     ) : (
-                      <span className="text-xs font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1 shrink-0 self-start sm:self-auto whitespace-nowrap">
+                      <span className="text-[11px] sm:text-xs font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2.5 py-1 rounded uppercase font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-auto max-w-full break-words leading-tight">
                         <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        Phase 2 Verified — Ready for Auditor Approval
+                        <span>Phase 2 Verified — Ready for Auditor Approval</span>
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
+                <div className="flex flex-wrap sm:flex-nowrap items-stretch sm:items-center gap-2 pt-1 sm:pt-0 w-full sm:w-auto">
                   {onNavigateToF3 && (
                     (() => {
                       const rev = selectedOrder.finalReview || selectedOrder.systemDraft;
@@ -929,7 +929,7 @@ export const AuditorReviewConsole: React.FC<{
                               onNavigateToF3(selectedOrder.orderId);
                             }
                           }}
-                          className={`px-3.5 py-2 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-all shrink-0 ${
+                          className={`flex-1 sm:flex-initial px-3.5 py-2.5 sm:py-2 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-all ${
                             isF2Passed
                               ? 'bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/40 hover:border-cyan-400 cursor-pointer shadow-sm'
                               : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
@@ -948,7 +948,7 @@ export const AuditorReviewConsole: React.FC<{
                   )}
                   <button
                     onClick={() => handleDownloadPreliminaryPdf(selectedOrder)}
-                    className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-amber-500/40 hover:border-amber-400 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    className="flex-1 sm:flex-initial px-3.5 py-2.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-amber-500/40 hover:border-amber-400 rounded-xl font-mono text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     title="Generate preliminary evaluation report draft prior to F3 stage"
                   >
                     <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -1051,73 +1051,80 @@ export const AuditorReviewConsole: React.FC<{
               />
 
               {/* Stage 3: F3 Deterministic Verification Layer Reference */}
-              <div className="p-4 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono shadow-md">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shrink-0">
+              <div className="p-4 sm:p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br sm:bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono shadow-lg relative overflow-hidden">
+                <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 shrink-0 mt-0.5 sm:mt-0">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded border bg-cyan-950/80 border-cyan-500/40 text-cyan-300 shrink-0 whitespace-nowrap">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2 py-0.5 rounded border bg-cyan-950/90 border-cyan-500/40 text-cyan-300 break-words max-w-full leading-snug">
                         STAGE 3: DETERMINISTIC VERIFICATION MATRIX
                       </span>
                       {adminOverrides[selectedOrder.orderId] || selectedOrder.adminOverride ? (
-                        <span className="text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
+                        <span className="text-[9.5px] sm:text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 rounded font-bold uppercase break-words leading-snug">
                           ADMIN OVERRIDDEN
                         </span>
                       ) : !(selectedOrder.finalReview || selectedOrder.systemDraft)?.phaseTwoReControl ? (
-                        <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
+                        <span className="text-[9.5px] sm:text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-bold uppercase break-words leading-snug">
                           STAGE 2 PENDING (F3 GATED)
                         </span>
                       ) : !isF2GatePassed(selectedOrder.finalReview || selectedOrder.systemDraft) ? (
-                        <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
+                        <span className="text-[9.5px] sm:text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2 py-0.5 rounded font-bold uppercase break-words leading-snug">
                           F3 BLOCKED (F2 SCORE &lt; 95%)
                         </span>
                       ) : getF3Result(selectedOrder.orderId)?.overallStatus === 'VERIFIED' ? (
-                        <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
+                        <span className="text-[9.5px] sm:text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded font-bold uppercase break-words leading-snug">
                           F3 VERIFIED (Invariants Matched)
                         </span>
                       ) : (
-                        <span className="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-1.5 py-0.2 rounded font-bold shrink-0 whitespace-nowrap">
+                        <span className="text-[9.5px] sm:text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded font-bold uppercase break-words leading-snug">
                           F2 PASSED (≥95%) → F3 ELIGIBLE
                         </span>
                       )}
                     </div>
-                    <p className="text-slate-300 text-[11px] mt-1 font-sans">
-                      All 8 algorithmic modules (AVF-01 to AVF-08), mathematical proofs, and cryptographic hashes are synchronized in real-time with the <strong className="text-cyan-300">F3 Dashboard</strong>.
+                    <p className="text-slate-300 text-xs sm:text-[11px] font-sans leading-relaxed break-words">
+                      All 8 algorithmic modules (AVF-01 to AVF-08), mathematical proofs, and cryptographic hashes are synchronized in real-time with the <strong className="text-cyan-300 font-semibold">F3 Dashboard</strong>.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
                   {onNavigateToF3 && (
                     (() => {
                       const rev = selectedOrder.finalReview || selectedOrder.systemDraft;
                       const isF2Passed = isF2GatePassed(rev) || Boolean(selectedOrder.adminOverride || rev?.adminOverride || adminOverrides[selectedOrder.orderId]);
                       return (
-                        <button
-                          type="button"
-                          disabled={!isF2Passed}
-                          onClick={() => {
-                            if (isF2Passed) {
-                              onNavigateToF3(selectedOrder.orderId);
+                        <div className="w-full sm:w-auto space-y-1">
+                          <button
+                            type="button"
+                            disabled={!isF2Passed}
+                            onClick={() => {
+                              if (isF2Passed) {
+                                onNavigateToF3(selectedOrder.orderId);
+                              }
+                            }}
+                            className={`w-full sm:w-auto px-4 py-3 sm:py-2.5 font-bold font-mono rounded-xl transition-all flex items-center justify-center gap-2 text-xs shadow-md ${
+                              isF2Passed
+                                ? 'bg-gradient-to-r from-cyan-500/20 via-cyan-500/25 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 text-cyan-200 border border-cyan-400/50 hover:border-cyan-300 cursor-pointer'
+                                : 'bg-slate-900/90 text-slate-500 border border-slate-800 cursor-not-allowed opacity-75'
+                            }`}
+                            title={
+                              isF2Passed
+                                ? "Open verified project in Stage 3 F3 Dashboard"
+                                : "F3 Gated: Phase 2 (F2) Re-Control must pass with score >= 95% first"
                             }
-                          }}
-                          className={`px-3.5 py-2 font-bold rounded-xl transition-all flex items-center gap-1.5 ${
-                            isF2Passed
-                              ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 text-cyan-300 border border-cyan-500/40 cursor-pointer shadow-sm'
-                              : 'bg-slate-900 text-slate-500 border border-slate-800 cursor-not-allowed opacity-60'
-                          }`}
-                          title={
-                            isF2Passed
-                              ? "Open verified project in Stage 3 F3 Dashboard"
-                              : "F3 Gated: Phase 2 (F2) Re-Control must pass with score >= 95% first"
-                          }
-                        >
-                          <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                          <span>Open F3 Dashboard</span>
-                          <ExternalLink className="w-3 h-3 text-cyan-400" />
-                        </button>
+                          >
+                            <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                            <span className="tracking-wide">Open F3 Dashboard</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                          </button>
+                          {!isF2Passed && (
+                            <span className="text-[10.5px] text-amber-400/90 font-mono block sm:hidden text-center">
+                              Requires Stage 2 Re-Control ≥ 95%
+                            </span>
+                          )}
+                        </div>
                       );
                     })()
                   )}
