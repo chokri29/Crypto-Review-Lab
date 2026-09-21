@@ -18,7 +18,7 @@ import {
 } from '../types';
 import { normalizeProtocolCategory, getCategoryDimensionWeights, calculateBlueprintScore, ProtocolCategoryType } from './EvaluationBlueprint';
 import { formatDefiLlamaTvl } from './defillama';
-import { getConfidenceLevel } from './f3Engine';
+import { getConfidenceLevel, formatRiskAndConfidencePair } from './f3Engine';
 
 function getFsAndPath() {
   if (typeof window === 'undefined') {
@@ -1531,7 +1531,7 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   // GATE 6: RISK LEVEL EVIDENCE CHECK
   // Verifies that a declared "Low / Low Risk" classification is not contradicted by critical honeypot
   // or cannot-sell-all telemetry. Broader risk–evidence consistency is handled by AVF-06 in the F3 layer.
-  const validRiskTiers = ['Low', 'Medium', 'High', 'Critical', 'Low Risk', 'Medium Risk', 'Declared Risk'];
+  const validRiskTiers = ['Low', 'Medium', 'High', 'Critical', 'Low Risk', 'Medium Risk', 'Declared Risk', 'Insufficient Evidence — Provisional'];
   const isValidRisk = validRiskTiers.includes(review.riskLevel);
   const g6SecScan = review.securityScan?.data || review.securityScan;
   const isHoneypotFlag = Boolean(g6SecScan?.is_honeypot === '1' || g6SecScan?.is_honeypot === true || g6SecScan?.isHoneypot);
@@ -1671,7 +1671,16 @@ function generateEvidenceBasedFindings(
     candidatePros.push(`Honeypot Invariant: Verified clean transfer execution without transfer restrictions (Source: ${source})`);
   }
   if (sec && !isMintable && sec.is_mintable !== undefined) {
-    candidatePros.push(`Supply Invariant: Fixed supply verified; no arbitrary mint authority found in bytecode (Source: ${source})`);
+    candidatePros.push(`Contract Invariant: No public mint() on this contract — NOT a supply-cap guarantee (Source: ${source})`);
+  }
+  const hasTokenomicsDisclosure = Boolean(
+    (review.maxSupply && review.maxSupplyProvenance === 'SOURCE') ||
+    ((review as any).tokenomicsDisclosures && Object.keys((review as any).tokenomicsDisclosures).length > 0)
+  );
+  if (hasTokenomicsDisclosure && review.maxSupply) {
+    candidatePros.push(`Supply/Inflation: Disclosed hard supply cap of ${review.maxSupply.toLocaleString()} verified from official tokenomics disclosures`);
+  } else {
+    candidateCons.push(`Supply/Inflation: NOT VERIFIED — Supply-cap and inflation claims require verified tokenomics disclosures rather than bytecode scans`);
   }
   if (sec && !isProxy && sec.is_proxy !== undefined) {
     candidatePros.push(`Immutability Invariant: Non-upgradeable bytecode architecture; smart contract logic is immutable (Source: ${source})`);
@@ -1798,9 +1807,13 @@ export function autoCalibrateAndRegenerateDraft(review: CryptoReview): CryptoRev
     summary += `\n\n## Conclusion & Verdict\nThe protocol has been evaluated under the Crypto Review Lab Blueprint specification.`;
   }
 
-  const verdict = (review.verdict && review.verdict.length > 20) 
+  const confScore = (review.f3Verification?.verificationConfidencePct) ?? (review.confidenceScore ? Math.round(review.confidenceScore * 100) : 50);
+  const covScore = (review.f3Verification?.evidenceCoveragePct) ?? (review.contractAddress ? 65 : 45);
+  const riskPair = formatRiskAndConfidencePair(riskLevel, confScore, covScore, overallScore);
+
+  const verdict = (review.verdict && review.verdict.length > 20 && !review.verdict.includes('Auto-Calibrated Verdict')) 
     ? review.verdict 
-    : `Auto-Calibrated Verdict: ${review.name || 'Protocol'} evaluates at ${overallScore}/100 with ${riskLevel} risk assessment under the 5-dimension Blueprint specification.`;
+    : `Auto-Calibrated Verdict: ${review.name || 'Protocol'} evaluates at ${overallScore}/100 with ${riskPair.pairDisplay} assessment under the 5-dimension Blueprint specification.`;
 
   // 6. Pro Benchmarks & On-Chain Invariants — HONEST LABELING ONLY (no fabricated CertiK/OpenZeppelin or passing matrix)
   const realTvlFormatted = formatDefiLlamaTvl(review.realTvl);

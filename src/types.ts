@@ -23,6 +23,7 @@ export type RiskLevel =
   | 'Declared Risk'
   | 'INPUT_MISSING'
   | 'DRAFT_UNAVAILABLE'
+  | 'Insufficient Evidence — Provisional'
   | 'Pending';
 
 export interface ProSecurityBenchmarks {

@@ -19,7 +19,7 @@ import {
 import { ComparisonReportData, PhaseTwoReControlReport, CryptoAuditSignature, F3VerificationResult, PublicF3VerificationResult, PublicCryptoReviewReport, AdminOverrideLog } from '../types';
 
 import { formatDefiLlamaTvl } from './defillama';
-import { getConfidenceLevel } from './f3Engine';
+import { getConfidenceLevel, formatRiskAndConfidencePair } from './f3Engine';
 
 export interface AuditPdfData {
   projectName?: string;
@@ -1305,7 +1305,8 @@ export function resolveReportScores(data: AuditPdfData, categoryType: ProtocolCa
 export function getGovernanceAndControlBullets(
   categoryType: ProtocolCategoryType,
   categoryModule: { items: { target: string; check: string; status: string; verdict: string }[] },
-  projName: string
+  projName: string,
+  data?: any
 ): { title: string; bullets: string[] } {
   const items = categoryModule?.items || [];
   const findItem = (kw: string) => items.find(i => i.target.toLowerCase().includes(kw));
@@ -1358,8 +1359,8 @@ export function getGovernanceAndControlBullets(
     const mintV = (mintItem?.verdict || '').toUpperCase();
     const taxV = (taxItem?.verdict || '').toUpperCase();
     let mintStr = 'Mint Status [UNVERIFIED]';
-    if (mintV.includes('DISABLED')) {
-      mintStr = 'Mint Authority Disabled';
+    if (mintV.includes('DISABLED') || mintV.includes('NO PUBLIC MINT')) {
+      mintStr = 'No public mint() on this contract — NOT a supply-cap guarantee';
     } else if (mintV.includes('MINTABLE')) {
       mintStr = 'Mint Authority Active [FLAGGED]';
     } else if (mintV.includes('NOT VERIFIED') || mintV.includes('UNAVAILABLE') || mintV.includes('PENDING')) {
@@ -1377,6 +1378,15 @@ export function getGovernanceAndControlBullets(
       taxStr = 'Tax & Honeypot Telemetry Not Independently Verified';
     }
     bullets.push(`• Mint & Transfer Hook Security: ${mintStr} • ${taxStr} (aligned with audit matrix).`);
+
+    const hasSupplyCapDisclosure = Boolean(
+      data && (data as any).maxSupply && ((data as any).maxSupplyProvenance === 'SOURCE' || (data as any).maxSupply > 0)
+    );
+    if (hasSupplyCapDisclosure && data) {
+      bullets.push(`• Supply & Inflation Controls: Disclosed hard supply cap of ${(data as any).maxSupply.toLocaleString()} verified from official tokenomics disclosures.`);
+    } else {
+      bullets.push('• Supply & Inflation Controls: Supply/Inflation: NOT VERIFIED — supply cap and emission invariants require verified tokenomics disclosures rather than bytecode inference.');
+    }
 
     if (whaleItem) {
       const v = (whaleItem.verdict || '').toUpperCase();
@@ -1611,6 +1621,9 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
   // 3. Verification Status & Evaluation Blueprint Framework Matrix
   const categoryType = normalizeProtocolCategory(data.category || data.queryTopic);
   const weights = getCategoryDimensionWeights(categoryType);
+  const f3 = data.f3Verification;
+  const stdScores = resolveReportScores(data, categoryType);
+  const stdDimScores = stdScores.dimensionScores;
 
   const badgeColor = isVerified ? emeraldAccent : (isFailed ? [225, 29, 72] : [245, 158, 11]);
   const badgeLabel = isVerified ? 'VERIFIED' : (gating.actualStatus === 'PENDING_REVIEW' ? 'PENDING' : gating.actualStatus);
@@ -1629,22 +1642,31 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
   doc.setFontSize(6.5);
   doc.text('BLUEPRINT v2.4', margin + 21, y + 15.5, { align: 'center' });
 
+  const stdConfidencePct = f3 ? Math.round((f3.overallConfidence ?? 0.85) * 100) : (data.confidenceScore ? Math.round(data.confidenceScore * 100) : 50);
+  const stdCoveragePct = f3 ? Math.round(((f3 as any).evidenceCoveragePct ?? 0.5) * 100) : 50;
+  const stdRiskPair = formatRiskAndConfidencePair(data.riskLevel, stdConfidencePct, stdCoveragePct, stdScores.overallScore);
+
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
-  doc.setFontSize(10.5);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'bold');
   const statusHeadline = isVerified 
     ? 'STATUS: DETERMINISTIC VERIFICATION PASSED'
     : `STATUS: ${gating.actualStatus} — PENDING FINAL AUDITOR SIGN-OFF`;
-  doc.text(statusHeadline, margin + 44, y + 9.5);
+  doc.text(statusHeadline, margin + 44, y + 8.5);
 
-  doc.setFontSize(8.5);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(textDark[0], textDark[1], textDark[2]);
+  doc.text(`RISK / CONFIDENCE: ${stdRiskPair.pairDisplay}`, margin + 44, y + 13);
+
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(textMuted[0], textMuted[1], textMuted[2]);
-  doc.text(`SPECIFICATION: `, margin + 44, y + 16.5);
+  doc.text(`SPECIFICATION: `, margin + 44, y + 17.5);
 
   doc.setTextColor(badgeColor[0], badgeColor[1], badgeColor[2]);
   doc.setFont('helvetica', 'bold');
-  doc.text('EVALUATION BLUEPRINT FRAMEWORK (AVF-01..AVF-08)', margin + 70, y + 16.5);
+  doc.text('EVALUATION BLUEPRINT FRAMEWORK (AVF-01..AVF-08)', margin + 68, y + 17.5);
 
   y += 28;
 
@@ -1669,8 +1691,6 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
 
   y += 6.5;
 
-  const stdScores = resolveReportScores(data, categoryType);
-  const stdDimScores = stdScores.dimensionScores;
   const stdDefaultStatus = isVerified ? 'VERIFIED' : (isFailed ? 'FLAGGED' : 'PENDING');
   const formatStdDim = (score?: number) => {
     if (score !== undefined && !isNaN(score) && stdScores.isScorePublished) {
@@ -1772,7 +1792,15 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
 
         if (isOpenSource !== undefined) scanFlags.push(`Open-Source: ${isOpenSource ? 'YES' : 'NO'}`);
         if (isHoneypot !== undefined) scanFlags.push(`Honeypot: ${isHoneypot ? 'YES' : 'NO'}`);
-        if (isMintable !== undefined) scanFlags.push(`Mintable: ${isMintable ? 'YES' : 'NO'}`);
+        if (isMintable !== undefined) {
+          scanFlags.push(isMintable ? 'Mintable: YES' : 'No public mint() on this contract — NOT a supply-cap guarantee');
+        }
+        const hasTokenomicsSupply = Boolean(
+          (data as any).maxSupply && ((data as any).maxSupplyProvenance === 'SOURCE' || (data as any).maxSupply > 0)
+        );
+        if (!hasTokenomicsSupply) {
+          scanFlags.push('Supply/Inflation: NOT VERIFIED');
+        }
         if (isBlacklisted !== undefined) scanFlags.push(`Blacklist: ${isBlacklisted ? 'YES' : 'NO'}`);
         if (isProxy) scanFlags.push(`Proxy: YES`);
         if (ownerChangeBalance) scanFlags.push(`Owner Mod Balance: YES`);
@@ -2242,16 +2270,23 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   const isScorePublished = resolvedScores.isScorePublished;
   const dimScores = resolvedScores.dimensionScores;
 
-  doc.setFontSize(8);
+  const proRiskPair = formatRiskAndConfidencePair(
+    data.riskLevel,
+    verificationConfidencePct,
+    evidenceCoveragePct,
+    resolvedScores.overallScore
+  );
+
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(textDark[0], textDark[1], textDark[2]);
   const scoreDisplay = isScorePublished ? `${resolvedScores.overallScore}/100` : 'PENDING';
-  doc.text(`EVALUATION SCORE: ${scoreDisplay} | FINAL CRL STATE: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 13);
+  doc.text(`EVALUATION SCORE: ${scoreDisplay} | RISK / CONFIDENCE: ${proRiskPair.pairDisplay}`, margin + 45, y + 13);
 
   doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(180, 83, 9);
-  doc.text(`EVIDENCE COVERAGE: ${evidenceCoveragePct}% | VERIFICATION CONFIDENCE: ${verificationConfidencePct}% [${verificationConfidenceLevel}]`, margin + 45, y + 17.5);
+  doc.text(`EVIDENCE COVERAGE: ${evidenceCoveragePct}% | CONFIDENCE: ${verificationConfidencePct}% [${verificationConfidenceLevel}] | STATE: ${canonicalStatus.toUpperCase()}`, margin + 45, y + 17.5);
 
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
@@ -2409,6 +2444,14 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     }
     if (isMintable) {
       findings.push(`Mint Function Detected (Source: ${scanSource})`);
+    } else if (isMintable === false) {
+      findings.push(`No public mint() on this contract — NOT a supply-cap guarantee (Source: ${scanSource})`);
+    }
+    const hasSupplyCap = Boolean(
+      (data as any).maxSupply && ((data as any).maxSupplyProvenance === 'SOURCE' || (data as any).maxSupply > 0)
+    );
+    if (!hasSupplyCap) {
+      findings.push('Supply/Inflation: NOT VERIFIED');
     }
     if (f3?.discrepancies && f3.discrepancies.length > 0) {
       findings.push(`Deterministic Discrepancy Flag: ${f3.discrepancies[0]} (Source: AVF Engine)`);
@@ -2423,6 +2466,9 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     }
     if (!data.realTvl || data.realTvl <= 0) {
       missingItems.push('DefiLlama Protocol TVL [UNAVAILABLE]');
+    }
+    if (!hasSupplyCap) {
+      missingItems.push('Supply/Inflation [NOT VERIFIED]');
     }
     const missingText = missingItems.length > 0 ? missingItems.join(' • ') : 'Full core evidence indexed on file';
     doc.text(`5. Security Evidence Verification: ${missingText}`, margin + 4, y + 30.5);
@@ -2593,7 +2639,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.text('3. GOVERNANCE & EVALUATED CONTROL FRAMEWORK', margin, y);
   y += 4;
 
-  const govFramework = getGovernanceAndControlBullets(categoryType, categoryModule, projName);
+  const govFramework = getGovernanceAndControlBullets(categoryType, categoryModule, projName, data);
   const govBoxHeight = Math.max(30, govFramework.bullets.length * 5.2 + 8);
 
   doc.setFillColor(254, 243, 199);
@@ -2752,7 +2798,7 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
 
   doc.setFillColor(241, 245, 249);
   doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(margin, y, contentWidth, 27, 2, 2, 'FD');
+  doc.roundedRect(margin, y, contentWidth, 31, 2, 2, 'FD');
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
@@ -2762,12 +2808,13 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(51, 65, 85);
-  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Contract Bytecode [VERIFIED]' : 'Contract Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'External Audits [VERIFIED]' : 'External Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]'})`, margin + 4, y + 9.5);
-  doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] (Deterministic AVF mathematical validation)`, margin + 4, y + 13.7);
-  doc.text(`• AVF Verification Status: ${canonicalStatus} (Evidence determines findings; missing inputs remain unverified without positive assumptions)`, margin + 4, y + 17.9);
-  doc.text(`• Evidence State Invariant: MISSING, UNAVAILABLE, and NOT VERIFIED states are strictly preserved without synthetic inflation.`, margin + 4, y + 22.1);
+  doc.text(`• Assessed Risk & Confidence: ${proRiskPair.pairDisplay} (Coverage: ${evidenceCoveragePct}%, Confidence: ${verificationConfidencePct}%)`, margin + 4, y + 9.5);
+  doc.text(`• Evidence Coverage: ${evidenceCoveragePct}% (${hasRealContract ? 'Contract Bytecode [VERIFIED]' : 'Contract Bytecode [MISSING]'} | ${hasRealScan ? 'Security Invariants [VERIFIED]' : 'Security Invariants [UNAVAILABLE]'} | ${data.auditReports?.length ? 'External Audits [VERIFIED]' : 'External Audits [NOT INDEPENDENTLY VERIFIED IN THIS RUN]'})`, margin + 4, y + 13.7);
+  doc.text(`• Verification Confidence: ${verificationConfidencePct}% [${verificationConfidenceLevel}] (Deterministic AVF mathematical validation)`, margin + 4, y + 17.9);
+  doc.text(`• AVF Verification Status: ${canonicalStatus} (Evidence determines findings; missing inputs remain unverified without positive assumptions)`, margin + 4, y + 22.1);
+  doc.text(`• Evidence State Invariant: MISSING, UNAVAILABLE, and NOT VERIFIED states are strictly preserved without synthetic inflation.`, margin + 4, y + 26.3);
 
-  y += 33;
+  y += 37;
 
   if (y + 20 > pageHeight - 15) {
     addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());

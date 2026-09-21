@@ -1344,6 +1344,73 @@ export function getConfidenceLevel(overallConfidence: number): AVF07ConfidenceLe
   return 'LOW';
 }
 
+export interface RiskConfidencePairResult {
+  riskGrade: string;
+  riskDisplay: string;
+  confidenceLevel: 'HIGH' | 'MODERATE' | 'LOW';
+  confidenceBand: 'HIGH' | 'MODERATE' | 'LOW';
+  confidencePct: number;
+  evidenceCoveragePct: number;
+  isInsufficientEvidence: boolean;
+  isProvisional: boolean;
+  pairDisplay: string;
+  fullDisplay: string;
+}
+
+export function formatRiskAndConfidencePair(
+  rawRiskLevel: string | undefined,
+  confidencePct: number | undefined,
+  evidenceCoveragePct: number | undefined,
+  overallScore?: number
+): RiskConfidencePairResult {
+  const confPct = Math.round(typeof confidencePct === 'number' && !isNaN(confidencePct) ? confidencePct : 50);
+  const covPct = Math.round(typeof evidenceCoveragePct === 'number' && !isNaN(evidenceCoveragePct) ? evidenceCoveragePct : 50);
+  const confLevel = getConfidenceLevel(confPct);
+
+  let baseRisk = (rawRiskLevel || 'Moderate').trim();
+  if (baseRisk.toLowerCase() === 'low') baseRisk = 'Low Risk';
+  else if (baseRisk.toLowerCase() === 'medium' || baseRisk.toLowerCase() === 'moderate') baseRisk = 'Moderate Risk';
+  else if (baseRisk.toLowerCase() === 'high') baseRisk = 'High Risk';
+  else if (baseRisk.toLowerCase() === 'critical') baseRisk = 'Critical Risk';
+  else if (!baseRisk.toLowerCase().includes('risk') && !baseRisk.toLowerCase().includes('insufficient')) baseRisk = `${baseRisk} Risk`;
+
+  const confLabel = confLevel === 'HIGH' ? 'High Confidence' : (confLevel === 'MODERATE' ? 'Moderate Confidence' : 'Low Confidence');
+
+  const isInsufficient = confPct < 60 || covPct < 50;
+  const isLowConfidence = confLevel === 'LOW' || confPct < 70;
+  const isProvisional = isInsufficient || isLowConfidence;
+
+  let riskGrade: string;
+  let pairDisplay: string;
+
+  if (isInsufficient) {
+    riskGrade = 'Insufficient Evidence — Provisional';
+    pairDisplay = `Insufficient Evidence — Provisional / ${confLabel}`;
+  } else if (isLowConfidence) {
+    riskGrade = baseRisk;
+    pairDisplay = `${baseRisk} / ${confLabel} — Provisional`;
+  } else {
+    riskGrade = baseRisk;
+    pairDisplay = `${baseRisk} / ${confLabel}`;
+  }
+
+  const scoreStr = overallScore !== undefined && overallScore > 0 ? `Score: ${overallScore}/100, ` : '';
+  const fullDisplay = `${pairDisplay} (${scoreStr}Coverage: ${covPct}%, Confidence: ${confPct}%)`;
+
+  return {
+    riskGrade,
+    riskDisplay: riskGrade,
+    confidenceLevel: confLevel,
+    confidenceBand: confLevel,
+    confidencePct: confPct,
+    evidenceCoveragePct: covPct,
+    isInsufficientEvidence: isInsufficient,
+    isProvisional,
+    pairDisplay,
+    fullDisplay
+  };
+}
+
 export interface AVF07ConfidenceBreakdown {
   dataConfidence: number;           // from AVF-02 evidenceCoveragePct (0.0 - 1.0)
   classificationConfidence: number; // from AVF-01 classificationConfidence (0.0 - 1.0)
@@ -2585,7 +2652,12 @@ export function regenerateNarrativeAfterVerification(review: CryptoReview): void
     ? 'CRITICAL RISK IDENTIFIED: Honeypot mechanics active.'
     : isMintable
     ? 'Notice: Supply minting capability is present.'
-    : 'No malicious transfer restrictions identified.';
+    : 'No public mint() on this contract — NOT a supply-cap guarantee. Supply/Inflation: NOT VERIFIED unless documented in official tokenomics disclosures.';
+
+  const f3 = review.f3Verification;
+  const confPct = f3?.verificationConfidencePct ?? (review.confidenceScore ? Math.round(review.confidenceScore * 100) : 50);
+  const covPct = f3?.evidenceCoveragePct ?? (contractAddress ? 65 : 45);
+  const riskPair = formatRiskAndConfidencePair(riskLevel, confPct, covPct, overallScore ?? undefined);
 
   review.summary = `### Core Thesis
 ${cleanName} (${cleanSymbol}) is evaluated under the ${resolvedCategory} framework. Synthesized via Crypto Review Lab Evaluation Blueprint with exterior security scans, verified on-chain invariants, and live liquidity metrics.
@@ -2597,9 +2669,9 @@ The project delivers specialized capabilities in ${resolvedCategory}. Primary ev
 Smart contract inspection ${inspectionTarget} indicates a Security Rating of ${security}/10 and Tokenomics Rating of ${tokenomics}/10. ${transferNote}
 
 ### Conclusion
-${cleanName} receives an overall Evaluation Blueprint Score of ${overallScore}/100, reflecting a ${riskLevel} Risk assessment under the locked 5-dimension rubric.`;
+${cleanName} receives an overall Evaluation Blueprint Score of ${overallScore}/100, reflecting a ${riskPair.pairDisplay} assessment under the locked 5-dimension rubric (Evidence Coverage: ${riskPair.evidenceCoveragePct}%, Verification Confidence: ${riskPair.confidencePct}%).`;
 
-  review.verdict = `${cleanName} (${cleanSymbol}) evaluates at ${overallScore}/100 with ${riskLevel} Risk assessment under the CRL 5-dimension Evaluation Blueprint rubric.`;
+  review.verdict = `${cleanName} (${cleanSymbol}) evaluates at ${overallScore}/100 with ${riskPair.pairDisplay} assessment under the CRL 5-dimension Evaluation Blueprint rubric.`;
 }
 
 export { runF3Verification, runF3Verification as runF3VerificationPipeline };

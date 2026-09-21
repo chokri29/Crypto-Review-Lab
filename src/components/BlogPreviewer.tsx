@@ -67,7 +67,7 @@ const CATEGORY_OPTIONS = [
 import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
 import { calculateBlueprintScore, calculateEvidenceCoverage } from '../services/EvaluationBlueprint';
-import { getConfidenceLevel } from '../services/f3Engine';
+import { getConfidenceLevel, formatRiskAndConfidencePair } from '../services/f3Engine';
 import { ProTierBadge } from './ProTierBadge';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
@@ -512,12 +512,13 @@ export default function BlogPreviewer({
     },
   };
 
-  const getRiskStyles = (risk: RiskLevel) => {
+  const getRiskStyles = (risk?: string) => {
     switch (risk) {
       case 'Low': return { text: 'text-cyber-green', bg: 'bg-cyber-green/5 border-cyber-green/20' };
       case 'Medium': return { text: 'text-amber-400', bg: 'bg-amber-500/5 border-amber-500/20' };
       case 'High': return { text: 'text-cyber-orange', bg: 'bg-cyber-orange/5 border-cyber-orange/20' };
       case 'Critical': return { text: 'text-rose-400', bg: 'bg-rose-500/5 border-rose-500/20 animate-pulse' };
+      case 'Insufficient Evidence — Provisional': return { text: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/30' };
       default: return { text: 'text-cyber-text-secondary', bg: 'bg-cyber-text-secondary/5 border-cyber-text-muted/30' };
     }
   };
@@ -529,7 +530,17 @@ export default function BlogPreviewer({
     if (riskLevel === 'Medium') {
       return 'text-amber-400 bg-amber-500/10 border-amber-500/40 font-semibold';
     }
+    if (riskLevel === 'Insufficient Evidence — Provisional') {
+      return 'text-amber-300 bg-amber-500/15 border-amber-500/40 font-semibold';
+    }
     return 'text-rose-400 bg-rose-500/10 border-rose-500/30 font-bold';
+  };
+
+  const getReviewRiskPair = (rev: CryptoReview) => {
+    const f3 = rev.f3Verification;
+    const confPct = f3?.verificationConfidencePct ?? (rev.confidenceScore ? Math.round(rev.confidenceScore * 100) : 50);
+    const covPct = f3?.evidenceCoveragePct ?? (rev.contractAddress ? 65 : 45);
+    return formatRiskAndConfidencePair(rev.riskLevel, confPct, covPct, rev.overallScore);
   };
 
   const renderContentMarkdown = (text: string) => {
@@ -813,7 +824,7 @@ export default function BlogPreviewer({
                           {review.overallScore}/100
                         </span>
                         <span className="font-mono text-[10px] text-cyber-text-muted">
-                          {review.riskLevel} Risk
+                          {getReviewRiskPair(review).pairDisplay}
                         </span>
                       </div>
                     </button>
@@ -1192,7 +1203,8 @@ export default function BlogPreviewer({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {watchlistReviews.map((rev) => {
-                      const riskStyles = getRiskStyles(rev.riskLevel);
+                      const rPair = getReviewRiskPair(rev);
+                      const riskStyles = getRiskStyles(rPair.riskDisplay);
                       return (
                         <motion.div
                           key={`watchlist-${rev.id}`}
@@ -1239,8 +1251,8 @@ export default function BlogPreviewer({
                                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                                     </button>
 
-                                    <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[36px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center ${getRiskColor(rev.riskLevel)}`}>
-                                      {rev.riskLevel} Risk
+                                    <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center ${getRiskColor(rPair.riskDisplay)}`}>
+                                      {rPair.riskDisplay} • {rPair.confidenceBand} CONF
                                     </div>
                                   </div>
                                 </div>
@@ -1268,7 +1280,7 @@ export default function BlogPreviewer({
 
                               <div className="pt-2.5 mt-3 border-t border-amber-500/20 flex items-center justify-between">
                                 <span className={`border text-[9px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
-                                  {rev.riskLevel} RISK
+                                  {rPair.pairDisplay}
                                 </span>
                                 <span className="text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
                                   Evaluation Report
@@ -1356,7 +1368,8 @@ export default function BlogPreviewer({
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-4"
                 >
                   {currentLatestReviews.map((rev) => {
-                    const riskStyles = getRiskStyles(rev.riskLevel);
+                    const rPair = getReviewRiskPair(rev);
+                    const riskStyles = getRiskStyles(rPair.riskDisplay);
                     const isPinned = watchlist.includes(rev.id);
                     return (
                       <motion.div 
@@ -1416,8 +1429,8 @@ export default function BlogPreviewer({
                                   </button>
 
                                   {/* Risk Level badge */}
-                                  <div className={`border rounded-lg px-2 py-0.5 text-center min-w-[38px] font-mono font-bold text-xs uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rev.riskLevel)}`}>
-                                    {rev.riskLevel} Risk
+                                  <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rPair.riskDisplay)}`}>
+                                    {rPair.riskDisplay} • {rPair.confidenceBand} CONF
                                   </div>
                                 </div>
                               </div>
@@ -1449,7 +1462,7 @@ export default function BlogPreviewer({
                             <div className="pt-2.5 mt-3 border-t border-cyber-cyan/10 flex items-center justify-between">
                               <div className="flex items-center gap-1.5">
                                 <span className={`border text-[9px] md:text-[10px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
-                                  {rev.riskLevel} RISK
+                                  {rPair.pairDisplay}
                                 </span>
                                 <span className="text-[9px] md:text-[10px] font-mono text-cyber-text-muted uppercase tracking-wider flex items-center gap-1">
                                   <Clock className="w-3 h-3 text-cyber-cyan/70 shrink-0" />
@@ -1490,6 +1503,7 @@ export default function BlogPreviewer({
                       .slice(0, 4)
                       .map((item) => {
                         const scoreStyles = getScoreBadgeStyles(item.overallScore);
+                        const itemPair = getReviewRiskPair(item);
                         const isPinned = watchlist.includes(item.id);
                         return (
                           <motion.div
@@ -1536,7 +1550,7 @@ export default function BlogPreviewer({
                               </div>
                               <div className="text-right shrink-0 pl-1">
                                 <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
-                                  {item.riskLevel} Risk • {item.overallScore}%
+                                  {itemPair.riskDisplay} • {item.overallScore}%
                                 </span>
                               </div>
                             </div>
@@ -1606,7 +1620,8 @@ export default function BlogPreviewer({
                             ) : (
                               <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-cyber-cyan/30">
                                 {filteredReviews.slice(4).map((rev) => {
-                                  const riskStyles = getRiskStyles(rev.riskLevel);
+                                  const rPair = getReviewRiskPair(rev);
+                                  const riskStyles = getRiskStyles(rPair.riskDisplay);
                                   const isPinned = watchlist.includes(rev.id);
                                   return (
                                     <motion.div
@@ -1668,7 +1683,7 @@ export default function BlogPreviewer({
                                             </span>
                                           )}
                                           <span className={`border text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wide hidden xs:inline-block ${riskStyles.bg} ${riskStyles.text}`}>
-                                            {rev.riskLevel}
+                                            {rPair.riskDisplay}
                                           </span>
                                           <button
                                             type="button"
@@ -1965,6 +1980,12 @@ export default function BlogPreviewer({
                 verificationConfidencePct = 50;
               }
               const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = getConfidenceLevel(verificationConfidencePct);
+              const activeRiskPair = formatRiskAndConfidencePair(
+                activeReview.riskLevel,
+                verificationConfidencePct,
+                evidenceCoveragePct,
+                scoreVal
+              );
 
               return (
                 <div className="space-y-4">
@@ -1982,6 +2003,13 @@ export default function BlogPreviewer({
                           <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Final CRL State</span>
                           <span className={`text-[11px] font-mono font-black uppercase px-3 py-1 rounded-md border tracking-wider ${canonicalStatus === 'VERIFIED' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : canonicalStatus === 'FAILED' ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' : 'bg-amber-500/15 border-amber-500/40 text-amber-300'}`}>
                             {canonicalStatus}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-1 w-full pt-1.5 border-t border-cyber-cyan/10">
+                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Risk / Confidence Assessment</span>
+                          <span className={`text-[10.5px] font-mono font-bold uppercase px-2.5 py-1 rounded-md border tracking-wider text-center ${activeRiskPair.isProvisional ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-cyber-cyan/15 border-cyber-cyan/40 text-cyber-cyan'}`}>
+                            {activeRiskPair.pairDisplay}
                           </span>
                         </div>
 
