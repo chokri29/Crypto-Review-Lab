@@ -512,35 +512,53 @@ export default function BlogPreviewer({
     },
   };
 
+  const UNASSESSED_CONFIDENCE_PLACEHOLDER = 50;
+  const UNASSESSED_CONTRACT_COVERAGE_PLACEHOLDER = 65;
+  const UNASSESSED_NO_CONTRACT_COVERAGE_PLACEHOLDER = 45;
+
   const getRiskStyles = (risk?: string) => {
     switch (risk) {
-      case 'Low': return { text: 'text-cyber-green', bg: 'bg-cyber-green/5 border-cyber-green/20' };
-      case 'Medium': return { text: 'text-amber-400', bg: 'bg-amber-500/5 border-amber-500/20' };
-      case 'High': return { text: 'text-cyber-orange', bg: 'bg-cyber-orange/5 border-cyber-orange/20' };
-      case 'Critical': return { text: 'text-rose-400', bg: 'bg-rose-500/5 border-rose-500/20 animate-pulse' };
+      case 'Low':
+      case 'Low Risk': return { text: 'text-cyber-green', bg: 'bg-cyber-green/5 border-cyber-green/20' };
+      case 'Medium':
+      case 'Moderate':
+      case 'Moderate Risk': return { text: 'text-amber-400', bg: 'bg-amber-500/5 border-amber-500/20' };
+      case 'High':
+      case 'High Risk': return { text: 'text-cyber-orange', bg: 'bg-cyber-orange/5 border-cyber-orange/20' };
+      case 'Critical':
+      case 'Critical Risk': return { text: 'text-rose-400', bg: 'bg-rose-500/5 border-rose-500/20 animate-pulse' };
       case 'Insufficient Evidence — Provisional': return { text: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/30' };
+      case 'Legacy — Unverified':
+      case 'Not Yet Verified': return { text: 'text-slate-400', bg: 'bg-slate-500/10 border-slate-500/30' };
       default: return { text: 'text-cyber-text-secondary', bg: 'bg-cyber-text-secondary/5 border-cyber-text-muted/30' };
     }
   };
 
   const getRiskColor = (riskLevel?: string) => {
-    if (riskLevel === 'Low') {
+    if (riskLevel === 'Low' || riskLevel === 'Low Risk') {
       return 'text-cyber-green bg-cyber-green/10 border-cyber-green/50 shadow-[0_0_10px_rgba(0,255,136,0.15)] font-extrabold';
     }
-    if (riskLevel === 'Medium') {
+    if (riskLevel === 'Medium' || riskLevel === 'Moderate' || riskLevel === 'Moderate Risk') {
       return 'text-amber-400 bg-amber-500/10 border-amber-500/40 font-semibold';
     }
     if (riskLevel === 'Insufficient Evidence — Provisional') {
       return 'text-amber-300 bg-amber-500/15 border-amber-500/40 font-semibold';
+    }
+    if (riskLevel === 'Legacy — Unverified' || riskLevel === 'Not Yet Verified') {
+      return 'text-slate-400 bg-slate-500/10 border-slate-500/30 font-semibold';
     }
     return 'text-rose-400 bg-rose-500/10 border-rose-500/30 font-bold';
   };
 
   const getReviewRiskPair = (rev: CryptoReview) => {
     const f3 = rev.f3Verification;
-    const confPct = f3?.verificationConfidencePct ?? (rev.confidenceScore ? Math.round(rev.confidenceScore * 100) : 50);
-    const covPct = f3?.evidenceCoveragePct ?? (rev.contractAddress ? 65 : 45);
-    return formatRiskAndConfidencePair(rev.riskLevel, confPct, covPct, rev.overallScore);
+    const hasConfidence = rev.confidenceScore !== undefined && rev.confidenceScore !== null;
+    if (!f3 && !hasConfidence) {
+      return formatRiskAndConfidencePair(rev.riskLevel, undefined, undefined, rev.overallScore ?? undefined, 'Legacy — Unverified');
+    }
+    const confPct = f3?.verificationConfidencePct ?? (hasConfidence ? Math.round(rev.confidenceScore! * 100) : UNASSESSED_CONFIDENCE_PLACEHOLDER);
+    const covPct = f3?.evidenceCoveragePct ?? (rev.contractAddress ? UNASSESSED_CONTRACT_COVERAGE_PLACEHOLDER : UNASSESSED_NO_CONTRACT_COVERAGE_PLACEHOLDER);
+    return formatRiskAndConfidencePair(rev.riskLevel, confPct, covPct, rev.overallScore ?? undefined);
   };
 
   const renderContentMarkdown = (text: string) => {

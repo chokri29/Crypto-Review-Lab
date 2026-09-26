@@ -1331,12 +1331,6 @@ export type AVF07Status = 'COMPUTED' | 'INPUT_MISSING';
 
 export type AVF07ConfidenceLevel = 'HIGH' | 'MODERATE' | 'LOW';
 
-/**
- * Deterministic Confidence Threshold Mapping:
- * - HIGH only if >= 0.85
- * - MODERATE if 0.70–0.84
- * - LOW if < 0.70
- */
 export function getConfidenceLevel(overallConfidence: number): AVF07ConfidenceLevel {
   const norm = overallConfidence > 1 ? overallConfidence / 100 : overallConfidence;
   if (norm >= 0.85) return 'HIGH';
@@ -1347,12 +1341,13 @@ export function getConfidenceLevel(overallConfidence: number): AVF07ConfidenceLe
 export interface RiskConfidencePairResult {
   riskGrade: string;
   riskDisplay: string;
-  confidenceLevel: 'HIGH' | 'MODERATE' | 'LOW';
-  confidenceBand: 'HIGH' | 'MODERATE' | 'LOW';
+  confidenceLevel: AVF07ConfidenceLevel;
+  confidenceBand: 'HIGH' | 'MODERATE' | 'LOW' | 'UNVERIFIED';
   confidencePct: number;
   evidenceCoveragePct: number;
   isInsufficientEvidence: boolean;
   isProvisional: boolean;
+  isUnverified?: boolean;
   pairDisplay: string;
   fullDisplay: string;
 }
@@ -1361,18 +1356,39 @@ export function formatRiskAndConfidencePair(
   rawRiskLevel: string | undefined,
   confidencePct: number | undefined,
   evidenceCoveragePct: number | undefined,
-  overallScore?: number
+  overallScore?: number,
+  unverifiedLabel?: string
 ): RiskConfidencePairResult {
-  const confPct = Math.round(typeof confidencePct === 'number' && !isNaN(confidencePct) ? confidencePct : 50);
-  const covPct = Math.round(typeof evidenceCoveragePct === 'number' && !isNaN(evidenceCoveragePct) ? evidenceCoveragePct : 50);
-  const confLevel = getConfidenceLevel(confPct);
-
   let baseRisk = (rawRiskLevel || 'Moderate').trim();
   if (baseRisk.toLowerCase() === 'low') baseRisk = 'Low Risk';
   else if (baseRisk.toLowerCase() === 'medium' || baseRisk.toLowerCase() === 'moderate') baseRisk = 'Moderate Risk';
   else if (baseRisk.toLowerCase() === 'high') baseRisk = 'High Risk';
   else if (baseRisk.toLowerCase() === 'critical') baseRisk = 'Critical Risk';
-  else if (!baseRisk.toLowerCase().includes('risk') && !baseRisk.toLowerCase().includes('insufficient')) baseRisk = `${baseRisk} Risk`;
+  else if (!baseRisk.toLowerCase().includes('risk') && !baseRisk.toLowerCase().includes('insufficient') && !baseRisk.toLowerCase().includes('unverified')) baseRisk = `${baseRisk} Risk`;
+
+  if (unverifiedLabel) {
+    const scoreStr = overallScore !== undefined && overallScore > 0 ? `Score: ${overallScore}/100, ` : '';
+    const pairDisplay = `${baseRisk} / ${unverifiedLabel}`;
+    const fullDisplay = `${pairDisplay} (${scoreStr}Verification: Unassessed)`;
+
+    return {
+      riskGrade: baseRisk,
+      riskDisplay: baseRisk,
+      confidenceLevel: 'LOW',
+      confidenceBand: 'UNVERIFIED',
+      confidencePct: 0,
+      evidenceCoveragePct: 0,
+      isInsufficientEvidence: false,
+      isProvisional: true,
+      isUnverified: true,
+      pairDisplay,
+      fullDisplay
+    };
+  }
+
+  const confPct = Math.round(typeof confidencePct === 'number' && !isNaN(confidencePct) ? confidencePct : 50);
+  const covPct = Math.round(typeof evidenceCoveragePct === 'number' && !isNaN(evidenceCoveragePct) ? evidenceCoveragePct : 50);
+  const confLevel = getConfidenceLevel(confPct);
 
   const confLabel = confLevel === 'HIGH' ? 'High Confidence' : (confLevel === 'MODERATE' ? 'Moderate Confidence' : 'Low Confidence');
 
@@ -1406,6 +1422,7 @@ export function formatRiskAndConfidencePair(
     evidenceCoveragePct: covPct,
     isInsufficientEvidence: isInsufficient,
     isProvisional,
+    isUnverified: false,
     pairDisplay,
     fullDisplay
   };
