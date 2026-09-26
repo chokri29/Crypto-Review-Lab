@@ -157,8 +157,9 @@ export function buildXStockEvidenceDataset(
       : 'No CoinGecko RWA quote returned for this asset. Generic CoinGecko data is strictly barred from substituting.'
   };
 
-  // 2. CoinMarketCap Cross-Check Price (SECONDARY_TOKEN_MARKET)
+  // 2. CoinMarketCap RWA Cross-Check Price (SECONDARY_TOKEN_MARKET)
   const cmcPrice = quote?.cmcPrice;
+  const cmcRwaId = (quote as any)?.cmcRwaId || (quote as any)?.cmcRwaData?.rwa_id || stock.cmcRwaId;
   const hasCmcPrice = typeof cmcPrice === 'number' && !isNaN(cmcPrice) && cmcPrice > 0;
   const existingCmcState: XStockEvidenceState | undefined = quote?.evidence?.cmc_cross_check_price?.state;
   const cmcState: XStockEvidenceState = hasCmcPrice 
@@ -174,10 +175,11 @@ export function buildXStockEvidenceDataset(
 
   data['cmc_cross_check_price'] = {
     id: 'cmc_cross_check_price',
-    name: 'CoinMarketCap Cross-Check Price',
-    dataType: 'Secondary Token Market Price (USD)',
+    name: 'CoinMarketCap RWA Tokenized Price',
+    dataType: 'Tokenized Real-World Asset Price (USD)',
     source: 'SECONDARY_TOKEN_MARKET',
-    assetId: stock.cmcSymbol,
+    assetId: cmcRwaId ? `rwa_id:${cmcRwaId}` : stock.underlyingTicker,
+    rwaId: cmcRwaId ? String(cmcRwaId) : undefined,
     value: hasCmcPrice ? cmcPrice : null,
     formattedValue: hasCmcPrice ? `$${cmcPrice.toFixed(2)}` : 'Unavailable',
     timestamp: cmcTimestamp,
@@ -189,11 +191,11 @@ export function buildXStockEvidenceDataset(
     provenanceCategory: hasCmcPrice ? 'SOURCE' : 'UNAVAILABLE',
     isVerificationGrade: hasCmcPrice && cmcState === 'VALID',
     rawSourceValues: hasCmcPrice ? {
-      'coinmarketcap': { value: cmcPrice, timestamp: cmcTimestamp, source: 'SECONDARY_TOKEN_MARKET' }
+      'coinmarketcap_rwa': { value: cmcPrice, timestamp: cmcTimestamp, source: 'SECONDARY_TOKEN_MARKET' }
     } : undefined,
     details: hasCmcPrice
-      ? 'Independent secondary aggregator quote for multi-source cross-validation.'
-      : 'No live quote returned from CoinMarketCap API for this token symbol.'
+      ? `Dedicated CoinMarketCap Real-World Assets (RWA) average tokenized price${cmcRwaId ? ` (rwa_id: ${cmcRwaId})` : ''} for multi-source convergence.`
+      : 'No live quote returned from CoinMarketCap RWA API for this real-world asset.'
   };
 
   // 3. Multi-Source Market Data Convergence Spread (Contradiction Detection)
@@ -764,11 +766,11 @@ export function verifyXStockEvidenceDataset(
   // Explicit deterministic critical gaps when two-source convergence is not met
   if (!hasDualAggregatorConvergence) {
     if (!isRwaValid && !isCmcValid) {
-      criticalGaps.push('Multi-Source Price Verification: Both independent aggregators (CoinGecko RWA and CoinMarketCap) are missing or unavailable. Status: UNVERIFIED.');
+      criticalGaps.push('Multi-Source Price Verification: Both independent aggregators (CoinGecko RWA and CoinMarketCap RWA) are missing or unavailable. Status: UNVERIFIED.');
     } else if (!isRwaValid) {
       criticalGaps.push(`Multi-Source Price Verification: CoinGecko RWA feed is ${rwaDatum?.state || 'MISSING'}. Single-source observation cannot be marked VERIFIED. Status: PARTIAL.`);
     } else if (!isCmcValid) {
-      criticalGaps.push(`Multi-Source Price Verification: CoinMarketCap cross-check is ${cmcDatum?.state || 'MISSING'}. Single-source observation cannot be marked VERIFIED. Status: PARTIAL.`);
+      criticalGaps.push(`Multi-Source Price Verification: CoinMarketCap RWA cross-check is ${cmcDatum?.state || 'MISSING'}. Single-source observation cannot be marked VERIFIED. Status: PARTIAL.`);
     } else if (!isSpreadValid) {
       criticalGaps.push(`Multi-Source Price Verification: Cross-aggregator spread (${spreadDatum?.value ?? 'N/A'}%) exceeds 1.0% tolerance. Status: UNVERIFIED.`);
     }

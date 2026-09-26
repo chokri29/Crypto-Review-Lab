@@ -11,7 +11,8 @@ export interface XStockRegistryItem {
   exchange: 'NASDAQ' | 'NYSE' | 'CBOE';
   coingeckoRwaId: string;   // Canonical CoinGecko RWA ID (e.g. 'apple', 'tesla', 'nvidia')
   coingeckoId: string;      // CoinGecko API ID
-  cmcSymbol: string;        // CMC quote lookup symbol
+  cmcRwaId?: number | string; // Canonical CMC RWA identifier (resolved via CMC RWA Map)
+  cmcSymbol?: string;       // Legacy symbol (resolved to canonical rwa_id via RWA Map)
   issuer: string;           // Issuer e.g. 'Backed Finance'
   issuerId?: string;        // Canonical CoinGecko RWA Issuer ID e.g. 'xstocks-ecosystem'
   custodian?: string;       // Custodian (e.g. 'Regulated Swiss Banking Partners & US Broker Custodians', distinct from issuer)

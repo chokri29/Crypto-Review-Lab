@@ -531,7 +531,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
   const dataSourcesList = input.isXStock
     ? [
         'CoinGecko RWA Native Engine (/rwas/markets)',
-        'CoinMarketCap Market Aggregator (Cross-Check)'
+        'CoinMarketCap Real-World Assets (RWA) API (/v5/real-world-assets/assets/list)'
       ]
     : [
         'CoinGecko (Primary Feed)',
@@ -545,7 +545,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
 
   if (overallStatus === 'FULL_CONSENSUS') {
     syncRuleApplied = input.isXStock
-      ? '2-Source Full Consensus: CoinGecko + CMC agree within ±1% tolerance'
+      ? '2-Source Full Consensus: CoinGecko RWA + CMC RWA agree within ±1% tolerance'
       : '3-Source Full Consensus: CoinGecko + CMC + CoinStats agree within ±1% median';
   } else if (overallStatus === 'PARTIAL_CONSENSUS') {
     syncRuleApplied = `2-Source Partial Consensus: Cross-validation confirmed across ${activeSources.join(', ')}`;
@@ -599,7 +599,7 @@ export function computeMultiSourceConvergence(input: MultiSourceInput): {
     confidenceScore,
     confidenceLevel,
     dataEngine: input.isXStock
-      ? `CoinGecko RWA + CMC Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`
+      ? `CoinGecko RWA + CMC RWA Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`
       : `CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (${activeSourcesCount} Sources Active)`,
     dataSources: dataSourcesList,
     syncRuleApplied,

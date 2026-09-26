@@ -41,7 +41,7 @@ import {
   CoinGeckoRwaDetail, 
   CoinGeckoRwaIssuerDetail 
 } from '../services/coingeckoRwa';
-import { fetchLiveCMCQuote } from '../services/cmc';
+import { fetchLiveCmcRwaForStock, CmcRwaAssetItem } from '../services/cmcRwa';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { MultiSourceConvergenceReport } from '../types';
@@ -59,6 +59,8 @@ export interface XStockQuoteState {
   rwaVolume24h?: number;
   cmcPrice?: number;
   cmcLastUpdated?: string;
+  cmcRwaData?: CmcRwaAssetItem | null;
+  cmcRwaId?: number | string;
   equityQuote?: FinnhubQuote | null;
   equityPrice?: number;
   pegDeviation?: number;
@@ -178,28 +180,27 @@ export default function XStocksPage() {
       const currentHours = getUsMarketHoursStatus();
       setMarketHours(currentHours);
 
-      // 1. Gather all RWA IDs, CMC symbols, and Unique Underlying Tickers
+      // 1. Gather all RWA IDs, and Unique Underlying Tickers
       const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      // Execute CoinGecko native RWA markets (/rwas/markets), CMC, and Finnhub equity quote fetches in parallel
-      const [rwaMarketsMap, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
-        // CoinGecko Native RWA Markets (/rwas/markets) - Authoritative CoinGecko source for xStocks
+      // Execute CoinGecko native RWA markets (/rwas/markets), CMC RWA dedicated assets, and Finnhub equity quote fetches in parallel
+      const [rwaMarketsMap, cmcRwaMap, finnhubQuoteMap] = await Promise.all([
         fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
-        // CoinMarketCap On-Chain Quotes
         Promise.all(
-          cmcSymbols.map(sym => 
-            fetchLiveCMCQuote(sym).then(q => ({ sym, q })).catch(() => ({ sym, q: null }))
+          XSTOCKS_REGISTRY.map(stock => 
+            fetchLiveCmcRwaForStock(stock).then(q => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q })).catch(() => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q: null }))
           )
         ).then(results => {
-          const map: Record<string, any> = {};
+          const map: Record<string, CmcRwaAssetItem | null> = {};
           results.forEach(r => {
-            if (r.q) map[r.sym.toUpperCase()] = r.q;
+            if (r.q) {
+              map[r.sym.toUpperCase()] = r.q;
+              map[r.ticker.toUpperCase()] = r.q;
+            }
           });
           return map;
         }),
-        // Finnhub Real Underlying Equity Quotes
         Promise.all(
           underlyingTickers.map(ticker =>
             fetchLiveFinnhubQuote(ticker, currentHours.isOpen).then(q => ({ ticker, q })).catch(() => ({ ticker, q: null }))
@@ -219,7 +220,7 @@ export default function XStocksPage() {
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
         const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
-        const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
+        const cmcRwaData = cmcRwaMap[sym] || cmcRwaMap[underlying] || null;
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
         // Native CoinGecko RWA Tokenized-Market Data (strictly authoritative for xStocks)
@@ -237,13 +238,14 @@ export default function XStocksPage() {
         const cgCap = rwaMarketCap;
         const cgChange = rwaChange;
 
-        // Check CoinMarketCap provenance
-        const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
+        // Check CoinMarketCap RWA dedicated endpoint provenance
+        const isCmcValid = Boolean(cmcRwaData && typeof cmcRwaData.average_tokenized_price === 'number' && cmcRwaData.average_tokenized_price > 0);
         const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
-        const cmcPrice = isCmcValid ? cmcData.price : undefined;
-        const cmcVol = (isCmcValid && typeof cmcData.volume24h === 'number' && cmcData.volume24h > 0) ? cmcData.volume24h : undefined;
-        const cmcCap = (isCmcValid && typeof cmcData.marketCap === 'number' && cmcData.marketCap > 0) ? cmcData.marketCap : undefined;
-        const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
+        const cmcPrice = isCmcValid ? cmcRwaData!.average_tokenized_price! : undefined;
+        const cmcVol = (isCmcValid && typeof cmcRwaData?.tokenized_volume_24h === 'number' && cmcRwaData.tokenized_volume_24h > 0) ? cmcRwaData.tokenized_volume_24h : undefined;
+        const cmcCap = (isCmcValid && typeof cmcRwaData?.tokenized_market_cap === 'number' && cmcRwaData.tokenized_market_cap > 0) ? cmcRwaData.tokenized_market_cap : undefined;
+        const cmcChange = undefined;
+        const cmcLastUpdated = isCmcValid && typeof cmcRwaData?.last_updated === 'string' ? cmcRwaData.last_updated : undefined;
 
         // Converge secondary market feeds (CoinGecko RWA + CMC only, no CoinStats)
         const convergenceResult = computeMultiSourceConvergence({
@@ -334,13 +336,17 @@ export default function XStocksPage() {
         const cmcEvidence: XStockNormalizedEvidence = {
           value: isCmcValid ? cmcPrice! : null,
           source: 'SECONDARY_TOKEN_MARKET',
-          dataType: 'Secondary Token Market Price (USD)',
-          assetId: item.cmcSymbol,
-          timestamp: (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null),
+          dataType: 'CoinMarketCap RWA Tokenized Price (USD)',
+          assetId: cmcRwaData?.rwa_id ? `rwa_id:${cmcRwaData.rwa_id}` : item.underlyingTicker,
+          rwaId: cmcRwaData?.rwa_id ? String(cmcRwaData.rwa_id) : undefined,
+          timestamp: cmcLastUpdated || null,
           freshness: isCmcValid ? 'LIVE' : 'UNAVAILABLE',
           state: isCmcValid ? 'VALID' : 'MISSING',
           provenanceCategory: isCmcValid ? 'SOURCE' : 'UNAVAILABLE',
-          isVerificationGrade: isCmcValid
+          isVerificationGrade: isCmcValid,
+          details: isCmcValid
+            ? `CoinMarketCap RWA dedicated endpoint average tokenized price (rwa_id: ${cmcRwaData?.rwa_id ?? 'resolved'}).`
+            : 'No live quote returned from CoinMarketCap RWA API for this asset.'
         };
 
         const livePriceEvidence: XStockNormalizedEvidence = {
@@ -349,7 +355,7 @@ export default function XStocksPage() {
           dataType: 'Converged Tokenized Market Price (USD)',
           assetId: item.symbol,
           rwaId: item.coingeckoRwaId || undefined,
-          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : (typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : null)),
+          timestamp: (typeof rwaMkt?.last_updated === 'string' ? rwaMkt.last_updated : (cmcLastUpdated || null)),
           freshness: livePrice !== null ? 'LIVE' : 'UNAVAILABLE',
           state: isDivergent ? 'CONTRADICTORY' : (livePrice !== null ? 'VALID' : 'MISSING'),
           provenanceCategory: livePrice !== null ? 'SOURCE' : 'UNAVAILABLE',
@@ -487,7 +493,9 @@ export default function XStocksPage() {
           rwaPrice,
           rwaVolume24h,
           cmcPrice,
-          cmcLastUpdated: typeof cmcData?.lastUpdated === 'string' ? cmcData.lastUpdated : undefined,
+          cmcLastUpdated,
+          cmcRwaData,
+          cmcRwaId: cmcRwaData?.rwa_id ?? item.cmcRwaId,
           equityQuote: finnhubData,
           equityPrice,
           pegDeviation,

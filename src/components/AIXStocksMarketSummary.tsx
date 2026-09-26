@@ -7,7 +7,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { XSTOCKS_REGISTRY, XStockRegistryItem } from '../data/xstocksRegistry';
 import { fetchCoinGeckoRwaMarkets } from '../services/coingeckoRwa';
-import { fetchLiveCMCQuote } from '../services/cmc';
+import { fetchLiveCmcRwaForStock, CmcRwaAssetItem } from '../services/cmcRwa';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { XStockQuoteState } from './XStocksPage';
@@ -40,19 +40,21 @@ export default function AIXStocksMarketSummary({
     setIsLocalFetching(true);
     try {
       const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const cmcSymbols = XSTOCKS_REGISTRY.map(s => s.cmcSymbol);
       const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
 
-      const [rwaMarketsMap, cmcQuoteMap, finnhubQuoteMap] = await Promise.all([
+      const [rwaMarketsMap, cmcRwaMap, finnhubQuoteMap] = await Promise.all([
         fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
         Promise.all(
-          cmcSymbols.map(sym => 
-            fetchLiveCMCQuote(sym).then(q => ({ sym, q })).catch(() => ({ sym, q: null }))
+          XSTOCKS_REGISTRY.map(stock => 
+            fetchLiveCmcRwaForStock(stock).then(q => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q })).catch(() => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q: null }))
           )
         ).then(results => {
-          const map: Record<string, any> = {};
+          const map: Record<string, CmcRwaAssetItem | null> = {};
           results.forEach(r => {
-            if (r.q) map[r.sym.toUpperCase()] = r.q;
+            if (r.q) {
+              map[r.sym.toUpperCase()] = r.q;
+              map[r.ticker.toUpperCase()] = r.q;
+            }
           });
           return map;
         }),
@@ -75,7 +77,7 @@ export default function AIXStocksMarketSummary({
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
         const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
-        const cmcData = cmcQuoteMap[item.cmcSymbol.toUpperCase()] || cmcQuoteMap[sym];
+        const cmcRwaData = cmcRwaMap[sym] || cmcRwaMap[underlying] || null;
         const finnhubData = finnhubQuoteMap[underlying] || null;
 
         // Check CoinGecko RWA Tokenized Market Data first
@@ -89,12 +91,12 @@ export default function AIXStocksMarketSummary({
         const cgCap = (typeof rwaMkt?.market_cap === 'number' && rwaMkt.market_cap > 0) ? rwaMkt.market_cap : undefined;
         const cgChange = typeof rwaMkt?.price_change_percentage_24h === 'number' ? rwaMkt.price_change_percentage_24h : undefined;
 
-        const isCmcValid = cmcData && typeof cmcData.price === 'number' && cmcData.price > 0;
+        const isCmcValid = Boolean(cmcRwaData && typeof cmcRwaData.average_tokenized_price === 'number' && cmcRwaData.average_tokenized_price > 0);
         const cmcProvenance: 'LIVE' | 'UNAVAILABLE' = isCmcValid ? 'LIVE' : 'UNAVAILABLE';
-        const cmcPrice = isCmcValid ? cmcData.price : undefined;
-        const cmcVol = (isCmcValid && typeof cmcData.volume24h === 'number' && cmcData.volume24h > 0) ? cmcData.volume24h : undefined;
-        const cmcCap = (isCmcValid && typeof cmcData.marketCap === 'number' && cmcData.marketCap > 0) ? cmcData.marketCap : undefined;
-        const cmcChange = isCmcValid ? cmcData.percentChange24h : undefined;
+        const cmcPrice = isCmcValid ? cmcRwaData!.average_tokenized_price! : undefined;
+        const cmcVol = (isCmcValid && typeof cmcRwaData?.tokenized_volume_24h === 'number' && cmcRwaData.tokenized_volume_24h > 0) ? cmcRwaData.tokenized_volume_24h : undefined;
+        const cmcCap = (isCmcValid && typeof cmcRwaData?.tokenized_market_cap === 'number' && cmcRwaData.tokenized_market_cap > 0) ? cmcRwaData.tokenized_market_cap : undefined;
+        const cmcChange = undefined;
 
         const convergenceResult = computeMultiSourceConvergence({
           cgPrice,

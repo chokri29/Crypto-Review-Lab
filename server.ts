@@ -2757,6 +2757,114 @@ ${dualSyncContext}`;
     }
   });
 
+  const CMC_API_KEY = process.env.CMC_API_KEY || process.env.COINMARKETCAP_API_KEY || "";
+
+  // API endpoint: CoinMarketCap Real-World Assets (RWA) Map Proxy
+  app.get("/api/cmc/rwa/map", async (req, res) => {
+    try {
+      if (!CMC_API_KEY) {
+        return res.status(200).json({
+          status: { error_code: 1002, error_message: "CMC API key not configured on server" },
+          data: []
+        });
+      }
+      const symbol = ((req.query.symbol as string) || "").trim();
+      const url = new URL("https://pro-api.coinmarketcap.com/v5/real-world-assets/map");
+      if (symbol) url.searchParams.set("symbol", symbol);
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "X-CMC_PRO_API_KEY": CMC_API_KEY,
+          "Accept": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          status: { error_code: response.status, error_message: `CMC RWA Map error HTTP ${response.status}` },
+          data: []
+        });
+      }
+      const data = await response.json();
+      res.json(data);
+    } catch (error: any) {
+      console.error("CMC RWA Map proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Map" });
+    }
+  });
+
+  // API endpoint: CoinMarketCap Real-World Assets (RWA) Info Proxy
+  app.get("/api/cmc/rwa/info", async (req, res) => {
+    try {
+      if (!CMC_API_KEY) {
+        return res.status(200).json({
+          status: { error_code: 1002, error_message: "CMC API key not configured on server" },
+          data: null
+        });
+      }
+      const rwaId = ((req.query.rwa_id as string) || (req.query.id as string) || "").trim();
+      const symbol = ((req.query.symbol as string) || "").trim();
+      const url = new URL("https://pro-api.coinmarketcap.com/v5/real-world-assets/info");
+      if (rwaId) url.searchParams.set("rwa_id", rwaId);
+      if (symbol) url.searchParams.set("symbol", symbol);
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "X-CMC_PRO_API_KEY": CMC_API_KEY,
+          "Accept": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          status: { error_code: response.status, error_message: `CMC RWA Info error HTTP ${response.status}` },
+          data: null
+        });
+      }
+      const data = await response.json();
+      res.json(data);
+    } catch (error: any) {
+      console.error("CMC RWA Info proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Info" });
+    }
+  });
+
+  // API endpoint: CoinMarketCap Real-World Assets (RWA) Assets List Proxy
+  app.get("/api/cmc/rwa/assets/list", async (req, res) => {
+    try {
+      if (!CMC_API_KEY) {
+        return res.status(200).json({
+          status: { error_code: 1002, error_message: "CMC API key not configured on server" },
+          data: []
+        });
+      }
+      const rwaId = ((req.query.rwa_id as string) || (req.query.id as string) || "").trim();
+      const symbol = ((req.query.symbol as string) || "").trim();
+      const url = new URL("https://pro-api.coinmarketcap.com/v5/real-world-assets/assets/list");
+      if (rwaId) url.searchParams.set("rwa_id", rwaId);
+      if (symbol) url.searchParams.set("symbol", symbol);
+
+      const response = await fetch(url.toString(), {
+        headers: {
+          "X-CMC_PRO_API_KEY": CMC_API_KEY,
+          "Accept": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          status: { error_code: response.status, error_message: `CMC RWA Assets error HTTP ${response.status}` },
+          data: []
+        });
+      }
+      const data = await response.json();
+      res.json(data);
+    } catch (error: any) {
+      console.error("CMC RWA Assets proxy error:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Assets" });
+    }
+  });
+
   // API endpoint: CoinStats Proxy for Markets
   app.get("/api/coinstats/markets", async (req, res) => {
     try {

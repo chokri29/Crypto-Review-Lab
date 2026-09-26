@@ -857,26 +857,43 @@ export default function XStockVerificationPanel({
           <div className="space-y-3 pt-2 border-t border-slate-800">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] font-mono">
               <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Individual Crypto Feeds</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Multi-Source Market Data Convergence</span>
+                  {activeQuote?.cmcRwaId && (
+                    <span className="text-[9px] text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-1.5 py-0.5 rounded">
+                      rwa_id: {activeQuote.cmcRwaId}
+                    </span>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
-                    <span className="text-[9.5px] text-slate-500 block">CoinGecko Feed</span>
-                    <span className="text-white font-bold">
+                    <span className="text-[9.5px] text-slate-500 block">CoinGecko RWA</span>
+                    <span className="text-white font-bold block">
                       {typeof cgPrice === 'number' && cgPrice > 0 ? formatPrice(cgPrice) : 'No quote'}
                     </span>
+                    {activeQuote?.rwaVolume24h && (
+                      <span className="text-[9px] text-slate-400 block pt-0.5">
+                        Vol: ${Math.round(activeQuote.rwaVolume24h).toLocaleString()}
+                      </span>
+                    )}
                   </div>
                   <div className="p-2 rounded bg-slate-950 border border-slate-800/80">
-                    <span className="text-[9.5px] text-slate-500 block">CoinMarketCap Feed</span>
-                    <span className="text-white font-bold">
+                    <span className="text-[9.5px] text-slate-500 block">CoinMarketCap RWA</span>
+                    <span className="text-white font-bold block">
                       {typeof cmcPrice === 'number' && cmcPrice > 0 ? formatPrice(cmcPrice) : 'No quote'}
                     </span>
+                    {activeQuote?.cmcRwaData?.tokenized_volume_24h && (
+                      <span className="text-[9.5px] text-slate-400 block pt-0.5">
+                        Vol: ${Math.round(activeQuote.cmcRwaData.tokenized_volume_24h).toLocaleString()}
+                      </span>
+                    )}
                   </div>
                 </div>
                 {cryptoDivergencePct !== null && (
                   <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-800">
-                    <span>Feed Consensus Spread:</span>
-                    <span className={`font-bold ${cryptoDivergencePct < 0.5 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {cryptoDivergencePct.toFixed(2)}% ({cryptoDivergencePct < 0.5 ? 'Aligned' : 'Variance'})
+                    <span>Convergence Spread:</span>
+                    <span className={`font-bold ${cryptoDivergencePct < 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {cryptoDivergencePct.toFixed(2)}% ({cryptoDivergencePct < 1.0 ? 'Aligned' : 'Variance'})
                     </span>
                   </div>
                 )}
@@ -1313,7 +1330,7 @@ export default function XStockVerificationPanel({
                     <span className="text-cyber-cyan font-bold">Market-Price Consistency</span>
                   </div>
                   <p className="text-slate-300 leading-relaxed text-xs sm:text-[12.5px] pl-7">
-                    Compares the token’s on-chain market price across independent crypto market-data aggregators such as CoinGecko and CoinMarketCap. These services are market-data aggregators, not blockchain oracles; the check measures whether independent market-data sources report consistent pricing.
+                    Compares the token’s on-chain market price across independent Real-World Asset (RWA) market-data aggregators (CoinGecko RWA and CoinMarketCap RWA). These services provide Multi-Source Market Data Convergence, not blockchain oracles; the check measures whether independent market-data sources report consistent pricing.
                   </p>
                 </div>
 
