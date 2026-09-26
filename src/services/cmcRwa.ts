@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { safeJsonParse } from '../utils/apiResponse';
 
 export interface CmcRwaMapItem {
@@ -38,23 +33,15 @@ export interface CmcRwaInfoItem {
   industry?: string;
 }
 
-// In-memory cache for RWA Map (TTL: 5 minutes)
 let rwaMapCache: { data: CmcRwaMapItem[]; timestamp: number } | null = null;
 const MAP_CACHE_TTL_MS = 5 * 60 * 1000;
 
-// In-memory cache for RWA Assets list/quotes (TTL: 90 seconds)
 const rwaAssetCache: Record<string, { data: CmcRwaAssetItem | null; timestamp: number }> = {};
 const ASSET_CACHE_TTL_MS = 90 * 1000;
 
-// In-memory cache for RWA Info (TTL: 5 minutes)
 const rwaInfoCache: Record<string, { data: CmcRwaInfoItem | null; timestamp: number }> = {};
 const INFO_CACHE_TTL_MS = 5 * 60 * 1000;
 
-/**
- * Fetches the CMC Real-World Assets (RWA) ID Map.
- * Used to resolve real-world assets to their stable canonical rwa_id.
- * Endpoint: GET /v5/real-world-assets/map
- */
 export async function fetchCmcRwaMap(symbol?: string, forceRefresh = false): Promise<CmcRwaMapItem[]> {
   const now = Date.now();
   if (!symbol && !forceRefresh && rwaMapCache && (now - rwaMapCache.timestamp) < MAP_CACHE_TTL_MS) {
@@ -68,8 +55,12 @@ export async function fetchCmcRwaMap(symbol?: string, forceRefresh = false): Pro
     const response = await fetch(url);
     const json = await safeJsonParse(response);
 
-    if (json && json.status?.error_code === 0 && Array.isArray(json.data)) {
-      const items: CmcRwaMapItem[] = json.data.map((entry: any) => ({
+    if (json && json.status?.error_code === 0 && json.data) {
+      const rawList = Array.isArray(json.data.rwa_assets)
+        ? json.data.rwa_assets
+        : (Array.isArray(json.data) ? json.data : []);
+
+      const items: CmcRwaMapItem[] = rawList.map((entry: any) => ({
         rwa_id: entry.rwa_id ?? entry.id,
         name: entry.name || '',
         symbol: entry.symbol || '',
@@ -89,11 +80,6 @@ export async function fetchCmcRwaMap(symbol?: string, forceRefresh = false): Pro
   return rwaMapCache ? rwaMapCache.data : [];
 }
 
-/**
- * Resolves the canonical CMC rwa_id for an xStock by its underlying equity ticker.
- * Does not assume the xStock symbol (e.g. "AAPLX") is the CMC RWA symbol.
- * Data flow: xStock / underlyingTicker -> CMC RWA Map -> rwa_id
- */
 export async function resolveCmcRwaId(
   underlyingTicker: string,
   xstockSymbol?: string
@@ -102,36 +88,27 @@ export async function resolveCmcRwaId(
   const cleanUnderlying = underlyingTicker.trim().toUpperCase();
   const cleanXStock = xstockSymbol ? xstockSymbol.trim().toUpperCase() : '';
 
-  // 1. Try single-symbol query first for targeted lookup
   try {
     const targetedMap = await fetchCmcRwaMap(cleanUnderlying);
     const match = targetedMap.find(item => 
-      item.symbol.toUpperCase() === cleanUnderlying ||
-      (cleanXStock && item.symbol.toUpperCase() === cleanXStock)
+      item.symbol?.toUpperCase() === cleanUnderlying ||
+      (cleanXStock && item.symbol?.toUpperCase() === cleanXStock)
     );
     if (match && match.rwa_id != null) {
       return match.rwa_id;
     }
   } catch {
-    // Continue to full map
   }
 
-  // 2. Fall back to full RWA map
   const fullMap = await fetchCmcRwaMap();
   const fullMatch = fullMap.find(item => 
-    item.symbol.toUpperCase() === cleanUnderlying ||
-    item.name.toUpperCase().includes(cleanUnderlying) ||
-    (cleanXStock && item.symbol.toUpperCase() === cleanXStock)
+    item.symbol?.toUpperCase() === cleanUnderlying ||
+    (cleanXStock && item.symbol?.toUpperCase() === cleanXStock)
   );
 
   return fullMatch ? fullMatch.rwa_id : null;
 }
 
-/**
- * Fetches Real-World Asset (RWA) metrics from CMC's dedicated endpoint.
- * Endpoint: GET /v5/real-world-assets/assets/list
- * Returns: average_tokenized_price, tokenized_market_cap, tokenized_volume_24h, last_updated
- */
 export async function fetchCmcRwaAsset(
   rwaId: string | number,
   forceRefresh = false
@@ -150,9 +127,15 @@ export async function fetchCmcRwaAsset(
     const json = await safeJsonParse(response);
 
     if (json && json.status?.error_code === 0 && json.data) {
+      const rawList = Array.isArray(json.data.rwa_assets)
+        ? json.data.rwa_assets
+        : (Array.isArray(json.data) ? json.data : null);
+
       let rawEntry: any = null;
-      if (Array.isArray(json.data)) {
-        rawEntry = json.data.find((e: any) => String(e.rwa_id ?? e.id) === key) || json.data[0];
+      if (rawList) {
+        rawEntry = rawList.find((e: any) => String(e.rwa_id ?? e.id) === key) || rawList[0];
+      } else if (json.data.rwa_assets && typeof json.data.rwa_assets === 'object') {
+        rawEntry = json.data.rwa_assets[key] || json.data.rwa_assets;
       } else if (typeof json.data === 'object') {
         rawEntry = json.data[key] || json.data;
       }
@@ -160,19 +143,19 @@ export async function fetchCmcRwaAsset(
       if (rawEntry) {
         const avgPrice = typeof rawEntry.average_tokenized_price === 'number' && !isNaN(rawEntry.average_tokenized_price) && rawEntry.average_tokenized_price > 0
           ? rawEntry.average_tokenized_price
-          : (typeof rawEntry.price === 'number' && !isNaN(rawEntry.price) && rawEntry.price > 0 ? rawEntry.price : null);
+          : null;
 
         const mcap = typeof rawEntry.tokenized_market_cap === 'number' && !isNaN(rawEntry.tokenized_market_cap) && rawEntry.tokenized_market_cap > 0
           ? rawEntry.tokenized_market_cap
-          : (typeof rawEntry.market_cap === 'number' && !isNaN(rawEntry.market_cap) && rawEntry.market_cap > 0 ? rawEntry.market_cap : null);
+          : null;
 
         const vol = typeof rawEntry.tokenized_volume_24h === 'number' && !isNaN(rawEntry.tokenized_volume_24h) && rawEntry.tokenized_volume_24h > 0
           ? rawEntry.tokenized_volume_24h
-          : (typeof rawEntry.volume_24h === 'number' && !isNaN(rawEntry.volume_24h) && rawEntry.volume_24h > 0 ? rawEntry.volume_24h : null);
+          : null;
 
-        const lastUpdated = typeof rawEntry.last_updated === 'string'
+        const lastUpdated = typeof rawEntry.last_updated === 'string' && rawEntry.last_updated.trim() !== ''
           ? rawEntry.last_updated
-          : (typeof json.status?.timestamp === 'string' ? json.status.timestamp : null);
+          : null;
 
         const item: CmcRwaAssetItem = {
           rwa_id: rawEntry.rwa_id ?? rawEntry.id ?? rwaId,
@@ -200,10 +183,6 @@ export async function fetchCmcRwaAsset(
   return null;
 }
 
-/**
- * Fetches static metadata for a Real-World Asset.
- * Endpoint: GET /v5/real-world-assets/info
- */
 export async function fetchCmcRwaInfo(
   rwaId: string | number,
   forceRefresh = false
@@ -222,7 +201,15 @@ export async function fetchCmcRwaInfo(
     const json = await safeJsonParse(response);
 
     if (json && json.status?.error_code === 0 && json.data) {
-      const raw = json.data[key] || json.data;
+      const rwaAssets = json.data.rwa_assets;
+      let raw: any = null;
+      if (rwaAssets && typeof rwaAssets === 'object') {
+        raw = Array.isArray(rwaAssets) ? rwaAssets.find((e: any) => String(e.rwa_id ?? e.id) === key) : (rwaAssets[key] || rwaAssets);
+      }
+      if (!raw && typeof json.data === 'object') {
+        raw = Array.isArray(json.data) ? json.data.find((e: any) => String(e.rwa_id ?? e.id) === key) : (json.data[key] || json.data);
+      }
+
       if (raw) {
         const item: CmcRwaInfoItem = {
           rwa_id: raw.rwa_id ?? raw.id ?? rwaId,
@@ -246,19 +233,12 @@ export async function fetchCmcRwaInfo(
   return null;
 }
 
-/**
- * High-level resolver and fetcher for an xStock item:
- * 1. Resolves rwa_id from underlyingTicker via CMC RWA Map.
- * 2. Fetches average_tokenized_price, tokenized_market_cap, tokenized_volume_24h, last_updated.
- * 3. Never synthesizes fake numbers; returns null if data is missing or unavailable.
- */
 export async function fetchLiveCmcRwaForStock(
   stock: { underlyingTicker: string; symbol: string; cmcRwaId?: number | string },
   forceRefresh = false
 ): Promise<CmcRwaAssetItem | null> {
   if (!stock || !stock.underlyingTicker) return null;
 
-  // Resolve canonical rwa_id
   let rwaId: string | number | null = stock.cmcRwaId ?? null;
   if (!rwaId) {
     rwaId = await resolveCmcRwaId(stock.underlyingTicker, stock.symbol);
@@ -268,6 +248,5 @@ export async function fetchLiveCmcRwaForStock(
     return null;
   }
 
-  // Fetch tokenized RWA asset metrics
   return await fetchCmcRwaAsset(rwaId, forceRefresh);
 }
