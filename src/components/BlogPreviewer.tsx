@@ -10,7 +10,6 @@ import {
   Search, 
   X,
   Calendar, 
-  User, 
   ChevronLeft, 
   ChevronRight,
   Home,
@@ -52,7 +51,7 @@ import {
 
 // All 10 standardized categories + All options with icons and badges matching ReviewLab style
 const CATEGORY_OPTIONS = [
-  { value: 'All', label: 'All Categories', badge: 'All Audit Reports', icon: BookOpen, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'All', label: 'All Categories', badge: 'All Tracked Assets', icon: BookOpen, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { value: 'Layer 1 Blockchain', label: 'Layer 1 Blockchain', badge: 'L1 Blockchain', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { value: 'Layer 2 / Scaling', label: 'Layer 2 / Scaling', badge: 'L2 / Rollups', icon: Zap, color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
   { value: 'Restaking / Shared Security / AVS', label: 'Restaking / Shared Security / AVS', badge: 'Restaking & AVS', icon: Lock, color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
@@ -242,12 +241,17 @@ export default function BlogPreviewer({
     return `${time} UTC (${day})`;
   });
 
+  const [liveDate, setLiveDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       const time = now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false });
       const day = now.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short' });
       setLiveCryptoTime(`${time} UTC (${day})`);
+      setLiveDate(now.toISOString().split('T')[0]);
     };
     const timer = setInterval(updateTime, 10000);
     return () => clearInterval(timer);
@@ -414,8 +418,8 @@ export default function BlogPreviewer({
   const handleShareTwitter = () => {
     const shareUrl = getPublicShareUrl();
     const text = activeReview 
-      ? `Read the cryptographic audit report for ${activeReview.name} (${activeReview.symbol}) - Score: ${activeReview.overallScore}/100 on Crypto Review Lab!`
-      : `Check out the cryptographic project audit reports on Crypto Review Lab!`;
+      ? `Explore live tokenomics, metrics, and technical indicators for ${activeReview.name} (${activeReview.symbol}) on Crypto Review Lab!`
+      : `Check out live cryptocurrency market intelligence and technical indicators on Crypto Review Lab!`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -733,15 +737,16 @@ export default function BlogPreviewer({
           {activeReview ? (
             <button
               onClick={handleBackToList}
-              className="hover:text-cyber-cyan text-cyber-text-secondary transition-colors cursor-pointer flex items-center gap-1.5 font-medium"
-              title="Return to Review List"
+              className="hover:text-cyber-cyan text-cyber-text-secondary transition-colors cursor-pointer flex items-center gap-1.5 font-medium shrink-0"
+              title="Return to Market Overview"
             >
-              <BookOpen className="w-3.5 h-3.5 text-cyber-cyan/80" />
-              <span>Market Intelligence</span>
+              <BookOpen className="w-3.5 h-3.5 text-cyber-cyan/80 shrink-0" />
+              <span className="sm:hidden">Market</span>
+              <span className="hidden sm:inline">Market Intelligence</span>
             </button>
           ) : (
-            <span className="text-cyber-cyan font-bold flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5 text-cyber-cyan" />
+            <span className="text-cyber-cyan font-bold flex items-center gap-1.5 shrink-0">
+              <BookOpen className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
               <span>Market Intelligence</span>
             </span>
           )}
@@ -749,9 +754,15 @@ export default function BlogPreviewer({
           {activeReview && (
             <>
               <ChevronRight className="w-3.5 h-3.5 text-cyber-text-muted shrink-0" />
-              <span className="text-cyber-cyan font-bold truncate max-w-[120px] sm:max-w-xs md:max-w-sm flex items-center gap-1">
-                <span>{activeReview.name}</span>
-                <span className="text-cyber-text-muted text-[10px] font-normal">({activeReview.symbol})</span>
+              <span 
+                className="text-cyber-cyan font-bold flex items-center gap-1 min-w-0"
+                title={`${activeReview.name} (${activeReview.symbol})`}
+              >
+                <span className="sm:hidden font-mono tracking-wider">{activeReview.symbol}</span>
+                <span className="hidden sm:inline-flex items-center gap-1 min-w-0 max-w-xs md:max-w-sm">
+                  <span className="truncate">{activeReview.name}</span>
+                  <span className="text-cyber-text-muted text-[10px] font-normal shrink-0">({activeReview.symbol})</span>
+                </span>
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md bg-cyber-cyan/15 border border-cyber-cyan/35 text-[9px] font-mono font-bold text-cyber-cyan shrink-0 shadow-[0_0_8px_rgba(0,229,255,0.2)]">
                 {Math.round(scrollProgress)}% Read
@@ -775,9 +786,9 @@ export default function BlogPreviewer({
                   setActiveReviewId(null);
                 }
               }}
-              placeholder="Search project name, symbol, or category..."
+              placeholder="Search cryptocurrency name, symbol, or category..."
               className="w-full bg-cyber-bg-primary/95 hover:bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-9 pr-8 py-2 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_18px_rgba(0,229,255,0.35)] transition-all font-mono"
-              aria-label="Search audited projects by name, symbol, or category"
+              aria-label="Search cryptocurrencies by name, symbol, or category"
             />
             {searchQuery ? (
               <button
@@ -869,11 +880,11 @@ export default function BlogPreviewer({
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 border-b border-cyber-cyan/15 pb-4 md:pb-5">
             <div className="space-y-1">
               <h2 className="font-display font-bold text-xl md:text-2xl text-cyber-text-primary tracking-wider flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-cyber-cyan" />
-                PROJECTS EVALUATION REGISTRY
+                <Activity className="w-5 h-5 text-cyber-cyan" />
+                CRYPTOCURRENCY VERIFICATION & INDICATORS
               </h2>
               <p className="text-xs md:text-sm text-cyber-text-secondary max-w-xl leading-relaxed">
-                Comprehensive smart contract, community metrics, and cryptographic architecture audits designed for real-time portfolio reviews.
+                Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.
               </p>
             </div>
 
@@ -926,10 +937,10 @@ export default function BlogPreviewer({
                   if (setSelectedReviewId) setSelectedReviewId(null);
                 }}
                 className="flex items-center gap-2 text-xs font-mono text-cyber-text-secondary hover:text-cyber-cyan uppercase bg-cyber-bg-secondary hover:bg-cyber-cyan/10 border border-cyber-cyan/15 hover:border-cyber-cyan/40 rounded-xl px-3 py-2 transition-all cursor-pointer shadow-sm group"
-                title="Reset filters and view all audited projects"
+                title="Reset filters and view all tracked projects"
               >
                 <Clock className="w-3.5 h-3.5 text-cyber-cyan group-hover:scale-110 transition-transform" />
-                <span className="font-bold">{reviews.length} Audited Projects</span>
+                <span className="font-bold">{reviews.length} Tracked Projects</span>
               </button>
             </div>
           </div>
@@ -945,8 +956,8 @@ export default function BlogPreviewer({
                 </div>
                 <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-full font-mono">
                   {selectedCategory === 'All'
-                    ? `${reviews.length} Audited`
-                    : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Audited`}
+                    ? `${reviews.length} Projects`
+                    : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Projects`}
                 </span>
               </div>
 
@@ -1082,14 +1093,9 @@ export default function BlogPreviewer({
                       <div className="space-y-3">
                         <div className="flex justify-between items-start gap-2">
                           <div className="space-y-2 w-2/3">
-                            <div className="h-2.5 bg-cyber-cyan/20 rounded-full w-1/3"></div>
                             <div className="h-5 bg-cyber-cyan/15 rounded-lg w-4/5"></div>
                           </div>
                           <div className="h-6 w-10 bg-cyber-cyan/20 rounded-lg"></div>
-                        </div>
-                        <div className="space-y-1.5 pt-1">
-                          <div className="h-3 bg-cyber-text-muted/15 rounded w-full"></div>
-                          <div className="h-3 bg-cyber-text-muted/15 rounded w-4/5"></div>
                         </div>
                       </div>
                       <div className="pt-3 mt-3 border-t border-cyber-cyan/10 flex items-center justify-between">
@@ -1143,10 +1149,10 @@ export default function BlogPreviewer({
               </div>
               <div className="space-y-1.5">
                 <h3 className="font-display font-bold text-base text-cyber-text-primary uppercase tracking-wider">
-                  No Matching Project Audits Found
+                  No Matching Cryptocurrencies Found
                 </h3>
                 <p className="text-xs font-mono text-cyber-text-secondary leading-relaxed">
-                  No project audit report matches your search parameters <span className="text-cyber-cyan font-bold">"{searchQuery || selectedCategory}"</span>.
+                  No cryptocurrency matches your search parameters <span className="text-cyber-cyan font-bold">"{searchQuery || selectedCategory}"</span>.
                 </p>
               </div>
               <div className="pt-3 border-t border-cyber-cyan/15 text-left space-y-2 text-xs font-mono">
@@ -1249,8 +1255,7 @@ export default function BlogPreviewer({
                                         (e.target as HTMLElement).style.display = 'none';
                                       }}
                                     />
-                                    <div className="space-y-0.5 text-left min-w-0">
-                                      <span className="text-[9px] font-mono text-amber-400 uppercase tracking-widest block truncate">{rev.category}</span>
+                                    <div className="text-left min-w-0">
                                       <h3 className="font-display font-bold text-base text-cyber-text-primary group-hover:text-amber-400 transition-colors flex items-center gap-1.5 leading-tight truncate">
                                         {rev.name}
                                         <span className="text-xs font-mono text-cyber-text-secondary font-normal uppercase">({rev.symbol})</span>
@@ -1259,9 +1264,6 @@ export default function BlogPreviewer({
                                   </div>
 
                                   <div className="flex items-center gap-1.5 shrink-0">
-                                    {Boolean(rev.proBenchmarks || rev.auditSignature?.tier === 'pro') && (
-                                      <ProTierBadge size="sm" />
-                                    )}
                                     <button
                                       type="button"
                                       onClick={(e) => toggleWatchlist(rev.id, e)}
@@ -1278,10 +1280,6 @@ export default function BlogPreviewer({
                                     )}
                                   </div>
                                 </div>
-
-                                <p className="text-xs text-cyber-text-secondary leading-relaxed line-clamp-2 text-left">
-                                  {rev.verdict}
-                                </p>
 
                                 {rev.livePrice !== undefined && (
                                   <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950/80 border border-amber-500/20 text-xs font-mono">
@@ -1300,17 +1298,21 @@ export default function BlogPreviewer({
                                 )}
                               </div>
 
-                              <div className="pt-2.5 mt-3 border-t border-amber-500/20 flex items-center justify-between">
-                                {rPair && riskStyles ? (
-                                  <span className={`border text-[9px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
-                                    {rPair.pairDisplay}
+                              <div className="pt-2 mt-2.5 border-t border-amber-500/20 flex items-center justify-between gap-1.5">
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+                                  {rPair && riskStyles && (
+                                    <span className={`border text-[8.5px] sm:text-[9px] px-1 py-0.2 rounded font-mono uppercase tracking-tight shrink-0 whitespace-nowrap ${riskStyles.bg} ${riskStyles.text}`}>
+                                      {rPair.pairDisplay}
+                                    </span>
+                                  )}
+                                  <span className="text-[9px] sm:text-[9.5px] font-mono text-cyber-text-muted flex items-center gap-1 truncate whitespace-nowrap">
+                                    <Clock className="w-3 h-3 text-amber-400/70 shrink-0" />
+                                    <span>{rev.lastSyncedAt ? (rev.lastSyncedAt.includes('-') ? rev.lastSyncedAt : `${liveDate} • ${rev.lastSyncedAt}`) : `${liveDate} • Live`}</span>
                                   </span>
-                                ) : (
-                                  <span />
-                                )}
-                                <span className="text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
-                                  Evaluation Report
-                                  <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
+                                </div>
+                                <span className="text-[10px] sm:text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1 uppercase tracking-wider shrink-0 ml-auto whitespace-nowrap">
+                                  <span>Market Report</span>
+                                  <ArrowRight className="w-3.5 h-3.5 animate-pulse shrink-0" />
                                 </span>
                               </div>
                             </div>
@@ -1330,12 +1332,9 @@ export default function BlogPreviewer({
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-cyber-cyan/15 pb-2.5">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display text-xs font-black tracking-widest text-cyber-cyan uppercase flex items-center gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />
-                      LATEST AUDIT REVIEWS
-                    </h3>
-                    <span className="text-[10px] font-mono text-cyan-300 bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded font-bold">
-                      Batch {currentLatestPage + 1} of {totalPages || 1} ({filteredReviews.length} Total)
+                    <Sparkles className="w-3.5 h-3.5 text-cyber-cyan animate-pulse" />
+                    <span className="font-display text-xs font-bold tracking-widest text-cyber-cyan uppercase">
+                      Live Cryptocurrencies
                     </span>
                   </div>
 
@@ -1369,7 +1368,7 @@ export default function BlogPreviewer({
                       onClick={() => setLatestPage((prev) => (prev - 1 + (totalPages || 1)) % (totalPages || 1))}
                       disabled={totalPages <= 1}
                       className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyber-cyan/10 border border-slate-800 hover:border-cyber-cyan/40 text-slate-300 hover:text-cyber-cyan transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      title="Previous Projects Batch"
+                      title="Previous Page"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                     </button>
@@ -1379,7 +1378,7 @@ export default function BlogPreviewer({
                       onClick={() => setLatestPage((prev) => (prev + 1) % (totalPages || 1))}
                       disabled={totalPages <= 1}
                       className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyber-cyan/10 border border-slate-800 hover:border-cyber-cyan/40 text-slate-300 hover:text-cyber-cyan transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      title="Next Projects Batch"
+                      title="Next Page"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
@@ -1427,8 +1426,7 @@ export default function BlogPreviewer({
                                       (e.target as HTMLElement).style.display = 'none';
                                     }}
                                   />
-                                  <div className="space-y-0.5 text-left min-w-0">
-                                    <span className="text-[9px] md:text-[10px] font-mono text-cyber-cyan uppercase tracking-widest block truncate">{rev.category}</span>
+                                  <div className="text-left min-w-0">
                                     <h3 className="font-display font-bold text-base md:text-md text-cyber-text-primary group-hover:text-cyber-cyan transition-colors flex items-center gap-1.5 leading-tight truncate">
                                       {rev.name}
                                       <span className="text-xs font-mono text-cyber-text-secondary font-normal uppercase">({rev.symbol})</span>
@@ -1437,9 +1435,6 @@ export default function BlogPreviewer({
                                 </div>
 
                                 <div className="flex items-center gap-1.5 shrink-0">
-                                  {Boolean(rev.proBenchmarks || rev.auditSignature?.tier === 'pro') && (
-                                    <ProTierBadge size="sm" />
-                                  )}
                                   {/* Watchlist Pin Button */}
                                   <button
                                     type="button"
@@ -1462,11 +1457,6 @@ export default function BlogPreviewer({
                                 </div>
                               </div>
 
-                              {/* Brief synopsis sentence */}
-                              <p className="text-xs text-cyber-text-secondary leading-relaxed line-clamp-2 text-left">
-                                {rev.verdict}
-                              </p>
-
                               {/* Live CoinGecko Market Bar */}
                               {rev.livePrice !== undefined && (
                                 <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950/60 border border-cyber-cyan/20 text-xs font-mono">
@@ -1485,21 +1475,21 @@ export default function BlogPreviewer({
                               )}
                             </div>
 
-                            <div className="pt-2.5 mt-3 border-t border-cyber-cyan/10 flex items-center justify-between">
-                              <div className="flex items-center gap-1.5">
+                            <div className="pt-2 mt-2.5 border-t border-cyber-cyan/10 flex items-center justify-between gap-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                                 {rPair && riskStyles && (
-                                  <span className={`border text-[9px] md:text-[10px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
+                                  <span className={`border text-[8.5px] sm:text-[9px] px-1 py-0.2 rounded font-mono uppercase tracking-tight shrink-0 whitespace-nowrap ${riskStyles.bg} ${riskStyles.text}`}>
                                     {rPair.pairDisplay}
                                   </span>
                                 )}
-                                <span className="text-[9px] md:text-[10px] font-mono text-cyber-text-muted uppercase tracking-wider flex items-center gap-1">
+                                <span className="text-[9px] sm:text-[9.5px] font-mono text-cyber-text-muted flex items-center gap-1 truncate whitespace-nowrap">
                                   <Clock className="w-3 h-3 text-cyber-cyan/70 shrink-0" />
-                                  Updated: {rev.createdAt}
+                                  <span>{rev.lastSyncedAt ? (rev.lastSyncedAt.includes('-') ? rev.lastSyncedAt : `${liveDate} • ${rev.lastSyncedAt}`) : `${liveDate} • Live`}</span>
                                 </span>
                               </div>
-                              <span className="text-[11px] font-display font-bold text-cyber-cyan group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
-                                Evaluation Report
-                                <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
+                              <span className="text-[10px] sm:text-[11px] font-display font-bold text-cyber-cyan group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1 uppercase tracking-wider shrink-0 ml-auto whitespace-nowrap">
+                                <span>Market Report</span>
+                                <ArrowRight className="w-3.5 h-3.5 animate-pulse shrink-0" />
                               </span>
                             </div>
                           </motion.div>
@@ -1518,7 +1508,7 @@ export default function BlogPreviewer({
                   <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5 mb-3.5">
                     <h4 className="font-mono text-xs font-bold text-cyber-text-primary uppercase tracking-widest flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-                      Top Rated Audits
+                      Top Ranked Assets
                     </h4>
                     <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2.5 py-0.5 rounded-full">
                       HIGH SCORE
@@ -1571,14 +1561,15 @@ export default function BlogPreviewer({
                                   <div className="text-xs font-bold text-cyber-text-primary truncate group-hover:text-cyber-cyan transition-colors">
                                     {item.name}
                                   </div>
-                                  <div className="text-[9.5px] font-mono text-cyber-text-secondary truncate">
-                                    {item.category}
-                                  </div>
                                 </div>
                               </div>
-                              <div className="text-right shrink-0 pl-1">
+                              <div className="text-right shrink-0 pl-1 flex flex-col items-end gap-1">
                                 <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
                                   {itemPair ? `${itemPair.riskDisplay} • ` : ''}{item.overallScore}%
+                                </span>
+                                <span className="text-[8.5px] font-mono text-cyber-text-muted flex items-center gap-1">
+                                  <Clock className="w-2.5 h-2.5 text-cyber-cyan/70" />
+                                  {item.lastSyncedAt ? (item.lastSyncedAt.includes('-') ? item.lastSyncedAt : `${liveDate} (${item.lastSyncedAt})`) : `${liveDate} (Live)`}
                                 </span>
                               </div>
                             </div>
@@ -1603,13 +1594,13 @@ export default function BlogPreviewer({
                           </div>
                           <div>
                             <h3 className="font-display text-xs font-black tracking-widest text-cyber-text-primary uppercase flex items-center gap-2">
-                              REGISTRY ARCHIVES
+                              HISTORICAL ARCHIVES
                               <span className="text-[10px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/30 px-2 py-0.5 rounded-full">
                                 {Math.max(0, filteredReviews.length - 4)} Reports
                               </span>
                             </h3>
                             <p className="text-[10px] font-mono text-cyber-text-muted mt-0.5">
-                              Select from historical smart contract evaluation records
+                              Select from historical cryptocurrency records
                             </p>
                           </div>
                         </div>
@@ -1698,13 +1689,14 @@ export default function BlogPreviewer({
                                             <span className="font-mono text-[11px] text-cyber-cyan font-bold uppercase shrink-0">
                                               [{rev.symbol}]
                                             </span>
-                                            <span className="font-mono text-[9px] text-cyber-text-muted bg-slate-900 px-1.5 py-0.2 rounded border border-white/5 shrink-0 hidden md:inline-block">
-                                              {rev.category}
-                                            </span>
                                           </div>
                                         </div>
 
                                         <div className="flex items-center gap-2 shrink-0">
+                                          <span className="text-[9px] font-mono text-cyber-text-muted hidden sm:inline-flex items-center gap-1">
+                                            <Clock className="w-2.5 h-2.5 text-cyber-cyan/70" />
+                                            {liveDate}
+                                          </span>
                                           {rev.livePrice !== undefined && (
                                             <span className="font-mono text-xs font-bold text-white bg-slate-900 border border-cyber-cyan/20 px-2 py-0.5 rounded-lg hidden sm:inline-block">
                                               ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1719,7 +1711,7 @@ export default function BlogPreviewer({
                                             type="button"
                                             className="px-2.5 py-1 rounded-lg bg-cyber-cyan/15 group-hover:bg-cyber-cyan border border-cyber-cyan/30 text-cyber-cyan group-hover:text-slate-950 font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-1 shadow-sm"
                                           >
-                                            <span>Audit</span>
+                                            <span>Report</span>
                                             <ArrowRight className="w-3 h-3" />
                                           </button>
                                         </div>
@@ -1933,22 +1925,16 @@ export default function BlogPreviewer({
                     {activeReview.category}
                   </span>
                   <h1 className="font-display font-extrabold text-lg md:text-2xl text-cyber-text-primary tracking-wide leading-tight">
-                    Cryptographic Review: {activeReview.name} ({activeReview.symbol}) Security & Tokenomics Assessment
+                    {activeReview.name} ({activeReview.symbol}) Tokenomics Assessment and Technical Indicators
                   </h1>
                 </div>
               </div>
 
-              {/* Author & date metadata */}
+              {/* Date metadata */}
               <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3.5 text-[10px] md:text-xs text-cyber-text-secondary font-mono uppercase tracking-wider pt-2 border-t border-cyber-cyan/10">
                 <span className="flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-cyber-cyan" />
-                  {activeReview.author?.toLowerCase().includes('coingecko') && !activeReview.author?.toLowerCase().includes('cmc')
-                    ? 'COINGECKO + CMC + COINSTATS TRI-SYNC ENGINE'
-                    : activeReview.author}
-                </span>
-                <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-cyber-cyan" />
-                  Updated: {activeReview.createdAt}
+                  Updated: {activeReview.lastSyncedAt ? (activeReview.lastSyncedAt.includes('-') ? activeReview.lastSyncedAt : `${liveDate} (${activeReview.lastSyncedAt})`) : `${liveDate} (Live)`}
                 </span>
                 <span className="text-cyber-text-muted select-none">•</span>
                 <span className="text-cyber-green font-bold">Framework Verified</span>
@@ -2173,7 +2159,7 @@ export default function BlogPreviewer({
               <div className="flex items-center gap-2 bg-cyber-bg-primary/60 border border-cyber-cyan/15 px-3 py-1.5 rounded-xl">
                 <span className="text-[10px] font-mono font-bold text-cyber-text-muted uppercase tracking-widest flex items-center gap-1">
                   <Share2 className="w-3 h-3 text-cyber-cyan" />
-                  Share Audit:
+                  Share:
                 </span>
                 <button
                   onClick={handleShareTwitter}

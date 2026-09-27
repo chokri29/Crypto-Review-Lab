@@ -960,16 +960,16 @@ export default function XStockPriceChart({
                   id="xstock-mtf-details-toggle-btn"
                   type="button"
                   onClick={() => setShowMtfDetails(prev => !prev)}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-950/90 border border-cyber-cyan/25 hover:border-cyber-cyan/50 text-[11px] font-mono transition-all cursor-pointer group shadow-xs"
+                  className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 px-2.5 py-1.5 rounded-lg bg-slate-950/90 border border-cyber-cyan/25 hover:border-cyber-cyan/50 text-[11px] font-mono transition-all cursor-pointer group shadow-xs"
                 >
-                  <div className="flex items-center gap-1.5 font-mono">
+                  <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-1.5 font-mono flex-1 sm:flex-initial">
                     {mtfAlignment.timeframeList.map((item) => {
                       const isUp = item.direction === 'up';
                       const isDown = item.direction === 'down';
                       return (
                         <span
                           key={item.timeframe}
-                          className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                          className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-0.5 px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold border ${
                             isUp
                               ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                               : isDown
@@ -992,7 +992,7 @@ export default function XStockPriceChart({
                   </div>
 
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-cyber-cyan transition-transform duration-200 ${
+                    className={`w-3.5 h-3.5 text-cyber-cyan transition-transform duration-200 shrink-0 ml-1 ${
                       showMtfDetails ? 'rotate-180' : ''
                     }`}
                   />
@@ -1002,40 +1002,38 @@ export default function XStockPriceChart({
               {/* Expanded One-Line Summary per Timeframe */}
               {showMtfDetails && (
                 <div id="xstock-mtf-details-breakdown" className="pt-2 border-t border-cyber-cyan/15 space-y-1.5 text-[11px] font-mono">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                    <span>
-                      {isSynthetic 
-                        ? 'SMA(20) Slope Direction per Timeframe (SYNTHETIC / DEMO)' 
-                        : 'SMA(20) Slope Direction per Timeframe (NYSE Filtered)'}
+                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span className="text-slate-300">
+                      SMA(20) Slope Direction {isSynthetic && '(DEMO)'}
                     </span>
-                    <span className="text-slate-500">Threshold: ±0.1%</span>
+                    <span className="text-slate-500 font-normal">Threshold: ±0.1%</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {mtfAlignment.timeframeList.map((item) => (
                       <div
                         key={item.timeframe}
-                        className="flex items-center justify-between bg-slate-950/90 px-2.5 py-1.5 rounded-lg border border-slate-800"
+                        className="flex items-center justify-between bg-slate-950/90 px-3 py-2 rounded-lg border border-slate-800 gap-2 min-h-[38px]"
                       >
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-bold text-white">{item.timeframe}:</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="font-bold text-white shrink-0">{item.timeframe}:</span>
                           <span
-                            className={
+                            className={`font-semibold shrink-0 uppercase tracking-wide text-[10px] sm:text-[10.5px] ${
                               item.direction === 'up'
-                                ? 'text-emerald-400 font-semibold'
+                                ? 'text-emerald-400'
                                 : item.direction === 'down'
-                                ? 'text-rose-400 font-semibold'
-                                : 'text-slate-400 font-semibold'
-                            }
+                                ? 'text-rose-400'
+                                : 'text-slate-400'
+                            }`}
                           >
                             {item.direction === 'up'
                               ? 'uptrend'
                               : item.direction === 'down'
                               ? 'downtrend'
-                              : 'flat / neutral'}
+                              : 'flat'}
                           </span>
                         </div>
                         <span
-                          className={`font-bold px-1.5 py-0.5 rounded text-[10px] ${
+                          className={`font-bold px-2 py-0.5 rounded text-[9.5px] sm:text-[10px] whitespace-nowrap shrink-0 text-center font-mono ${
                             item.direction === 'up'
                               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                               : item.direction === 'down'
@@ -1043,7 +1041,7 @@ export default function XStockPriceChart({
                               : 'bg-slate-800 text-slate-400 border border-slate-700'
                           }`}
                         >
-                          SMA slope {item.slopePct >= 0 ? `+${item.slopePct}%` : `${item.slopePct}%`}
+                          <span className="hidden sm:inline">SMA </span>Slope {item.slopePct >= 0 ? `+${item.slopePct}%` : `${item.slopePct}%`}
                         </span>
                       </div>
                     ))}
