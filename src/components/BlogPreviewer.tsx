@@ -66,7 +66,7 @@ const CATEGORY_OPTIONS = [
 ];
 import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
-import { calculateBlueprintScore, calculateEvidenceCoverage } from '../services/EvaluationBlueprint';
+import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
 import { getConfidenceLevel, formatRiskAndConfidencePair } from '../services/f3Engine';
 import { ProTierBadge } from './ProTierBadge';
 import { ComparisonReportView } from './ComparisonReportView';
@@ -512,10 +512,6 @@ export default function BlogPreviewer({
     },
   };
 
-  const UNASSESSED_CONFIDENCE_PLACEHOLDER = 50;
-  const UNASSESSED_CONTRACT_COVERAGE_PLACEHOLDER = 65;
-  const UNASSESSED_NO_CONTRACT_COVERAGE_PLACEHOLDER = 45;
-
   const getRiskStyles = (risk?: string) => {
     switch (risk) {
       case 'Low':
@@ -552,13 +548,15 @@ export default function BlogPreviewer({
 
   const getReviewRiskPair = (rev: CryptoReview) => {
     const f3 = rev.f3Verification;
-    const hasConfidence = rev.confidenceScore !== undefined && rev.confidenceScore !== null;
-    if (!f3 && !hasConfidence) {
-      return formatRiskAndConfidencePair(rev.riskLevel, undefined, undefined, rev.overallScore ?? undefined, 'Legacy — Unverified');
+    if (!f3) {
+      return null;
     }
-    const confPct = f3?.verificationConfidencePct ?? (hasConfidence ? Math.round(rev.confidenceScore! * 100) : UNASSESSED_CONFIDENCE_PLACEHOLDER);
-    const covPct = f3?.evidenceCoveragePct ?? (rev.contractAddress ? UNASSESSED_CONTRACT_COVERAGE_PLACEHOLDER : UNASSESSED_NO_CONTRACT_COVERAGE_PLACEHOLDER);
-    return formatRiskAndConfidencePair(rev.riskLevel, confPct, covPct, rev.overallScore ?? undefined);
+    return formatRiskAndConfidencePair(
+      rev.riskLevel,
+      f3.verificationConfidencePct,
+      f3.evidenceCoveragePct,
+      rev.overallScore ?? undefined
+    );
   };
 
   const renderContentMarkdown = (text: string) => {
@@ -836,14 +834,18 @@ export default function BlogPreviewer({
                         </span>
                       </div>
 
-                      {/* Score / Risk Badge */}
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
                           {review.overallScore}/100
                         </span>
-                        <span className="font-mono text-[10px] text-cyber-text-muted">
-                          {getReviewRiskPair(review).pairDisplay}
-                        </span>
+                        {(() => {
+                          const rPair = getReviewRiskPair(review);
+                          return rPair ? (
+                            <span className="font-mono text-[10px] text-cyber-text-muted">
+                              {rPair.pairDisplay}
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                     </button>
                   ))}
@@ -1222,7 +1224,7 @@ export default function BlogPreviewer({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {watchlistReviews.map((rev) => {
                       const rPair = getReviewRiskPair(rev);
-                      const riskStyles = getRiskStyles(rPair.riskDisplay);
+                      const riskStyles = rPair ? getRiskStyles(rPair.riskDisplay) : null;
                       return (
                         <motion.div
                           key={`watchlist-${rev.id}`}
@@ -1269,9 +1271,11 @@ export default function BlogPreviewer({
                                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                                     </button>
 
-                                    <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center ${getRiskColor(rPair.riskDisplay)}`}>
-                                      {rPair.riskDisplay} • {rPair.confidenceBand} CONF
-                                    </div>
+                                    {rPair && (
+                                      <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center ${getRiskColor(rPair.riskDisplay)}`}>
+                                        {rPair.riskDisplay} • {rPair.confidenceBand} CONF
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
@@ -1297,9 +1301,13 @@ export default function BlogPreviewer({
                               </div>
 
                               <div className="pt-2.5 mt-3 border-t border-amber-500/20 flex items-center justify-between">
-                                <span className={`border text-[9px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
-                                  {rPair.pairDisplay}
-                                </span>
+                                {rPair && riskStyles ? (
+                                  <span className={`border text-[9px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
+                                    {rPair.pairDisplay}
+                                  </span>
+                                ) : (
+                                  <span />
+                                )}
                                 <span className="text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 uppercase tracking-wider">
                                   Evaluation Report
                                   <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
@@ -1387,7 +1395,7 @@ export default function BlogPreviewer({
                 >
                   {currentLatestReviews.map((rev) => {
                     const rPair = getReviewRiskPair(rev);
-                    const riskStyles = getRiskStyles(rPair.riskDisplay);
+                    const riskStyles = rPair ? getRiskStyles(rPair.riskDisplay) : null;
                     const isPinned = watchlist.includes(rev.id);
                     return (
                       <motion.div 
@@ -1446,10 +1454,11 @@ export default function BlogPreviewer({
                                     <Star className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
                                   </button>
 
-                                  {/* Risk Level badge */}
-                                  <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rPair.riskDisplay)}`}>
-                                    {rPair.riskDisplay} • {rPair.confidenceBand} CONF
-                                  </div>
+                                  {rPair && (
+                                    <div className={`border rounded-lg px-2 py-0.5 text-center font-mono font-bold text-[10px] uppercase tracking-wide flex items-center justify-center shrink-0 ${getRiskColor(rPair.riskDisplay)}`}>
+                                      {rPair.riskDisplay} • {rPair.confidenceBand} CONF
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
@@ -1476,12 +1485,13 @@ export default function BlogPreviewer({
                               )}
                             </div>
 
-                            {/* Card Footer */}
                             <div className="pt-2.5 mt-3 border-t border-cyber-cyan/10 flex items-center justify-between">
                               <div className="flex items-center gap-1.5">
-                                <span className={`border text-[9px] md:text-[10px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
-                                  {rPair.pairDisplay}
-                                </span>
+                                {rPair && riskStyles && (
+                                  <span className={`border text-[9px] md:text-[10px] px-1.5 py-0.2 rounded font-mono uppercase tracking-wide ${riskStyles.bg} ${riskStyles.text}`}>
+                                    {rPair.pairDisplay}
+                                  </span>
+                                )}
                                 <span className="text-[9px] md:text-[10px] font-mono text-cyber-text-muted uppercase tracking-wider flex items-center gap-1">
                                   <Clock className="w-3 h-3 text-cyber-cyan/70 shrink-0" />
                                   Updated: {rev.createdAt}
@@ -1568,7 +1578,7 @@ export default function BlogPreviewer({
                               </div>
                               <div className="text-right shrink-0 pl-1">
                                 <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
-                                  {itemPair.riskDisplay} • {item.overallScore}%
+                                  {itemPair ? `${itemPair.riskDisplay} • ` : ''}{item.overallScore}%
                                 </span>
                               </div>
                             </div>
@@ -1639,7 +1649,7 @@ export default function BlogPreviewer({
                               <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-cyber-cyan/30">
                                 {filteredReviews.slice(4).map((rev) => {
                                   const rPair = getReviewRiskPair(rev);
-                                  const riskStyles = getRiskStyles(rPair.riskDisplay);
+                                  const riskStyles = rPair ? getRiskStyles(rPair.riskDisplay) : null;
                                   const isPinned = watchlist.includes(rev.id);
                                   return (
                                     <motion.div
@@ -1700,9 +1710,11 @@ export default function BlogPreviewer({
                                               ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                           )}
-                                          <span className={`border text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wide hidden xs:inline-block ${riskStyles.bg} ${riskStyles.text}`}>
-                                            {rPair.riskDisplay}
-                                          </span>
+                                          {rPair && riskStyles && (
+                                            <span className={`border text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wide hidden xs:inline-block ${riskStyles.bg} ${riskStyles.text}`}>
+                                              {rPair.riskDisplay}
+                                            </span>
+                                          )}
                                           <button
                                             type="button"
                                             className="px-2.5 py-1 rounded-lg bg-cyber-cyan/15 group-hover:bg-cyber-cyan border border-cyber-cyan/30 text-cyber-cyan group-hover:text-slate-950 font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-1 shadow-sm"
@@ -1972,69 +1984,75 @@ export default function BlogPreviewer({
               maxSupply={activeReview.maxSupply}
             />
 
-            {/* Score Showcase Hero - Evaluation Score, Verification Status & Core Security Metrics */}
             {(() => {
               const activeBlueprint = calculateBlueprintScore(activeReview.scores || { utility: 5, tokenomics: 5, security: 5, team: 5, community: 5 }, activeReview.category);
               const scoreVal = activeReview.overallScore || activeBlueprint.overallScore;
               const overallColor = scoreVal >= 75 ? 'text-emerald-400' : scoreVal >= 50 ? 'text-amber-400' : 'text-rose-400';
 
               const f3 = activeReview.f3Verification;
-              const isFailed = f3?.overallStatus === 'FAILED' || f3?.overallStatus === 'DISCREPANCY_FOUND' || activeReview.proBenchmarks?.crlAuditStatus === 'FAILED';
-              const isVerified = f3?.overallStatus === 'VERIFIED' || activeReview.proBenchmarks?.crlAuditStatus === 'VERIFIED';
-              const canonicalStatus = f3?.canonicalVerificationStatus || (isVerified ? 'VERIFIED' : (isFailed ? 'FAILED' : 'NOT VERIFIED'));
+              let f3Data = null;
 
-              // Evidence coverage
-              const hasRealContract = Boolean(activeReview.contractAddress && activeReview.contractAddress.length > 10);
-              const hasRealScan = Boolean(activeReview.securityScan?.data || activeReview.securityScan);
-              const hasPublicAudits = Boolean((activeReview.citations && Object.keys(activeReview.citations).length > 0) || ((activeReview as any).auditReports && (activeReview as any).auditReports.length > 0));
-              const hasRealTvl = Boolean(activeReview.realTvl && activeReview.realTvl > 0);
-              const evidenceCoverage = calculateEvidenceCoverage(hasRealContract, hasRealScan, true, hasPublicAudits, hasRealTvl);
-              const evidenceCoveragePct = f3?.evidenceCoveragePct ?? evidenceCoverage.coveragePct;
+              if (f3) {
+                const isFailed = f3.overallStatus === 'FAILED' || f3.overallStatus === 'DISCREPANCY_FOUND' || activeReview.proBenchmarks?.crlAuditStatus === 'FAILED';
+                const isVerified = f3.overallStatus === 'VERIFIED' || activeReview.proBenchmarks?.crlAuditStatus === 'VERIFIED';
+                const canonicalStatus = f3.canonicalVerificationStatus || (isVerified ? 'VERIFIED' : (isFailed ? 'FAILED' : 'NOT VERIFIED'));
+                const evidenceCoveragePct = f3.evidenceCoveragePct ?? 0;
 
-              // Verification confidence (strictly capped: never HIGH if failed or contradictory)
-              const isFailedOrContradictory = isFailed || canonicalStatus === 'Contradictory' || canonicalStatus === 'Invalid' || (f3?.discrepancies && f3.discrepancies.length > 0);
-              let verificationConfidencePct = f3?.verificationConfidencePct ?? (hasPublicAudits ? 85 : 50);
-              if (isFailedOrContradictory && verificationConfidencePct > 55) {
-                verificationConfidencePct = 50;
+                const isFailedOrContradictory = isFailed || canonicalStatus === 'Contradictory' || canonicalStatus === 'Invalid' || (f3.discrepancies && f3.discrepancies.length > 0);
+                let verificationConfidencePct = f3.verificationConfidencePct ?? 0;
+                if (isFailedOrContradictory && verificationConfidencePct > 55) {
+                  verificationConfidencePct = 50;
+                }
+                const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = getConfidenceLevel(verificationConfidencePct);
+                const activeRiskPair = formatRiskAndConfidencePair(
+                  activeReview.riskLevel,
+                  verificationConfidencePct,
+                  evidenceCoveragePct,
+                  scoreVal
+                );
+
+                f3Data = {
+                  canonicalStatus,
+                  evidenceCoveragePct,
+                  verificationConfidencePct,
+                  verificationConfidenceLevel,
+                  activeRiskPair
+                };
               }
-              const verificationConfidenceLevel: 'HIGH' | 'MODERATE' | 'LOW' = getConfidenceLevel(verificationConfidencePct);
-              const activeRiskPair = formatRiskAndConfidencePair(
-                activeReview.riskLevel,
-                verificationConfidencePct,
-                evidenceCoveragePct,
-                scoreVal
-              );
 
               return (
                 <div className="space-y-4">
                   <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      {/* Col 1: Evaluation Score & Final CRL State */}
                       <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-2">
                         <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
                         <div className="flex items-baseline justify-center">
                           <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{scoreVal}</span>
                           <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
                         </div>
-                        
-                        <div className="flex flex-col items-center gap-1.5 w-full pt-1">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Final CRL State</span>
-                          <span className={`text-[11px] font-mono font-black uppercase px-3 py-1 rounded-md border tracking-wider ${canonicalStatus === 'VERIFIED' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : canonicalStatus === 'FAILED' ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' : 'bg-amber-500/15 border-amber-500/40 text-amber-300'}`}>
-                            {canonicalStatus}
-                          </span>
-                        </div>
 
-                        <div className="flex flex-col items-center gap-1 w-full pt-1.5 border-t border-cyber-cyan/10">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Risk / Confidence Assessment</span>
-                          <span className={`text-[10.5px] font-mono font-bold uppercase px-2.5 py-1 rounded-md border tracking-wider text-center ${activeRiskPair.isProvisional ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-cyber-cyan/15 border-cyber-cyan/40 text-cyber-cyan'}`}>
-                            {activeRiskPair.pairDisplay}
-                          </span>
-                        </div>
+                        {f3Data && (
+                          <>
+                            <div className="flex flex-col items-center gap-1.5 w-full pt-1">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Final CRL State</span>
+                              <span className={`text-[11px] font-mono font-black uppercase px-3 py-1 rounded-md border tracking-wider ${f3Data.canonicalStatus === 'VERIFIED' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300' : f3Data.canonicalStatus === 'FAILED' ? 'bg-rose-500/15 border-rose-500/40 text-rose-300' : 'bg-amber-500/15 border-amber-500/40 text-amber-300'}`}>
+                                {f3Data.canonicalStatus}
+                              </span>
+                            </div>
 
-                        <div className="text-[10px] font-mono text-slate-400 flex flex-col items-center gap-0.5 pt-1">
-                          <span>Evidence Coverage: <strong className="text-slate-200">{evidenceCoveragePct}%</strong></span>
-                          <span>Verification Confidence: <strong className="text-slate-200">{verificationConfidencePct}% [{verificationConfidenceLevel}]</strong></span>
-                        </div>
+                            <div className="flex flex-col items-center gap-1 w-full pt-1.5 border-t border-cyber-cyan/10">
+                              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Risk / Confidence Assessment</span>
+                              <span className={`text-[10.5px] font-mono font-bold uppercase px-2.5 py-1 rounded-md border tracking-wider text-center ${f3Data.activeRiskPair.isProvisional ? 'bg-amber-500/15 border-amber-500/40 text-amber-300' : 'bg-cyber-cyan/15 border-cyber-cyan/40 text-cyber-cyan'}`}>
+                                {f3Data.activeRiskPair.pairDisplay}
+                              </span>
+                            </div>
+
+                            <div className="text-[10px] font-mono text-slate-400 flex flex-col items-center gap-0.5 pt-1">
+                              <span>Evidence Coverage: <strong className="text-slate-200">{f3Data.evidenceCoveragePct}%</strong></span>
+                              <span>Verification Confidence: <strong className="text-slate-200">{f3Data.verificationConfidencePct}% [{f3Data.verificationConfidenceLevel}]</strong></span>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {/* Col 2: Color-Coded Dimension Bars & Indices */}
