@@ -74,6 +74,7 @@ import MarketMetricsTable from './MarketMetricsTable';
 import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
+import { SecurityTelemetryWidget } from './SecurityTelemetryWidget';
 import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 
 interface BlogPreviewerProps {
@@ -1929,7 +1930,7 @@ export default function BlogPreviewer({
               );
             })()}
 
-            {/* Data Engine Provenance Badge & Security Alerts */}
+            {/* Data Engine Provenance Badge */}
             <div className="space-y-3.5 my-3 text-left">
               {/* Multi-Source Market Data Convergence Provenance Badge */}
               <div className="bg-slate-950/80 border border-cyber-cyan/20 p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-400 shadow-md">
@@ -1942,6 +1943,16 @@ export default function BlogPreviewer({
                 </span>
               </div>
             </div>
+
+            {/* Security Telemetry & Alert Monitor Section (Observable multi-provider contract telemetry) */}
+            {activeReview.contractAddress && (
+              <SecurityTelemetryWidget
+                contractAddress={activeReview.contractAddress}
+                chainId={activeReview.chainId}
+                symbol={activeReview.symbol}
+                name={activeReview.name}
+              />
+            )}
 
             {/* Protocol Benchmark Comparison Section */}
             {activeReview.comparisonReport && (
