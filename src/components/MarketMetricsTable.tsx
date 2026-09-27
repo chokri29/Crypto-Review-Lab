@@ -303,7 +303,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             hidden: { opacity: 0, y: 12, scale: 0.95 },
             visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } }
           }}
-          className="p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-emerald-500/30 transition-all shadow-inner group"
+          className="col-span-1 p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-emerald-500/30 transition-all shadow-inner group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9.5px] font-mono uppercase text-slate-400 group-hover:text-emerald-400 transition-colors flex items-center gap-1 font-semibold">
@@ -339,7 +339,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             hidden: { opacity: 0, y: 12, scale: 0.95 },
             visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } }
           }}
-          className="p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-cyber-cyan/30 transition-all shadow-inner group"
+          className="col-span-1 p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-cyber-cyan/30 transition-all shadow-inner group"
         >
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9.5px] font-mono uppercase text-slate-400 group-hover:text-cyber-cyan transition-colors flex items-center gap-1 font-semibold">
@@ -379,14 +379,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             hidden: { opacity: 0, y: 12, scale: 0.95 },
             visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } }
           }}
-          className="p-3 rounded-xl bg-slate-950/80 border border-cyber-cyan/20 hover:border-cyber-cyan/50 transition-all shadow-[0_0_15px_rgba(0,229,255,0.05)] group"
+          className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-slate-950/80 border border-cyber-cyan/20 hover:border-cyber-cyan/50 transition-all shadow-[0_0_15px_rgba(0,229,255,0.05)] group"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9.5px] font-mono uppercase text-cyber-cyan font-semibold flex items-center gap-1">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[9.5px] font-mono uppercase text-cyber-cyan font-semibold flex items-center gap-1 shrink-0">
               <Layers className="w-3 h-3 text-cyber-cyan" />
               Total Supply
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <span className={`text-[8px] font-mono px-1 py-0.2 rounded border uppercase font-bold ${
                 effectiveTotalProvenance === 'SOURCE'
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
@@ -415,9 +415,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             )}
           </span>
 
-          <span className="text-[8.5px] font-mono text-slate-400 block mt-1 truncate">
-            Max: {resolvedMax ? `${formatSupplyNumber(resolvedMax)} ${symUpper}` : (resolvedTotal > 0 ? 'Infinite' : 'N/A')} • FDV: {formatLargeCurrency(fdvCalculated || (livePrice > 0 && resolvedTotal > 0 ? livePrice * resolvedTotal : 0)) !== 'N/A' ? `${formatLargeCurrency(fdvCalculated || (livePrice * resolvedTotal))} (DERIVED)` : 'N/A'}
-          </span>
+          <div className="text-[8.5px] font-mono text-slate-400 mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 border-t border-white/5 pt-1">
+            <span className="truncate">
+              Max: {resolvedMax ? `${formatSupplyNumber(resolvedMax)} ${symUpper}` : (resolvedTotal > 0 ? 'Infinite' : 'N/A')}
+            </span>
+            <span className="truncate">
+              FDV: {formatLargeCurrency(fdvCalculated || (livePrice > 0 && resolvedTotal > 0 ? livePrice * resolvedTotal : 0)) !== 'N/A' ? `${formatLargeCurrency(fdvCalculated || (livePrice * resolvedTotal))} (DERIVED)` : 'N/A'}
+            </span>
+          </div>
         </motion.div>
 
         {/* Metric 4: Circulating Supply */}
@@ -426,14 +431,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             hidden: { opacity: 0, y: 12, scale: 0.95 },
             visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } }
           }}
-          className="p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-cyber-cyan/30 transition-all shadow-inner group"
+          className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-cyber-cyan/30 transition-all shadow-inner group"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9.5px] font-mono uppercase text-slate-400 block group-hover:text-cyber-cyan transition-colors flex items-center gap-1 font-semibold">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[9.5px] font-mono uppercase text-slate-400 block group-hover:text-cyber-cyan transition-colors flex items-center gap-1 font-semibold shrink-0">
               <Coins className="w-3 h-3 text-slate-400 group-hover:text-cyber-cyan" />
               Circulating Supply
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <span className={`text-[8px] font-mono px-1 py-0.2 rounded border uppercase font-bold ${
                 effectiveCirculatingProvenance === 'SOURCE'
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
@@ -462,9 +467,14 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             )}
           </span>
 
-          <span className="text-[8.5px] font-mono text-slate-400 block mt-1 truncate">
-            Cap: {liveMarketCap && liveMarketCap > 0 ? `${formatLargeCurrency(liveMarketCap)}` : 'Data unavailable'} • Rank #{liveRank || cmcRank || csRank || 'N/A'}
-          </span>
+          <div className="text-[8.5px] font-mono text-slate-400 mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 border-t border-white/5 pt-1">
+            <span className="truncate">
+              Cap: {liveMarketCap && liveMarketCap > 0 ? `${formatLargeCurrency(liveMarketCap)}` : 'Data unavailable'}
+            </span>
+            <span className="truncate">
+              Rank #{liveRank || cmcRank || csRank || 'N/A'}
+            </span>
+          </div>
         </motion.div>
       </motion.div>
 

@@ -1200,7 +1200,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
 
           return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
+              <div className="col-span-1 bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">All-Time Low</span>
                   {typeof effectiveAtl === 'number' && effectiveAtlPct !== undefined && (
@@ -1214,7 +1214,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                 </span>
               </div>
 
-              <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
+              <div className="col-span-1 bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono text-slate-400 block">All-Time High</span>
                   {typeof effectiveAth === 'number' && effectiveAthPct !== undefined && (
@@ -1228,10 +1228,10 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                 </span>
               </div>
 
-              <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-slate-400 block">Total Supply</span>
-                  <div className="flex items-center gap-1">
+              <div className="col-span-2 sm:col-span-1 bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[10px] font-mono text-slate-400 block shrink-0 font-medium">Total Supply</span>
+                  <div className="flex items-center gap-1 shrink-0">
                     {totalSupplyProvenance && (
                       <span className={`text-[8.5px] font-mono px-1 py-0.2 rounded font-bold border ${
                         totalSupplyProvenance === 'SOURCE'
@@ -1244,7 +1244,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                       </span>
                     )}
                     {typeof effectiveTotalSupply === 'number' && maxSupply && (
-                      <span className="text-[9px] font-mono text-slate-500">
+                      <span className="text-[9px] font-mono text-slate-400 px-1 py-0.2 rounded bg-slate-800/60 border border-slate-700/50">
                         Capped
                       </span>
                     )}
@@ -1255,10 +1255,10 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                 </span>
               </div>
 
-              <div className="bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-slate-400 block">Circulating Supply</span>
-                  <div className="flex items-center gap-1">
+              <div className="col-span-2 sm:col-span-1 bg-slate-900/80 border border-cyber-cyan/20 rounded-xl p-2.5">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[10px] font-mono text-slate-400 block shrink-0 font-medium">Circulating Supply</span>
+                  <div className="flex items-center gap-1 shrink-0">
                     {circulatingSupplyProvenance && (
                       <span className={`text-[8.5px] font-mono px-1 py-0.2 rounded font-bold border ${
                         circulatingSupplyProvenance === 'SOURCE'
@@ -1271,7 +1271,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
                       </span>
                     )}
                     {supplyPercent && (
-                      <span className="text-[9px] font-mono text-cyan-400 font-bold">
+                      <span className="text-[9px] font-mono text-cyan-400 font-bold px-1 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/40">
                         {supplyPercent}%
                       </span>
                     )}
