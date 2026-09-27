@@ -479,25 +479,35 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
       </motion.div>
 
       {/* Footer Provenance & Rule Footnote */}
-      <div className="flex flex-wrap items-center justify-between text-[9.5px] font-mono text-slate-400 pt-2 border-t border-white/5 gap-2">
-        <span className="truncate max-w-md flex items-center gap-1">
-          <ShieldCheck className="w-3 h-3 text-cyber-cyan shrink-0" />
-          <strong className="text-cyber-cyan">Rule:</strong>{' '}
-          {syncRuleApplied || 'Multi-Source Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank, Depth Supply Sync)'}
-        </span>
-        <span className="flex items-center gap-2">
-          <span>
-            CG TTL: <strong className="text-emerald-400">3m</strong>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-[9.5px] font-mono text-slate-400 pt-2.5 border-t border-white/5 gap-2 sm:gap-4">
+        <div className="flex items-start sm:items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1 text-cyber-cyan font-bold shrink-0 mt-0.5 sm:mt-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+            <span>Rule:</span>
+          </div>
+          <span
+            className="text-slate-300 break-words leading-relaxed sm:leading-normal sm:truncate sm:max-w-xl"
+            title={syncRuleApplied || 'Multi-Source Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank, Depth Supply Sync)'}
+          >
+            {syncRuleApplied || 'Multi-Source Convergence: Median Consensus (±1.0% Price, ±1.5% Cap, ±3.0% Vol, ±1 Rank, Depth Supply Sync)'}
           </span>
-          <span>•</span>
-          <span>
-            CMC TTL: <strong className="text-emerald-400">3m</strong>
+        </div>
+        <div className="flex items-center justify-between sm:justify-end gap-2 text-[8.5px] sm:text-[9.5px] text-slate-400 shrink-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-white/5">
+          <span className="flex items-center gap-1">
+            <span className="text-slate-400">CG TTL:</span>
+            <strong className="text-emerald-400 font-bold">3m</strong>
           </span>
-          <span>•</span>
-          <span>
-            CS TTL: <strong className="text-emerald-400">3m</strong>
+          <span className="text-slate-600 select-none">•</span>
+          <span className="flex items-center gap-1">
+            <span className="text-slate-400">CMC TTL:</span>
+            <strong className="text-emerald-400 font-bold">3m</strong>
           </span>
-        </span>
+          <span className="text-slate-600 select-none">•</span>
+          <span className="flex items-center gap-1">
+            <span className="text-slate-400">CS TTL:</span>
+            <strong className="text-emerald-400 font-bold">3m</strong>
+          </span>
+        </div>
       </div>
     </motion.div>
   );
