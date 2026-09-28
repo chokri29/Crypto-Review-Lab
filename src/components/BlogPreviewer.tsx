@@ -307,6 +307,32 @@ export default function BlogPreviewer({
     };
   };
 
+  // Compact card timestamp helper to keep cards clean and prevent line wrapping
+  const formatCardSyncTime = (lastSyncedAt?: string, fallbackDate?: string): string => {
+    const baseDate = fallbackDate || new Date().toISOString().split('T')[0];
+    if (!lastSyncedAt) {
+      return `${baseDate} • Live`;
+    }
+    // If lastSyncedAt has a date part (ISO or YYYY-MM-DD)
+    if (lastSyncedAt.includes('-')) {
+      try {
+        const d = new Date(lastSyncedAt);
+        if (!isNaN(d.getTime())) {
+          const ymd = d.toISOString().split('T')[0];
+          const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+          return `${ymd} ${time}`;
+        }
+      } catch {
+        // Fallback
+      }
+      return lastSyncedAt.length > 16 ? lastSyncedAt.slice(0, 16).replace('T', ' ') : lastSyncedAt;
+    }
+    // If it's a time string (e.g. "11:44:07 AM" or "11:44:07" or "11:44")
+    // Clean seconds out to keep it compact: "11:44 AM" or "11:44"
+    const compactTime = lastSyncedAt.replace(/:\d{2}(\s?[AP]M)/i, '$1').replace(/:\d{2}$/, '');
+    return `${baseDate} ${compactTime}`;
+  };
+
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim() || !text) return text;
     const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -464,7 +490,7 @@ export default function BlogPreviewer({
     return matchesSearch && matchesCategory;
   });
 
-  // State & Auto-rotation timer for "LATEST AUDIT REVIEWS"
+  // State & Auto-rotation timer for Live Cryptocurrencies
   const [latestPage, setLatestPage] = useState(0);
   const [isLatestAutoPlay, setIsLatestAutoPlay] = useState(true);
   const [isLatestHovered, setIsLatestHovered] = useState(false);
@@ -1198,9 +1224,9 @@ export default function BlogPreviewer({
                                       }}
                                     />
                                     <div className="text-left min-w-0">
-                                      <h3 className="font-display font-bold text-base text-cyber-text-primary group-hover:text-amber-400 transition-colors flex items-center gap-1.5 leading-tight truncate">
-                                        {rev.name}
-                                        <span className="text-xs font-mono text-cyber-text-secondary font-normal uppercase">({rev.symbol})</span>
+                                      <h3 className="font-display font-bold text-sm sm:text-base text-cyber-text-primary group-hover:text-amber-400 transition-colors flex items-center gap-1.5 leading-tight truncate">
+                                        <span className="truncate">{rev.name}</span>
+                                        <span className="text-[11px] font-mono text-cyber-text-secondary font-normal uppercase shrink-0">({rev.symbol})</span>
                                       </h3>
                                     </div>
                                   </div>
@@ -1234,17 +1260,19 @@ export default function BlogPreviewer({
                                 )}
                               </div>
 
-                              <div className="pt-2 mt-2.5 border-t border-amber-500/20 flex items-center justify-between gap-1.5">
-                                <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-                                  <span className="text-[9px] sm:text-[9.5px] font-mono text-cyber-text-muted flex items-center gap-1 truncate whitespace-nowrap">
-                                    <Clock className="w-3 h-3 text-amber-400/70 shrink-0" />
-                                    <span>{rev.lastSyncedAt ? (rev.lastSyncedAt.includes('-') ? rev.lastSyncedAt : `${liveDate} • ${rev.lastSyncedAt}`) : `${liveDate} • Live`}</span>
+                              <div className="pt-2 mt-2.5 border-t border-amber-500/20 flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                                  <Clock className="w-2.5 h-2.5 text-amber-400/70 shrink-0" />
+                                  <span className="text-[9px] font-mono text-cyber-text-muted truncate whitespace-nowrap">
+                                    {formatCardSyncTime(rev.lastSyncedAt, liveDate)}
                                   </span>
                                 </div>
-                                <span className="text-[10px] sm:text-[11px] font-display font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1 uppercase tracking-wider shrink-0 ml-auto whitespace-nowrap">
-                                  <span>Market Report</span>
-                                  <ArrowRight className="w-3.5 h-3.5 animate-pulse shrink-0" />
-                                </span>
+                                <div className="shrink-0 flex items-center justify-end -mr-0.5">
+                                  <span className="text-[10px] sm:text-[10.5px] font-display font-bold text-amber-400 group-hover:text-amber-300 group-hover:translate-x-1 transition-all inline-flex items-center gap-1 uppercase tracking-wider whitespace-nowrap pl-1">
+                                    <span>Market Report</span>
+                                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </TiltCard>
@@ -1356,9 +1384,9 @@ export default function BlogPreviewer({
                                     }}
                                   />
                                   <div className="text-left min-w-0">
-                                    <h3 className="font-display font-bold text-base md:text-md text-cyber-text-primary group-hover:text-cyber-cyan transition-colors flex items-center gap-1.5 leading-tight truncate">
-                                      {rev.name}
-                                      <span className="text-xs font-mono text-cyber-text-secondary font-normal uppercase">({rev.symbol})</span>
+                                    <h3 className="font-display font-bold text-sm sm:text-base text-cyber-text-primary group-hover:text-cyber-cyan transition-colors flex items-center gap-1.5 leading-tight truncate">
+                                      <span className="truncate">{rev.name}</span>
+                                      <span className="text-[11px] font-mono text-cyber-text-secondary font-normal uppercase shrink-0">({rev.symbol})</span>
                                     </h3>
                                   </div>
                                 </div>
@@ -1398,17 +1426,19 @@ export default function BlogPreviewer({
                               )}
                             </div>
 
-                            <div className="pt-2 mt-2.5 border-t border-cyber-cyan/10 flex items-center justify-between gap-1.5">
-                              <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-                                <span className="text-[9px] sm:text-[9.5px] font-mono text-cyber-text-muted flex items-center gap-1 truncate whitespace-nowrap">
-                                  <Clock className="w-3 h-3 text-cyber-cyan/70 shrink-0" />
-                                  <span>{rev.lastSyncedAt ? (rev.lastSyncedAt.includes('-') ? rev.lastSyncedAt : `${liveDate} • ${rev.lastSyncedAt}`) : `${liveDate} • Live`}</span>
+                            <div className="pt-2 mt-2.5 border-t border-cyber-cyan/15 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                                <Clock className="w-2.5 h-2.5 text-cyber-cyan/70 shrink-0" />
+                                <span className="text-[9px] font-mono text-cyber-text-muted truncate whitespace-nowrap">
+                                  {formatCardSyncTime(rev.lastSyncedAt, liveDate)}
                                 </span>
                               </div>
-                              <span className="text-[10px] sm:text-[11px] font-display font-bold text-cyber-cyan group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-1 uppercase tracking-wider shrink-0 ml-auto whitespace-nowrap">
-                                <span>Market Report</span>
-                                <ArrowRight className="w-3.5 h-3.5 animate-pulse shrink-0" />
-                              </span>
+                              <div className="shrink-0 flex items-center justify-end -mr-0.5">
+                                <span className="text-[10px] sm:text-[10.5px] font-display font-bold text-cyber-cyan group-hover:text-cyan-300 group-hover:translate-x-1 transition-all inline-flex items-center gap-1 uppercase tracking-wider whitespace-nowrap pl-1">
+                                  <span>Market Report</span>
+                                  <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                                </span>
+                              </div>
                             </div>
                           </motion.div>
                         </TiltCard>
@@ -1486,7 +1516,7 @@ export default function BlogPreviewer({
                                 </span>
                                 <span className="text-[8.5px] font-mono text-cyber-text-muted flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5 text-cyber-cyan/70" />
-                                  {item.lastSyncedAt ? (item.lastSyncedAt.includes('-') ? item.lastSyncedAt : `${liveDate} (${item.lastSyncedAt})`) : `${liveDate} (Live)`}
+                                  {formatCardSyncTime(item.lastSyncedAt, liveDate)}
                                 </span>
                               </div>
                             </div>
@@ -1804,12 +1834,11 @@ export default function BlogPreviewer({
                   onClick={() => {
                     const oldRisk = activeReview.riskLevel || 'Low';
                     const newRisk = oldRisk === 'Low' ? 'High' : 'Low';
-                    if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
-                      new Notification('🚨 CRL Audit Risk Alert', {
-                        body: `${activeReview.name} risk level changed significantly from ${oldRisk} to ${newRisk} after automated security re-scan!`
+                    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                      new Notification('🚨 CRL Market Telemetry Alert', {
+                        body: `${activeReview.name} risk level indicator updated from ${oldRisk} to ${newRisk} during automated sync!`
                       });
                     }
-                    alert(`🚨 SIMULATED RE-SCAN RISK ALERT:\n\nProject: ${activeReview.name} (${activeReview.symbol})\nRisk level shifted significantly from [${oldRisk}] to [${newRisk}]!\n\nBrowser-based alert & UI notification dispatched successfully.`);
                   }}
                   className="w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 font-bold tracking-wide transition-all cursor-pointer border border-emerald-500/40 shrink-0 text-center"
                 >
@@ -1844,7 +1873,7 @@ export default function BlogPreviewer({
               <div className="flex flex-wrap items-center gap-y-1.5 gap-x-3.5 text-[10px] md:text-xs text-cyber-text-secondary font-mono uppercase tracking-wider pt-2 border-t border-cyber-cyan/10">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-cyber-cyan" />
-                  Updated: {activeReview.lastSyncedAt ? (activeReview.lastSyncedAt.includes('-') ? activeReview.lastSyncedAt : `${liveDate} (${activeReview.lastSyncedAt})`) : `${liveDate} (Live)`}
+                  Updated: {formatCardSyncTime(activeReview.lastSyncedAt, liveDate)}
                 </span>
                 <span className="text-cyber-text-muted select-none">•</span>
                 <span className="text-cyber-green font-bold">Framework Verified</span>
