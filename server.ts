@@ -1586,13 +1586,15 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         const expiresIn = Number(payload?.result?.expires_in || payload?.data?.expires_in || payload?.expires_in || 86400);
 
         if (token && typeof token === "string") {
+          // Normalize token: strip any existing "Bearer " prefix so it's always clean
+          const cleanToken = token.replace(/^Bearer\s+/i, "").trim();
           // GoPlus tokens last ~24h; refresh before expiry (~23h TTL)
           const ttlMs = Math.max(60000, (expiresIn > 7200 ? expiresIn - 3600 : expiresIn * 0.9) * 1000);
           goPlusTokenCache = {
-            token,
+            token: cleanToken,
             expiresAt: Date.now() + ttlMs
           };
-          return token;
+          return cleanToken;
         }
       } else {
         console.warn(`GoPlus token minting returned HTTP ${response.status}`);
@@ -1750,9 +1752,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return { status: "FAILED", error: "Failed to generate GoPlus authentication Bearer token" };
       }
 
+      const cleanBearer = bearerToken.replace(/^Bearer\s+/i, "").trim();
       const goPlusHeaders: Record<string, string> = {
         "Accept": "application/json",
-        "Authorization": `Bearer ${bearerToken}`
+        "Authorization": `Bearer ${cleanBearer}`
       };
 
       const controller = new AbortController();
@@ -1795,21 +1798,31 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
 
     const rugApiKey = (process.env.RUGCHECK_API_KEY || "").trim();
-    if (!rugApiKey) {
-      return { status: "UNAVAILABLE", error: "RUGCHECK_API_KEY not configured" };
-    }
 
     try {
       const rugCheckUrl = `https://api.rugcheck.xyz/v1/tokens/${encodeURIComponent(contractAddress)}/report`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
-      const rugRes = await fetch(rugCheckUrl, {
+
+      const headers: Record<string, string> = {
+        "Accept": "application/json"
+      };
+      if (rugApiKey) {
+        headers["X-API-KEY"] = rugApiKey;
+      }
+
+      let rugRes = await fetch(rugCheckUrl, {
         signal: controller.signal,
-        headers: {
-          "Accept": "application/json",
-          "X-API-KEY": rugApiKey
-        }
+        headers
       });
+
+      // If key is rejected with 401 or 403, fallback to public endpoint without key
+      if ((rugRes.status === 401 || rugRes.status === 403) && rugApiKey) {
+        rugRes = await fetch(rugCheckUrl, {
+          signal: controller.signal,
+          headers: { "Accept": "application/json" }
+        });
+      }
       clearTimeout(timeout);
 
       if (!rugRes.ok) {
@@ -1890,18 +1903,19 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by Blockscout` };
     }
 
-    let isTokenTimeout = false;
-    let isTokenFailed = false;
-    let isHoldersTimeout = false;
-    let isHoldersFailed = false;
+    try {
+      let isTokenTimeout = false;
+      let isTokenFailed = false;
+      let isHoldersTimeout = false;
+      let isHoldersFailed = false;
 
-    let tokenName: string | undefined;
-    let tokenSymbol: string | undefined;
-    let decimals: number | undefined;
-    let logo: string | undefined;
-    let totalSupplyStr: string | undefined;
-    let top10HolderConcentrationPct: number | undefined;
-    let hasAnyField = false;
+      let tokenName: string | undefined;
+      let tokenSymbol: string | undefined;
+      let decimals: number | undefined;
+      let logo: string | undefined;
+      let totalSupplyStr: string | undefined;
+      let top10HolderConcentrationPct: number | undefined;
+      let hasAnyField = false;
 
     // Run token metadata and token holders requests concurrently
     await Promise.allSettled([
@@ -2064,6 +2078,9 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
 
     return { status: "NO_DATA", error: "No metadata or holder concentration records returned by Blockscout" };
+    } catch (bsErr: any) {
+      return { status: "FAILED", error: bsErr?.message || "Blockscout API request failed" };
+    }
   }
 
   // --- In-Memory Rate Limiter for /api/security/scan (20 req / 60s per IP) ---
@@ -2108,34 +2125,89 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         });
       }
 
-      const rawChain = (req.query.chain || req.query.chainId || "1") as string;
-      const rawAddress = (req.query.address || req.query.contractAddress || "") as string;
+      // Safe extraction of query parameters
+      const rawChain = Array.isArray(req.query.chain)
+        ? req.query.chain[0]
+        : (req.query.chain || req.query.chainId || "1");
+      const rawAddress = Array.isArray(req.query.address)
+        ? req.query.address[0]
+        : (req.query.address || req.query.contractAddress || "");
 
-      const contractAddress = rawAddress.trim();
+      const contractAddress = String(rawAddress || "").trim();
+      const chainInput = String(rawChain || "1").trim();
+
+      // Validate contract address presence
       if (!contractAddress || contractAddress.length < 5) {
         return res.status(400).json({
           success: false,
           cached: false,
-          error: "Security scan unavailable — no contract address on file",
+          error: "Security scan unavailable — contract address must be provided",
           source: "GoPlus / RugCheck / Blockscout",
           contractAddress: "",
-          chainId: "",
+          chainId: chainInput || "1",
           timestamp: new Date().toISOString(),
           providers: {
             goplus: { status: "UNAVAILABLE", error: "Missing contract address" },
             rugcheck: { status: "UNAVAILABLE", error: "Missing contract address" },
             blockscout: { status: "UNAVAILABLE", error: "Missing contract address" }
-          }
+          },
+          data: {}
         });
       }
 
-      const chainLower = String(rawChain).toLowerCase().trim();
-      const isSolana = (chainLower === "solana" || chainLower === "sol" || (contractAddress.length > 35 && !contractAddress.startsWith("0x")));
-      const isSui = chainLower === "sui";
-      const resolvedChainId = isSolana ? "solana" : isSui ? "sui" : resolveEvmChainId(rawChain);
+      const chainLower = chainInput.toLowerCase();
+      const isSolana = (chainLower === "solana" || chainLower === "sol" || (contractAddress.length >= 32 && contractAddress.length <= 44 && !contractAddress.startsWith("0x") && !contractAddress.includes("::")));
+      const isSui = chainLower === "sui" || contractAddress.includes("::");
+
+      // Validate address format: bad input -> 400
+      if (isSolana) {
+        const isBase58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(contractAddress);
+        if (!isBase58) {
+          return res.status(400).json({
+            success: false,
+            cached: false,
+            error: "Invalid Solana contract address format (expected 32-44 base58 characters)",
+            source: "RugCheck / GoPlus",
+            contractAddress,
+            chainId: "solana",
+            timestamp: new Date().toISOString(),
+            providers: {
+              goplus: { status: "UNAVAILABLE", error: "Invalid Solana address format" },
+              rugcheck: { status: "UNAVAILABLE", error: "Invalid Solana address format" },
+              blockscout: { status: "UNAVAILABLE", error: "Not applicable for Solana" }
+            },
+            data: {}
+          });
+        }
+      } else if (!isSui) {
+        const isEvmHex = /^0x[0-9a-fA-F]{40}$/.test(contractAddress) || /^[0-9a-fA-F]{40}$/.test(contractAddress);
+        if (!isEvmHex) {
+          return res.status(400).json({
+            success: false,
+            cached: false,
+            error: "Invalid EVM contract address format (expected 40-character hexadecimal address)",
+            source: "GoPlus / Blockscout",
+            contractAddress,
+            chainId: resolveEvmChainId(chainInput),
+            timestamp: new Date().toISOString(),
+            providers: {
+              goplus: { status: "UNAVAILABLE", error: "Invalid EVM address format" },
+              rugcheck: { status: "UNAVAILABLE", error: "Not applicable for EVM" },
+              blockscout: { status: "UNAVAILABLE", error: "Invalid EVM address format" }
+            },
+            data: {}
+          });
+        }
+      }
+
+      const normalizedAddress = (!isSolana && !isSui && !contractAddress.startsWith("0x"))
+        ? `0x${contractAddress}`
+        : contractAddress;
+
+      const resolvedChainId = isSolana ? "solana" : isSui ? "sui" : resolveEvmChainId(chainInput);
 
       // Check in-memory TTL cache (skip provider calls entirely on hit)
-      const cacheKey = `${resolvedChainId}:${contractAddress.toLowerCase()}`;
+      const cacheKey = `${resolvedChainId}:${normalizedAddress.toLowerCase()}`;
       const cachedEntry = securityScanCache.get(cacheKey);
       if (cachedEntry) {
         if (Date.now() < cachedEntry.expiresAt) {
@@ -2148,198 +2220,117 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         }
       }
 
-      // Execute applicable providers independently in parallel
+      // Execute applicable providers independently in parallel with individual safety wrappers
       const [goplusResult, rugcheckResult, blockscoutResult] = await Promise.all([
-        runGoPlusScan(resolvedChainId, contractAddress, isSolana, isSui),
-        runRugCheckScan(contractAddress, isSolana),
-        runBlockscoutScan(resolvedChainId, contractAddress, isSolana, isSui)
+        runGoPlusScan(resolvedChainId, normalizedAddress, isSolana, isSui).catch((e: any) => ({
+          status: "FAILED" as const,
+          error: e?.message || "GoPlus scan failed"
+        })),
+        runRugCheckScan(normalizedAddress, isSolana).catch((e: any) => ({
+          status: "FAILED" as const,
+          error: e?.message || "RugCheck scan failed"
+        })),
+        runBlockscoutScan(resolvedChainId, normalizedAddress, isSolana, isSui).catch((e: any) => ({
+          status: "FAILED" as const,
+          error: e?.message || "Blockscout scan failed"
+        }))
       ]);
 
       const providers: Record<string, { status: SecurityProviderStatus; error?: string }> = {
-        goplus: { status: goplusResult.status, ...(goplusResult.error ? { error: goplusResult.error } : {}) },
-        rugcheck: { status: rugcheckResult.status, ...(rugcheckResult.error ? { error: rugcheckResult.error } : {}) },
-        blockscout: { status: blockscoutResult.status, ...(blockscoutResult.error ? { error: blockscoutResult.error } : {}) }
+        goplus: { status: goplusResult?.status || "UNKNOWN", ...(goplusResult?.error ? { error: goplusResult.error } : {}) },
+        rugcheck: { status: rugcheckResult?.status || "UNKNOWN", ...(rugcheckResult?.error ? { error: rugcheckResult.error } : {}) },
+        blockscout: { status: blockscoutResult?.status || "UNKNOWN", ...(blockscoutResult?.error ? { error: blockscoutResult.error } : {}) }
       };
 
-      // Helper to store only success: true results in cache with 6-hour TTL and return with cached: false
-      const sendAndCacheSuccess = (payload: any) => {
-        const fullPayload = {
-          ...payload,
-          cached: false
-        };
-        securityScanCache.set(cacheKey, {
-          data: fullPayload,
-          expiresAt: Date.now() + SECURITY_SCAN_CACHE_TTL_MS
-        });
-        return res.json(fullPayload);
-      };
+      // Consolidate verified data from any available provider
+      const consolidatedData: any = {};
+      const activeSources: string[] = [];
 
-      // Merge verified evidence based on applicable architecture
-      if (isSolana) {
-        if (goplusResult.status === "AVAILABLE" && rugcheckResult.status === "AVAILABLE") {
-          return sendAndCacheSuccess({
-            success: true,
-            source: "GoPlus Security + RugCheck",
-            contractAddress,
-            chainId: resolvedChainId,
-            timestamp: new Date().toISOString(),
-            custodyRisk: goplusResult.data?.custodyRisk || (rugcheckResult.data?.mintAuthority === null ? "RENOUNCED" : "EOA_OWNER"),
-            providers,
-            data: {
-              ...goplusResult.data,
-              buyTax: goplusResult.data?.buyTax ?? rugcheckResult.data?.buyTax ?? null,
-              sellTax: goplusResult.data?.sellTax ?? rugcheckResult.data?.sellTax ?? null,
-              buy_tax: goplusResult.data?.buy_tax ?? rugcheckResult.data?.buy_tax ?? null,
-              sell_tax: goplusResult.data?.sell_tax ?? rugcheckResult.data?.sell_tax ?? null,
-              rugcheckScore: rugcheckResult.data.rugcheckScore,
-              rugcheckRisks: rugcheckResult.data.rugcheckRisks
-            }
-          });
+      if (goplusResult?.status === "AVAILABLE" && goplusResult.data) {
+        Object.assign(consolidatedData, goplusResult.data);
+        activeSources.push("GoPlus Security");
+      }
+
+      if (rugcheckResult?.status === "AVAILABLE" && rugcheckResult.data) {
+        if (consolidatedData.buyTax == null && rugcheckResult.data.buyTax != null) {
+          consolidatedData.buyTax = rugcheckResult.data.buyTax;
+          consolidatedData.buy_tax = rugcheckResult.data.buy_tax;
         }
-
-        if (goplusResult.status === "AVAILABLE") {
-          return sendAndCacheSuccess({
-            success: true,
-            source: "GoPlus Security",
-            contractAddress,
-            chainId: resolvedChainId,
-            timestamp: new Date().toISOString(),
-            custodyRisk: goplusResult.data?.custodyRisk,
-            providers,
-            data: goplusResult.data
-          });
+        if (consolidatedData.sellTax == null && rugcheckResult.data.sellTax != null) {
+          consolidatedData.sellTax = rugcheckResult.data.sellTax;
+          consolidatedData.sell_tax = rugcheckResult.data.sell_tax;
         }
-
-        if (rugcheckResult.status === "AVAILABLE") {
-          return sendAndCacheSuccess({
-            success: true,
-            source: "RugCheck",
-            contractAddress,
-            chainId: resolvedChainId,
-            timestamp: new Date().toISOString(),
-            custodyRisk: rugcheckResult.data?.mintAuthority === null ? "RENOUNCED" : "EOA_OWNER",
-            providers,
-            data: rugcheckResult.data
-          });
+        if (consolidatedData.custodyRisk == null) {
+          consolidatedData.custodyRisk = rugcheckResult.data.renounced ? "RENOUNCED" : "EOA_OWNER";
         }
-
-        return res.status(200).json({
-          success: false,
-          cached: false,
-          error: "Security scan unavailable for this Solana token",
-          source: "GoPlus / RugCheck",
-          contractAddress,
-          chainId: resolvedChainId,
-          timestamp: new Date().toISOString(),
-          providers
-        });
-      }
-
-      if (isSui) {
-        if (goplusResult.status === "AVAILABLE") {
-          return sendAndCacheSuccess({
-            success: true,
-            source: "GoPlus Security",
-            contractAddress,
-            chainId: resolvedChainId,
-            timestamp: new Date().toISOString(),
-            custodyRisk: goplusResult.data?.custodyRisk,
-            providers,
-            data: goplusResult.data
-          });
+        if (consolidatedData.is_honeypot == null) {
+          consolidatedData.is_honeypot = rugcheckResult.data.is_honeypot;
         }
-
-        return res.status(200).json({
-          success: false,
-          cached: false,
-          error: "Security scan unavailable for this Sui token",
-          source: "GoPlus Security",
-          contractAddress,
-          chainId: resolvedChainId,
-          timestamp: new Date().toISOString(),
-          providers
-        });
+        if (consolidatedData.is_mintable == null) {
+          consolidatedData.is_mintable = rugcheckResult.data.is_mintable;
+        }
+        consolidatedData.rugcheckScore = rugcheckResult.data.rugcheckScore;
+        consolidatedData.rugcheckRisks = rugcheckResult.data.rugcheckRisks;
+        activeSources.push("RugCheck");
       }
 
-      // EVM Network Logic
-      if (goplusResult.status === "AVAILABLE" && blockscoutResult.status === "AVAILABLE") {
-        return sendAndCacheSuccess({
-          success: true,
-          source: "GoPlus Security + Blockscout",
-          contractAddress,
-          chainId: resolvedChainId,
-          timestamp: new Date().toISOString(),
-          custodyRisk: goplusResult.data?.custodyRisk || "EOA_OWNER",
-          providers,
-          data: {
-            ...goplusResult.data,
-            ...(blockscoutResult.data.top10HolderConcentrationPct !== undefined
-              ? { top10HolderConcentrationPct: blockscoutResult.data.top10HolderConcentrationPct }
-              : {}),
-            blockscoutCorroboration: blockscoutResult.data
-          }
-        });
+      if (blockscoutResult?.status === "AVAILABLE" && blockscoutResult.data) {
+        if (blockscoutResult.data.top10HolderConcentrationPct !== undefined) {
+          consolidatedData.top10HolderConcentrationPct = blockscoutResult.data.top10HolderConcentrationPct;
+        }
+        if (!consolidatedData.tokenName && blockscoutResult.data.tokenName) {
+          consolidatedData.tokenName = blockscoutResult.data.tokenName;
+        }
+        if (!consolidatedData.tokenSymbol && blockscoutResult.data.tokenSymbol) {
+          consolidatedData.tokenSymbol = blockscoutResult.data.tokenSymbol;
+        }
+        consolidatedData.blockscoutCorroboration = blockscoutResult.data;
+        activeSources.push("Blockscout");
       }
 
-      if (goplusResult.status === "AVAILABLE") {
-        return sendAndCacheSuccess({
-          success: true,
-          source: "GoPlus Security",
-          contractAddress,
-          chainId: resolvedChainId,
-          timestamp: new Date().toISOString(),
-          custodyRisk: goplusResult.data?.custodyRisk || "EOA_OWNER",
-          providers,
-          data: goplusResult.data
-        });
-      }
+      const hasAnyData = activeSources.length > 0;
+      const sourceLabel = hasAnyData
+        ? activeSources.join(" + ")
+        : (isSolana ? "GoPlus / RugCheck" : isSui ? "GoPlus Security" : "GoPlus / Blockscout");
 
-      if (blockscoutResult.status === "AVAILABLE") {
-        // GoPlus failed or unavailable, but Blockscout succeeded: return Blockscout corroboration without fabricating primary GoPlus fields
-        return sendAndCacheSuccess({
-          success: true,
-          source: "Blockscout Token API (Corroboration)",
-          contractAddress,
-          chainId: resolvedChainId,
-          timestamp: new Date().toISOString(),
-          providers,
-          data: {
-            ...(blockscoutResult.data.tokenName ? { tokenName: blockscoutResult.data.tokenName } : {}),
-            ...(blockscoutResult.data.tokenSymbol ? { tokenSymbol: blockscoutResult.data.tokenSymbol } : {}),
-            ...(blockscoutResult.data.top10HolderConcentrationPct !== undefined
-              ? { top10HolderConcentrationPct: blockscoutResult.data.top10HolderConcentrationPct }
-              : {}),
-            blockscoutCorroboration: blockscoutResult.data
-          }
-        });
-      }
-
-      // Honest labeling: All applicable EVM providers failed or returned no data
-      return res.status(200).json({
-        success: false,
+      const responsePayload = {
+        success: hasAnyData,
         cached: false,
-        error: "Security scan unavailable for this network",
-        source: "GoPlus / Blockscout",
-        contractAddress,
+        source: sourceLabel,
+        contractAddress: normalizedAddress,
         chainId: resolvedChainId,
         timestamp: new Date().toISOString(),
-        providers
-      });
+        custodyRisk: consolidatedData.custodyRisk || (hasAnyData ? "EOA_OWNER" : undefined),
+        providers,
+        data: consolidatedData,
+        ...(hasAnyData ? {} : { error: "Security scan telemetry currently unavailable from upstream providers" })
+      };
+
+      // Only cache successful scans with actual provider data
+      if (hasAnyData) {
+        securityScanCache.set(cacheKey, {
+          data: responsePayload,
+          expiresAt: Date.now() + SECURITY_SCAN_CACHE_TTL_MS
+        });
+      }
+
+      return res.status(200).json(responsePayload);
     } catch (err: any) {
-      console.error("Security scan error:", err);
-      res.status(500).json({
+      console.error("Security scan handler error:", err);
+      return res.status(200).json({
         success: false,
         cached: false,
         error: "Failed to fetch security scan data from providers.",
         source: "GoPlus / RugCheck / Blockscout",
-        contractAddress: (req.query.address || req.query.contractAddress || "") as string,
-        chainId: (req.query.chain || req.query.chainId || "1") as string,
+        contractAddress: String(req.query.address || req.query.contractAddress || "").trim(),
+        chainId: String(req.query.chain || req.query.chainId || "1").trim(),
         timestamp: new Date().toISOString(),
         providers: {
-          goplus: { status: "FAILED", error: err.message },
-          rugcheck: { status: "FAILED", error: err.message },
-          blockscout: { status: "FAILED", error: err.message }
-        }
+          goplus: { status: "FAILED", error: err?.message || "Internal error" },
+          rugcheck: { status: "FAILED", error: err?.message || "Internal error" },
+          blockscout: { status: "FAILED", error: err?.message || "Internal error" }
+        },
+        data: {}
       });
     }
   });
