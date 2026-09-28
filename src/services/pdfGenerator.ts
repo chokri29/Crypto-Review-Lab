@@ -1774,7 +1774,8 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
       }
       doc.text(line2, margin + 3, y + 9.5);
 
-      // 3. Real GoPlus / RugCheck / Moralis Security Scan Data (snake_case telemetry)
+      // 3. Real GoPlus / RugCheck / Blockscout Security Scan Data (snake_case telemetry)
+      // Telemetry stack: GoPlus + RugCheck + Blockscout (xStocks stack: Finnhub + CoinGecko RWA + CoinMarketCap RWA + GoPlus/RugCheck/Blockscout where applicable)
       let line3 = '3. On-Chain Security Telemetry: Security cross-verification unavailable — no contract address on file';
       if (secScan) {
         const scanFlags: string[] = [];

@@ -471,8 +471,7 @@ export default function BlogPreviewer({
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         r.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (r.riskLevel && r.riskLevel.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (r.verdict && r.verdict.toLowerCase().includes(searchQuery.toLowerCase()))
+        (r.riskLevel && r.riskLevel.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
 
@@ -481,8 +480,7 @@ export default function BlogPreviewer({
     const matchesSearch = !q || 
                           r.name.toLowerCase().includes(q) || 
                           r.symbol.toLowerCase().includes(q) ||
-                          r.category.toLowerCase().includes(q) ||
-                          (r.verdict && r.verdict.toLowerCase().includes(q));
+                          r.category.toLowerCase().includes(q);
     const matchesCategory = selectedCategory === 'All' || 
                             r.category === selectedCategory ||
                             r.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
@@ -650,7 +648,7 @@ export default function BlogPreviewer({
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
-              Real-time global crypto market surveillance, algorithmic cross-chain metrics, and multi-source market data intelligence powered by the AVF Engine.
+              Real-time global crypto market surveillance, algorithmic cross-chain metrics, and multi-source market data intelligence powered by automated market telemetry.
             </p>
           </div>
 

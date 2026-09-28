@@ -128,15 +128,19 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
               <h4 className="font-display font-bold text-xs sm:text-sm text-cyber-text-primary uppercase tracking-wider">
                 Security Telemetry & Alert Monitor
               </h4>
-              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 font-bold flex items-center gap-1">
+              <span
+                className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 font-bold flex items-center gap-1"
+                title="Frontend polls provider endpoint every 5 minutes; data reflects third-party provider feeds and backend cache (up to 6h TTL)"
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping" />
-                5m Polling Active
+                5m Polling (Provider Telemetry)
               </span>
             </div>
             <p className="text-[10px] font-mono text-slate-400 mt-0.5">
-              Continuous multi-provider contract telemetry for{' '}
+              Aggregated multi-provider contract telemetry for{' '}
               <span className="text-slate-200 font-bold">{symbol || name || 'asset'}</span> (
               <span className="text-cyber-cyan">{contractAddress.slice(0, 6)}...{contractAddress.slice(-4)}</span>)
+              {' '}• Sourced from third-party provider feeds (subject to backend caching up to 6h; 5m client polling checks provider feeds)
             </p>
           </div>
         </div>
@@ -154,6 +158,9 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
               Source: <span className="text-slate-200 font-semibold">{snapshot.source}</span>
             </span>
           )}
+          <span className="text-[9px] font-mono text-slate-400 bg-slate-900 border border-white/10 px-2 py-1 rounded-lg">
+            Cache: <span className="text-slate-200 font-semibold">{snapshot?.cached ? 'Cached (6h TTL)' : 'Provider Feed (6h Cache TTL)'}</span>
+          </span>
           <button
             type="button"
             onClick={() => pollTelemetry(true)}
@@ -215,13 +222,13 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
           <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-white/5 pb-1.5 flex-wrap gap-2">
             <span className="flex items-center gap-1.5">
               <Sliders className="w-3 h-3 text-cyber-cyan" />
-              Observed Contract Telemetry
+              Observed Contract Telemetry (Provider Feeds • Potentially Cached)
             </span>
             <div className="flex items-center gap-2">
-              <span>Telemetry Time: {formatTelemetryTime(snapshot.timestamp)}</span>
+              <span>Telemetry Snapshot: {formatTelemetryTime(snapshot.timestamp)}</span>
               <span>•</span>
-              <span>
-                {snapshot.cached ? 'Backend Cache Active (6h TTL)' : 'Live Read'}
+              <span className={snapshot.cached ? 'text-amber-400/90' : 'text-slate-400'}>
+                {snapshot.cached ? 'Backend Cache Active (6h TTL)' : 'Provider Feed Read (6h Cache TTL)'}
               </span>
             </div>
           </div>
@@ -330,7 +337,7 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
             Recent Security Alerts ({alerts.length})
           </span>
           {lastCheckTime && (
-            <span className="text-[10px] text-slate-500">Last poll: {lastCheckTime}</span>
+            <span className="text-[10px] text-slate-500">Last client poll: {lastCheckTime} (5m cycle)</span>
           )}
         </div>
 
@@ -344,7 +351,7 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
         {alerts.length === 0 ? (
           <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 text-xs font-mono text-slate-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>No telemetry signal changes observed. Continuous 5-minute monitor active.</span>
+            <span>No telemetry signal changes observed across provider feeds. Continuous 5-minute client polling active (data reflects provider updates and 6-hour backend cache).</span>
           </div>
         ) : (
           <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-cyber-cyan/30">
@@ -383,6 +390,12 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
             ))}
           </div>
         )}
+      </div>
+
+      {/* Telemetry Caching & Provider Disclaimer Notice */}
+      <div className="text-[10px] font-mono text-slate-400/90 bg-slate-900/60 border border-white/5 rounded-xl px-3 py-2 leading-relaxed">
+        <span className="text-slate-300 font-semibold">Telemetry Data Notice: </span>
+        Contract telemetry reflects data aggregated from third-party security provider feeds (GoPlus, RugCheck, Blockscout) and is subject to backend caching (up to 6 hours TTL). Five-minute frontend polling checks for updated provider records but does not guarantee real-time or block-level blockchain data on each poll.
       </div>
     </div>
   );

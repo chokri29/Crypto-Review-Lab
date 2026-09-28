@@ -3,6 +3,10 @@
  * Normalizes multi-provider telemetry from /api/security/scan into lightweight observable snapshots.
  *
  * NOTE: Telemetry only. Never fabricates missing values. Never performs verification.
+ * Telemetry represents external third-party provider feeds (GoPlus, RugCheck, Blockscout)
+ * subject to backend caching (up to 6 hours TTL) and upstream provider index schedules.
+ * Client-side 5-minute polling checks for updated provider records but does NOT guarantee
+ * fresh on-chain/block-level execution on every poll.
  */
 
 export interface TelemetryProviderStatus {
