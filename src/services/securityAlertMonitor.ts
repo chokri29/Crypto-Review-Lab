@@ -19,6 +19,10 @@ export interface SecurityAlert {
   message: string;
 }
 
+export const TAX_CHANGE_THRESHOLD = 1.0; // percentage point
+export const HOLDER_CONCENTRATION_CHANGE_THRESHOLD = 2.0; // percentage points
+export const RUGCHECK_SCORE_CHANGE_THRESHOLD = 100;
+
 const STORAGE_SNAPSHOT_PREFIX = 'crl_sec_snap_';
 const STORAGE_ALERTS_PREFIX = 'crl_sec_alerts_';
 const MAX_ALERT_HISTORY = 20;
@@ -92,6 +96,18 @@ function saveAlerts(
     const trimmed = alerts.slice(0, MAX_ALERT_HISTORY);
     localStorage.setItem(getAlertsKey(chainId, contractAddress), JSON.stringify(trimmed));
   } catch {}
+}
+
+/**
+ * Helper to safely parse numeric percentage from tax strings (e.g. "0.0%", "5.5%", "5").
+ * Returns null if non-numeric or unavailable; never fabricates a value.
+ */
+function parseNumericTax(val: string | null | undefined): number | null {
+  if (val === null || val === undefined) return null;
+  const cleaned = String(val).replace('%', '').trim();
+  if (!cleaned) return null;
+  const num = Number(cleaned);
+  return isNaN(num) ? null : num;
 }
 
 /**
@@ -202,15 +218,20 @@ export function processTelemetrySnapshot(
       });
     }
 
-    // 6. Buy / Sell Tax change
+    // 6. Buy / Sell Tax change (triggers only when numeric change >= TAX_CHANGE_THRESHOLD)
+    const prevBuyNum = parseNumericTax(previous.buyTax);
+    const currBuyNum = parseNumericTax(current.buyTax);
     const buyTaxChanged =
-      current.buyTax !== null &&
-      previous.buyTax !== null &&
-      current.buyTax !== previous.buyTax;
+      prevBuyNum !== null &&
+      currBuyNum !== null &&
+      Math.abs(currBuyNum - prevBuyNum) >= TAX_CHANGE_THRESHOLD;
+
+    const prevSellNum = parseNumericTax(previous.sellTax);
+    const currSellNum = parseNumericTax(current.sellTax);
     const sellTaxChanged =
-      current.sellTax !== null &&
-      previous.sellTax !== null &&
-      current.sellTax !== previous.sellTax;
+      prevSellNum !== null &&
+      currSellNum !== null &&
+      Math.abs(currSellNum - prevSellNum) >= TAX_CHANGE_THRESHOLD;
 
     if (buyTaxChanged || sellTaxChanged) {
       newAlerts.push({
@@ -229,7 +250,7 @@ export function processTelemetrySnapshot(
     if (
       current.rugcheckScore !== null &&
       previous.rugcheckScore !== null &&
-      Math.abs(current.rugcheckScore - previous.rugcheckScore) >= 100
+      Math.abs(current.rugcheckScore - previous.rugcheckScore) >= RUGCHECK_SCORE_CHANGE_THRESHOLD
     ) {
       newAlerts.push({
         id: `alert-rugcheck-score-${current.contractAddress}-${now}`,
@@ -261,11 +282,11 @@ export function processTelemetrySnapshot(
       }
     }
 
-    // 8. Blockscout holder concentration changes materially (>= 2% delta)
+    // 8. Blockscout holder concentration changes materially (>= HOLDER_CONCENTRATION_CHANGE_THRESHOLD delta)
     if (
       current.top10HolderConcentrationPct !== null &&
       previous.top10HolderConcentrationPct !== null &&
-      Math.abs(current.top10HolderConcentrationPct - previous.top10HolderConcentrationPct) >= 2.0
+      Math.abs(current.top10HolderConcentrationPct - previous.top10HolderConcentrationPct) >= HOLDER_CONCENTRATION_CHANGE_THRESHOLD
     ) {
       newAlerts.push({
         id: `alert-blockscout-holders-${current.contractAddress}-${now}`,

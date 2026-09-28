@@ -28,6 +28,13 @@ interface SecurityTelemetryWidgetProps {
   name?: string;
 }
 
+function formatTelemetryTime(timestamp: string | null | undefined): string {
+  if (!timestamp || !timestamp.trim()) return 'Unavailable';
+  const parsed = Date.parse(timestamp);
+  if (isNaN(parsed)) return 'Unavailable';
+  return new Date(timestamp).toLocaleTimeString();
+}
+
 export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = ({
   contractAddress,
   chainId = '1',
@@ -134,7 +141,14 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <span className="text-[9px] font-mono text-slate-400 bg-slate-900 border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5 text-cyber-cyan" />
+            Telemetry Update:{' '}
+            <span className="text-slate-200 font-semibold">
+              {formatTelemetryTime(snapshot?.timestamp)}
+            </span>
+          </span>
           {snapshot?.source && (
             <span className="text-[9px] font-mono text-slate-400 bg-slate-900 border border-white/10 px-2 py-1 rounded-lg">
               Source: <span className="text-slate-200 font-semibold">{snapshot.source}</span>
@@ -198,14 +212,18 @@ export const SecurityTelemetryWidget: React.FC<SecurityTelemetryWidgetProps> = (
       {/* Observable Telemetry Signals Grid */}
       {snapshot && (
         <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-xl p-3 space-y-2">
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-white/5 pb-1.5">
+          <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider border-b border-white/5 pb-1.5 flex-wrap gap-2">
             <span className="flex items-center gap-1.5">
               <Sliders className="w-3 h-3 text-cyber-cyan" />
               Observed Contract Telemetry
             </span>
-            <span>
-              {snapshot.cached ? 'Backend Cache Active (6h TTL)' : 'Live Read'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span>Telemetry Time: {formatTelemetryTime(snapshot.timestamp)}</span>
+              <span>•</span>
+              <span>
+                {snapshot.cached ? 'Backend Cache Active (6h TTL)' : 'Live Read'}
+              </span>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono pt-1">

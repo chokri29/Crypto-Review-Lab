@@ -20,7 +20,7 @@ export interface RugCheckRiskItem {
 export interface SecurityTelemetrySnapshot {
   contractAddress: string;
   chainId: string;
-  timestamp: string;
+  timestamp: string | null;
   source: string;
   cached: boolean;
   providers: {
@@ -141,10 +141,19 @@ export function normalizeSecurityTelemetry(
     top10HolderConcentrationPct = data.top10HolderConcentrationPct;
   }
 
+  // Never fabricate a timestamp; return null if missing or invalid
+  let timestamp: string | null = null;
+  if (typeof raw?.timestamp === 'string' && raw.timestamp.trim()) {
+    const parsed = Date.parse(raw.timestamp);
+    if (!isNaN(parsed)) {
+      timestamp = raw.timestamp;
+    }
+  }
+
   return {
     contractAddress,
     chainId,
-    timestamp: raw?.timestamp || new Date().toISOString(),
+    timestamp,
     source: raw?.source || 'Security Telemetry Feed',
     cached: Boolean(raw?.cached),
     providers,
