@@ -327,7 +327,7 @@ export function generateBlueprintFormulaPdf(customFilename = 'crypto_review_lab_
     },
     {
       title: 'Pillar 2: Phase Two Automated Re-Control',
-      detail: '7-Gate multi-source automated pipeline (CoinGecko, CMC, CoinStats, GoPlus, RugCheck, Blockscout) ensuring telemetry consensus and sub-3.0 point score convergence.'
+      detail: '8 Automated Control Gates (Gate 0–7) multi-source automated pipeline (CoinGecko, CMC, CoinStats, GoPlus, RugCheck, Blockscout) ensuring telemetry consensus and sub-3.0 point score convergence.'
     },
     {
       title: 'Pillar 3: F3 Deterministic Verification Layer',
@@ -3017,9 +3017,10 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     addProFooter(doc, pageWidth, pageHeight, margin, textMuted, refId, projName, doc.getNumberOfPages());
   }
 
-  // SECTION 5: PHASE 2 AUTOMATED RE-CONTROL (7 CONTROL GATES)
+  // SECTION 5: PHASE 2 AUTOMATED RE-CONTROL (8 AUTOMATED CONTROL GATES - GATE 0–7)
   if (data.phaseTwoReControl) {
     const rc = data.phaseTwoReControl;
+    const gateCount = rc.gates.length;
     doc.addPage();
     addProPageHeader(doc, pageWidth, margin, refId, 'SECTION 5: PHASE 2 AUTOMATED RE-CONTROL MATRIX');
     let cy = 22;
@@ -3038,16 +3039,16 @@ function generateProAssessmentPdfReport(data: AuditPdfData, customFilename?: str
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(30, 41, 59);
-    doc.text(`• 2-Stage Quality Control Framework: 7 Automated Control Gates Verified`, margin + 4, cy + 11.5);
+    doc.text(`• 2-Stage Quality Control Framework: ${gateCount} Automated Control Gates (Gate 0–7)`, margin + 4, cy + 11.5);
     doc.text(`• Workflow Recommendation: ${rc.recommendation === 'READY_FOR_HUMAN_APPROVAL' ? 'PASS (95%+) -> Ready for Human Approval -> 24h Delivery' : 'FAIL (<95%) -> Auto-flagged for Regeneration'}`, margin + 4, cy + 16.5);
 
     cy += 26;
 
-    // 7 Control Gates Table
+    // 8 Automated Control Gates Table
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(15, 23, 42);
-    doc.text('7 AUTOMATED CONTROL GATES VERIFICATION BREAKDOWN', margin, cy);
+    doc.text(`${gateCount} AUTOMATED CONTROL GATES VERIFICATION BREAKDOWN`, margin, cy);
     cy += 4;
 
     doc.setFillColor(241, 245, 249);

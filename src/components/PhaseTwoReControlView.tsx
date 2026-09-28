@@ -72,7 +72,7 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
                     </span>
                   </div>
                   <h3 className="text-base sm:text-lg font-bold font-mono text-slate-100 mt-1 break-words">
-                    PHASE 2 AUTOMATED RE-CONTROL (GATE 0 + 7 CONTROL GATES)
+                    PHASE 2 AUTOMATED RE-CONTROL: 8 AUTOMATED CONTROL GATES (GATE 0–7)
                   </h3>
                 </div>
               </div>
@@ -309,12 +309,12 @@ export const PhaseTwoReControlView: React.FC<PhaseTwoReControlViewProps> = ({
         )}
       </div>
 
-      {/* Gate 0 + 7 Automated Control Gates Grid */}
+      {/* 8 Automated Control Gates (Gate 0–7) Grid */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
         <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
           <h4 className="text-xs font-bold font-mono text-slate-200 uppercase tracking-wider flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            Automated Control Gates Verification Matrix (Gate 0 + Gates 1–7)
+            Automated Control Gates Verification Matrix (8 Automated Control Gates: Gate 0–7)
           </h4>
           <span className="text-[10px] font-mono text-slate-400">
             Re-Control Executed: {data.completedAt}

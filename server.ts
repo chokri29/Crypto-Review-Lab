@@ -445,7 +445,8 @@ function generateDeterministicFallbackReview(params: {
       pros.push(`Standard token transfer interface and active decentralized routing`);
     }
     if (!isMintable) {
-      pros.push(`Fixed supply structure: No arbitrary mint function or inflation vector found`);
+      pros.push("No public mint() on this contract — NOT a supply-cap guarantee");
+      cons.push("Supply/Inflation: NOT VERIFIED — requires tokenomics disclosures, not bytecode");
     } else {
       pros.push(`Established token distribution framework`);
     }

@@ -35,7 +35,7 @@ The AVF architecture operates three sequential execution layers to ensure mathem
 Automatically ingests contract bytecode, tokenomics schedules, and multi-node on-chain telemetry (GoPlus, RugCheck, Blockscout, CoinGecko, CoinMarketCap) to generate initial multidimensional evaluation vectors.
 
 ### 2. F2 — Phase Two Automated Re-Control Engine
-Candidate evaluations are subjected to an 8-Gate automated quality pipeline (Gate 0 through Gate 7) enforcing strict consistency and convergence:
+Candidate evaluations are subjected to 8 Automated Control Gates (Gate 0–7) enforcing strict consistency and convergence:
 
 * **Gate 0 — Structural Completeness Check:** Verifies presence of mandatory fields (name, symbol, scores, summary, verdict, pros/cons).
 * **Gate 1 — Multi-Source Triangulation:** Cross-verifies market telemetry across CoinGecko, CMC, and related price/volume feeds.

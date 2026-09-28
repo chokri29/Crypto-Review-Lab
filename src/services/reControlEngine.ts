@@ -969,7 +969,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
 }
 
 /**
- * Runs the Phase Two Framework Architecture: Gate 0 + 7 Automated Control Gates
+ * Runs the Phase Two Framework Architecture: 8 Automated Control Gates (Gate 0–7)
  * Re-verifies all output parameters prior to human auditor review/approval.
  */
 export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlReport {
