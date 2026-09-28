@@ -2794,8 +2794,8 @@ ${dualSyncContext}`;
     }
   });
 
-  // API endpoint: CoinMarketCap Real-World Assets (RWA) Info Proxy
-  app.get("/api/cmc/rwa/info", async (req, res) => {
+  // API endpoint: CoinMarketCap Real-World Assets (RWA) Info Proxy (info / metadata)
+  app.get(["/api/cmc/rwa/info", "/api/cmc/rwa/metadata"], async (req, res) => {
     try {
       if (!CMC_API_KEY) {
         return res.status(200).json({
@@ -2826,12 +2826,15 @@ ${dualSyncContext}`;
       res.json(data);
     } catch (error: any) {
       console.error("CMC RWA Info proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Info" });
+      res.status(200).json({
+        status: { error_code: 500, error_message: error.message || "Failed to fetch CMC RWA Info" },
+        data: null
+      });
     }
   });
 
-  // API endpoint: CoinMarketCap Real-World Assets (RWA) Assets List Proxy
-  app.get("/api/cmc/rwa/assets/list", async (req, res) => {
+  // API endpoint: CoinMarketCap Real-World Assets (RWA) Assets List / Asset by rwa_id Proxy
+  app.get(["/api/cmc/rwa/assets/list", "/api/cmc/rwa/asset"], async (req, res) => {
     try {
       if (!CMC_API_KEY) {
         return res.status(200).json({
@@ -2862,7 +2865,10 @@ ${dualSyncContext}`;
       res.json(data);
     } catch (error: any) {
       console.error("CMC RWA Assets proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Assets" });
+      res.status(200).json({
+        status: { error_code: 500, error_message: error.message || "Failed to fetch CMC RWA Assets" },
+        data: []
+      });
     }
   });
 

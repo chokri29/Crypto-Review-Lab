@@ -882,11 +882,11 @@ export default function XStockVerificationPanel({
                     <span className="text-white font-bold block">
                       {typeof cmcPrice === 'number' && cmcPrice > 0 ? formatPrice(cmcPrice) : 'No quote'}
                     </span>
-                    {activeQuote?.cmcRwaData?.tokenized_volume_24h && (
+                    {typeof cmcPrice === 'number' && cmcPrice > 0 && activeQuote?.cmcRwaData?.tokenized_volume_24h ? (
                       <span className="text-[9.5px] text-slate-400 block pt-0.5">
                         Vol: ${Math.round(activeQuote.cmcRwaData.tokenized_volume_24h).toLocaleString()}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
                 {cryptoDivergencePct !== null && (
