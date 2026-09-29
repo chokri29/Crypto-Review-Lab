@@ -52,6 +52,7 @@ import MarketTicker from './components/MarketTicker';
 import CookieBanner from './components/CookieBanner';
 import FaqJsonLd from './components/FaqJsonLd';
 import CurrencyDropdown from './components/CurrencyDropdown';
+import UserAuthButton from './components/UserAuthButton';
 import { fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';

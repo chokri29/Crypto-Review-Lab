@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { AuthProvider } from './context/AuthContext.tsx';
 
 // Initialize default and appPolicy Trusted Types policies for enhanced DOM XSS security
 let appPolicyInstance: any = null;
@@ -61,7 +62,9 @@ if (typeof window !== 'undefined') {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <CurrencyProvider>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </CurrencyProvider>
   </StrictMode>,
 );
