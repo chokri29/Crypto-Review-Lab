@@ -1532,7 +1532,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   });
 
   // --- Security Scanning Provider Architecture & Provenance ---
-  type SecurityProviderStatus = "AVAILABLE" | "FAILED" | "TIMEOUT" | "NO_DATA" | "UNAVAILABLE";
+  type SecurityProviderStatus = "AVAILABLE" | "FAILED" | "TIMEOUT" | "NO_DATA" | "UNAVAILABLE" | "UNKNOWN";
 
   interface SecurityProviderOutcome<T = any> {
     status: SecurityProviderStatus;
