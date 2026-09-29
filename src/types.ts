@@ -59,6 +59,8 @@ export interface CryptoReview {
   coingeckoCategories?: string[];
   contractAddress?: string;
   chainId?: string | number;
+  network?: string;
+  chain?: string;
   defiLlamaSlug?: string;
   realTvl?: number | null;
   name: string;

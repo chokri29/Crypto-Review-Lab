@@ -104,6 +104,7 @@ export default function XStocksPage() {
   });
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [chainFilter, setChainFilter] = useState<string>('All');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [marketHours, setMarketHours] = useState<UsMarketHoursStatus>(() => getUsMarketHoursStatus());
 
@@ -535,9 +536,20 @@ export default function XStocksPage() {
     return ['All', ...Array.from(set)];
   }, []);
 
+  // Filter Asset Sources & Networks
+  const availableChains = useMemo(() => {
+    const set = new Set<string>();
+    XSTOCKS_REGISTRY.forEach(s => set.add(s.chain));
+    return ['All', ...Array.from(set)];
+  }, []);
+
   const filteredStocks = useMemo(() => {
     return XSTOCKS_REGISTRY.filter(item => {
       if (categoryFilter !== 'All' && item.category !== categoryFilter) {
+        return false;
+      }
+
+      if (chainFilter !== 'All' && item.chain !== chainFilter) {
         return false;
       }
 
@@ -547,10 +559,12 @@ export default function XStocksPage() {
         item.symbol.toLowerCase().includes(q) || 
         item.name.toLowerCase().includes(q) || 
         item.underlyingTicker.toLowerCase().includes(q) ||
-        item.underlyingName.toLowerCase().includes(q);
+        item.underlyingName.toLowerCase().includes(q) ||
+        item.chain.toLowerCase().includes(q) ||
+        (item.issuer && item.issuer.toLowerCase().includes(q));
       return matchesSearch;
     });
-  }, [categoryFilter, searchQuery]);
+  }, [categoryFilter, chainFilter, searchQuery]);
 
   const activeQuote = stockQuotes[selectedStock.symbol.toUpperCase()];
   const { formatPrice, selectedCurrency } = useCurrency();
@@ -673,25 +687,72 @@ export default function XStocksPage() {
               />
             </div>
 
+            {/* Asset Source / Network Filter Chips */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[9.5px] font-mono text-slate-400">
+                <span className="uppercase tracking-wider flex items-center gap-1 font-bold">
+                  <Layers className="w-3 h-3 text-cyber-cyan" />
+                  <span>Asset Source / Network:</span>
+                </span>
+                <span className="text-cyber-cyan font-bold">
+                  {chainFilter === 'All' ? 'All Networks' : chainFilter}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10px] font-mono">
+                {availableChains.map((ch) => {
+                  const isSelected = chainFilter === ch;
+                  const isRH = ch === 'Robinhood Chain';
+                  return (
+                    <button
+                      key={ch}
+                      type="button"
+                      onClick={() => setChainFilter(ch)}
+                      className={`px-2 py-0.5 rounded-lg shrink-0 transition-all font-bold cursor-pointer flex items-center gap-1 ${
+                        isSelected
+                          ? isRH
+                            ? 'bg-emerald-400 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.4)]'
+                            : 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
+                          : isRH
+                            ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-900/60'
+                            : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{ch === 'All' ? 'All Sources' : ch}</span>
+                      {isRH && (
+                        <span className="text-[7.5px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                          Orbit L2
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Category Filter Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[10px] font-mono">
-              {categories.map((cat) => {
-                const isSelected = categoryFilter === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategoryFilter(cat)}
-                    className={`px-2.5 py-1 rounded-lg shrink-0 transition-all font-bold cursor-pointer flex items-center gap-1 ${
-                      isSelected
-                        ? 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
-                        : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <span>{cat}</span>
-                  </button>
-                );
-              })}
+            <div className="space-y-1">
+              <div className="text-[9.5px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+                Category:
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[10px] font-mono">
+                {categories.map((cat) => {
+                  const isSelected = categoryFilter === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setCategoryFilter(cat)}
+                      className={`px-2 py-0.5 rounded-lg shrink-0 transition-all font-bold cursor-pointer flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-cyber-cyan text-slate-950 shadow-[0_0_10px_rgba(0,229,255,0.3)]'
+                          : 'bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{cat}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Tickers Scrollable List */}
@@ -702,7 +763,7 @@ export default function XStocksPage() {
                     No matching xStocks found
                   </p>
                   <p className="text-slate-500 text-[11px] font-mono">
-                    Try adjusting your search query or category filter.
+                    Try adjusting your search query, network source, or category filter.
                   </p>
                 </div>
               ) : (
@@ -737,13 +798,22 @@ export default function XStocksPage() {
                         )}
 
                         <div className="flex flex-col truncate">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-orbitron font-bold text-xs text-white group-hover:text-cyber-cyan transition-colors">
                               {item.symbol}
                             </span>
                             <span className="text-[9px] font-mono text-purple-300 bg-purple-500/15 px-1 rounded">
                               {item.underlyingTicker}
                             </span>
+                            {item.chain === 'Robinhood Chain' ? (
+                              <span className="text-[8px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1 py-0.2 rounded">
+                                Robinhood Chain
+                              </span>
+                            ) : (
+                              <span className="text-[8px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-1 py-0.2 rounded">
+                                {item.chain}
+                              </span>
+                            )}
                           </div>
                           <span className="text-[10px] text-slate-400 truncate">
                             {item.underlyingName}

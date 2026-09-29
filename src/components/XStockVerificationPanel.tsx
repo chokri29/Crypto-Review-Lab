@@ -277,6 +277,9 @@ export default function XStockVerificationPanel({
     if (selectedStock.chain === 'BNB Chain') {
       return `https://bscscan.com/token/${selectedStock.contractAddress}`;
     }
+    if (selectedStock.chain === 'Robinhood Chain') {
+      return `https://explorer.robinhood.com/address/${selectedStock.contractAddress}`;
+    }
     return `https://blockscan.com/address/${selectedStock.contractAddress}`;
   }, [selectedStock.contractAddress, selectedStock.chain, isSolana]);
 
@@ -581,8 +584,13 @@ export default function XStockVerificationPanel({
                     <Layers className="w-3.5 h-3.5 text-cyber-cyan" />
                     <span>Token Blockchain</span>
                   </div>
-                  <div className="text-white font-bold text-base sm:text-lg">
-                    {selectedStock.chain}
+                  <div className="text-white font-bold text-base sm:text-lg flex items-center gap-2">
+                    <span>{selectedStock.chain}</span>
+                    {selectedStock.chain === 'Robinhood Chain' && (
+                      <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                        Arbitrum Orbit L2
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10.5px] text-slate-400">
                     {selectedStock.category}
@@ -721,17 +729,34 @@ export default function XStockVerificationPanel({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                  <span className="text-[10px] text-slate-400 uppercase block">Settlement Network &amp; Source</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-white font-bold text-xs block">{selectedStock.chain}</span>
+                    {selectedStock.chain === 'Robinhood Chain' && (
+                      <span className="text-[8.5px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold">
+                        Arbitrum Orbit L2
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-sans block">
+                    {selectedStock.chain === 'Robinhood Chain' 
+                      ? 'Arbitrum Orbit Nitro rollup with 24/7 equities settlement' 
+                      : 'Underlying blockchain settlement & token contract network'}
+                  </span>
+                </div>
+
                 <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-400 uppercase block">Regulatory Jurisdiction (Reported)</span>
                   <span className="text-white font-bold text-xs block">{selectedStock.jurisdiction || 'Switzerland'}</span>
-                  <span className="text-[10px] text-slate-400 font-sans block">Reported under Swiss DLT Act legal framework</span>
+                  <span className="text-[10px] text-slate-400 font-sans block">Reported under applicable DLT legal framework</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                   <span className="text-[10px] text-slate-400 uppercase block">Security Instrument (Prospectus)</span>
                   <span className="text-white font-bold text-xs block">{selectedStock.legalInstrumentType || 'Tracker Certificate'}</span>
-                  <span className="text-[10px] text-slate-400 font-sans block">Issuer-classified tracker certificate structure</span>
+                  <span className="text-[10px] text-slate-400 font-sans block">Issuer-classified tracker structure</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">

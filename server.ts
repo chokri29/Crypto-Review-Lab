@@ -1627,6 +1627,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     if (str === "324" || str === "zksync") return "324";
     if (str === "25" || str === "cronos") return "25";
     if (str === "100" || str === "gnosis") return "100";
+    if (str === "robinhood" || str === "robinhood-chain" || str === "robinhood chain" || str === "rh" || str === "rh-chain") return "robinhood";
     if (/^\d+$/.test(str)) return str;
     return str;
   }

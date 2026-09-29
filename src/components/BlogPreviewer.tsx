@@ -46,7 +46,8 @@ import {
   Code,
   Bell,
   BellRing,
-  Lock
+  Lock,
+  Globe
 } from 'lucide-react';
 
 // All 10 standardized categories + All options with icons and badges matching ReviewLab style
@@ -63,6 +64,69 @@ const CATEGORY_OPTIONS = [
   { value: 'Memecoin / Speculative', label: 'Memecoin / Speculative', badge: 'Memes & Speculative', icon: Flame, color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
   { value: 'Specialized / Experimental', label: 'Specialized / Experimental', badge: 'Move/Rust & Experimental', icon: Cpu, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
 ];
+
+// Standardized blockchain networks dynamically classification in Market Intelligence
+export interface NetworkOption {
+  value: string;
+  label: string;
+  badge: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+export const NETWORK_OPTIONS: NetworkOption[] = [
+  { value: 'All', label: 'All Networks', badge: 'All Blockchains', icon: Globe, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'Robinhood Chain', label: 'Robinhood Chain', badge: 'Arbitrum Orbit L2 (RWA)', icon: Building2, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { value: 'Ethereum', label: 'Ethereum', badge: 'EVM Layer 1', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+  { value: 'Arbitrum', label: 'Arbitrum', badge: 'Arbitrum One / L2', icon: Zap, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { value: 'Solana', label: 'Solana', badge: 'High-Throughput L1', icon: Zap, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+  { value: 'Sui', label: 'Sui Network', badge: 'Move Object L1', icon: ShieldCheck, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
+  { value: 'Kaspa', label: 'Kaspa', badge: 'GHOSTDAG BlockDAG', icon: Cpu, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+];
+
+export function getNetworkBadge(network?: string): { label: string; badgeClass: string } {
+  const net = (network || '').trim();
+  if (net === 'Robinhood Chain') {
+    return {
+      label: 'Robinhood Chain (Orbit L2)',
+      badgeClass: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35 shadow-[0_0_8px_rgba(52,211,153,0.25)]'
+    };
+  }
+  if (net === 'Arbitrum') {
+    return {
+      label: 'Arbitrum One',
+      badgeClass: 'text-sky-300 bg-sky-500/15 border-sky-500/35'
+    };
+  }
+  if (net === 'Solana') {
+    return {
+      label: 'Solana L1',
+      badgeClass: 'text-purple-300 bg-purple-500/15 border-purple-500/35'
+    };
+  }
+  if (net === 'Sui') {
+    return {
+      label: 'Sui Move L1',
+      badgeClass: 'text-teal-300 bg-teal-500/15 border-teal-500/35'
+    };
+  }
+  if (net === 'Kaspa') {
+    return {
+      label: 'Kaspa BlockDAG',
+      badgeClass: 'text-amber-300 bg-amber-500/15 border-amber-500/35'
+    };
+  }
+  if (net === 'Ethereum') {
+    return {
+      label: 'Ethereum L1',
+      badgeClass: 'text-cyan-300 bg-cyan-500/15 border-cyan-500/35'
+    };
+  }
+  return {
+    label: net || 'EVM / L1',
+    badgeClass: 'text-slate-300 bg-slate-800/80 border-slate-700'
+  };
+}
 import { CryptoReview } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
 import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
@@ -116,19 +180,26 @@ export default function BlogPreviewer({
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
+  const [selectedNetwork, setSelectedNetwork] = useState('All');
+  const [isNetworkDropdownOpen, setIsNetworkDropdownOpen] = useState(false);
+  const networkDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
         setIsCategoryDropdownOpen(false);
       }
+      if (networkDropdownRef.current && !networkDropdownRef.current.contains(event.target as Node)) {
+        setIsNetworkDropdownOpen(false);
+      }
     };
-    if (isCategoryDropdownOpen) {
+    if (isCategoryDropdownOpen || isNetworkDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isCategoryDropdownOpen]);
+  }, [isCategoryDropdownOpen, isNetworkDropdownOpen]);
 
   const [isArchiveDropdownOpen, setIsArchiveDropdownOpen] = useState(false);
   const [isCustomSelectOpen, setIsCustomSelectOpen] = useState(false);
@@ -455,10 +526,14 @@ export default function BlogPreviewer({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Derive categories from standard configuration list
+  // Derive categories and networks from standard configuration lists
   const categories = CATEGORY_OPTIONS.map((opt) => opt.value);
   const selectedCategoryObj = CATEGORY_OPTIONS.find((opt) => opt.value === selectedCategory) || CATEGORY_OPTIONS[0];
   const SelectedIconComp = selectedCategoryObj.icon;
+
+  const networks = NETWORK_OPTIONS.map((opt) => opt.value);
+  const selectedNetworkObj = NETWORK_OPTIONS.find((opt) => opt.value === selectedNetwork) || NETWORK_OPTIONS[0];
+  const SelectedNetworkIconComp = selectedNetworkObj.icon;
 
   // Predictive matching categories based on search query
   const matchingCategories = searchQuery.trim()
@@ -471,6 +546,7 @@ export default function BlogPreviewer({
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         r.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (r.network && r.network.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (r.riskLevel && r.riskLevel.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
@@ -480,12 +556,15 @@ export default function BlogPreviewer({
     const matchesSearch = !q || 
                           r.name.toLowerCase().includes(q) || 
                           r.symbol.toLowerCase().includes(q) ||
-                          r.category.toLowerCase().includes(q);
+                          r.category.toLowerCase().includes(q) ||
+                          (r.network && r.network.toLowerCase().includes(q));
     const matchesCategory = selectedCategory === 'All' || 
                             r.category === selectedCategory ||
                             r.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
                             selectedCategory.toLowerCase().includes(r.category.toLowerCase());
-    return matchesSearch && matchesCategory;
+    const matchesNetwork = selectedNetwork === 'All' ||
+                           (r.network && r.network.toLowerCase() === selectedNetwork.toLowerCase());
+    return matchesSearch && matchesCategory && matchesNetwork;
   });
 
   // State & Auto-rotation timer for Live Cryptocurrencies
@@ -498,7 +577,7 @@ export default function BlogPreviewer({
 
   useEffect(() => {
     setLatestPage(0);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, selectedNetwork, searchQuery]);
 
   useEffect(() => {
     if (!isLatestAutoPlay || isLatestHovered || totalPages <= 1) return;
@@ -913,86 +992,90 @@ export default function BlogPreviewer({
             </div>
           </div>
 
-          {/* Category Filter Bar */}
-          <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-3.5 shadow-lg relative">
-            {/* Mobile View Layout (< sm) */}
-            <div className="sm:hidden space-y-2.5" ref={categoryDropdownRef}>
+          {/* Classification & Filter Bar (Blockchain Networks + Categories) */}
+          <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-4 shadow-lg space-y-3.5 relative">
+            {/* 1. Blockchain Network Classification Bar */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-2 text-xs font-mono text-cyber-text-muted uppercase tracking-wider">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
-                  <span className="font-bold text-slate-300">Category Filter</span>
+                  <Globe className="w-3.5 h-3.5 text-cyber-cyan" />
+                  <span className="font-bold text-slate-200">Blockchain Network Filter</span>
                 </div>
-                <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-full font-mono">
-                  {selectedCategory === 'All'
-                    ? `${reviews.length} Projects`
-                    : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Projects`}
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono border ${
+                  selectedNetwork === 'Robinhood Chain'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_10px_rgba(52,211,153,0.3)]'
+                    : 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan/30'
+                }`}>
+                  {selectedNetwork === 'All'
+                    ? `${reviews.length} Tracked on All Networks`
+                    : `${reviews.filter(r => r.network && r.network.toLowerCase() === selectedNetwork.toLowerCase()).length} on ${selectedNetwork}`}
                 </span>
               </div>
 
-              {/* Custom Cyber Dropdown Button (Matching Image 2 Style) */}
-              <div className="relative w-full">
+              {/* Mobile Network Dropdown */}
+              <div className="sm:hidden relative w-full" ref={networkDropdownRef}>
                 <button
                   type="button"
-                  onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                  className="w-full flex items-center justify-between gap-3 bg-slate-950 text-slate-100 font-sans text-xs font-bold px-3 py-2.5 rounded-xl border border-cyber-cyan/40 hover:border-cyber-cyan shadow-[0_0_15px_rgba(0,229,255,0.18)] transition-all cursor-pointer"
+                  onClick={() => setIsNetworkDropdownOpen(!isNetworkDropdownOpen)}
+                  className="w-full flex items-center justify-between gap-3 bg-slate-950 text-slate-100 font-sans text-xs font-bold px-3 py-2 rounded-xl border border-cyber-cyan/40 hover:border-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.15)] transition-all cursor-pointer"
                   aria-haspopup="listbox"
-                  aria-expanded={isCategoryDropdownOpen}
+                  aria-expanded={isNetworkDropdownOpen}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 pr-1">
-                    <div className={`p-1.5 rounded-lg border shrink-0 ${selectedCategoryObj.color}`}>
-                      <SelectedIconComp className="w-3.5 h-3.5" />
+                    <div className={`p-1.5 rounded-lg border shrink-0 ${selectedNetworkObj.color}`}>
+                      <SelectedNetworkIconComp className="w-3.5 h-3.5" />
                     </div>
                     <div className="flex flex-col text-left min-w-0">
-                      <span className="truncate text-xs font-semibold text-slate-100">{selectedCategoryObj.label}</span>
-                      <span className="text-[10px] text-slate-400 font-mono truncate">{selectedCategoryObj.badge}</span>
+                      <span className="truncate text-xs font-semibold text-slate-100">{selectedNetworkObj.label}</span>
+                      <span className="text-[10px] text-slate-400 font-mono truncate">{selectedNetworkObj.badge}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
-                      {selectedCategory === 'All'
+                      {selectedNetwork === 'All'
                         ? reviews.length
-                        : reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length}
+                        : reviews.filter(r => r.network && r.network.toLowerCase() === selectedNetwork.toLowerCase()).length}
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isNetworkDropdownOpen ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
 
                 <AnimatePresence>
-                  {isCategoryDropdownOpen && (
+                  {isNetworkDropdownOpen && (
                     <motion.div
                       initial={{ opacity: 0, y: -6, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -6, scale: 0.98 }}
                       transition={{ duration: 0.18, ease: 'easeOut' }}
-                      className="absolute left-0 right-0 top-full mt-2 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_25px_rgba(0,229,255,0.2)] overflow-hidden z-50 py-1.5 divide-y divide-slate-800/80 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-cyan/30"
+                      className="absolute left-0 right-0 top-full mt-1.5 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden z-50 py-1.5 divide-y divide-slate-800/80 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-cyan/30"
                       role="listbox"
                     >
-                      {CATEGORY_OPTIONS.map((opt) => {
+                      {NETWORK_OPTIONS.map((opt) => {
                         const count = opt.value === 'All'
                           ? reviews.length
-                          : reviews.filter(r => r.category === opt.value || r.category.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(r.category.toLowerCase())).length;
-                        const isSelected = selectedCategory === opt.value;
-                        const IconComp = opt.icon;
+                          : reviews.filter(r => r.network && r.network.toLowerCase() === opt.value.toLowerCase()).length;
+                        const isSelected = selectedNetwork === opt.value;
+                        const NetIconComp = opt.icon;
 
                         return (
                           <button
                             key={opt.value}
                             type="button"
                             onClick={() => {
-                              setSelectedCategory(opt.value);
-                              setIsCategoryDropdownOpen(false);
+                              setSelectedNetwork(opt.value);
+                              setIsNetworkDropdownOpen(false);
                             }}
-                            className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
+                            className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
                               isSelected
-                                ? 'bg-emerald-500/10 text-emerald-300 font-semibold border-l-4 border-emerald-400'
+                                ? 'bg-cyber-cyan/15 text-white font-semibold border-l-4 border-cyber-cyan'
                                 : 'text-slate-300 hover:bg-slate-800/80 hover:text-slate-100'
                             }`}
                             role="option"
                             aria-selected={isSelected}
                           >
                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                              <div className={`p-1.5 rounded-lg border shrink-0 ${opt.color}`}>
-                                <IconComp className="w-3.5 h-3.5" />
+                              <div className={`p-1 rounded-lg border shrink-0 ${opt.color}`}>
+                                <NetIconComp className="w-3.5 h-3.5" />
                               </div>
                               <div className="flex flex-col min-w-0">
                                 <span className="font-sans text-xs font-medium truncate">{opt.label}</span>
@@ -1002,14 +1085,12 @@ export default function BlogPreviewer({
                             <div className="flex items-center gap-2 shrink-0">
                               <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold ${
                                 isSelected
-                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/40'
                                   : 'bg-slate-950/80 text-slate-400 border-white/10'
                               }`}>
                                 {count}
                               </span>
-                              {isSelected && (
-                                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                              )}
+                              {isSelected && <Check className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />}
                             </div>
                           </button>
                         );
@@ -1018,29 +1099,179 @@ export default function BlogPreviewer({
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Desktop Horizontal Network Pills */}
+              <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[11px] font-mono">
+                {NETWORK_OPTIONS.map((opt) => {
+                  const isSelected = selectedNetwork === opt.value;
+                  const isRH = opt.value === 'Robinhood Chain';
+                  const count = opt.value === 'All'
+                    ? reviews.length
+                    : reviews.filter(r => r.network && r.network.toLowerCase() === opt.value.toLowerCase()).length;
+                  const NetIcon = opt.icon;
+
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSelectedNetwork(opt.value)}
+                      className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer font-bold flex items-center gap-1.5 border ${
+                        isSelected
+                          ? isRH
+                            ? 'bg-emerald-400 text-slate-950 border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.4)]'
+                            : 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.3)]'
+                          : isRH
+                            ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/35 hover:bg-emerald-900/60'
+                            : 'bg-cyber-bg-primary text-cyber-text-secondary hover:text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/35'
+                      }`}
+                    >
+                      <NetIcon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{opt.label}</span>
+                      <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full ${
+                        isSelected 
+                          ? 'bg-slate-950/80 text-white' 
+                          : 'bg-slate-900 text-slate-400 border border-white/5'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Desktop Horizontal Pill Bar (visible on sm+) */}
-            <div className="hidden sm:flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs font-mono text-cyber-text-muted shrink-0 uppercase tracking-wider">
-                <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
-                <span>Category Filter:</span>
+            {/* Divider */}
+            <div className="border-t border-cyber-cyan/10"></div>
+
+            {/* 2. Category Filter */}
+            <div className="space-y-2">
+              {/* Mobile View Layout (< sm) */}
+              <div className="sm:hidden space-y-2" ref={categoryDropdownRef}>
+                <div className="flex items-center justify-between gap-2 text-xs font-mono text-cyber-text-muted uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
+                    <span className="font-bold text-slate-300">Category Filter</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-full font-mono">
+                    {selectedCategory === 'All'
+                      ? `${reviews.length} Projects`
+                      : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Projects`}
+                  </span>
+                </div>
+
+                {/* Custom Cyber Dropdown Button (Matching Image 2 Style) */}
+                <div className="relative w-full">
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    className="w-full flex items-center justify-between gap-3 bg-slate-950 text-slate-100 font-sans text-xs font-bold px-3 py-2 rounded-xl border border-cyber-cyan/40 hover:border-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.15)] transition-all cursor-pointer"
+                    aria-haspopup="listbox"
+                    aria-expanded={isCategoryDropdownOpen}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pr-1">
+                      <div className={`p-1.5 rounded-lg border shrink-0 ${selectedCategoryObj.color}`}>
+                        <SelectedIconComp className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex flex-col text-left min-w-0">
+                        <span className="truncate text-xs font-semibold text-slate-100">{selectedCategoryObj.label}</span>
+                        <span className="text-[10px] text-slate-400 font-mono truncate">{selectedCategoryObj.badge}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
+                        {selectedCategory === 'All'
+                          ? reviews.length
+                          : reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+
+                  <AnimatePresence>
+                    {isCategoryDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="absolute left-0 right-0 top-full mt-1.5 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden z-50 py-1.5 divide-y divide-slate-800/80 max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-cyan/30"
+                        role="listbox"
+                      >
+                        {CATEGORY_OPTIONS.map((opt) => {
+                          const count = opt.value === 'All'
+                            ? reviews.length
+                            : reviews.filter(r => r.category === opt.value || r.category.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(r.category.toLowerCase())).length;
+                          const isSelected = selectedCategory === opt.value;
+                          const IconComp = opt.icon;
+
+                          return (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCategory(opt.value);
+                                setIsCategoryDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-500/10 text-emerald-300 font-semibold border-l-4 border-emerald-400'
+                                  : 'text-slate-300 hover:bg-slate-800/80 hover:text-slate-100'
+                              }`}
+                              role="option"
+                              aria-selected={isSelected}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                <div className={`p-1.5 rounded-lg border shrink-0 ${opt.color}`}>
+                                  <IconComp className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="font-sans text-xs font-medium truncate">{opt.label}</span>
+                                  <span className="text-[10px] text-slate-400 font-mono truncate">{opt.badge}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold ${
+                                  isSelected
+                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                    : 'bg-slate-950/80 text-slate-400 border-white/10'
+                                }`}>
+                                  {count}
+                                </span>
+                                {isSelected && (
+                                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-display whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer ${
-                      selectedCategory === cat 
-                        ? 'bg-cyber-cyan text-cyber-bg-primary shadow-[0_0_12px_rgba(0,229,255,0.25)] font-bold' 
-                        : 'bg-cyber-bg-primary text-cyber-text-secondary hover:text-cyber-text-primary border border-cyber-cyan/15 hover:border-cyber-cyan/30'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+              {/* Desktop Horizontal Pill Bar (visible on sm+) */}
+              <div className="hidden sm:flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs font-mono text-cyber-text-muted shrink-0 uppercase tracking-wider">
+                  <Filter className="w-3.5 h-3.5 text-cyber-cyan" />
+                  <span>Category Filter:</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-display whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer ${
+                        selectedCategory === cat 
+                          ? 'bg-cyber-cyan text-cyber-bg-primary shadow-[0_0_12px_rgba(0,229,255,0.25)] font-bold' 
+                          : 'bg-cyber-bg-primary text-cyber-text-secondary hover:text-cyber-text-primary border border-cyber-cyan/15 hover:border-cyber-cyan/30'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1153,17 +1384,18 @@ export default function BlogPreviewer({
                   ))}
                 </div>
               </div>
-              {(searchQuery || selectedCategory !== 'All') && (
+              {(searchQuery || selectedCategory !== 'All' || selectedNetwork !== 'All') && (
                 <button
                   type="button"
                   onClick={() => {
                     setSearchQuery('');
                     setSelectedCategory('All');
+                    setSelectedNetwork('All');
                   }}
                   className="px-4 py-2 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan font-mono text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.15)]"
                 >
                   <X className="w-3.5 h-3.5" />
-                  <span>Reset All Search Filters</span>
+                  <span>Reset All Filters</span>
                 </button>
               )}
             </div>
@@ -1226,6 +1458,11 @@ export default function BlogPreviewer({
                                         <span className="truncate">{rev.name}</span>
                                         <span className="text-[11px] font-mono text-cyber-text-secondary font-normal uppercase shrink-0">({rev.symbol})</span>
                                       </h3>
+                                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        <span className={`text-[8.5px] font-mono font-bold px-1.5 py-0.2 rounded border ${getNetworkBadge(rev.network).badgeClass}`}>
+                                          {getNetworkBadge(rev.network).label}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
 
@@ -1386,6 +1623,11 @@ export default function BlogPreviewer({
                                       <span className="truncate">{rev.name}</span>
                                       <span className="text-[11px] font-mono text-cyber-text-secondary font-normal uppercase shrink-0">({rev.symbol})</span>
                                     </h3>
+                                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                      <span className={`text-[8.5px] font-mono font-bold px-1.5 py-0.2 rounded border ${getNetworkBadge(rev.network).badgeClass}`}>
+                                        {getNetworkBadge(rev.network).label}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -1858,9 +2100,15 @@ export default function BlogPreviewer({
                   }}
                 />
                 <div className="text-left">
-                  <span className="inline-block bg-cyber-cyan/10 border border-cyber-cyan/25 text-[10px] font-mono text-cyber-cyan px-2.5 py-0.5 rounded-full uppercase tracking-widest mb-1">
-                    {activeReview.category}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                    <span className="inline-block bg-cyber-cyan/10 border border-cyber-cyan/25 text-[10px] font-mono text-cyber-cyan px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+                      {activeReview.category}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 border text-[10px] font-mono px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold ${getNetworkBadge(activeReview.network).badgeClass}`}>
+                      <Globe className="w-3 h-3 shrink-0" />
+                      <span>{getNetworkBadge(activeReview.network).label}</span>
+                    </span>
+                  </div>
                   <h1 className="font-display font-extrabold text-lg md:text-2xl text-cyber-text-primary tracking-wide leading-tight">
                     {activeReview.name} ({activeReview.symbol}) Tokenomics Assessment and Technical Indicators
                   </h1>

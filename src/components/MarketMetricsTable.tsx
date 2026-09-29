@@ -25,6 +25,7 @@ import { useCurrency } from '../context/CurrencyContext';
 export interface MarketMetricsData {
   name: string;
   symbol: string;
+  network?: string;
   livePrice?: number;
   cmcPrice?: number;
   csPrice?: number;
@@ -231,6 +232,15 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
             {name} ({symbol})
           </span>
+          {data.network && (
+            <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border ${
+              data.network === 'Robinhood Chain'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : 'bg-slate-900 text-slate-300 border-slate-700'
+            }`}>
+              {data.network === 'Robinhood Chain' ? 'Robinhood Chain (Orbit L2)' : data.network}
+            </span>
+          )}
 
           {/* Live Price Consensus Pill */}
           {livePrice > 0 && (

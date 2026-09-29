@@ -11,6 +11,7 @@ const RAW_REVIEWS: CryptoReview[] = [
     id: 'zama-fhe-confidential-computing',
     coingeckoId: 'zama',
     defiLlamaSlug: 'zama',
+    network: 'Ethereum',
     name: 'Zama',
     symbol: 'ZAMA',
     category: 'Privacy / FHE Cryptography',
@@ -54,6 +55,7 @@ Zama is a technically superior project with a clear moat in the FHE space. The p
     coingeckoId: 'hyperliquid',
     contractAddress: '0x933100344b5ff4f938da64e6da485121e4a3176d',
     chainId: '42161',
+    network: 'Arbitrum',
     defiLlamaSlug: 'hyperliquid',
     name: 'Hyperliquid',
     symbol: 'HYPE',
@@ -111,6 +113,7 @@ Hyperliquid has set a new standard for decentralized trading experience. Its hyb
     coingeckoId: 'arbitrum',
     contractAddress: '0xb50721fce8d6645b8109346c322b7a2d67718042',
     chainId: '1',
+    network: 'Arbitrum',
     defiLlamaSlug: 'arbitrum-bridge',
     name: 'Arbitrum',
     symbol: 'ARB',
@@ -155,6 +158,7 @@ With dominant TVL, robust developer activity, and mature infrastructure, Arbitru
     coingeckoId: 'uniswap',
     contractAddress: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
     chainId: '1',
+    network: 'Ethereum',
     defiLlamaSlug: 'uniswap',
     name: 'Uniswap',
     symbol: 'UNI',
@@ -199,6 +203,7 @@ Uniswap is the critical core infrastructure of decentralized finance. Its securi
     coingeckoId: 'render-token',
     contractAddress: '0x6b772bd9d7cf4e28ee9d9f1bcda4094a4087e5b1',
     chainId: '1',
+    network: 'Solana',
     name: 'Render Network',
     symbol: 'RENDER',
     category: 'DePIN / Compute',
@@ -240,6 +245,7 @@ Render Network is a premier example of Web3 delivering tangible, real-world util
   {
     id: 'solana-high-performance-monolith',
     coingeckoId: 'solana',
+    network: 'Solana',
     name: 'Solana',
     symbol: 'SOL',
     category: 'Smart Contract / L1',
@@ -283,6 +289,7 @@ Solana represents the gold standard of user-friendly, high-throughput cryptograp
     coingeckoId: 'chainlink',
     contractAddress: '0x514910771af9ca656af840dff83e8264ecf986ca',
     chainId: '1',
+    network: 'Ethereum',
     defiLlamaSlug: 'chainlink',
     name: 'Chainlink',
     symbol: 'LINK',
@@ -327,6 +334,7 @@ Chainlink is as close to a utility "blue-chip" as Web3 has. Its industry-wide tr
     coingeckoId: 'sui',
     contractAddress: '0x2::sui::SUI',
     chainId: 'sui',
+    network: 'Sui',
     defiLlamaSlug: 'suibridge',
     name: 'Sui Network',
     symbol: 'SUI',
@@ -369,6 +377,7 @@ With unmatched horizontal throughput, superior developer ergonomics, and seamles
   {
     id: 'kaspa-proof-of-work-blockdag',
     coingeckoId: 'kaspa',
+    network: 'Kaspa',
     name: 'Kaspa',
     symbol: 'KAS',
     category: 'Layer 1 / BlockDAG',
@@ -412,6 +421,7 @@ Kaspa represents the evolution of Proof-of-Work technology, combining Satoshi's 
     coingeckoId: 'jupiter-exchange-solana',
     contractAddress: 'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN',
     chainId: 'solana',
+    network: 'Solana',
     defiLlamaSlug: 'jupiter',
     name: 'Jupiter',
     symbol: 'JUP',
@@ -449,6 +459,47 @@ Jupiter is a highly functional DeFi powerhouse with unmatched ecosystem integrat
       'High fully diluted valuation (FDV) relative to circulating supply, presenting structural sell pressure from future unlock schedules.',
       'JUP token utility is primarily restricted to governance, lacking direct, systemic fee-accrual mechanisms to align token value with protocol revenue.',
       'Systemic dependency on Solana network uptime and Pyth/Switchboard oracle latency, exposing the perpetuals platform to liquidation cascade risks during periods of extreme network congestion.'
+    ]
+  },
+  {
+    id: 'robinhood-chain-l2-orbit',
+    coingeckoId: 'robinhood-markets',
+    contractAddress: '0x889812A4a5d3fFe225d36eB54e6Fe0C4c7604E2b',
+    chainId: 'robinhood',
+    network: 'Robinhood Chain',
+    name: 'Robinhood Chain',
+    symbol: 'HOOD',
+    category: 'RWA (Tokenization / TradFi Bridge)',
+    overallScore: 89,
+    verdict: 'Robinhood Chain serves as an institutional Arbitrum Orbit Layer 2 environment purpose-built for compliant tokenized US equities, 24/7 financial assets settlement, and self-custodial web3 trading.',
+    scores: {
+      utility: 9,
+      tokenomics: 8,
+      security: 9,
+      team: 9,
+      community: 9,
+    },
+    riskLevel: 'Low',
+    createdAt: '2026-09-29',
+    author: 'Crypto Review Lab Quantitative Desk',
+    logoUrl: 'https://coin-images.coingecko.com/coins/images/31876/large/bHOOD_200p.png',
+    summary: `### Core Thesis
+Robinhood Chain is an institutional Arbitrum Orbit Layer 2 execution environment tailored for tokenized securities, real-world assets (RWA), and on-chain equity trading. By combining traditional US broker-dealer custody with Ethereum and Arbitrum smart contract rails, Robinhood Chain establishes compliant tokenization primitives for global capital markets.
+
+### Market & Utility Analysis
+The network bridges trillions in traditional capital markets into decentralized finance. Tokenized equities issued on Robinhood Chain benefit from 24/7 liquidity, instant settlement finality, sub-cent gas fees, and cryptographic proof-of-reserves directly tied to Alpaca and Depository Trust & Clearing Corporation (DTCC) custodians.
+
+### Security & Architecture
+Operating as an Arbitrum Orbit rollup settling to Ethereum, Robinhood Chain inherits battle-tested Nitro execution and EVM equivalence, allowing seamless deployment of ERC-20 tokenized stock wrappers and institutional DeFi liquidity pools.`,
+    pros: [
+      'Institutional bridge bringing millions of retail brokerage accounts to on-chain tokenized equities.',
+      'Arbitrum Orbit Nitro architecture with high-speed execution and negligible gas fees.',
+      'Regulated US equity broker-dealer backing with audited proof-of-reserves.'
+    ],
+    cons: [
+      'Regulatory compliance requirements may necessitate KYC/permissioning on primary minting gates.',
+      'Centralized sequencer governance during initial rollout phases.',
+      'Dependent on underlying TradFi settlement hours for primary creation/redemption batches.'
     ]
   }
 ];
