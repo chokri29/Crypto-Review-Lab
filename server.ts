@@ -28,6 +28,7 @@ import {
   PRINCIPAL_EMAIL 
 } from "./src/services/proOrderService.js";
 import { signAuditReportServerSide, verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
+import { adminAuth } from "./src/lib/firebase-admin.ts";
 import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
 import { getOrCreateUser, getUserByUid } from "./src/db/users.ts";
 import { 
@@ -1174,21 +1175,22 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
       ? authHeader.slice(7).trim()
       : "";
 
-    const sessionHeader = String(
-      bearerToken ||
-      req.headers["x-admin-session"] ||
-      req.headers["x-session-token"] || 
-      req.body?.sessionToken || 
-      ""
-    ).trim();
+    const candidates = [
+      bearerToken,
+      req.headers["x-admin-session"] as string,
+      req.headers["x-session-token"] as string,
+      req.body?.sessionToken as string
+    ].filter(Boolean);
 
-    if (sessionHeader) {
-      const session = activeAdminSessions.get(sessionHeader);
+    for (const cand of candidates) {
+      const clean = String(cand).trim();
+      if (!clean) continue;
+      const session = activeAdminSessions.get(clean);
       if (session) {
         if (Date.now() <= session.expiresAt) {
           return true;
         } else {
-          activeAdminSessions.delete(sessionHeader);
+          activeAdminSessions.delete(clean);
         }
       }
     }
@@ -3522,16 +3524,92 @@ ${dualSyncContext}`;
     }
   });
 
-  app.post("/api/db/reviews", requireAuth, async (req: AuthRequest, res) => {
+  app.post("/api/db/reviews", async (req: express.Request, res) => {
     try {
+      // 1. Guard route: must be an authorized admin (active admin session or admin user)
+      let isAdmin = isAuthorizedAdmin(req);
+      let userUid: string | undefined = undefined;
+
+      const authHeader = req.headers["authorization"];
+      if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.slice(7).trim();
+        try {
+          const decoded = await adminAuth.verifyIdToken(token);
+          if (decoded?.uid) {
+            userUid = decoded.uid;
+            if (!isAdmin) {
+              const dbUser = await getUserByUid(decoded.uid);
+              if (dbUser && dbUser.role === 'admin') {
+                isAdmin = true;
+              }
+            }
+          }
+        } catch {
+          // Token is not a Firebase token
+        }
+      }
+
+      if (!isAdmin) {
+        return res.status(401).json({ error: "Unauthorized: Admin privileges required." });
+      }
+
       const review = req.body;
       if (!review || !review.reviewId || !review.name || !review.symbol) {
         return res.status(400).json({ error: "reviewId, name, and symbol are required." });
       }
+
+      // 2. Do not accept overallScore, riskLevel, verdict, or scores from client.
+      // Strip client-supplied scores to prevent privilege escalation / score tampering.
+      const {
+        overallScore: _clientScore,
+        riskLevel: _clientRisk,
+        verdict: _clientVerdict,
+        scores: _clientScores,
+        ...safeReview
+      } = review;
+
+      // Recompute server-side from canonical data if matching review exists in INITIAL_REVIEWS
+      let overallScore: number | undefined = undefined;
+      let riskLevel: string | undefined = undefined;
+      let verdict: string | undefined = undefined;
+      let scores: any = undefined;
+
+      const canonical = INITIAL_REVIEWS.find(r => 
+        (r.id && safeReview.reviewId && r.id.toLowerCase() === String(safeReview.reviewId).toLowerCase()) ||
+        (r.symbol && safeReview.symbol && r.symbol.toUpperCase() === String(safeReview.symbol).toUpperCase())
+      );
+
+      if (canonical && canonical.scores) {
+        const bp = calculateBlueprintScore(canonical.scores, safeReview.category || canonical.category);
+        overallScore = bp.overallScore;
+        riskLevel = bp.riskLevel;
+        verdict = canonical.verdict || (bp.overallScore >= 80 ? 'Approved: Strong Architectural Fundamentals' : bp.overallScore >= 60 ? 'Conditional: Moderate Structural Risk' : 'High Risk: Significant Architectural Deficits');
+        scores = canonical.scores;
+      } else if (canonical && typeof canonical.overallScore === 'number') {
+        overallScore = canonical.overallScore;
+        riskLevel = canonical.riskLevel;
+        verdict = canonical.verdict;
+      }
+
       const saved = await upsertDbReview({
-        ...review,
-        userUid: req.user?.uid
+        reviewId: String(safeReview.reviewId),
+        name: String(safeReview.name),
+        symbol: String(safeReview.symbol).toUpperCase(),
+        category: safeReview.category ? String(safeReview.category) : undefined,
+        network: safeReview.network ? String(safeReview.network) : undefined,
+        contractAddress: safeReview.contractAddress ? String(safeReview.contractAddress) : undefined,
+        summary: safeReview.summary ? String(safeReview.summary) : undefined,
+        pros: Array.isArray(safeReview.pros) ? safeReview.pros : undefined,
+        cons: Array.isArray(safeReview.cons) ? safeReview.cons : undefined,
+        securityScan: safeReview.securityScan || undefined,
+        userUid,
+        // Server-side recomputed scores only (never from client request body)
+        overallScore,
+        riskLevel,
+        verdict,
+        scores,
       });
+
       res.json(saved);
     } catch (error: any) {
       console.error("Failed to save database review:", error);
