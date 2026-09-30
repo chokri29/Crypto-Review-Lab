@@ -1432,6 +1432,9 @@ export default function App() {
 
             {/* Quick header controls & global currency selector */}
             <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 text-xs font-orbitron uppercase tracking-wider w-full sm:w-auto shrink-0">
+              {/* User Authentication Button */}
+              <UserAuthButton />
+
               {/* Unified Sleek Fiat Currency Dropdown */}
               <CurrencyDropdown />
 

@@ -28,6 +28,17 @@ import {
   PRINCIPAL_EMAIL 
 } from "./src/services/proOrderService.js";
 import { signAuditReportServerSide, verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
+import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
+import { getOrCreateUser, getUserByUid } from "./src/db/users.ts";
+import { 
+  getDbReviews, 
+  upsertDbReview, 
+  getDbOrders, 
+  upsertDbOrder, 
+  getUserWatchlist, 
+  addToWatchlist, 
+  removeFromWatchlist 
+} from "./src/db/queries.ts";
 
 if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
@@ -3416,6 +3427,104 @@ ${dualSyncContext}`;
     } catch (error: any) {
       console.error("Failed to generate sitemap.xml:", error);
       res.status(500).send("Error generating sitemap.");
+    }
+  });
+
+  // --- Cloud SQL (PostgreSQL) & Firebase Auth Endpoints ---
+
+  // 1. Current Authenticated User (Sync with PostgreSQL users table)
+  app.get("/api/auth/me", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const decoded = req.user;
+      if (!decoded || !decoded.uid || !decoded.email) {
+        return res.status(400).json({ error: "Invalid user token claims." });
+      }
+      const user = await getOrCreateUser(
+        decoded.uid, 
+        decoded.email, 
+        (decoded as any).name || null, 
+        (decoded as any).picture || null
+      );
+      res.json(user);
+    } catch (error: any) {
+      console.error("Failed to sync/retrieve authenticated user:", error);
+      res.status(500).json({ error: "Failed to sync user profile" });
+    }
+  });
+
+  // 2. User Watchlist (PostgreSQL)
+  app.get("/api/user/watchlist", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const uid = req.user?.uid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+      const watchlist = await getUserWatchlist(uid);
+      res.json(watchlist);
+    } catch (error: any) {
+      console.error("Failed to fetch user watchlist:", error);
+      res.status(500).json({ error: "Failed to fetch watchlist" });
+    }
+  });
+
+  app.post("/api/user/watchlist", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const uid = req.user?.uid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+      const { symbol, name, category, network } = req.body;
+      if (!symbol || !name) {
+        return res.status(400).json({ error: "Symbol and name are required." });
+      }
+      const item = await addToWatchlist({
+        userUid: uid,
+        symbol,
+        name,
+        category,
+        network
+      });
+      res.json(item);
+    } catch (error: any) {
+      console.error("Failed to add to watchlist:", error);
+      res.status(500).json({ error: "Failed to update watchlist" });
+    }
+  });
+
+  app.delete("/api/user/watchlist/:symbol", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const uid = req.user?.uid;
+      if (!uid) return res.status(401).json({ error: "Unauthorized" });
+      const { symbol } = req.params;
+      await removeFromWatchlist(uid, symbol);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Failed to remove from watchlist:", error);
+      res.status(500).json({ error: "Failed to update watchlist" });
+    }
+  });
+
+  // 3. Database Reviews (PostgreSQL)
+  app.get("/api/db/reviews", async (req, res) => {
+    try {
+      const dbReviews = await getDbReviews();
+      res.json(dbReviews);
+    } catch (error: any) {
+      console.error("Failed to fetch database reviews:", error);
+      res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post("/api/db/reviews", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const review = req.body;
+      if (!review || !review.reviewId || !review.name || !review.symbol) {
+        return res.status(400).json({ error: "reviewId, name, and symbol are required." });
+      }
+      const saved = await upsertDbReview({
+        ...review,
+        userUid: req.user?.uid
+      });
+      res.json(saved);
+    } catch (error: any) {
+      console.error("Failed to save database review:", error);
+      res.status(500).json({ error: "Failed to save review" });
     }
   });
 
