@@ -72,16 +72,30 @@ export interface NetworkOption {
   badge: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
+  chainId?: number | string;
+  gasToken?: string;
+  nativeToken?: string;
+  explorer?: string;
 }
 
 export const NETWORK_OPTIONS: NetworkOption[] = [
   { value: 'All', label: 'All Networks', badge: 'All Blockchains', icon: Globe, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
-  { value: 'Robinhood Chain', label: 'Robinhood Chain', badge: 'Arbitrum Orbit L2 (RWA)', icon: Building2, color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { value: 'Ethereum', label: 'Ethereum', badge: 'EVM Layer 1', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
-  { value: 'Arbitrum', label: 'Arbitrum', badge: 'Arbitrum One / L2', icon: Zap, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { value: 'Solana', label: 'Solana', badge: 'High-Throughput L1', icon: Zap, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-  { value: 'Sui', label: 'Sui Network', badge: 'Move Object L1', icon: ShieldCheck, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20' },
-  { value: 'Kaspa', label: 'Kaspa', badge: 'GHOSTDAG BlockDAG', icon: Cpu, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { 
+    value: 'Robinhood Chain', 
+    label: 'Robinhood Chain', 
+    badge: 'Arbitrum Orbit L2 (Chain 4663)', 
+    icon: Building2, 
+    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    chainId: 4663,
+    gasToken: 'ETH',
+    nativeToken: 'none',
+    explorer: 'https://robinhoodchain.blockscout.com'
+  },
+  { value: 'Ethereum', label: 'Ethereum', badge: 'EVM Layer 1', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', chainId: 1, gasToken: 'ETH', nativeToken: 'ETH', explorer: 'https://etherscan.io' },
+  { value: 'Arbitrum', label: 'Arbitrum', badge: 'Arbitrum One / L2', icon: Zap, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20', chainId: 42161, gasToken: 'ETH', nativeToken: 'ARB', explorer: 'https://arbiscan.io' },
+  { value: 'Solana', label: 'Solana', badge: 'High-Throughput L1', icon: Zap, color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', chainId: 'solana', gasToken: 'SOL', nativeToken: 'SOL', explorer: 'https://solscan.io' },
+  { value: 'Sui', label: 'Sui Network', badge: 'Move Object L1', icon: ShieldCheck, color: 'text-teal-400 bg-teal-500/10 border-teal-500/20', chainId: 'sui', gasToken: 'SUI', nativeToken: 'SUI', explorer: 'https://suiscan.xyz' },
+  { value: 'Kaspa', label: 'Kaspa', badge: 'GHOSTDAG BlockDAG', icon: Cpu, color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', chainId: 'kaspa', gasToken: 'KAS', nativeToken: 'KAS', explorer: 'https://explorer.kaspa.org' },
 ];
 
 export function getNetworkBadge(network?: string): { label: string; badgeClass: string } {

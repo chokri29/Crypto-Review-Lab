@@ -22,6 +22,52 @@ import {
 import { MultiSourceConvergenceReport } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
 
+export interface NetworkMetadata {
+  chainId?: number | string;
+  gasToken?: string;
+  nativeToken?: string;
+  explorer?: string;
+}
+
+export const NETWORK_METADATA: Record<string, NetworkMetadata> = {
+  'Robinhood Chain': {
+    chainId: 4663,
+    gasToken: 'ETH',
+    nativeToken: 'none',
+    explorer: 'https://robinhoodchain.blockscout.com'
+  },
+  'Ethereum': {
+    chainId: 1,
+    gasToken: 'ETH',
+    nativeToken: 'ETH',
+    explorer: 'https://etherscan.io'
+  },
+  'Arbitrum': {
+    chainId: 42161,
+    gasToken: 'ETH',
+    nativeToken: 'ARB',
+    explorer: 'https://arbiscan.io'
+  },
+  'Solana': {
+    chainId: 'solana',
+    gasToken: 'SOL',
+    nativeToken: 'SOL',
+    explorer: 'https://solscan.io'
+  },
+  'Sui': {
+    chainId: 'sui',
+    gasToken: 'SUI',
+    nativeToken: 'SUI',
+    explorer: 'https://suiscan.xyz'
+  },
+  'Kaspa': {
+    chainId: 'kaspa',
+    gasToken: 'KAS',
+    nativeToken: 'KAS',
+    explorer: 'https://explorer.kaspa.org'
+  }
+};
+
 export interface MarketMetricsData {
   name: string;
   symbol: string;
@@ -233,11 +279,18 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
             {name} ({symbol})
           </span>
           {data.network && (
-            <span className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border ${
-              data.network === 'Robinhood Chain'
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : 'bg-slate-900 text-slate-300 border-slate-700'
-            }`}>
+            <span 
+              className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border ${
+                data.network === 'Robinhood Chain'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : 'bg-slate-900 text-slate-300 border-slate-700'
+              }`}
+              title={
+                data.network === 'Robinhood Chain'
+                  ? 'Arbitrum Orbit L2 | Chain ID: 4663 | Gas: ETH | Native Token: none | Explorer: https://robinhoodchain.blockscout.com'
+                  : (NETWORK_METADATA[data.network]?.explorer || data.network)
+              }
+            >
               {data.network === 'Robinhood Chain' ? 'Robinhood Chain (Orbit L2)' : data.network}
             </span>
           )}

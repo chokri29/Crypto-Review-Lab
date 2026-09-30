@@ -460,47 +460,6 @@ Jupiter is a highly functional DeFi powerhouse with unmatched ecosystem integrat
       'JUP token utility is primarily restricted to governance, lacking direct, systemic fee-accrual mechanisms to align token value with protocol revenue.',
       'Systemic dependency on Solana network uptime and Pyth/Switchboard oracle latency, exposing the perpetuals platform to liquidation cascade risks during periods of extreme network congestion.'
     ]
-  },
-  {
-    id: 'robinhood-chain-l2-orbit',
-    coingeckoId: 'robinhood-markets',
-    contractAddress: '0x889812A4a5d3fFe225d36eB54e6Fe0C4c7604E2b',
-    chainId: 'robinhood',
-    network: 'Robinhood Chain',
-    name: 'Robinhood Chain',
-    symbol: 'HOOD',
-    category: 'RWA (Tokenization / TradFi Bridge)',
-    overallScore: 89,
-    verdict: 'Robinhood Chain serves as an institutional Arbitrum Orbit Layer 2 environment purpose-built for compliant tokenized US equities, 24/7 financial assets settlement, and self-custodial web3 trading.',
-    scores: {
-      utility: 9,
-      tokenomics: 8,
-      security: 9,
-      team: 9,
-      community: 9,
-    },
-    riskLevel: 'Low',
-    createdAt: '2026-09-29',
-    author: 'Crypto Review Lab Quantitative Desk',
-    logoUrl: 'https://coin-images.coingecko.com/coins/images/31876/large/bHOOD_200p.png',
-    summary: `### Core Thesis
-Robinhood Chain is an institutional Arbitrum Orbit Layer 2 execution environment tailored for tokenized securities, real-world assets (RWA), and on-chain equity trading. By combining traditional US broker-dealer custody with Ethereum and Arbitrum smart contract rails, Robinhood Chain establishes compliant tokenization primitives for global capital markets.
-
-### Market & Utility Analysis
-The network bridges trillions in traditional capital markets into decentralized finance. Tokenized equities issued on Robinhood Chain benefit from 24/7 liquidity, instant settlement finality, sub-cent gas fees, and cryptographic proof-of-reserves directly tied to Alpaca and Depository Trust & Clearing Corporation (DTCC) custodians.
-
-### Security & Architecture
-Operating as an Arbitrum Orbit rollup settling to Ethereum, Robinhood Chain inherits battle-tested Nitro execution and EVM equivalence, allowing seamless deployment of ERC-20 tokenized stock wrappers and institutional DeFi liquidity pools.`,
-    pros: [
-      'Institutional bridge bringing millions of retail brokerage accounts to on-chain tokenized equities.',
-      'Arbitrum Orbit Nitro architecture with high-speed execution and negligible gas fees.',
-      'Regulated US equity broker-dealer backing with audited proof-of-reserves.'
-    ],
-    cons: [
-      'Regulatory compliance requirements may necessitate KYC/permissioning on primary minting gates.',
-      'Centralized sequencer governance during initial rollout phases.',
-      'Dependent on underlying TradFi settlement hours for primary creation/redemption batches.'
-    ]
   }
 ];
 

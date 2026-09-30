@@ -278,7 +278,7 @@ export default function XStockVerificationPanel({
       return `https://bscscan.com/token/${selectedStock.contractAddress}`;
     }
     if (selectedStock.chain === 'Robinhood Chain') {
-      return `https://explorer.robinhood.com/address/${selectedStock.contractAddress}`;
+      return `https://robinhoodchain.blockscout.com/address/${selectedStock.contractAddress}`;
     }
     return `https://blockscan.com/address/${selectedStock.contractAddress}`;
   }, [selectedStock.contractAddress, selectedStock.chain, isSolana]);

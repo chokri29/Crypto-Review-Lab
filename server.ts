@@ -1638,7 +1638,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     if (str === "324" || str === "zksync") return "324";
     if (str === "25" || str === "cronos") return "25";
     if (str === "100" || str === "gnosis") return "100";
-    if (str === "robinhood" || str === "robinhood-chain" || str === "robinhood chain" || str === "rh" || str === "rh-chain") return "robinhood";
+    if (str === "robinhood" || str === "robinhood-chain" || str === "robinhood chain" || str === "rh" || str === "rh-chain" || str === "4663" || str === "0x1237") return "4663";
     if (/^\d+$/.test(str)) return str;
     return str;
   }
@@ -1752,10 +1752,11 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     } else if (isSui) {
       goPlusUrl = `https://api.gopluslabs.io/api/v1/sui/token_security?contract_addresses=${encodeURIComponent(contractAddress)}`;
     } else {
-      if (!SUPPORTED_GOPLUS_EVM_CHAINS.has(chainId)) {
+      const resolvedChain = resolveEvmChainId(chainId);
+      if (!SUPPORTED_GOPLUS_EVM_CHAINS.has(resolvedChain)) {
         return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by GoPlus Security` };
       }
-      goPlusUrl = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${encodeURIComponent(contractAddress)}`;
+      goPlusUrl = `https://api.gopluslabs.io/api/v1/token_security/${resolvedChain}?contract_addresses=${encodeURIComponent(contractAddress)}`;
     }
 
     try {

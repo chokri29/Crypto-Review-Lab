@@ -540,6 +540,7 @@ export default function XStocksPage() {
   const availableChains = useMemo(() => {
     const set = new Set<string>();
     XSTOCKS_REGISTRY.forEach(s => set.add(s.chain));
+    set.add('Robinhood Chain');
     return ['All', ...Array.from(set)];
   }, []);
 
@@ -760,10 +761,14 @@ export default function XStocksPage() {
               {filteredStocks.length === 0 ? (
                 <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
                   <p className="text-slate-300 text-xs font-mono font-bold">
-                    No matching xStocks found
+                    {chainFilter === 'Robinhood Chain' 
+                      ? '0 Assets on Robinhood Chain' 
+                      : 'No matching xStocks found'}
                   </p>
                   <p className="text-slate-500 text-[11px] font-mono">
-                    Try adjusting your search query, network source, or category filter.
+                    {chainFilter === 'Robinhood Chain'
+                      ? 'Awaiting token contract verification on robinhoodchain.blockscout.com with active proof-of-reserves.'
+                      : 'Try adjusting your search query, network source, or category filter.'}
                   </p>
                 </div>
               ) : (
