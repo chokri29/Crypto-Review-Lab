@@ -221,6 +221,64 @@ export default function BlogPreviewer({
   const [showSyncToast, setShowSyncToast] = useState(false);
   const [localActiveReviewId, setLocalActiveReviewId] = useState<string | null>(null);
   const { formatPrice: ctxFormatPrice, selectedCurrency } = useCurrency();
+  const [networkCounts, setNetworkCounts] = useState<Record<string, number>>({});
+  const [networkMetricsList, setNetworkMetricsList] = useState<any[]>([]);
+  const [pipelineTelemetry, setPipelineTelemetry] = useState<any>(null);
+  const [isSyncingPipeline, setIsSyncingPipeline] = useState(false);
+
+  const loadMarketIntelligenceFeed = () => {
+    fetch('/api/market-intelligence/feed')
+      .then(r => r.ok ? r.json() : null)
+      .then((feed) => {
+        if (feed) {
+          if (Array.isArray(feed.networks) && feed.networks.length > 0) {
+            setNetworkMetricsList(feed.networks);
+            const counts: Record<string, number> = {};
+            for (const net of feed.networks) {
+              counts[net.network.toLowerCase()] = net.activeAssetsCount ?? 0;
+            }
+            setNetworkCounts(counts);
+          }
+          if (Array.isArray(feed.telemetryLogs) && feed.telemetryLogs.length > 0) {
+            setPipelineTelemetry(feed.telemetryLogs[0]);
+          }
+        }
+      })
+      .catch(err => console.warn('Failed to load market intelligence feed:', err));
+  };
+
+  useEffect(() => {
+    loadMarketIntelligenceFeed();
+  }, []);
+
+  const triggerPipelineSync = async () => {
+    setIsSyncingPipeline(true);
+    try {
+      const res = await fetch('/api/market-intelligence/sync', { method: 'POST' });
+      if (res.ok) {
+        loadMarketIntelligenceFeed();
+        if (onSyncCoinGecko) onSyncCoinGecko();
+        setShowSyncToast(true);
+        setTimeout(() => setShowSyncToast(false), 3000);
+      }
+    } catch (err) {
+      console.warn('Failed to trigger proactive sync:', err);
+    } finally {
+      setIsSyncingPipeline(false);
+    }
+  };
+
+  const getNetworkAssetCount = (netName: string) => {
+    if (netName === 'All') return reviews.length;
+    const lower = netName.toLowerCase();
+    if (networkCounts[lower] !== undefined) return networkCounts[lower];
+    return reviews.filter(r => r.network && r.network.toLowerCase() === lower).length;
+  };
+
+  const getNetworkTvl = (netName: string) => {
+    const match = networkMetricsList.find(n => n.network.toLowerCase() === netName.toLowerCase());
+    return match?.totalTvlUsd;
+  };
 
   // Watchlist state initialized from localStorage
   const [watchlist, setWatchlist] = useState<string[]>(() => {
@@ -1008,6 +1066,34 @@ export default function BlogPreviewer({
 
           {/* Classification & Filter Bar (Blockchain Networks + Categories) */}
           <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-4 shadow-lg space-y-3.5 relative">
+            {/* Proactive Market Intelligence Pipeline Status Header */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-cyber-cyan/15 text-[11px] font-mono">
+              <div className="flex items-center flex-wrap gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-white font-bold uppercase tracking-wider text-xs">
+                  Cloud SQL Ingestion Pipeline
+                </span>
+                <span className="px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan text-[10px] font-bold border border-cyber-cyan/30">
+                  PostgreSQL Consensus Active
+                </span>
+                {pipelineTelemetry && (
+                  <span className="hidden md:inline text-slate-400 text-[10px] truncate max-w-md">
+                    {pipelineTelemetry.details}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={triggerPipelineSync}
+                disabled={isSyncingPipeline}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors"
+                title="Force proactive multi-source telemetry synchronization"
+              >
+                <RefreshCw className={`w-3 h-3 ${isSyncingPipeline ? 'animate-spin' : ''}`} />
+                <span>{isSyncingPipeline ? 'Syncing...' : 'Sync Pipeline'}</span>
+              </button>
+            </div>
+
             {/* 1. Blockchain Network Classification Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2 text-xs font-mono text-cyber-text-muted uppercase tracking-wider">
@@ -1022,7 +1108,7 @@ export default function BlogPreviewer({
                 }`}>
                   {selectedNetwork === 'All'
                     ? `${reviews.length} Tracked on All Networks`
-                    : `${reviews.filter(r => r.network && r.network.toLowerCase() === selectedNetwork.toLowerCase()).length} on ${selectedNetwork}`}
+                    : `${getNetworkAssetCount(selectedNetwork)} on ${selectedNetwork}`}
                 </span>
               </div>
 
@@ -1046,9 +1132,7 @@ export default function BlogPreviewer({
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
-                      {selectedNetwork === 'All'
-                        ? reviews.length
-                        : reviews.filter(r => r.network && r.network.toLowerCase() === selectedNetwork.toLowerCase()).length}
+                      {getNetworkAssetCount(selectedNetwork)}
                     </span>
                     <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isNetworkDropdownOpen ? 'rotate-180' : ''}`} />
                   </div>
@@ -1065,9 +1149,7 @@ export default function BlogPreviewer({
                       role="listbox"
                     >
                       {NETWORK_OPTIONS.map((opt) => {
-                        const count = opt.value === 'All'
-                          ? reviews.length
-                          : reviews.filter(r => r.network && r.network.toLowerCase() === opt.value.toLowerCase()).length;
+                        const count = getNetworkAssetCount(opt.value);
                         const isSelected = selectedNetwork === opt.value;
                         const NetIconComp = opt.icon;
 
@@ -1119,9 +1201,7 @@ export default function BlogPreviewer({
                 {NETWORK_OPTIONS.map((opt) => {
                   const isSelected = selectedNetwork === opt.value;
                   const isRH = opt.value === 'Robinhood Chain';
-                  const count = opt.value === 'All'
-                    ? reviews.length
-                    : reviews.filter(r => r.network && r.network.toLowerCase() === opt.value.toLowerCase()).length;
+                  const count = getNetworkAssetCount(opt.value);
                   const NetIcon = opt.icon;
 
                   return (
@@ -1141,6 +1221,11 @@ export default function BlogPreviewer({
                     >
                       <NetIcon className="w-3.5 h-3.5 shrink-0" />
                       <span>{opt.label}</span>
+                      {opt.value !== 'All' && getNetworkTvl(opt.value) && (
+                        <span className="text-[8.5px] opacity-80 hidden lg:inline font-mono">
+                          {getNetworkTvl(opt.value)}
+                        </span>
+                      )}
                       <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full ${
                         isSelected 
                           ? 'bg-slate-950/80 text-white' 

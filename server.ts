@@ -37,8 +37,18 @@ import {
   upsertDbOrder, 
   getUserWatchlist, 
   addToWatchlist, 
-  removeFromWatchlist 
+  removeFromWatchlist,
+  getMarketAssets,
+  getLatestMarketSnapshots,
+  getNetworkMetrics,
+  getTelemetrySyncLogs,
+  getMarketSnapshotBySymbol,
+  getHistoricalSnapshots
 } from "./src/db/queries.ts";
+import { 
+  startMarketIntelligenceSyncService, 
+  runMarketIntelligenceSync 
+} from "./src/services/marketIntelligenceEngine.ts";
 
 if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
@@ -3529,6 +3539,92 @@ ${dualSyncContext}`;
     }
   });
 
+  // 4. Market Intelligence Proactive Pipeline Feed (Cloud SQL)
+  let lastSyncTimestamp = 0;
+  const SYNC_DEBOUNCE_MS = 20000; // 20-second throttle for manual triggers
+
+  app.get("/api/market-intelligence/feed", async (req, res) => {
+    try {
+      const [assets, snapshots, networks, telemetryLogs] = await Promise.all([
+        getMarketAssets(),
+        getLatestMarketSnapshots(),
+        getNetworkMetrics(),
+        getTelemetrySyncLogs(10)
+      ]);
+      res.json({
+        assets,
+        snapshots,
+        networks,
+        telemetryLogs,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Failed to fetch market intelligence feed:", error);
+      res.status(500).json({ error: "Failed to fetch market intelligence feed" });
+    }
+  });
+
+  app.get("/api/market-intelligence/networks", async (req, res) => {
+    try {
+      const networks = await getNetworkMetrics();
+      res.json(networks);
+    } catch (error: any) {
+      console.error("Failed to fetch network metrics:", error);
+      res.status(500).json({ error: "Failed to fetch network metrics" });
+    }
+  });
+
+  app.get("/api/market-intelligence/snapshots/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol;
+      if (!symbol) {
+        return res.status(400).json({ error: "Symbol parameter is required." });
+      }
+      const [latest, history] = await Promise.all([
+        getMarketSnapshotBySymbol(symbol),
+        getHistoricalSnapshots(symbol, 20)
+      ]);
+      res.json({
+        symbol: symbol.toUpperCase(),
+        latest,
+        history
+      });
+    } catch (error: any) {
+      console.error(`Failed to fetch snapshots for ${req.params.symbol}:`, error);
+      res.status(500).json({ error: "Failed to fetch symbol snapshots" });
+    }
+  });
+
+  app.get("/api/market-intelligence/telemetry", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const logs = await getTelemetrySyncLogs(limit);
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Failed to fetch telemetry sync logs:", error);
+      res.status(500).json({ error: "Failed to fetch telemetry logs" });
+    }
+  });
+
+  app.post("/api/market-intelligence/sync", async (req, res) => {
+    try {
+      const now = Date.now();
+      if (now - lastSyncTimestamp < SYNC_DEBOUNCE_MS) {
+        return res.json({ 
+          success: true, 
+          message: "Sync already executed recently. Returning current cache.",
+          cached: true 
+        });
+      }
+      lastSyncTimestamp = now;
+      const result = await runMarketIntelligenceSync();
+      res.json(result);
+    } catch (error: any) {
+      console.error("Manual market sync trigger failed:", error);
+      res.status(500).json({ error: "Sync execution failed" });
+    }
+  });
+
   return app;
 }
 
@@ -3626,6 +3722,13 @@ async function startServer() {
       }
       res.sendFile(path.join(distPath, 'index.html'));
     });
+  }
+
+  // Start proactive Market Intelligence ingestion service
+  try {
+    startMarketIntelligenceSyncService();
+  } catch (syncErr) {
+    console.warn("Could not initialize Market Intelligence background service:", syncErr);
   }
 
   app.listen(PORT, "0.0.0.0", () => {

@@ -1,5 +1,5 @@
 import { db } from './index.ts';
-import { cryptoReviews, proOrders, userWatchlists } from './schema.ts';
+import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.ts';
 import { eq, desc, and } from 'drizzle-orm';
 
 // Reviews Queries
@@ -183,6 +183,244 @@ export async function removeFromWatchlist(userUid: string, symbol: string) {
       .where(and(eq(userWatchlists.userUid, userUid), eq(userWatchlists.symbol, symbol)));
   } catch (error) {
     console.error("Database removeFromWatchlist failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+// Market Assets Queries
+export async function getMarketAssets() {
+  try {
+    return await db.select().from(marketAssets);
+  } catch (error) {
+    console.error("Database getMarketAssets failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function upsertMarketAsset(asset: {
+  symbol: string;
+  name: string;
+  coingeckoId?: string;
+  category?: string;
+  network: string;
+  contractAddress?: string;
+  decimals?: number;
+  logoUrl?: string;
+  isVerified?: number;
+}) {
+  try {
+    const result = await db.insert(marketAssets)
+      .values({
+        symbol: asset.symbol,
+        name: asset.name,
+        coingeckoId: asset.coingeckoId || null,
+        category: asset.category || null,
+        network: asset.network,
+        contractAddress: asset.contractAddress || null,
+        decimals: asset.decimals ?? null,
+        logoUrl: asset.logoUrl || null,
+        isVerified: asset.isVerified ?? 1,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: marketAssets.symbol,
+        set: {
+          name: asset.name,
+          coingeckoId: asset.coingeckoId || null,
+          category: asset.category || null,
+          network: asset.network,
+          contractAddress: asset.contractAddress || null,
+          decimals: asset.decimals ?? null,
+          logoUrl: asset.logoUrl || null,
+          isVerified: asset.isVerified ?? 1,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result[0];
+  } catch (error) {
+    console.error("Database upsertMarketAsset failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+// Market Snapshots Queries
+export async function getLatestMarketSnapshots() {
+  try {
+    return await db.select().from(marketSnapshots).orderBy(desc(marketSnapshots.syncedAt));
+  } catch (error) {
+    console.error("Database getLatestMarketSnapshots failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function upsertMarketSnapshot(snapshot: {
+  symbol: string;
+  network: string;
+  priceUsd?: string;
+  change24h?: string;
+  marketCapUsd?: string;
+  volume24hUsd?: string;
+  circulatingSupply?: string;
+  totalSupply?: string;
+  maxSupply?: string;
+  allTimeHighUsd?: string;
+  allTimeLowUsd?: string;
+  priceDivergencePct?: string;
+  supplyDivergencePct?: string;
+  confidenceScore?: number;
+  confidenceLevel?: string;
+  sourceConsensus?: string;
+  rawPayload?: any;
+}) {
+  try {
+    const rawPayloadStr = snapshot.rawPayload ? JSON.stringify(snapshot.rawPayload) : null;
+    const result = await db.insert(marketSnapshots)
+      .values({
+        symbol: snapshot.symbol,
+        network: snapshot.network,
+        priceUsd: snapshot.priceUsd || null,
+        change24h: snapshot.change24h || null,
+        marketCapUsd: snapshot.marketCapUsd || null,
+        volume24hUsd: snapshot.volume24hUsd || null,
+        circulatingSupply: snapshot.circulatingSupply || null,
+        totalSupply: snapshot.totalSupply || null,
+        maxSupply: snapshot.maxSupply || null,
+        allTimeHighUsd: snapshot.allTimeHighUsd || null,
+        allTimeLowUsd: snapshot.allTimeLowUsd || null,
+        priceDivergencePct: snapshot.priceDivergencePct || null,
+        supplyDivergencePct: snapshot.supplyDivergencePct || null,
+        confidenceScore: snapshot.confidenceScore ?? null,
+        confidenceLevel: snapshot.confidenceLevel || null,
+        sourceConsensus: snapshot.sourceConsensus || null,
+        rawPayload: rawPayloadStr,
+        syncedAt: new Date(),
+      })
+      .returning();
+    return result[0];
+  } catch (error) {
+    console.error("Database upsertMarketSnapshot failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+// Network Metrics Queries
+export async function getNetworkMetrics() {
+  try {
+    return await db.select().from(networkMetrics);
+  } catch (error) {
+    console.error("Database getNetworkMetrics failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function upsertNetworkMetric(metric: {
+  network: string;
+  chainId?: string;
+  gasToken?: string;
+  nativeToken?: string;
+  explorerUrl?: string;
+  activeAssetsCount?: number;
+  totalTvlUsd?: string;
+  status?: string;
+}) {
+  try {
+    const updateSet: Record<string, any> = {
+      lastSyncedAt: new Date(),
+    };
+    if (metric.chainId !== undefined) updateSet.chainId = metric.chainId || null;
+    if (metric.gasToken !== undefined) updateSet.gasToken = metric.gasToken || null;
+    if (metric.nativeToken !== undefined) updateSet.nativeToken = metric.nativeToken || null;
+    if (metric.explorerUrl !== undefined) updateSet.explorerUrl = metric.explorerUrl || null;
+    if (metric.activeAssetsCount !== undefined) updateSet.activeAssetsCount = metric.activeAssetsCount;
+    if (metric.totalTvlUsd !== undefined) updateSet.totalTvlUsd = metric.totalTvlUsd || null;
+    if (metric.status !== undefined) updateSet.status = metric.status;
+
+    const result = await db.insert(networkMetrics)
+      .values({
+        network: metric.network,
+        chainId: metric.chainId || null,
+        gasToken: metric.gasToken || null,
+        nativeToken: metric.nativeToken || null,
+        explorerUrl: metric.explorerUrl || null,
+        activeAssetsCount: metric.activeAssetsCount ?? 0,
+        totalTvlUsd: metric.totalTvlUsd || null,
+        status: metric.status || 'active',
+        lastSyncedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: networkMetrics.network,
+        set: updateSet,
+      })
+      .returning();
+    return result[0];
+  } catch (error) {
+    console.error("Database upsertNetworkMetric failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+// Telemetry Sync Logs
+export async function recordTelemetrySyncLog(log: {
+  jobName: string;
+  status: string;
+  itemsSynced?: number;
+  latencyMs?: number;
+  details?: string;
+}) {
+  try {
+    const result = await db.insert(telemetrySyncLogs)
+      .values({
+        jobName: log.jobName,
+        status: log.status,
+        itemsSynced: log.itemsSynced ?? 0,
+        latencyMs: log.latencyMs ?? 0,
+        details: log.details || null,
+        executedAt: new Date(),
+      })
+      .returning();
+    return result[0];
+  } catch (error) {
+    console.error("Database recordTelemetrySyncLog failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function getTelemetrySyncLogs(limit: number = 20) {
+  try {
+    return await db.select().from(telemetrySyncLogs).orderBy(desc(telemetrySyncLogs.executedAt)).limit(limit);
+  } catch (error) {
+    console.error("Database getTelemetrySyncLogs failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function getMarketSnapshotBySymbol(symbol: string) {
+  try {
+    const snapshots = await db.select().from(marketSnapshots)
+      .where(eq(marketSnapshots.symbol, symbol.toUpperCase()))
+      .orderBy(desc(marketSnapshots.syncedAt))
+      .limit(1);
+    return snapshots[0] || null;
+  } catch (error) {
+    console.error(`Database getMarketSnapshotBySymbol failed for ${symbol}:`, error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function getHistoricalSnapshots(symbol?: string, limit: number = 30) {
+  try {
+    if (symbol) {
+      return await db.select().from(marketSnapshots)
+        .where(eq(marketSnapshots.symbol, symbol.toUpperCase()))
+        .orderBy(desc(marketSnapshots.syncedAt))
+        .limit(limit);
+    }
+    return await db.select().from(marketSnapshots)
+      .orderBy(desc(marketSnapshots.syncedAt))
+      .limit(limit);
+  } catch (error) {
+    console.error("Database getHistoricalSnapshots failed:", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }

@@ -896,6 +896,43 @@ export default function App() {
 
       setSavedReviews(sanitizedList);
 
+      // Hydrate proactive consensus market snapshots from Cloud SQL (PostgreSQL)
+      fetch('/api/market-intelligence/feed')
+        .then(res => res.ok ? res.json() : null)
+        .then(feed => {
+          if (feed && Array.isArray(feed.snapshots) && feed.snapshots.length > 0) {
+            setSavedReviews(prev => {
+              const snapMap: Record<string, any> = {};
+              for (const snap of feed.snapshots) {
+                if (snap.symbol) snapMap[snap.symbol.toUpperCase()] = snap;
+              }
+              return prev.map(rev => {
+                const s = snapMap[rev.symbol.toUpperCase()];
+                if (!s) return rev;
+                return {
+                  ...rev,
+                  livePrice: s.priceUsd ? parseFloat(s.priceUsd) : rev.livePrice,
+                  liveChange24h: s.change24h ? parseFloat(s.change24h) : rev.liveChange24h,
+                  liveMarketCap: s.marketCapUsd ? parseFloat(s.marketCapUsd) : rev.liveMarketCap,
+                  liveVolume24h: s.volume24hUsd ? parseFloat(s.volume24hUsd) : rev.liveVolume24h,
+                  circulatingSupply: s.circulatingSupply ? parseFloat(s.circulatingSupply) : rev.circulatingSupply,
+                  totalSupply: s.totalSupply ? parseFloat(s.totalSupply) : rev.totalSupply,
+                  maxSupply: s.maxSupply ? parseFloat(s.maxSupply) : rev.maxSupply,
+                  allTimeHigh: s.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : rev.allTimeHigh,
+                  allTimeLow: s.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : rev.allTimeLow,
+                  ath: s.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : rev.ath,
+                  atl: s.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : rev.atl,
+                  priceDivergencePct: s.priceDivergencePct ? parseFloat(s.priceDivergencePct) : rev.priceDivergencePct,
+                  confidenceScore: s.confidenceScore ?? rev.confidenceScore,
+                  confidenceLevel: (s.confidenceLevel as any) || rev.confidenceLevel,
+                  lastSyncedAt: s.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : rev.lastSyncedAt
+                };
+              });
+            });
+          }
+        })
+        .catch(() => {});
+
       // Initial price sync from CoinGecko
       syncCoinGeckoMarkets(sanitizedList);
     }

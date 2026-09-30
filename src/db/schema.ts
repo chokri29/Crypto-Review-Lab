@@ -64,6 +64,70 @@ export const userWatchlists = pgTable('user_watchlists', {
   addedAt: timestamp('added_at').defaultNow(),
 });
 
+// 5. Market Assets Registry Table (canonical registry of tracked market assets)
+export const marketAssets = pgTable('market_assets', {
+  id: serial('id').primaryKey(),
+  symbol: text('symbol').notNull().unique(),
+  name: text('name').notNull(),
+  coingeckoId: text('coingecko_id'),
+  category: text('category'),
+  network: text('network').notNull(), // 'Robinhood Chain', 'Ethereum', 'Arbitrum', 'Solana', 'Sui', 'Kaspa'
+  contractAddress: text('contract_address'),
+  decimals: integer('decimals'),
+  logoUrl: text('logo_url'),
+  isVerified: integer('is_verified').default(1),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// 6. Market Snapshots Table (proactive multi-source consensus records)
+export const marketSnapshots = pgTable('market_snapshots', {
+  id: serial('id').primaryKey(),
+  symbol: text('symbol').notNull(),
+  network: text('network').notNull(),
+  priceUsd: text('price_usd'),
+  change24h: text('change_24h'),
+  marketCapUsd: text('market_cap_usd'),
+  volume24hUsd: text('volume_24h_usd'),
+  circulatingSupply: text('circulating_supply'),
+  totalSupply: text('total_supply'),
+  maxSupply: text('max_supply'),
+  allTimeHighUsd: text('all_time_high_usd'),
+  allTimeLowUsd: text('all_time_low_usd'),
+  priceDivergencePct: text('price_divergence_pct'),
+  supplyDivergencePct: text('supply_divergence_pct'),
+  confidenceScore: integer('confidence_score'),
+  confidenceLevel: text('confidence_level'),
+  sourceConsensus: text('source_consensus'),
+  rawPayload: text('raw_payload'),
+  syncedAt: timestamp('synced_at').defaultNow(),
+});
+
+// 7. Network Metrics Table (dynamic classification & infrastructure health)
+export const networkMetrics = pgTable('network_metrics', {
+  id: serial('id').primaryKey(),
+  network: text('network').notNull().unique(),
+  chainId: text('chain_id'),
+  gasToken: text('gas_token'),
+  nativeToken: text('native_token'),
+  explorerUrl: text('explorer_url'),
+  activeAssetsCount: integer('active_assets_count').default(0),
+  totalTvlUsd: text('total_tvl_usd'),
+  status: text('status').default('active'),
+  lastSyncedAt: timestamp('last_synced_at').defaultNow(),
+});
+
+// 8. Telemetry Sync Logs Table (audit trail for background ingestion engine)
+export const telemetrySyncLogs = pgTable('telemetry_sync_logs', {
+  id: serial('id').primaryKey(),
+  jobName: text('job_name').notNull(),
+  status: text('status').notNull(),
+  itemsSynced: integer('items_synced').default(0),
+  latencyMs: integer('latency_ms'),
+  details: text('details'),
+  executedAt: timestamp('executed_at').defaultNow(),
+});
+
 // Relationships
 export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(cryptoReviews),
@@ -81,5 +145,16 @@ export const userWatchlistsRelations = relations(userWatchlists, ({ one }) => ({
   user: one(users, {
     fields: [userWatchlists.userUid],
     references: [users.uid],
+  }),
+}));
+
+export const marketAssetsRelations = relations(marketAssets, ({ many }) => ({
+  snapshots: many(marketSnapshots),
+}));
+
+export const marketSnapshotsRelations = relations(marketSnapshots, ({ one }) => ({
+  asset: one(marketAssets, {
+    fields: [marketSnapshots.symbol],
+    references: [marketAssets.symbol],
   }),
 }));
