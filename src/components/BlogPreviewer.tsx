@@ -47,8 +47,10 @@ import {
   Bell,
   BellRing,
   Lock,
-  Globe
+  Globe,
+  Database
 } from 'lucide-react';
+import { DatabaseTelemetryModal } from './DatabaseTelemetryModal';
 
 // All 10 standardized categories + All options with icons and badges matching ReviewLab style
 const CATEGORY_OPTIONS = [
@@ -225,12 +227,28 @@ export default function BlogPreviewer({
   const [networkMetricsList, setNetworkMetricsList] = useState<any[]>([]);
   const [pipelineTelemetry, setPipelineTelemetry] = useState<any>(null);
   const [isSyncingPipeline, setIsSyncingPipeline] = useState(false);
+  const [isDbModalOpen, setIsDbModalOpen] = useState(false);
+  const [dbModalSymbol, setDbModalSymbol] = useState<string>('SOL');
+  const [liveSnapshotsMap, setLiveSnapshotsMap] = useState<Record<string, any>>({});
+  const [databaseAssetsCount, setDatabaseAssetsCount] = useState<number>(21);
+  const [databaseSnapshotsCount, setDatabaseSnapshotsCount] = useState<number>(1150);
 
   const loadMarketIntelligenceFeed = () => {
     fetch('/api/market-intelligence/feed')
       .then(r => r.ok ? r.json() : null)
       .then((feed) => {
         if (feed) {
+          if (Array.isArray(feed.snapshots)) {
+            const map: Record<string, any> = {};
+            for (const s of feed.snapshots) {
+              if (s.symbol) map[s.symbol.toUpperCase()] = s;
+            }
+            setLiveSnapshotsMap(map);
+            setDatabaseSnapshotsCount(feed.snapshots.length);
+          }
+          if (Array.isArray(feed.assets)) {
+            setDatabaseAssetsCount(feed.assets.length);
+          }
           if (Array.isArray(feed.networks) && feed.networks.length > 0) {
             setNetworkMetricsList(feed.networks);
             const counts: Record<string, number> = {};
@@ -249,6 +267,10 @@ export default function BlogPreviewer({
 
   useEffect(() => {
     loadMarketIntelligenceFeed();
+    const interval = setInterval(() => {
+      loadMarketIntelligenceFeed();
+    }, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   const triggerPipelineSync = async () => {
@@ -268,11 +290,38 @@ export default function BlogPreviewer({
     }
   };
 
+  // Merge live PostgreSQL snapshots from liveSnapshotsMap into reviews
+  const enrichedReviews = React.useMemo(() => {
+    return reviews.map((r) => {
+      const snap = liveSnapshotsMap[r.symbol.toUpperCase()];
+      if (!snap) return r;
+      return {
+        ...r,
+        livePrice: snap.priceUsd ? parseFloat(snap.priceUsd) : r.livePrice,
+        liveChange24h: snap.change24h ? parseFloat(snap.change24h) : r.liveChange24h,
+        liveMarketCap: snap.marketCapUsd ? parseFloat(snap.marketCapUsd) : r.liveMarketCap,
+        liveVolume24h: snap.volume24hUsd ? parseFloat(snap.volume24hUsd) : r.liveVolume24h,
+        circulatingSupply: snap.circulatingSupply ? parseFloat(snap.circulatingSupply) : r.circulatingSupply,
+        totalSupply: snap.totalSupply ? parseFloat(snap.totalSupply) : r.totalSupply,
+        maxSupply: snap.maxSupply ? parseFloat(snap.maxSupply) : r.maxSupply,
+        allTimeHigh: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : r.allTimeHigh,
+        allTimeLow: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : r.allTimeLow,
+        ath: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : r.ath,
+        atl: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : r.atl,
+        priceDivergencePct: snap.priceDivergencePct ? parseFloat(snap.priceDivergencePct) : r.priceDivergencePct,
+        confidenceScore: snap.confidenceScore ?? r.confidenceScore,
+        confidenceLevel: (snap.confidenceLevel as any) || r.confidenceLevel,
+        dataEngine: snap.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
+        lastSyncedAt: snap.syncedAt ? new Date(snap.syncedAt).toLocaleTimeString() : r.lastSyncedAt,
+      };
+    });
+  }, [reviews, liveSnapshotsMap]);
+
   const getNetworkAssetCount = (netName: string) => {
-    if (netName === 'All') return reviews.length;
+    if (netName === 'All') return enrichedReviews.length;
     const lower = netName.toLowerCase();
     if (networkCounts[lower] !== undefined) return networkCounts[lower];
-    return reviews.filter(r => r.network && r.network.toLowerCase() === lower).length;
+    return enrichedReviews.filter(r => r.network && r.network.toLowerCase() === lower).length;
   };
 
   const getNetworkTvl = (netName: string) => {
@@ -319,7 +368,7 @@ export default function BlogPreviewer({
     }
   };
 
-  const watchlistReviews = reviews.filter((r) => watchlist.includes(r.id));
+  const watchlistReviews = enrichedReviews.filter((r) => watchlist.includes(r.id));
 
   // Notified projects state initialized from localStorage
   const [notifiedProjects, setNotifiedProjects] = useState<string[]>(() => {
@@ -560,7 +609,7 @@ export default function BlogPreviewer({
 
   const [copied, setCopied] = useState(false);
 
-  const activeReview = reviews.find((r) => 
+  const activeReview = enrichedReviews.find((r) => 
     r.id === activeReviewId || 
     r.coingeckoId === activeReviewId || 
     r.id === `cg-${activeReviewId}` ||
@@ -614,7 +663,7 @@ export default function BlogPreviewer({
 
   // Live search result candidates for dropdown
   const liveSearchResults = searchQuery.trim()
-    ? reviews.filter((r) => 
+    ? enrichedReviews.filter((r) => 
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         r.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
         r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -623,7 +672,7 @@ export default function BlogPreviewer({
       )
     : [];
 
-  const filteredReviews = reviews.filter((r) => {
+  const filteredReviews = enrichedReviews.filter((r) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch = !q || 
                           r.name.toLowerCase().includes(q) || 
@@ -1067,31 +1116,50 @@ export default function BlogPreviewer({
           {/* Classification & Filter Bar (Blockchain Networks + Categories) */}
           <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-4 shadow-lg space-y-3.5 relative">
             {/* Proactive Market Intelligence Pipeline Status Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-cyber-cyan/15 text-[11px] font-mono">
-              <div className="flex items-center flex-wrap gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-cyber-cyan/15 text-[11px] font-mono">
+              <div className="flex items-center flex-wrap gap-2.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                 <span className="text-white font-bold uppercase tracking-wider text-xs">
                   Cloud SQL Ingestion Pipeline
                 </span>
-                <span className="px-2 py-0.5 rounded bg-cyber-cyan/15 text-cyber-cyan text-[10px] font-bold border border-cyber-cyan/30">
-                  PostgreSQL Consensus Active
+                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
+                  <Database className="w-3 h-3 text-emerald-400" />
+                  <span>PostgreSQL Active</span>
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-cyan-300 bg-cyan-950/40 border border-cyan-500/25 px-2 py-0.5 rounded tabular-nums">
+                  <span>{databaseSnapshotsCount.toLocaleString()} Snapshots</span>
+                  <span className="text-slate-500">·</span>
+                  <span>{databaseAssetsCount} Assets</span>
+                  <span className="text-slate-500">·</span>
+                  <span>{networkMetricsList.length} Networks</span>
                 </span>
                 {pipelineTelemetry && (
-                  <span className="hidden md:inline text-slate-400 text-[10px] truncate max-w-md">
-                    {pipelineTelemetry.details}
+                  <span className="hidden lg:inline text-slate-400 text-[10px] truncate max-w-sm">
+                    {pipelineTelemetry.itemsSynced} items in {pipelineTelemetry.latencyMs}ms
                   </span>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={triggerPipelineSync}
-                disabled={isSyncingPipeline}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors"
-                title="Force proactive multi-source telemetry synchronization"
-              >
-                <RefreshCw className={`w-3 h-3 ${isSyncingPipeline ? 'animate-spin' : ''}`} />
-                <span>{isSyncingPipeline ? 'Syncing...' : 'Sync Pipeline'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsDbModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all shadow-[0_0_10px_rgba(0,229,255,0.15)] hover:shadow-[0_0_15px_rgba(0,229,255,0.3)]"
+                  title="Open live Cloud SQL inspector to verify PostgreSQL tables and telemetry logs"
+                >
+                  <Database className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Inspect Database</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={triggerPipelineSync}
+                  disabled={isSyncingPipeline}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors disabled:opacity-50"
+                  title="Force proactive multi-source telemetry synchronization"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isSyncingPipeline ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingPipeline ? 'Syncing...' : 'Sync Pipeline'}</span>
+                </button>
+              </div>
             </div>
 
             {/* 1. Blockchain Network Classification Bar */}
@@ -1595,11 +1663,23 @@ export default function BlogPreviewer({
                               </div>
 
                               <div className="pt-2 mt-2.5 border-t border-amber-500/20 flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                                <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                                   <Clock className="w-2.5 h-2.5 text-amber-400/70 shrink-0" />
                                   <span className="text-[9px] font-mono text-cyber-text-muted truncate whitespace-nowrap">
                                     {formatCardSyncTime(rev.lastSyncedAt, liveDate)}
                                   </span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDbModalSymbol(rev.symbol);
+                                      setIsDbModalOpen(true);
+                                    }}
+                                    className="p-1 rounded text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/20 border border-amber-500/25 hover:border-amber-500/50 transition-colors shrink-0"
+                                    title={`Inspect ${rev.symbol} Cloud SQL database snapshots`}
+                                  >
+                                    <Database className="w-2.5 h-2.5" />
+                                  </button>
                                 </div>
                                 <div className="shrink-0 flex items-center justify-end -mr-0.5">
                                   <span className="text-[10px] sm:text-[10.5px] font-display font-bold text-amber-400 group-hover:text-amber-300 group-hover:translate-x-1 transition-all inline-flex items-center gap-1 uppercase tracking-wider whitespace-nowrap pl-1">
@@ -1766,11 +1846,23 @@ export default function BlogPreviewer({
                             </div>
 
                             <div className="pt-2 mt-2.5 border-t border-cyber-cyan/15 flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
                                 <Clock className="w-2.5 h-2.5 text-cyber-cyan/70 shrink-0" />
                                 <span className="text-[9px] font-mono text-cyber-text-muted truncate whitespace-nowrap">
                                   {formatCardSyncTime(rev.lastSyncedAt, liveDate)}
                                 </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDbModalSymbol(rev.symbol);
+                                    setIsDbModalOpen(true);
+                                  }}
+                                  className="p-1 rounded text-cyan-400/80 hover:text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/25 hover:border-cyan-500/50 transition-colors shrink-0"
+                                  title={`Inspect ${rev.symbol} Cloud SQL database snapshots`}
+                                >
+                                  <Database className="w-2.5 h-2.5" />
+                                </button>
                               </div>
                               <div className="shrink-0 flex items-center justify-end -mr-0.5">
                                 <span className="text-[10px] sm:text-[10.5px] font-display font-bold text-cyber-cyan group-hover:text-cyan-300 group-hover:translate-x-1 transition-all inline-flex items-center gap-1 uppercase tracking-wider whitespace-nowrap pl-1">
@@ -2222,6 +2314,19 @@ export default function BlogPreviewer({
                 </span>
                 <span className="text-cyber-text-muted select-none">•</span>
                 <span className="text-cyber-green font-bold">Framework Verified</span>
+                <span className="text-cyber-text-muted select-none">•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDbModalSymbol(activeReview.symbol);
+                    setIsDbModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-cyan-300 hover:text-white transition-colors cursor-pointer"
+                  title="Inspect Cloud SQL database snapshots for this asset"
+                >
+                  <Database className="w-3 h-3 text-cyan-400" />
+                  <span className="font-bold underline decoration-cyan-500/40">Cloud SQL Verified</span>
+                </button>
               </div>
             </div>
 
@@ -2231,6 +2336,10 @@ export default function BlogPreviewer({
                 data={activeReview}
                 onRefresh={onSyncCoinGecko}
                 isRefreshing={isSyncingCoinGecko}
+                onInspectDbSnapshots={(sym) => {
+                  setDbModalSymbol(sym);
+                  setIsDbModalOpen(true);
+                }}
               />
             )}
 
@@ -2456,6 +2565,15 @@ export default function BlogPreviewer({
           )}
         </motion.div>
       ) : null}
+
+      {/* Cloud SQL Live Database Inspector Modal */}
+      <DatabaseTelemetryModal
+        isOpen={isDbModalOpen}
+        onClose={() => setIsDbModalOpen(false)}
+        initialSymbol={dbModalSymbol}
+        onTriggerSync={triggerPipelineSync}
+        isSyncing={isSyncingPipeline}
+      />
     </div>
   );
 }

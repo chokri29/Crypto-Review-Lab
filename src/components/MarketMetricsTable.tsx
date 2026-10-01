@@ -17,7 +17,8 @@ import {
   Layers,
   Coins,
   ShieldCheck,
-  BarChart3
+  BarChart3,
+  Database
 } from 'lucide-react';
 import { MultiSourceConvergenceReport } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
@@ -148,13 +149,15 @@ export interface MarketMetricsTableProps {
   className?: string;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  onInspectDbSnapshots?: (symbol: string) => void;
 }
 
 export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
   data,
   className = '',
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  onInspectDbSnapshots
 }) => {
   const {
     name,
@@ -325,6 +328,18 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
               )}
               {confidenceScore}% {confidenceLevel} CONSENSUS
             </span>
+          )}
+
+          {onInspectDbSnapshots && (
+            <button
+              type="button"
+              onClick={() => onInspectDbSnapshots(symbol)}
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 transition-colors cursor-pointer shadow-xs"
+              title="Inspect chronological snapshots recorded in Cloud SQL PostgreSQL"
+            >
+              <Database className="w-3 h-3 text-cyan-400" />
+              <span>DB Audit</span>
+            </button>
           )}
 
           {lastSyncedAt && (
