@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 // 1. Users Table (keyed to Firebase Auth UID)
 export const users = pgTable('users', {
@@ -31,7 +31,9 @@ export const cryptoReviews = pgTable('crypto_reviews', {
   contractAddress: text('contract_address'),
   securityScan: text('security_scan'), // JSON serialized security scan
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => [
+  index('crypto_reviews_user_uid_idx').on(table.userUid),
+]);
 
 // 3. Pro Orders Table
 export const proOrders = pgTable('pro_orders', {
@@ -62,7 +64,9 @@ export const userWatchlists = pgTable('user_watchlists', {
   category: text('category'),
   network: text('network'),
   addedAt: timestamp('added_at').defaultNow(),
-});
+}, (table) => [
+  index('user_watchlists_user_uid_idx').on(table.userUid),
+]);
 
 // 5. Market Assets Registry Table (canonical registry of tracked market assets)
 export const marketAssets = pgTable('market_assets', {
@@ -78,7 +82,9 @@ export const marketAssets = pgTable('market_assets', {
   isVerified: integer('is_verified').default(1),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => [
+  index('market_assets_network_idx').on(table.network),
+]);
 
 // 6. Market Snapshots Table (proactive multi-source consensus records)
 export const marketSnapshots = pgTable('market_snapshots', {
@@ -101,7 +107,9 @@ export const marketSnapshots = pgTable('market_snapshots', {
   sourceConsensus: text('source_consensus'),
   rawPayload: text('raw_payload'),
   syncedAt: timestamp('synced_at').defaultNow(),
-});
+}, (table) => [
+  index('market_snapshots_symbol_synced_at_idx').on(table.symbol, table.syncedAt),
+]);
 
 // 7. Network Metrics Table (dynamic classification & infrastructure health)
 export const networkMetrics = pgTable('network_metrics', {
