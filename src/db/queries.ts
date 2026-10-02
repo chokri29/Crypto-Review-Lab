@@ -1,6 +1,7 @@
 import { db } from './index.ts';
 import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.ts';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, or, sql, count, inArray, ilike } from 'drizzle-orm';
+import { getAssetKey } from '../utils/assetKey.ts';
 
 // Reviews Queries
 export async function getDbReviews() {
@@ -198,6 +199,7 @@ export async function getMarketAssets() {
 }
 
 export async function upsertMarketAsset(asset: {
+  assetKey?: string;
   symbol: string;
   name: string;
   coingeckoId?: string;
@@ -209,8 +211,10 @@ export async function upsertMarketAsset(asset: {
   isVerified?: number;
 }) {
   try {
+    const key = asset.assetKey || getAssetKey(asset);
     const result = await db.insert(marketAssets)
       .values({
+        assetKey: key,
         symbol: asset.symbol,
         name: asset.name,
         coingeckoId: asset.coingeckoId || null,
@@ -223,8 +227,9 @@ export async function upsertMarketAsset(asset: {
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
-        target: marketAssets.symbol,
+        target: marketAssets.assetKey,
         set: {
+          symbol: asset.symbol,
           name: asset.name,
           coingeckoId: asset.coingeckoId || null,
           category: asset.category || null,
@@ -244,10 +249,73 @@ export async function upsertMarketAsset(asset: {
   }
 }
 
-// Market Snapshots Queries
-export async function getLatestMarketSnapshots() {
+export async function getMarketAssetsPaged(params: {
+  network?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+}) {
   try {
-    return await db.select().from(marketSnapshots).orderBy(desc(marketSnapshots.syncedAt));
+    const limit = Math.min(Math.max(params.limit ?? 250, 1), 1000);
+    const offset = Math.max(params.offset ?? 0, 0);
+
+    const conditions = [];
+    if (params.network && params.network.trim() && params.network.toLowerCase() !== 'all') {
+      conditions.push(sql`LOWER(${marketAssets.network}) = LOWER(${params.network.trim()})`);
+    }
+    if (params.q && params.q.trim()) {
+      const pattern = `%${params.q.trim()}%`;
+      conditions.push(or(
+        ilike(marketAssets.symbol, pattern),
+        ilike(marketAssets.name, pattern),
+        ilike(marketAssets.category, pattern)
+      ));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [items, totalRes] = await Promise.all([
+      db.select()
+        .from(marketAssets)
+        .where(whereClause)
+        .orderBy(marketAssets.id)
+        .limit(limit)
+        .offset(offset),
+      db.select({ count: count() })
+        .from(marketAssets)
+        .where(whereClause)
+    ]);
+
+    const total = Number(totalRes[0]?.count ?? 0);
+    return { items, total };
+  } catch (error) {
+    console.error("Database getMarketAssetsPaged failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+// Market Snapshots Queries
+export async function getMarketSnapshotsCount(): Promise<number> {
+  try {
+    const res = await db.select({ count: count() }).from(marketSnapshots);
+    return Number(res[0]?.count ?? 0);
+  } catch (error) {
+    console.error("Database getMarketSnapshotsCount failed:", error);
+    return 0;
+  }
+}
+
+export async function getLatestMarketSnapshots(assetKeys?: string[]) {
+  try {
+    if (assetKeys && assetKeys.length > 0) {
+      return await db.selectDistinctOn([marketSnapshots.assetKey])
+        .from(marketSnapshots)
+        .where(inArray(marketSnapshots.assetKey, assetKeys))
+        .orderBy(marketSnapshots.assetKey, desc(marketSnapshots.syncedAt));
+    }
+    return await db.selectDistinctOn([marketSnapshots.assetKey])
+      .from(marketSnapshots)
+      .orderBy(marketSnapshots.assetKey, desc(marketSnapshots.syncedAt));
   } catch (error) {
     console.error("Database getLatestMarketSnapshots failed:", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
@@ -255,6 +323,7 @@ export async function getLatestMarketSnapshots() {
 }
 
 export async function upsertMarketSnapshot(snapshot: {
+  assetKey?: string;
   symbol: string;
   network: string;
   priceUsd?: string;
@@ -275,8 +344,10 @@ export async function upsertMarketSnapshot(snapshot: {
 }) {
   try {
     const rawPayloadStr = snapshot.rawPayload ? JSON.stringify(snapshot.rawPayload) : null;
+    const key = snapshot.assetKey || getAssetKey(snapshot);
     const result = await db.insert(marketSnapshots)
       .values({
+        assetKey: key,
         symbol: snapshot.symbol,
         network: snapshot.network,
         priceUsd: snapshot.priceUsd || null,
@@ -301,6 +372,26 @@ export async function upsertMarketSnapshot(snapshot: {
   } catch (error) {
     console.error("Database upsertMarketSnapshot failed:", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function pruneOldSnapshots(days = 7): Promise<number> {
+  try {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const result = await db.execute(sql`
+      DELETE FROM market_snapshots
+      WHERE synced_at < ${cutoff}
+        AND id NOT IN (
+          SELECT DISTINCT ON (asset_key) id
+          FROM market_snapshots
+          ORDER BY asset_key, synced_at DESC
+        )
+    `);
+    const prunedCount = (result as any)?.rowCount ?? 0;
+    return prunedCount;
+  } catch (error) {
+    console.error("Database pruneOldSnapshots failed:", error);
+    return 0;
   }
 }
 

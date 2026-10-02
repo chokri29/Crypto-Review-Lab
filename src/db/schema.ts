@@ -71,7 +71,8 @@ export const userWatchlists = pgTable('user_watchlists', {
 // 5. Market Assets Registry Table (canonical registry of tracked market assets)
 export const marketAssets = pgTable('market_assets', {
   id: serial('id').primaryKey(),
-  symbol: text('symbol').notNull().unique(),
+  assetKey: text('asset_key').notNull().unique(),
+  symbol: text('symbol').notNull(),
   name: text('name').notNull(),
   coingeckoId: text('coingecko_id'),
   category: text('category'),
@@ -84,11 +85,13 @@ export const marketAssets = pgTable('market_assets', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => [
   index('market_assets_network_idx').on(table.network),
+  index('market_assets_symbol_idx').on(table.symbol),
 ]);
 
 // 6. Market Snapshots Table (proactive multi-source consensus records)
 export const marketSnapshots = pgTable('market_snapshots', {
   id: serial('id').primaryKey(),
+  assetKey: text('asset_key'),
   symbol: text('symbol').notNull(),
   network: text('network').notNull(),
   priceUsd: text('price_usd'),
@@ -109,6 +112,7 @@ export const marketSnapshots = pgTable('market_snapshots', {
   syncedAt: timestamp('synced_at').defaultNow(),
 }, (table) => [
   index('market_snapshots_symbol_synced_at_idx').on(table.symbol, table.syncedAt),
+  index('market_snapshots_asset_key_synced_at_idx').on(table.assetKey, table.syncedAt),
 ]);
 
 // 7. Network Metrics Table (dynamic classification & infrastructure health)
@@ -153,16 +157,5 @@ export const userWatchlistsRelations = relations(userWatchlists, ({ one }) => ({
   user: one(users, {
     fields: [userWatchlists.userUid],
     references: [users.uid],
-  }),
-}));
-
-export const marketAssetsRelations = relations(marketAssets, ({ many }) => ({
-  snapshots: many(marketSnapshots),
-}));
-
-export const marketSnapshotsRelations = relations(marketSnapshots, ({ one }) => ({
-  asset: one(marketAssets, {
-    fields: [marketSnapshots.symbol],
-    references: [marketAssets.symbol],
   }),
 }));

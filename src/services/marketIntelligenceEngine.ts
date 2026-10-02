@@ -5,10 +5,12 @@ import {
   upsertNetworkMetric, 
   upsertMarketSnapshot, 
   recordTelemetrySyncLog, 
-  getLatestMarketSnapshots 
+  getLatestMarketSnapshots,
+  pruneOldSnapshots 
 } from '../db/queries.ts';
 import { INITIAL_REVIEWS } from '../data.ts';
 import { XSTOCKS_REGISTRY } from '../data/xstocksRegistry.ts';
+import { getAssetKey } from '../utils/assetKey.ts';
 
 // Initial canonical networks
 const INITIAL_NETWORKS = [
@@ -60,10 +62,240 @@ const INITIAL_NETWORKS = [
     explorerUrl: 'https://explorer.kaspa.org',
     status: 'active',
   },
+  {
+    network: 'Base',
+    chainId: '8453',
+    gasToken: 'ETH',
+    nativeToken: 'ETH',
+    explorerUrl: 'https://basescan.org',
+    status: 'active',
+  },
+  {
+    network: 'BNB Chain',
+    chainId: '56',
+    gasToken: 'BNB',
+    nativeToken: 'BNB',
+    explorerUrl: 'https://bscscan.com',
+    status: 'active',
+  },
+  {
+    network: 'Bitcoin',
+    chainId: 'bitcoin',
+    gasToken: 'BTC',
+    nativeToken: 'BTC',
+    explorerUrl: 'https://mempool.space',
+    status: 'active',
+  },
+  {
+    network: 'Other',
+    chainId: 'other',
+    gasToken: 'N/A',
+    nativeToken: 'N/A',
+    explorerUrl: '',
+    status: 'active',
+  }
 ];
 
+// Single canonical mapping table from CoinGecko asset_platform_id / platforms to CRL network name
+export const PLATFORM_TO_NETWORK_MAP: Record<string, string> = {
+  'ethereum': 'Ethereum',
+  'arbitrum-one': 'Arbitrum',
+  'arbitrum': 'Arbitrum',
+  'solana': 'Solana',
+  'base': 'Base',
+  'binance-smart-chain': 'BNB Chain',
+  'binancecoin': 'BNB Chain',
+  'polygon-pos': 'Polygon',
+  'polygon': 'Polygon',
+  'avalanche': 'Avalanche',
+  'optimistic-ethereum': 'Optimism',
+  'optimism': 'Optimism',
+  'sui': 'Sui',
+  'aptos': 'Aptos',
+  'near-protocol': 'NEAR',
+  'near': 'NEAR',
+  'fantom': 'Fantom',
+  'cosmos': 'Cosmos',
+  'cardano': 'Cardano',
+  'polkadot': 'Polkadot',
+  'tron': 'TRON',
+  'the-open-network': 'TON',
+  'ton': 'TON',
+  'blast': 'Blast',
+  'linea': 'Linea',
+  'scroll': 'Scroll',
+  'zksync': 'zkSync',
+  'mantle': 'Mantle',
+  'robinhood': 'Robinhood Chain',
+  'robinhood-chain': 'Robinhood Chain'
+};
+
+// Known native L1 assets by id or symbol when platform data is absent
+export const NATIVE_L1_COIN_MAP: Record<string, string> = {
+  'bitcoin': 'Bitcoin',
+  'btc': 'Bitcoin',
+  'ethereum': 'Ethereum',
+  'eth': 'Ethereum',
+  'solana': 'Solana',
+  'sol': 'Solana',
+  'kaspa': 'Kaspa',
+  'kas': 'Kaspa',
+  'sui': 'Sui',
+  'cardano': 'Cardano',
+  'ada': 'Cardano',
+  'ripple': 'XRP Ledger',
+  'xrp': 'XRP Ledger',
+  'dogecoin': 'Dogecoin',
+  'doge': 'Dogecoin',
+  'avalanche-2': 'Avalanche',
+  'avax': 'Avalanche',
+  'polkadot': 'Polkadot',
+  'dot': 'Polkadot',
+  'near': 'NEAR',
+  'tron': 'TRON',
+  'trx': 'TRON',
+  'the-open-network': 'TON',
+  'ton': 'TON',
+  'aptos': 'Aptos',
+  'apt': 'Aptos',
+  'cosmos': 'Cosmos',
+  'atom': 'Cosmos',
+  'monero': 'Monero',
+  'xmr': 'Monero',
+  'litecoin': 'Litecoin',
+  'ltc': 'Litecoin',
+  'stellar': 'Stellar',
+  'xlm': 'Stellar',
+  'filecoin': 'Filecoin',
+  'fil': 'Filecoin',
+  'algorand': 'Algorand',
+  'algo': 'Algorand',
+  'hedera-hashgraph': 'Hedera',
+  'hbar': 'Hedera'
+};
+
+export function resolveNetworkFromCoin(coin: {
+  id?: string;
+  symbol?: string;
+  asset_platform_id?: string | null;
+  platforms?: Record<string, string>;
+}): string {
+  // 1. Resolve from asset_platform_id
+  if (coin.asset_platform_id && typeof coin.asset_platform_id === 'string') {
+    const rawPlatform = coin.asset_platform_id.toLowerCase().trim();
+    if (PLATFORM_TO_NETWORK_MAP[rawPlatform]) {
+      return PLATFORM_TO_NETWORK_MAP[rawPlatform];
+    }
+  }
+
+  // 2. Resolve from platforms object
+  if (coin.platforms && typeof coin.platforms === 'object') {
+    const platformKeys = Object.keys(coin.platforms).map(k => k.toLowerCase().trim());
+    for (const key of platformKeys) {
+      if (PLATFORM_TO_NETWORK_MAP[key]) {
+        return PLATFORM_TO_NETWORK_MAP[key];
+      }
+    }
+  }
+
+  // 3. Coins without platform data: Treat as native L1 assets
+  const idLower = (coin.id || '').toLowerCase().trim();
+  const symLower = (coin.symbol || '').toLowerCase().trim();
+  if (idLower && NATIVE_L1_COIN_MAP[idLower]) {
+    return NATIVE_L1_COIN_MAP[idLower];
+  }
+  if (symLower && NATIVE_L1_COIN_MAP[symLower]) {
+    return NATIVE_L1_COIN_MAP[symLower];
+  }
+
+  // 4. Unknown platform fallback
+  return 'Other';
+}
+
+// Proxied CoinGecko page fetcher matching src/services/coingecko.ts proxy mechanism
+async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]): Promise<any[]> {
+  const vsCurrency = 'usd';
+  const queryParams = new URLSearchParams({
+    vs_currency: vsCurrency,
+    order: 'market_cap_desc',
+    per_page: String(perPage),
+    page: String(page),
+    sparkline: 'false',
+    price_change_percentage: '24h'
+  });
+  if (ids && ids.length > 0) {
+    queryParams.set('ids', ids.join(','));
+  }
+
+  const directUrl = `https://api.coingecko.com/api/v3/coins/markets?${queryParams.toString()}`;
+  const apiKey = process.env.COINGECKO_API_KEY || '';
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'User-Agent': 'CryptoReviewLab/3.2.0'
+  };
+  if (apiKey) {
+    headers['x-cg-demo-api-key'] = apiKey;
+  }
+
+  try {
+    const res = await fetch(directUrl, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (err) {
+    console.warn(`[MarketIntelligence] Direct CoinGecko page ${page} fetch error:`, err);
+  }
+
+  // Fallback to Google Apps Script proxy as implemented in coingecko.ts
+  try {
+    const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
+    let gasUrl = `${gasBase}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
+    if (ids && ids.length > 0) {
+      gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
+    }
+    const gasRes = await fetch(gasUrl);
+    if (gasRes.ok) {
+      const gasData = await gasRes.json();
+      if (Array.isArray(gasData)) return gasData;
+    }
+  } catch (gasErr) {
+    console.warn(`[MarketIntelligence] GAS proxy CoinGecko page ${page} fetch error:`, gasErr);
+  }
+
+  return [];
+}
+
 let syncInterval: NodeJS.Timeout | null = null;
+let discoveryInterval: NodeJS.Timeout | null = null;
 let isSyncRunning = false;
+let isDiscoveryRunning = false;
+
+// Recompute active_assets_count per network from market_assets
+export async function recomputeNetworkActiveAssets(): Promise<void> {
+  try {
+    const assets = await getMarketAssets();
+    const networks = await getNetworkMetrics();
+    const counts: Record<string, number> = {};
+
+    for (const asset of assets) {
+      if (asset.network) {
+        const netKey = asset.network.toLowerCase().trim();
+        counts[netKey] = (counts[netKey] || 0) + 1;
+      }
+    }
+
+    for (const net of networks) {
+      const count = counts[net.network.toLowerCase().trim()] || 0;
+      await upsertNetworkMetric({
+        network: net.network,
+        activeAssetsCount: count
+      });
+    }
+  } catch (err) {
+    console.warn('[MarketIntelligence] Recomputing active assets count per network failed:', err);
+  }
+}
 
 // Seed initial network metadata and tracked assets into Cloud SQL
 export async function seedInitialMarketIntelligenceData(): Promise<void> {
@@ -80,9 +312,16 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
       });
     }
 
-    // 2. Seed Crypto Assets from INITIAL_REVIEWS
+    // 2. Seed Crypto Assets from INITIAL_REVIEWS with deterministic assetKey
     for (const rev of INITIAL_REVIEWS) {
+      const assetKey = getAssetKey({
+        coingeckoId: rev.coingeckoId,
+        network: rev.network || 'Ethereum',
+        contractAddress: rev.contractAddress,
+        symbol: rev.symbol,
+      });
       await upsertMarketAsset({
+        assetKey,
         symbol: rev.symbol,
         name: rev.name,
         coingeckoId: rev.coingeckoId,
@@ -94,9 +333,16 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
       });
     }
 
-    // 3. Seed Verified Tokenized Stocks from XSTOCKS_REGISTRY
+    // 3. Seed Verified Tokenized Stocks from XSTOCKS_REGISTRY with deterministic assetKey
     for (const xstock of XSTOCKS_REGISTRY) {
+      const assetKey = getAssetKey({
+        coingeckoId: xstock.coingeckoId,
+        network: xstock.chain,
+        contractAddress: xstock.contractAddress,
+        symbol: xstock.symbol,
+      });
       await upsertMarketAsset({
+        assetKey,
         symbol: xstock.symbol,
         name: xstock.name,
         coingeckoId: xstock.coingeckoId,
@@ -109,34 +355,92 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
     }
 
     // 4. Compute active counts per network based on actual registered assets
-    const assets = await getMarketAssets();
-    const networkCounts: Record<string, number> = {};
-    for (const net of INITIAL_NETWORKS) {
-      networkCounts[net.network] = 0;
-    }
-    for (const asset of assets) {
-      if (asset.network) {
-        const net = INITIAL_NETWORKS.find(n => n.network.toLowerCase() === asset.network.toLowerCase());
-        if (net) {
-          networkCounts[net.network] = (networkCounts[net.network] || 0) + 1;
-        }
-      }
-    }
-
-    for (const net of INITIAL_NETWORKS) {
-      await upsertNetworkMetric({
-        network: net.network,
-        chainId: net.chainId,
-        gasToken: net.gasToken,
-        nativeToken: net.nativeToken,
-        explorerUrl: net.explorerUrl,
-        activeAssetsCount: networkCounts[net.network] || 0,
-      });
-    }
+    await recomputeNetworkActiveAssets();
 
     console.log('[MarketIntelligence] Initial networks and assets seeded into Cloud SQL successfully.');
   } catch (error) {
     console.warn('[MarketIntelligence] Seed skipped or failed (will retry on next cycle):', error);
+  }
+}
+
+// DISCOVERY: Fetch current top 500 coins by market cap (pages 1-2, per_page=250) and merge into Cloud SQL
+export async function discoverAssets(): Promise<{ discovered: number }> {
+  if (isDiscoveryRunning) {
+    return { discovered: 0 };
+  }
+  isDiscoveryRunning = true;
+  try {
+    console.log('[MarketIntelligence] Starting top 500 asset discovery via CoinGecko...');
+    let discovered = 0;
+
+    // Fetch page 1 and page 2 (per_page=250 -> 500 coins total)
+    const [page1, page2] = await Promise.allSettled([
+      fetchCoinGeckoMarketsPage(1, 250),
+      fetchCoinGeckoMarketsPage(2, 250)
+    ]);
+
+    const coins: any[] = [];
+    if (page1.status === 'fulfilled' && Array.isArray(page1.value)) {
+      coins.push(...page1.value);
+    }
+    if (page2.status === 'fulfilled' && Array.isArray(page2.value)) {
+      coins.push(...page2.value);
+    }
+
+    if (coins.length === 0) {
+      console.warn('[MarketIntelligence] CoinGecko discovery returned 0 coins.');
+      return { discovered: 0 };
+    }
+
+    const existingNetworks = await getNetworkMetrics();
+    const existingNetworkNames = new Set(existingNetworks.map(n => n.network.toLowerCase().trim()));
+
+    for (const coin of coins) {
+      if (!coin.id || !coin.symbol) continue;
+
+      const network = resolveNetworkFromCoin(coin);
+      const networkLower = network.toLowerCase().trim();
+
+      // Ensure network_metrics exists if network does not already exist
+      if (!existingNetworkNames.has(networkLower)) {
+        try {
+          await upsertNetworkMetric({
+            network,
+            status: 'active',
+            activeAssetsCount: 0
+          });
+          existingNetworkNames.add(networkLower);
+        } catch {}
+      }
+
+      const assetKey = getAssetKey({
+        coingeckoId: coin.id,
+        network,
+        symbol: coin.symbol.toUpperCase()
+      });
+
+      // Merge/upsert behavior: never delete existing market_assets
+      await upsertMarketAsset({
+        assetKey,
+        symbol: coin.symbol.toUpperCase(),
+        name: coin.name || coin.symbol.toUpperCase(),
+        coingeckoId: coin.id,
+        category: coin.category || (network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+        network,
+        logoUrl: coin.image || null,
+        isVerified: 1
+      });
+      discovered++;
+    }
+
+    await recomputeNetworkActiveAssets();
+    console.log(`[MarketIntelligence] Discovery finished. Upserted/merged ${discovered} assets into market_assets.`);
+    return { discovered };
+  } catch (error) {
+    console.error('[MarketIntelligence] Asset discovery error:', error);
+    return { discovered: 0 };
+  } finally {
+    isDiscoveryRunning = false;
   }
 }
 
@@ -166,7 +470,8 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
               chainMap[c.name.toLowerCase()] = c.tvl;
             }
           }
-          for (const net of INITIAL_NETWORKS) {
+          const allNets = await getNetworkMetrics();
+          for (const net of allNets) {
             const tvl = chainMap[net.network.toLowerCase()];
             if (tvl !== undefined) {
               const formattedTvl = tvl >= 1e9 
@@ -194,78 +499,92 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
       return { success: true, itemsSynced: 0, networksSynced };
     }
 
-    const cgIds = assets.map(a => a.coingeckoId).filter(Boolean) as string[];
-    let cgDataMap: Record<string, any> = {};
-    let csDataMap: Record<string, any> = {};
+    // 3. Batch CoinGecko IDs in chunks of 250
+    const assetsWithCg = assets.filter(a => a.coingeckoId && a.coingeckoId.trim());
+    const cgDataMap: Record<string, any> = {};
 
-    // 3. Parallel Multi-Source Ingestion: CoinGecko + CoinStats Oracles
-    const [cgResult, csResult] = await Promise.allSettled([
-      // Source A: CoinGecko API
-      (async () => {
-        if (cgIds.length === 0) return {};
-        const cgRes = await fetch(
-          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${encodeURIComponent(cgIds.join(','))}&sparkline=false`,
-          {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'CryptoReviewLab/3.2.0'
-            }
-          }
-        );
-        if (cgRes.ok) {
-          const list = await cgRes.json();
-          const map: Record<string, any> = {};
-          if (Array.isArray(list)) {
-            for (const item of list) {
-              if (item.id) map[item.id.toLowerCase()] = item;
-              if (item.symbol) map[item.symbol.toLowerCase()] = item;
-            }
-          }
-          return map;
+    const CHUNK_SIZE = 250;
+    for (let i = 0; i < assetsWithCg.length; i += CHUNK_SIZE) {
+      const chunk = assetsWithCg.slice(i, i + CHUNK_SIZE);
+      const chunkIds = chunk.map(a => a.coingeckoId!).filter(Boolean);
+      try {
+        const items = await fetchCoinGeckoMarketsPage(1, CHUNK_SIZE, chunkIds);
+        for (const item of items) {
+          if (item.id) cgDataMap[item.id.toLowerCase()] = item;
+          if (item.symbol) cgDataMap[item.symbol.toLowerCase()] = item;
         }
-        return {};
-      })(),
-      // Source B: CoinStats Public Feed
-      (async () => {
-        try {
-          const csRes = await fetch(
-            'https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec?action=markets&limit=500',
-            { headers: { 'Accept': 'application/json' } }
-          );
-          if (csRes.ok) {
-            const csJson = await csRes.json();
-            const items = csJson?.data || csJson?.coins || (Array.isArray(csJson) ? csJson : []);
-            const map: Record<string, any> = {};
-            if (Array.isArray(items)) {
-              for (const it of items) {
-                if (it.id) map[it.id.toLowerCase()] = it;
-                if (it.symbol) map[it.symbol.toLowerCase()] = it;
-              }
-            }
-            return map;
-          }
-        } catch {}
-        return {};
-      })()
-    ]);
+      } catch (chunkErr) {
+        console.warn(`[MarketIntelligence] Error syncing CoinGecko chunk ${i}:`, chunkErr);
+      }
+    }
 
-    if (cgResult.status === 'fulfilled') {
-      cgDataMap = cgResult.value;
-    }
-    if (csResult.status === 'fulfilled') {
-      csDataMap = csResult.value;
-    }
+    // Source B: CoinStats Public Feed
+    let csDataMap: Record<string, any> = {};
+    try {
+      const csRes = await fetch(
+        'https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec?action=markets&limit=500',
+        { headers: { 'Accept': 'application/json' } }
+      );
+      if (csRes.ok) {
+        const csJson = await csRes.json();
+        const items = csJson?.data || csJson?.coins || (Array.isArray(csJson) ? csJson : []);
+        if (Array.isArray(items)) {
+          for (const it of items) {
+            if (it.id) csDataMap[it.id.toLowerCase()] = it;
+            if (it.symbol) csDataMap[it.symbol.toLowerCase()] = it;
+          }
+        }
+      }
+    } catch {}
 
     // 4. Process Multi-Source Consensus Convergence and Upsert Snapshots
     for (const asset of assets) {
-      const cgItem = (asset.coingeckoId && cgDataMap[asset.coingeckoId.toLowerCase()]) || cgDataMap[asset.symbol.toLowerCase()];
-      const csItem = (asset.coingeckoId && csDataMap[asset.coingeckoId.toLowerCase()]) || csDataMap[asset.symbol.toLowerCase()];
+      const cgItem = asset.coingeckoId ? (cgDataMap[asset.coingeckoId.toLowerCase()] || cgDataMap[asset.symbol.toLowerCase()]) : null;
+      const csItem = asset.coingeckoId ? (csDataMap[asset.coingeckoId.toLowerCase()] || csDataMap[asset.symbol.toLowerCase()]) : null;
 
-      const cgPrice = cgItem?.current_price ?? null;
-      const csPrice = csItem?.price ?? null;
-      const effectivePrice = cgPrice !== null ? cgPrice : (csPrice !== null ? csPrice : null);
+      if (!cgItem && !csItem) {
+        continue;
+      }
 
-      const change24h = cgItem?.price_change_percentage_24h ?? csItem?.priceChange1d ?? null;
+      const cgPrice = cgItem && typeof cgItem.current_price === 'number' ? cgItem.current_price : null;
+      const csPrice = csItem && (typeof csItem.price === 'number' ? csItem.price : (typeof csItem.priceUsd === 'number' ? csItem.priceUsd : null));
+
+      let effectivePrice = cgPrice ?? csPrice;
+      let priceDivergencePct = '0.00%';
+      let confidenceScore = 90;
+      let confidenceLevel = 'High';
+      let sourceConsensus = 'COINGECKO_VERIFIED_PRIMARY';
+
+      if (cgPrice !== null && csPrice !== null && cgPrice > 0 && csPrice > 0) {
+        const diff = Math.abs(cgPrice - csPrice);
+        const avg = (cgPrice + csPrice) / 2;
+        const divPct = (diff / avg) * 100;
+        priceDivergencePct = `${divPct.toFixed(2)}%`;
+
+        if (divPct <= 1.5) {
+          effectivePrice = avg;
+          confidenceScore = 98;
+          confidenceLevel = 'VERY_HIGH';
+          sourceConsensus = 'MULTI_ORACLE_CONSENSUS (CoinGecko + CoinStats)';
+        } else if (divPct <= 3.5) {
+          effectivePrice = cgPrice;
+          confidenceScore = 88;
+          confidenceLevel = 'HIGH';
+          sourceConsensus = 'COINGECKO_PRIMARY (CoinStats Secondary)';
+        } else {
+          effectivePrice = cgPrice;
+          confidenceScore = 72;
+          confidenceLevel = 'DIVERGENT';
+          sourceConsensus = 'DIVERGENCE_FLAGGED (Using CoinGecko Reference)';
+        }
+      } else if (csPrice !== null && cgPrice === null) {
+        effectivePrice = csPrice;
+        confidenceScore = 80;
+        confidenceLevel = 'MODERATE';
+        sourceConsensus = 'COINSTATS_STANDALONE';
+      }
+
+      const change24h = cgItem?.price_change_percentage_24h ?? csItem?.priceChange1d ?? csItem?.change24h ?? null;
       const marketCap = cgItem?.market_cap ?? csItem?.marketCap ?? null;
       const volume24h = cgItem?.total_volume ?? csItem?.volume ?? null;
       const circulatingSupply = cgItem?.circulating_supply ?? csItem?.availableSupply ?? null;
@@ -274,42 +593,10 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
       const ath = cgItem?.ath ?? null;
       const atl = cgItem?.atl ?? null;
 
-      // Multi-Source Reconciliation & Divergence Scoring
-      let priceDivergencePct = '0.00%';
-      let confidenceScore = 80;
-      let confidenceLevel = 'Moderate';
-      let sourceConsensus = 'INDEPENDENT_INDEX';
-
-      if (cgPrice !== null && csPrice !== null && cgPrice > 0 && csPrice > 0) {
-        const mean = (cgPrice + csPrice) / 2;
-        const diff = Math.abs(cgPrice - csPrice);
-        const divPct = (diff / mean) * 100;
-        priceDivergencePct = `${divPct.toFixed(2)}%`;
-
-        if (divPct <= 1.0) {
-          confidenceScore = 99;
-          confidenceLevel = 'High';
-          sourceConsensus = 'FULLY_CROSS_VALIDATED (CG + COINSTATS)';
-        } else if (divPct <= 3.0) {
-          confidenceScore = 93;
-          confidenceLevel = 'High';
-          sourceConsensus = 'PARTIALLY_CROSS_VALIDATED (TOLERANCE ±3%)';
-        } else {
-          confidenceScore = 75;
-          confidenceLevel = 'Moderate';
-          sourceConsensus = 'UNRESOLVED_DIVERGENCE (>3%)';
-        }
-      } else if (cgPrice !== null && cgPrice > 0) {
-        confidenceScore = 95;
-        confidenceLevel = 'High';
-        sourceConsensus = 'COINGECKO_VERIFIED_PRIMARY';
-      } else if (csPrice !== null && csPrice > 0) {
-        confidenceScore = 90;
-        confidenceLevel = 'High';
-        sourceConsensus = 'COINSTATS_VERIFIED_PRIMARY';
-      }
+      const assetKey = asset.assetKey || getAssetKey(asset);
 
       await upsertMarketSnapshot({
+        assetKey,
         symbol: asset.symbol,
         network: asset.network,
         priceUsd: effectivePrice !== null ? String(effectivePrice) : undefined,
@@ -327,6 +614,7 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
         confidenceLevel,
         sourceConsensus,
         rawPayload: {
+          assetKey,
           symbol: asset.symbol,
           cgPrice,
           csPrice,
@@ -337,6 +625,12 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
 
       itemsSynced++;
     }
+
+    // 5. Call pruneOldSnapshots() at the end of each cycle
+    await pruneOldSnapshots(7);
+
+    // 6. Recompute active_assets_count per network from market_assets after each cycle
+    await recomputeNetworkActiveAssets();
 
     const latencyMs = Date.now() - startTime;
     await recordTelemetrySyncLog({
@@ -372,14 +666,23 @@ export function startMarketIntelligenceSyncService(): void {
   if (syncInterval) {
     clearInterval(syncInterval);
   }
+  if (discoveryInterval) {
+    clearInterval(discoveryInterval);
+  }
 
-  // Initial seeding and first run after 3 seconds
+  // Initial seeding, discovery, and sync after 3 seconds
   setTimeout(async () => {
     await seedInitialMarketIntelligenceData();
+    await discoverAssets();
     await runMarketIntelligenceSync();
   }, 3000);
 
-  // Recurring sync every 5 minutes (300,000 ms)
+  // Discovery every 24 hours
+  discoveryInterval = setInterval(async () => {
+    await discoverAssets();
+  }, 24 * 60 * 60 * 1000);
+
+  // Sync cycle every 5 minutes
   syncInterval = setInterval(async () => {
     await runMarketIntelligenceSync();
   }, 5 * 60 * 1000);

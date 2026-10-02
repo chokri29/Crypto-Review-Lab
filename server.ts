@@ -40,7 +40,9 @@ import {
   addToWatchlist, 
   removeFromWatchlist,
   getMarketAssets,
+  getMarketAssetsPaged,
   getLatestMarketSnapshots,
+  getMarketSnapshotsCount,
   getNetworkMetrics,
   getTelemetrySyncLogs,
   getMarketSnapshotBySymbol,
@@ -3623,15 +3625,32 @@ ${dualSyncContext}`;
 
   app.get("/api/market-intelligence/feed", async (req, res) => {
     try {
-      const [assets, snapshots, networks, telemetryLogs] = await Promise.all([
-        getMarketAssets(),
-        getLatestMarketSnapshots(),
+      const network = req.query.network as string | undefined;
+      const q = req.query.q as string | undefined;
+      const limit = req.query.limit !== undefined ? parseInt(req.query.limit as string, 10) : 250;
+      const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string, 10) : 0;
+
+      const { items: assets, total } = await getMarketAssetsPaged({
+        network,
+        q,
+        limit,
+        offset
+      });
+
+      const assetKeys = assets.map(a => a.assetKey).filter(Boolean) as string[];
+
+      const [snapshots, totalSnapshots, networks, telemetryLogs] = await Promise.all([
+        assetKeys.length > 0 ? getLatestMarketSnapshots(assetKeys) : [],
+        getMarketSnapshotsCount(),
         getNetworkMetrics(),
         getTelemetrySyncLogs(10)
       ]);
+
       res.json({
         assets,
+        total,
         snapshots,
+        totalSnapshots,
         networks,
         telemetryLogs,
         timestamp: new Date().toISOString()

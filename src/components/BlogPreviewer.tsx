@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -143,8 +143,9 @@ export function getNetworkBadge(network?: string): { label: string; badgeClass: 
     badgeClass: 'text-slate-300 bg-slate-800/80 border-slate-700'
   };
 }
-import { CryptoReview } from '../types';
+import { CryptoReview, RiskLevel } from '../types';
 import { getCoinLogoUrl } from '../utils/coinLogos';
+import { getAssetKey } from '../utils/assetKey';
 import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
@@ -223,6 +224,7 @@ export default function BlogPreviewer({
   const [showSyncToast, setShowSyncToast] = useState(false);
   const [localActiveReviewId, setLocalActiveReviewId] = useState<string | null>(null);
   const { formatPrice: ctxFormatPrice, selectedCurrency } = useCurrency();
+  const [feedAssets, setFeedAssets] = useState<any[]>([]);
   const [networkCounts, setNetworkCounts] = useState<Record<string, number>>({});
   const [networkMetricsList, setNetworkMetricsList] = useState<any[]>([]);
   const [pipelineTelemetry, setPipelineTelemetry] = useState<any>(null);
@@ -230,24 +232,50 @@ export default function BlogPreviewer({
   const [isDbModalOpen, setIsDbModalOpen] = useState(false);
   const [dbModalSymbol, setDbModalSymbol] = useState<string>('SOL');
   const [liveSnapshotsMap, setLiveSnapshotsMap] = useState<Record<string, any>>({});
-  const [databaseAssetsCount, setDatabaseAssetsCount] = useState<number>(21);
-  const [databaseSnapshotsCount, setDatabaseSnapshotsCount] = useState<number>(1150);
+  const [databaseAssetsCount, setDatabaseAssetsCount] = useState<number | null>(null);
+  const [databaseSnapshotsCount, setDatabaseSnapshotsCount] = useState<number | null>(null);
 
-  const loadMarketIntelligenceFeed = () => {
-    fetch('/api/market-intelligence/feed')
+  const loadMarketIntelligenceFeed = useCallback((network?: string, q?: string) => {
+    const params = new URLSearchParams();
+    const effectiveNetwork = network !== undefined ? network : selectedNetwork;
+    if (effectiveNetwork && effectiveNetwork !== 'All') {
+      params.set('network', effectiveNetwork);
+    }
+    const effectiveQ = q !== undefined ? q : searchQuery;
+    if (effectiveQ && effectiveQ.trim()) {
+      params.set('q', effectiveQ.trim());
+    }
+    params.set('limit', '500');
+
+    fetch(`/api/market-intelligence/feed?${params.toString()}`)
       .then(r => r.ok ? r.json() : null)
       .then((feed) => {
         if (feed) {
-          if (Array.isArray(feed.snapshots)) {
-            const map: Record<string, any> = {};
-            for (const s of feed.snapshots) {
-              if (s.symbol) map[s.symbol.toUpperCase()] = s;
-            }
-            setLiveSnapshotsMap(map);
-            setDatabaseSnapshotsCount(feed.snapshots.length);
-          }
           if (Array.isArray(feed.assets)) {
-            setDatabaseAssetsCount(feed.assets.length);
+            setFeedAssets(feed.assets);
+            setDatabaseAssetsCount(feed.total !== undefined ? feed.total : feed.assets.length);
+          }
+          if (Array.isArray(feed.snapshots)) {
+            setLiveSnapshotsMap((prev) => {
+              const next = { ...prev };
+              for (const s of feed.snapshots) {
+                const key = s.assetKey || s.symbol?.toUpperCase();
+                if (!key) continue;
+                const existing = next[key];
+                if (!existing) {
+                  next[key] = s;
+                } else {
+                  // Never allow an older snapshot to overwrite a newer snapshot
+                  const existingTime = existing.syncedAt ? new Date(existing.syncedAt).getTime() : 0;
+                  const newTime = s.syncedAt ? new Date(s.syncedAt).getTime() : 0;
+                  if (newTime >= existingTime) {
+                    next[key] = s;
+                  }
+                }
+              }
+              return next;
+            });
+            setDatabaseSnapshotsCount(feed.totalSnapshots !== undefined ? feed.totalSnapshots : feed.snapshots.length);
           }
           if (Array.isArray(feed.networks) && feed.networks.length > 0) {
             setNetworkMetricsList(feed.networks);
@@ -263,7 +291,7 @@ export default function BlogPreviewer({
         }
       })
       .catch(err => console.warn('Failed to load market intelligence feed:', err));
-  };
+  }, [selectedNetwork, searchQuery]);
 
   useEffect(() => {
     loadMarketIntelligenceFeed();
@@ -271,7 +299,13 @@ export default function BlogPreviewer({
       loadMarketIntelligenceFeed();
     }, 20000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadMarketIntelligenceFeed]);
+
+  const handleSelectNetwork = (net: string) => {
+    setSelectedNetwork(net);
+    setIsNetworkDropdownOpen(false);
+    loadMarketIntelligenceFeed(net, searchQuery);
+  };
 
   const triggerPipelineSync = async () => {
     setIsSyncingPipeline(true);
@@ -290,37 +324,130 @@ export default function BlogPreviewer({
     }
   };
 
-  // Merge live PostgreSQL snapshots from liveSnapshotsMap into reviews
+  // Critical Source-of-Truth Rule:
+  // Market Intelligence list MUST be constructed from feed.assets joined with feed.snapshots using assetKey.
+  // INITIAL_REVIEWS (and reviews prop) is used ONLY for optional enrichment (1. coingeckoId, 2. symbol).
   const enrichedReviews = React.useMemo(() => {
-    return reviews.map((r) => {
-      const snap = liveSnapshotsMap[r.symbol.toUpperCase()];
-      if (!snap) return r;
+    // If feed.assets has not loaded yet, return empty list
+    if (!feedAssets || feedAssets.length === 0) {
+      return [];
+    }
+
+    return feedAssets.map((asset) => {
+      const assetKey = asset.assetKey || getAssetKey(asset);
+      const snap = liveSnapshotsMap[assetKey] || liveSnapshotsMap[asset.symbol?.toUpperCase()];
+
+      // Optional enrichment matching order: 1. coingeckoId, 2. symbol
+      const enrichment = reviews.find((r) => {
+        if (asset.coingeckoId && r.coingeckoId && asset.coingeckoId.toLowerCase() === r.coingeckoId.toLowerCase()) {
+          return true;
+        }
+        return false;
+      }) || reviews.find((r) => {
+        if (asset.symbol && r.symbol && asset.symbol.toLowerCase() === r.symbol.toLowerCase()) {
+          return true;
+        }
+        return false;
+      });
+
+      const id = enrichment?.id || (asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase()));
+      const logoUrl = asset.logoUrl || enrichment?.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId);
+
+      const baseReview: CryptoReview = {
+        id,
+        assetKey,
+        name: asset.name,
+        symbol: asset.symbol.toUpperCase(),
+        category: asset.category || enrichment?.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+        network: asset.network,
+        contractAddress: asset.contractAddress || enrichment?.contractAddress || undefined,
+        logoUrl,
+        coingeckoId: asset.coingeckoId || enrichment?.coingeckoId || undefined,
+        overallScore: enrichment?.overallScore ?? (snap?.confidenceScore ? Math.min(Math.max(snap.confidenceScore, 65), 98) : 85),
+        riskLevel: enrichment?.riskLevel ?? ('Declared Risk' as RiskLevel),
+        verdict: enrichment?.verdict ?? `Active multi-source consensus tracking on ${asset.network}. Continuous telemetry convergence verified in Cloud SQL.`,
+        summary: enrichment?.summary ?? `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
+        pros: enrichment?.pros ?? [
+          'Continuous multi-source oracle consensus telemetry',
+          `Verified asset registry entry on ${asset.network}`,
+          'Real-time supply and market capitalization tracking'
+        ],
+        cons: enrichment?.cons ?? [
+          'Comprehensive smart contract bytecode review pending evaluation',
+          'Third-party external dependency risk model active'
+        ],
+        author: enrichment?.author ?? 'AVF Automated Data Pipeline',
+        createdAt: asset.createdAt || enrichment?.createdAt || new Date().toISOString(),
+        proBenchmarks: enrichment?.proBenchmarks,
+        comparisonReport: enrichment?.comparisonReport,
+        auditSignature: enrichment?.auditSignature,
+      };
+
+      if (!snap) return baseReview;
+
       return {
-        ...r,
-        livePrice: snap.priceUsd ? parseFloat(snap.priceUsd) : r.livePrice,
-        liveChange24h: snap.change24h ? parseFloat(snap.change24h) : r.liveChange24h,
-        liveMarketCap: snap.marketCapUsd ? parseFloat(snap.marketCapUsd) : r.liveMarketCap,
-        liveVolume24h: snap.volume24hUsd ? parseFloat(snap.volume24hUsd) : r.liveVolume24h,
-        circulatingSupply: snap.circulatingSupply ? parseFloat(snap.circulatingSupply) : r.circulatingSupply,
-        totalSupply: snap.totalSupply ? parseFloat(snap.totalSupply) : r.totalSupply,
-        maxSupply: snap.maxSupply ? parseFloat(snap.maxSupply) : r.maxSupply,
-        allTimeHigh: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : r.allTimeHigh,
-        allTimeLow: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : r.allTimeLow,
-        ath: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : r.ath,
-        atl: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : r.atl,
-        priceDivergencePct: snap.priceDivergencePct ? parseFloat(snap.priceDivergencePct) : r.priceDivergencePct,
-        confidenceScore: snap.confidenceScore ?? r.confidenceScore,
-        confidenceLevel: (snap.confidenceLevel as any) || r.confidenceLevel,
+        ...baseReview,
+        livePrice: snap.priceUsd ? parseFloat(snap.priceUsd) : baseReview.livePrice,
+        liveChange24h: snap.change24h ? parseFloat(snap.change24h) : baseReview.liveChange24h,
+        liveMarketCap: snap.marketCapUsd ? parseFloat(snap.marketCapUsd) : baseReview.liveMarketCap,
+        liveVolume24h: snap.volume24hUsd ? parseFloat(snap.volume24hUsd) : baseReview.liveVolume24h,
+        circulatingSupply: snap.circulatingSupply ? parseFloat(snap.circulatingSupply) : baseReview.circulatingSupply,
+        totalSupply: snap.totalSupply ? parseFloat(snap.totalSupply) : baseReview.totalSupply,
+        maxSupply: snap.maxSupply ? parseFloat(snap.maxSupply) : baseReview.maxSupply,
+        allTimeHigh: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : baseReview.allTimeHigh,
+        allTimeLow: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : baseReview.allTimeLow,
+        ath: snap.allTimeHighUsd ? parseFloat(snap.allTimeHighUsd) : baseReview.ath,
+        atl: snap.allTimeLowUsd ? parseFloat(snap.allTimeLowUsd) : baseReview.atl,
+        priceDivergencePct: snap.priceDivergencePct ? parseFloat(snap.priceDivergencePct) : baseReview.priceDivergencePct,
+        confidenceScore: snap.confidenceScore ?? baseReview.confidenceScore,
+        confidenceLevel: (snap.confidenceLevel as any) || baseReview.confidenceLevel,
         dataEngine: snap.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
-        lastSyncedAt: snap.syncedAt ? new Date(snap.syncedAt).toLocaleTimeString() : r.lastSyncedAt,
+        lastSyncedAt: snap.syncedAt ? new Date(snap.syncedAt).toLocaleTimeString() : baseReview.lastSyncedAt,
       };
     });
-  }, [reviews, liveSnapshotsMap]);
+  }, [feedAssets, reviews, liveSnapshotsMap]);
+
+  // Dynamic Network Options built from feed.networks (Cloud SQL)
+  const networkOptions: NetworkOption[] = useMemo(() => {
+    const list: NetworkOption[] = [
+      { 
+        value: 'All', 
+        label: 'All Networks', 
+        badge: 'All Blockchains', 
+        icon: Globe, 
+        color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' 
+      }
+    ];
+
+    if (networkMetricsList && networkMetricsList.length > 0) {
+      for (const net of networkMetricsList) {
+        const netName = net.network;
+        const predefined = NETWORK_OPTIONS.find((o) => o.value.toLowerCase() === netName.toLowerCase());
+        list.push({
+          value: netName,
+          label: netName,
+          badge: predefined?.badge || (net.chainId ? `Chain ID ${net.chainId}` : `${netName} Ecosystem`),
+          icon: predefined?.icon || Layers,
+          color: predefined?.color || 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+          chainId: net.chainId,
+          gasToken: net.gasToken,
+          nativeToken: net.nativeToken,
+          explorer: net.explorerUrl
+        });
+      }
+    } else {
+      return NETWORK_OPTIONS;
+    }
+
+    return list;
+  }, [networkMetricsList]);
 
   const getNetworkAssetCount = (netName: string) => {
-    if (netName === 'All') return enrichedReviews.length;
+    if (netName === 'All') return databaseAssetsCount !== null ? databaseAssetsCount : enrichedReviews.length;
     const lower = netName.toLowerCase();
     if (networkCounts[lower] !== undefined) return networkCounts[lower];
+    const match = networkMetricsList.find(n => n.network.toLowerCase() === lower);
+    if (match && match.activeAssetsCount !== undefined) return match.activeAssetsCount;
     return enrichedReviews.filter(r => r.network && r.network.toLowerCase() === lower).length;
   };
 
@@ -611,10 +738,12 @@ export default function BlogPreviewer({
 
   const activeReview = enrichedReviews.find((r) => 
     r.id === activeReviewId || 
+    r.assetKey === activeReviewId ||
     r.coingeckoId === activeReviewId || 
     r.id === `cg-${activeReviewId}` ||
     `cg-${r.coingeckoId}` === activeReviewId ||
     (activeReviewId && r.id.toLowerCase() === activeReviewId.toLowerCase()) ||
+    (activeReviewId && r.symbol.toLowerCase() === activeReviewId.toLowerCase()) ||
     (activeReviewId && r.coingeckoId && r.coingeckoId.toLowerCase() === activeReviewId.replace(/^cg-/, '').toLowerCase())
   );
 
@@ -652,8 +781,8 @@ export default function BlogPreviewer({
   const selectedCategoryObj = CATEGORY_OPTIONS.find((opt) => opt.value === selectedCategory) || CATEGORY_OPTIONS[0];
   const SelectedIconComp = selectedCategoryObj.icon;
 
-  const networks = NETWORK_OPTIONS.map((opt) => opt.value);
-  const selectedNetworkObj = NETWORK_OPTIONS.find((opt) => opt.value === selectedNetwork) || NETWORK_OPTIONS[0];
+  const networks = networkOptions.map((opt) => opt.value);
+  const selectedNetworkObj = networkOptions.find((opt) => opt.value === selectedNetwork) || networkOptions[0];
   const SelectedNetworkIconComp = selectedNetworkObj.icon;
 
   // Predictive matching categories based on search query
@@ -1127,11 +1256,11 @@ export default function BlogPreviewer({
                   <span>PostgreSQL Active</span>
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-cyan-300 bg-cyan-950/40 border border-cyan-500/25 px-2 py-0.5 rounded tabular-nums">
-                  <span>{databaseSnapshotsCount.toLocaleString()} Snapshots</span>
+                  <span>{databaseSnapshotsCount === null ? '—' : databaseSnapshotsCount.toLocaleString()} Snapshots</span>
                   <span className="text-slate-500">·</span>
-                  <span>{databaseAssetsCount} Assets</span>
+                  <span>{databaseAssetsCount === null ? '—' : databaseAssetsCount.toLocaleString()} Assets</span>
                   <span className="text-slate-500">·</span>
-                  <span>{networkMetricsList.length} Networks</span>
+                  <span>{networkMetricsList.length > 0 ? `${networkMetricsList.length} Networks` : '—'}</span>
                 </span>
                 {pipelineTelemetry && (
                   <span className="hidden lg:inline text-slate-400 text-[10px] truncate max-w-sm">
@@ -1216,7 +1345,7 @@ export default function BlogPreviewer({
                       className="absolute left-0 right-0 top-full mt-1.5 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden z-50 py-1.5 divide-y divide-slate-800/80 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-cyber-cyan/30"
                       role="listbox"
                     >
-                      {NETWORK_OPTIONS.map((opt) => {
+                      {networkOptions.map((opt) => {
                         const count = getNetworkAssetCount(opt.value);
                         const isSelected = selectedNetwork === opt.value;
                         const NetIconComp = opt.icon;
@@ -1225,10 +1354,7 @@ export default function BlogPreviewer({
                           <button
                             key={opt.value}
                             type="button"
-                            onClick={() => {
-                              setSelectedNetwork(opt.value);
-                              setIsNetworkDropdownOpen(false);
-                            }}
+                            onClick={() => handleSelectNetwork(opt.value)}
                             className={`w-full text-left px-3.5 py-2 text-xs flex items-center justify-between gap-2.5 transition-colors cursor-pointer ${
                               isSelected
                                 ? 'bg-cyber-cyan/15 text-white font-semibold border-l-4 border-cyber-cyan'
@@ -1266,7 +1392,7 @@ export default function BlogPreviewer({
 
               {/* Desktop Horizontal Network Pills */}
               <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[11px] font-mono">
-                {NETWORK_OPTIONS.map((opt) => {
+                {networkOptions.map((opt) => {
                   const isSelected = selectedNetwork === opt.value;
                   const isRH = opt.value === 'Robinhood Chain';
                   const count = getNetworkAssetCount(opt.value);
@@ -1276,7 +1402,7 @@ export default function BlogPreviewer({
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setSelectedNetwork(opt.value)}
+                      onClick={() => handleSelectNetwork(opt.value)}
                       className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all uppercase tracking-wider cursor-pointer font-bold flex items-center gap-1.5 border ${
                         isSelected
                           ? isRH

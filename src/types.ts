@@ -55,6 +55,7 @@ export type MetricProvenanceType = 'SOURCE' | 'DERIVED' | 'UNAVAILABLE';
 
 export interface CryptoReview {
   id: string;
+  assetKey?: string;
   coingeckoId?: string;
   coingeckoCategories?: string[];
   contractAddress?: string;
