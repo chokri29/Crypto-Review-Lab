@@ -78,7 +78,7 @@ export const UserAuthButton: React.FC = () => {
       </button>
 
       {dropdownOpen && (
-        <div className="absolute right-0 mt-1.5 w-60 bg-cyber-bg-secondary border border-cyber-cyan/40 rounded-xl shadow-2xl z-50 p-3 flex flex-col gap-2 backdrop-blur-md">
+        <div className="absolute left-0 mt-1.5 w-60 max-w-[calc(100vw-1.5rem)] bg-cyber-bg-secondary border border-cyber-cyan/40 rounded-xl shadow-2xl z-50 p-3 flex flex-col gap-2 backdrop-blur-md">
           <div className="flex items-center gap-2 pb-2 border-b border-cyber-cyan/20">
             {user.photoURL ? (
               <img

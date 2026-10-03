@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef, Component } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Component } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   FlaskConical, 
@@ -438,8 +438,87 @@ export default function App() {
   };
 
   const [savedReviews, setSavedReviews] = useState<CryptoReview[]>([]);
+  const [pipelineReviews, setPipelineReviews] = useState<CryptoReview[]>([]);
+  const [dynamicSearchResults, setDynamicSearchResults] = useState<CryptoReview[]>([]);
+  const [isSearchingDb, setIsSearchingDb] = useState<boolean>(false);
   const [hasSubscribed, setHasSubscribed] = useState<boolean>(false);
   const [isExchangesOpen, setIsExchangesOpen] = useState<boolean>(false);
+
+  // Load and hydrate the crypto pipeline database (Cloud SQL)
+  const loadPipelineFeed = useCallback(() => {
+    fetch('/api/market-intelligence/feed?limit=1000')
+      .then(res => res.ok ? res.json() : null)
+      .then(feed => {
+        if (feed && Array.isArray(feed.assets)) {
+          const snapMap: Record<string, any> = {};
+          if (Array.isArray(feed.snapshots)) {
+            for (const snap of feed.snapshots) {
+              const key = snap.assetKey || snap.symbol?.toUpperCase();
+              if (key) snapMap[key] = snap;
+            }
+          }
+
+          const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
+            const assetKey = asset.assetKey || getAssetKey(asset);
+            const s = snapMap[assetKey] || snapMap[asset.symbol?.toUpperCase()];
+            const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
+            const logoUrl = asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId);
+
+            return {
+              id,
+              assetKey,
+              name: asset.name,
+              symbol: asset.symbol.toUpperCase(),
+              category: asset.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+              network: asset.network,
+              contractAddress: asset.contractAddress || undefined,
+              logoUrl,
+              coingeckoId: asset.coingeckoId || undefined,
+              overallScore: s?.confidenceScore ? Math.min(Math.max(s.confidenceScore, 65), 98) : 85,
+              riskLevel: 'Declared Risk',
+              verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
+              summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
+              pros: [
+                'Continuous multi-source oracle consensus telemetry',
+                `Verified asset registry entry on ${asset.network}`,
+                'Real-time supply and market capitalization tracking'
+              ],
+              cons: [
+                'Comprehensive smart contract bytecode review pending evaluation',
+                'Third-party external dependency risk model active'
+              ],
+              author: 'AVF Automated Data Pipeline',
+              createdAt: asset.createdAt || new Date().toISOString(),
+              livePrice: s?.priceUsd ? parseFloat(s.priceUsd) : undefined,
+              liveChange24h: s?.change24h ? parseFloat(s.change24h) : undefined,
+              liveMarketCap: s?.marketCapUsd ? parseFloat(s.marketCapUsd) : undefined,
+              liveVolume24h: s?.volume24hUsd ? parseFloat(s.volume24hUsd) : undefined,
+              circulatingSupply: s?.circulatingSupply ? parseFloat(s.circulatingSupply) : undefined,
+              totalSupply: s?.totalSupply ? parseFloat(s.totalSupply) : undefined,
+              maxSupply: s?.maxSupply ? parseFloat(s.maxSupply) : undefined,
+              allTimeHigh: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+              allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+              ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+              atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+              priceDivergencePct: s?.priceDivergencePct ? parseFloat(s.priceDivergencePct) : 0,
+              confidenceScore: s?.confidenceScore ?? 90,
+              confidenceLevel: (s?.confidenceLevel as any) || 'HIGH',
+              dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
+              lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
+            };
+          });
+
+          setPipelineReviews(dbList);
+        }
+      })
+      .catch(err => console.warn('Failed to load crypto pipeline assets in App:', err));
+  }, []);
+
+  useEffect(() => {
+    loadPipelineFeed();
+    const interval = setInterval(loadPipelineFeed, 30000);
+    return () => clearInterval(interval);
+  }, [loadPipelineFeed]);
 
   // Header Search State & Event Listeners
   const [headerSearchQuery, setHeaderSearchQuery] = useState<string>('');
@@ -506,18 +585,151 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const allReviewsList = savedReviews.length > 0
-    ? [...savedReviews, ...INITIAL_REVIEWS.filter(ir => !savedReviews.some(sr => sr.id === ir.id))]
-    : INITIAL_REVIEWS;
+  // Real-time server-side query to Cloud SQL crypto pipeline database
+  useEffect(() => {
+    const q = headerSearchQuery.trim();
+    if (!q) {
+      setDynamicSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setIsSearchingDb(true);
+      fetch(`/api/market-intelligence/feed?q=${encodeURIComponent(q)}&limit=25`)
+        .then(res => res.ok ? res.json() : null)
+        .then(feed => {
+          if (feed && Array.isArray(feed.assets)) {
+            const snapMap: Record<string, any> = {};
+            if (Array.isArray(feed.snapshots)) {
+              for (const s of feed.snapshots) {
+                const key = s.assetKey || s.symbol?.toUpperCase();
+                if (key) snapMap[key] = s;
+              }
+            }
+            const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
+              const assetKey = asset.assetKey || getAssetKey(asset);
+              const s = snapMap[assetKey] || snapMap[asset.symbol?.toUpperCase()];
+              const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
+              return {
+                id,
+                assetKey,
+                name: asset.name,
+                symbol: asset.symbol.toUpperCase(),
+                category: asset.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+                network: asset.network,
+                contractAddress: asset.contractAddress || undefined,
+                logoUrl: asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId),
+                coingeckoId: asset.coingeckoId || undefined,
+                overallScore: s?.confidenceScore ? Math.min(Math.max(s.confidenceScore, 65), 98) : 85,
+                riskLevel: 'Declared Risk',
+                verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
+                summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
+                pros: [
+                  'Continuous multi-source oracle consensus telemetry',
+                  `Verified asset registry entry on ${asset.network}`,
+                  'Real-time supply and market capitalization tracking'
+                ],
+                cons: [
+                  'Comprehensive smart contract bytecode review pending evaluation',
+                  'Third-party external dependency risk model active'
+                ],
+                author: 'AVF Automated Data Pipeline',
+                createdAt: asset.createdAt || new Date().toISOString(),
+                livePrice: s?.priceUsd ? parseFloat(s.priceUsd) : undefined,
+                liveChange24h: s?.change24h ? parseFloat(s.change24h) : undefined,
+                liveMarketCap: s?.marketCapUsd ? parseFloat(s.marketCapUsd) : undefined,
+                liveVolume24h: s?.volume24hUsd ? parseFloat(s.volume24hUsd) : undefined,
+                circulatingSupply: s?.circulatingSupply ? parseFloat(s.circulatingSupply) : undefined,
+                totalSupply: s?.totalSupply ? parseFloat(s.totalSupply) : undefined,
+                maxSupply: s?.maxSupply ? parseFloat(s.maxSupply) : undefined,
+                allTimeHigh: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+                allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+                ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+                atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+                confidenceScore: s?.confidenceScore ?? 90,
+                confidenceLevel: (s?.confidenceLevel as any) || 'HIGH',
+                dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
+                lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
+              };
+            });
+            setDynamicSearchResults(dbList);
+          }
+        })
+        .catch(err => console.warn('Header DB search failed:', err))
+        .finally(() => setIsSearchingDb(false));
+    }, 150);
 
-  const searchResults = headerSearchQuery.trim()
-    ? allReviewsList.filter((r) => 
-        r.name.toLowerCase().includes(headerSearchQuery.toLowerCase()) || 
-        r.symbol.toLowerCase().includes(headerSearchQuery.toLowerCase()) ||
-        r.category.toLowerCase().includes(headerSearchQuery.toLowerCase()) ||
-        r.verdict.toLowerCase().includes(headerSearchQuery.toLowerCase())
-      )
-    : [];
+    return () => clearTimeout(timer);
+  }, [headerSearchQuery]);
+
+  const allReviewsList = useMemo(() => {
+    const base = savedReviews.length > 0
+      ? [...savedReviews, ...INITIAL_REVIEWS.filter(ir => !savedReviews.some(sr => sr.id === ir.id))]
+      : INITIAL_REVIEWS;
+
+    if (pipelineReviews.length === 0) return base;
+
+    const symbolSet = new Set(base.map(r => r.symbol.toUpperCase()));
+    const cgSet = new Set(base.map(r => (r.coingeckoId || '').toLowerCase()).filter(Boolean));
+
+    const extraDb = pipelineReviews.filter(pr => 
+      !symbolSet.has(pr.symbol.toUpperCase()) &&
+      (!pr.coingeckoId || !cgSet.has(pr.coingeckoId.toLowerCase()))
+    );
+
+    return [...base, ...extraDb];
+  }, [savedReviews, pipelineReviews]);
+
+  const localSearchResults = useMemo(() => {
+    const q = headerSearchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return allReviewsList.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.symbol.toLowerCase().includes(q) ||
+        (r.category && r.category.toLowerCase().includes(q)) ||
+        (r.network && r.network.toLowerCase().includes(q)) ||
+        (r.verdict && r.verdict.toLowerCase().includes(q))
+    );
+  }, [allReviewsList, headerSearchQuery]);
+
+  const searchResults = useMemo(() => {
+    const q = headerSearchQuery.trim().toLowerCase();
+    if (!q) return [];
+
+    const seen = new Set<string>();
+    const combined: CryptoReview[] = [];
+
+    // Prioritize exact or prefix matches from local list
+    const sortedLocal = [...localSearchResults].sort((a, b) => {
+      const aExact = a.symbol.toLowerCase() === q || a.name.toLowerCase() === q;
+      const bExact = b.symbol.toLowerCase() === q || b.name.toLowerCase() === q;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      const aPrefix = a.symbol.toLowerCase().startsWith(q) || a.name.toLowerCase().startsWith(q);
+      const bPrefix = b.symbol.toLowerCase().startsWith(q) || b.name.toLowerCase().startsWith(q);
+      if (aPrefix && !bPrefix) return -1;
+      if (!aPrefix && bPrefix) return 1;
+      return 0;
+    });
+
+    for (const r of sortedLocal) {
+      const key = (r.symbol + '|' + (r.network || '')).toUpperCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        combined.push(r);
+      }
+    }
+
+    for (const r of dynamicSearchResults) {
+      const key = (r.symbol + '|' + (r.network || '')).toUpperCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+        combined.push(r);
+      }
+    }
+
+    return combined;
+  }, [headerSearchQuery, localSearchResults, dynamicSearchResults]);
 
   const handleSelectSearchResult = (reviewId: string) => {
     setSelectedReviewId(reviewId);
@@ -896,116 +1108,6 @@ export default function App() {
       }));
 
       setSavedReviews(sanitizedList);
-
-      // Hydrate proactive consensus market snapshots and database assets from Cloud SQL (PostgreSQL)
-      fetch('/api/market-intelligence/feed?limit=500')
-        .then(res => res.ok ? res.json() : null)
-        .then(feed => {
-          if (feed) {
-            const snapMap: Record<string, any> = {};
-            if (Array.isArray(feed.snapshots)) {
-              for (const snap of feed.snapshots) {
-                const key = snap.assetKey || snap.symbol?.toUpperCase();
-                if (key) snapMap[key] = snap;
-              }
-            }
-
-            setSavedReviews(prev => {
-              // 1. Update existing reviews with latest database snapshots using assetKey
-              const updatedExisting = prev.map(rev => {
-                const key = rev.assetKey || (rev.coingeckoId ? rev.coingeckoId.toLowerCase() : rev.symbol.toUpperCase());
-                const s = snapMap[key] || snapMap[rev.symbol.toUpperCase()];
-                if (!s) return rev;
-                return {
-                  ...rev,
-                  assetKey: s.assetKey || rev.assetKey || key,
-                  livePrice: s.priceUsd ? parseFloat(s.priceUsd) : rev.livePrice,
-                  liveChange24h: s.change24h ? parseFloat(s.change24h) : rev.liveChange24h,
-                  liveMarketCap: s.marketCapUsd ? parseFloat(s.marketCapUsd) : rev.liveMarketCap,
-                  liveVolume24h: s.volume24hUsd ? parseFloat(s.volume24hUsd) : rev.liveVolume24h,
-                  circulatingSupply: s.circulatingSupply ? parseFloat(s.circulatingSupply) : rev.circulatingSupply,
-                  totalSupply: s.totalSupply ? parseFloat(s.totalSupply) : rev.totalSupply,
-                  maxSupply: s.maxSupply ? parseFloat(s.maxSupply) : rev.maxSupply,
-                  allTimeHigh: s.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : rev.allTimeHigh,
-                  allTimeLow: s.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : rev.allTimeLow,
-                  ath: s.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : rev.ath,
-                  atl: s.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : rev.atl,
-                  priceDivergencePct: s.priceDivergencePct ? parseFloat(s.priceDivergencePct) : rev.priceDivergencePct,
-                  confidenceScore: s.confidenceScore ?? rev.confidenceScore,
-                  confidenceLevel: (s.confidenceLevel as any) || rev.confidenceLevel,
-                  dataEngine: s.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
-                  lastSyncedAt: s.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : rev.lastSyncedAt
-                };
-              });
-
-              // 2. Introduce DB-only assets that never existed in savedReviews/INITIAL_REVIEWS
-              const newDbReviews: CryptoReview[] = [];
-              if (Array.isArray(feed.assets)) {
-                for (const asset of feed.assets) {
-                  const assetKey = asset.assetKey || getAssetKey(asset);
-                  const exists = updatedExisting.some(r => 
-                    (r.assetKey && r.assetKey === assetKey) ||
-                    (asset.coingeckoId && r.coingeckoId && r.coingeckoId.toLowerCase() === asset.coingeckoId.toLowerCase()) ||
-                    (r.symbol.toUpperCase() === asset.symbol.toUpperCase() && (r.network || '').toLowerCase() === (asset.network || '').toLowerCase())
-                  );
-
-                  if (!exists) {
-                    const s = snapMap[assetKey] || snapMap[asset.symbol.toUpperCase()];
-                    const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
-                    const logoUrl = asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId);
-
-                    const dbReview: CryptoReview = {
-                      id,
-                      assetKey,
-                      name: asset.name,
-                      symbol: asset.symbol.toUpperCase(),
-                      category: asset.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
-                      network: asset.network,
-                      contractAddress: asset.contractAddress || undefined,
-                      logoUrl,
-                      coingeckoId: asset.coingeckoId || undefined,
-                      overallScore: s?.confidenceScore ? Math.min(Math.max(s.confidenceScore, 65), 98) : 85,
-                      riskLevel: 'Declared Risk',
-                      verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
-                      summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
-                      pros: [
-                        'Continuous multi-source oracle consensus telemetry',
-                        `Verified asset registry entry on ${asset.network}`,
-                        'Real-time supply and market capitalization tracking'
-                      ],
-                      cons: [
-                        'Comprehensive smart contract bytecode review pending evaluation',
-                        'Third-party external dependency risk model active'
-                      ],
-                      author: 'AVF Automated Data Pipeline',
-                      createdAt: asset.createdAt || new Date().toISOString(),
-                      livePrice: s?.priceUsd ? parseFloat(s.priceUsd) : undefined,
-                      liveChange24h: s?.change24h ? parseFloat(s.change24h) : undefined,
-                      liveMarketCap: s?.marketCapUsd ? parseFloat(s.marketCapUsd) : undefined,
-                      liveVolume24h: s?.volume24hUsd ? parseFloat(s.volume24hUsd) : undefined,
-                      circulatingSupply: s?.circulatingSupply ? parseFloat(s.circulatingSupply) : undefined,
-                      totalSupply: s?.totalSupply ? parseFloat(s.totalSupply) : undefined,
-                      maxSupply: s?.maxSupply ? parseFloat(s.maxSupply) : undefined,
-                      allTimeHigh: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
-                      allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
-                      ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
-                      atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
-                      priceDivergencePct: s?.priceDivergencePct ? parseFloat(s.priceDivergencePct) : 0,
-                      confidenceScore: s?.confidenceScore ?? 90,
-                      confidenceLevel: (s?.confidenceLevel as any) || 'HIGH',
-                      dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
-                      lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
-                    };
-                    newDbReviews.push(dbReview);
-                  }
-                }
-              }
-
-              return [...updatedExisting, ...newDbReviews];
-            });
-          }
-        })
-        .catch(err => console.warn('App feed hydration failed:', err));
 
       // Initial price sync from CoinGecko
       syncCoinGeckoMarkets(sanitizedList);
@@ -1593,15 +1695,30 @@ export default function App() {
 
                 {/* Real-time Autocomplete Dropdown */}
                 {isSearchFocused && headerSearchQuery.trim() !== '' && (
-                  <div className="absolute left-0 right-0 top-full mt-2 bg-slate-950 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto p-1.5 space-y-1 font-mono">
+                  <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:w-80 top-full mt-2 bg-slate-950/95 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto p-1.5 space-y-1 font-mono backdrop-blur-xl">
+                    <div className="px-2.5 py-1 text-[9px] text-cyber-cyan/70 uppercase tracking-widest border-b border-cyber-cyan/15 flex items-center justify-between">
+                      <span>Pipeline Assets ({searchResults.length})</span>
+                      {isSearchingDb && <RefreshCw className="w-2.5 h-2.5 animate-spin text-cyber-cyan" />}
+                    </div>
+
                     {searchResults.length === 0 ? (
-                      <div className="p-3 text-center text-xs text-slate-400">
-                        No matching projects found
+                      <div className="p-3.5 text-center text-xs text-slate-400 space-y-1">
+                        {isSearchingDb ? (
+                          <div className="flex items-center justify-center gap-1.5 text-cyber-cyan animate-pulse">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Querying Crypto Pipeline...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-bold text-slate-300">No matching projects found</div>
+                            <div className="text-[10px] text-slate-500">Try searching ticker (e.g. XRP, SOL, BTC, ETH)</div>
+                          </>
+                        )}
                       </div>
                     ) : (
-                      searchResults.slice(0, 6).map(review => (
+                      searchResults.slice(0, 8).map(review => (
                         <button
-                          key={review.id}
+                          key={`${review.id}-${review.symbol}`}
                           type="button"
                           onClick={() => {
                             setActiveTab('blog');
@@ -1613,17 +1730,38 @@ export default function App() {
                           className="w-full text-left p-2 rounded-lg hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-5 h-5 rounded bg-cyber-cyan/20 text-cyber-cyan font-bold text-[9px] flex items-center justify-center shrink-0">
-                              {review.symbol ? review.symbol.slice(0, 3) : 'REV'}
-                            </span>
-                            <div className="flex flex-col truncate">
-                              <span className="text-xs font-bold text-slate-200 group-hover:text-cyber-cyan truncate">{review.name}</span>
-                              <span className="text-[9px] text-slate-400 truncate">{review.category || 'Protocol'}</span>
+                            {review.logoUrl ? (
+                              <img
+                                src={review.logoUrl}
+                                alt={review.symbol}
+                                className="w-5 h-5 rounded-full object-contain bg-slate-900 border border-cyber-cyan/30 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <span className="w-5 h-5 rounded bg-cyber-cyan/20 text-cyber-cyan font-bold text-[9px] flex items-center justify-center shrink-0">
+                                {review.symbol ? review.symbol.slice(0, 3) : 'REV'}
+                              </span>
+                            )}
+                            <div className="flex flex-col truncate min-w-0">
+                              <div className="flex items-center gap-1 truncate">
+                                <span className="text-xs font-bold text-slate-200 group-hover:text-cyber-cyan truncate">{review.name}</span>
+                                <span className="text-[10px] text-cyber-cyan font-mono font-bold shrink-0">({review.symbol})</span>
+                              </div>
+                              <span className="text-[9px] text-slate-400 truncate">{review.network || review.category || 'Cryptocurrency'}</span>
                             </div>
                           </div>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                            {review.overallScore}/100
-                          </span>
+                          <div className="flex flex-col items-end shrink-0 pl-1">
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              {review.overallScore}/100
+                            </span>
+                            {review.livePrice !== undefined && (
+                              <span className="text-[9px] text-slate-300 font-mono mt-0.5">
+                                ${review.livePrice < 1 ? review.livePrice.toFixed(4) : review.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                            )}
+                          </div>
                         </button>
                       ))
                     )}
@@ -3081,7 +3219,7 @@ export default function App() {
                 <div className="pt-2 w-full space-y-2">
                   <p className="text-[10px] font-mono uppercase tracking-widest text-cyber-cyan/80 text-left">Quick Voice Tokens:</p>
                   <div className="flex flex-wrap gap-1.5 justify-start">
-                    {['Zama', 'Solana', 'Bitcoin', 'Ethereum', 'Hyperliquid', 'Render', 'Jupiter', 'Sui', 'Arbitrum', 'Uniswap', 'Kaspa', 'Link'].map((token) => (
+                    {['XRP', 'Ripple', 'Solana', 'Bitcoin', 'Ethereum', 'Hyperliquid', 'Render', 'Jupiter', 'Sui', 'Arbitrum', 'Uniswap', 'Kaspa', 'Link'].map((token) => (
                       <button
                         key={token}
                         type="button"
