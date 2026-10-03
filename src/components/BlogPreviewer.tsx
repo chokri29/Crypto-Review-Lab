@@ -32,7 +32,6 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
-  Archive,
   Crown,
   Zap,
   Cpu,
@@ -218,9 +217,7 @@ export default function BlogPreviewer({
     };
   }, [isCategoryDropdownOpen, isNetworkDropdownOpen]);
 
-  const [isArchiveDropdownOpen, setIsArchiveDropdownOpen] = useState(false);
   const [isCustomSelectOpen, setIsCustomSelectOpen] = useState(false);
-  const [selectedArchiveTitle, setSelectedArchiveTitle] = useState('');
   const [showSyncToast, setShowSyncToast] = useState(false);
   const [localActiveReviewId, setLocalActiveReviewId] = useState<string | null>(null);
   const { formatPrice: ctxFormatPrice, selectedCurrency } = useCurrency();
@@ -1224,60 +1221,20 @@ export default function BlogPreviewer({
                 </div>
               )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('All');
-                  setInternalSearchQuery('');
-                  if (setHeaderSearchQuery) setHeaderSearchQuery('');
-                  setLocalActiveReviewId(null);
-                  if (setSelectedReviewId) setSelectedReviewId(null);
-                }}
-                className="flex items-center gap-2 text-xs font-mono text-cyber-text-secondary hover:text-cyber-cyan uppercase bg-cyber-bg-secondary hover:bg-cyber-cyan/10 border border-cyber-cyan/15 hover:border-cyber-cyan/40 rounded-xl px-3 py-2 transition-all cursor-pointer shadow-sm group"
-                title="Reset filters and view all tracked projects"
-              >
-                <Clock className="w-3.5 h-3.5 text-cyber-cyan group-hover:scale-110 transition-transform" />
-                <span className="font-bold">{reviews.length} Tracked Projects</span>
-              </button>
             </div>
           </div>
 
           {/* Classification & Filter Bar (Blockchain Networks + Categories) */}
           <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-4 shadow-lg space-y-3.5 relative">
             {/* Proactive Market Intelligence Pipeline Status Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-cyber-cyan/15 text-[11px] font-mono">
-              <div className="flex items-center flex-wrap gap-2.5">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-cyber-cyan/15 text-[11px] font-mono">
+              <div className="flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
                 <span className="text-white font-bold uppercase tracking-wider text-xs">
-                  Cloud SQL Ingestion Pipeline
+                  Cryptocurrency Pipeline
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
-                  <Database className="w-3 h-3 text-emerald-400" />
-                  <span>PostgreSQL Active</span>
-                </span>
-                <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-cyan-300 bg-cyan-950/40 border border-cyan-500/25 px-2 py-0.5 rounded tabular-nums">
-                  <span>{databaseSnapshotsCount === null ? '—' : databaseSnapshotsCount.toLocaleString()} Snapshots</span>
-                  <span className="text-slate-500">·</span>
-                  <span>{databaseAssetsCount === null ? '—' : databaseAssetsCount.toLocaleString()} Assets</span>
-                  <span className="text-slate-500">·</span>
-                  <span>{networkMetricsList.length > 0 ? `${networkMetricsList.length} Networks` : '—'}</span>
-                </span>
-                {pipelineTelemetry && (
-                  <span className="hidden lg:inline text-slate-400 text-[10px] truncate max-w-sm">
-                    {pipelineTelemetry.itemsSynced} items in {pipelineTelemetry.latencyMs}ms
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsDbModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/40 text-cyan-300 text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all shadow-[0_0_10px_rgba(0,229,255,0.15)] hover:shadow-[0_0_15px_rgba(0,229,255,0.3)]"
-                  title="Open live Cloud SQL inspector to verify PostgreSQL tables and telemetry logs"
-                >
-                  <Database className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Inspect Database</span>
-                </button>
                 <button
                   type="button"
                   onClick={triggerPipelineSync}
@@ -1599,38 +1556,6 @@ export default function BlogPreviewer({
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* ARCHIVES SKELETON LIST */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-3 bg-cyber-cyan/20 rounded w-36 animate-pulse"></div>
-                  <div className="h-px bg-cyber-cyan/10 flex-1"></div>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                  <div className="lg:col-span-2 space-y-4">
-                    {[1, 2].map((idx) => (
-                      <div key={idx} className="bg-cyber-bg-card/50 border border-cyber-cyan/10 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-stretch animate-pulse">
-                        <div className="w-full sm:w-28 bg-cyber-bg-primary/40 border border-cyber-cyan/10 rounded-lg flex flex-col items-center justify-center shrink-0 p-3.5 space-y-2">
-                          <div className="h-2 bg-cyber-text-muted/20 rounded w-12"></div>
-                          <div className="h-6 bg-cyber-cyan/20 rounded-lg w-10"></div>
-                          <div className="h-2.5 bg-cyber-cyan/15 rounded w-14"></div>
-                        </div>
-                        <div className="flex flex-col justify-between flex-1 space-y-3">
-                          <div className="space-y-2">
-                            <div className="h-2.5 bg-cyber-cyan/20 rounded w-20"></div>
-                            <div className="h-4 bg-cyber-cyan/15 rounded w-3/4"></div>
-                            <div className="h-3 bg-cyber-text-muted/15 rounded w-full"></div>
-                          </div>
-                          <div className="flex items-center justify-between pt-2 border-t border-cyber-cyan/10">
-                            <div className="h-3 w-28 bg-cyber-cyan/15 rounded"></div>
-                            <div className="h-3 w-16 bg-cyber-cyan/20 rounded"></div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </div>
@@ -2083,152 +2008,12 @@ export default function BlogPreviewer({
                   </div>
                 </div>
 
-                {/* 2. Bottom Row: Registry Archives Dropdown + AI Auditor Sandbox */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  {/* Left Column: Registry Archives Dropdown Component */}
-                  <div className="lg:col-span-7 space-y-4">
-                    <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-cyber-cyan/25 rounded-2xl p-4 text-left shadow-xl relative overflow-hidden transition-all duration-300">
-                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
-                      
-                      {/* Dropdown Header & Controls */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-cyber-cyan/15">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="p-2 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shrink-0 shadow-[0_0_10px_rgba(0,229,255,0.15)]">
-                            <Archive className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <h3 className="font-display text-xs font-black tracking-widest text-cyber-text-primary uppercase flex items-center gap-2">
-                              HISTORICAL ARCHIVES
-                              <span className="text-[10px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/15 border border-cyber-cyan/30 px-2 py-0.5 rounded-full">
-                                {Math.max(0, filteredReviews.length - 4)} Reports
-                              </span>
-                            </h3>
-                            <p className="text-[10px] font-mono text-cyber-text-muted mt-0.5">
-                              Select from historical cryptocurrency records
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Single Optimized Dropdown Menu Toggle Button */}
-                        <button
-                          type="button"
-                          onClick={() => setIsArchiveDropdownOpen(!isArchiveDropdownOpen)}
-                          className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-950 hover:bg-cyber-cyan/20 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan hover:text-white font-mono text-xs font-bold flex items-center justify-between sm:justify-start gap-2.5 transition-all duration-200 cursor-pointer shadow-[0_0_12px_rgba(0,229,255,0.1)] hover:shadow-[0_0_18px_rgba(0,229,255,0.25)] shrink-0"
-                        >
-                          <span className="font-bold">
-                            {isArchiveDropdownOpen ? 'Close Archives' : `Browse Archives (${Math.max(0, filteredReviews.length - 4)})`}
-                          </span>
-                          {isArchiveDropdownOpen ? (
-                            <ChevronUp className="w-4 h-4 text-cyber-cyan shrink-0" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 text-cyber-cyan shrink-0" />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Dropdown Expandable Menu Panel */}
-                      <AnimatePresence>
-                        {isArchiveDropdownOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="pt-3 space-y-2"
-                          >
-                            {filteredReviews.length <= 4 ? (
-                              <div className="py-6 text-center font-mono text-xs text-cyber-text-muted bg-slate-950/40 rounded-xl border border-white/5">
-                                No archived reports available for this category filter.
-                              </div>
-                            ) : (
-                              <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-cyber-cyan/30">
-                                {filteredReviews.slice(4).map((rev) => {
-                                  const isPinned = watchlist.includes(rev.id);
-                                  return (
-                                    <motion.div
-                                      key={rev.id}
-                                      whileHover={{ scale: 1.015, x: 2 }}
-                                      transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                                    >
-                                      <div
-                                        onClick={() => {
-                                          setActiveReviewId(rev.id);
-                                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        }}
-                                        className={`p-2.5 rounded-xl bg-slate-950/80 flex items-center justify-between gap-3 group cursor-pointer transition-all duration-300 shadow-sm border ${
-                                          isPinned
-                                            ? 'border-amber-400/50 hover:border-amber-400 hover:shadow-[0_8px_24px_rgba(251,191,36,0.2)]'
-                                            : 'border-white/5 hover:border-cyber-cyan/50 hover:bg-cyber-cyan/15 hover:shadow-[0_8px_24px_rgba(0,229,255,0.18)]'
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                          <button
-                                            type="button"
-                                            onClick={(e) => toggleWatchlist(rev.id, e)}
-                                            title={isPinned ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                                            className={`p-1 rounded-lg border transition-all cursor-pointer shrink-0 ${
-                                              isPinned
-                                                ? 'bg-amber-500/20 text-amber-400 border-amber-400/60 shadow-[0_0_10px_rgba(251,191,36,0.3)]'
-                                                : 'bg-slate-900 text-slate-500 hover:text-amber-400 border-white/10 hover:border-amber-400/40'
-                                            }`}
-                                          >
-                                            <Star className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-400 text-amber-400' : ''}`} />
-                                          </button>
-
-                                          <img
-                                            src={getCoinLogoUrl(rev.symbol, rev.logoUrl, rev.coingeckoId)}
-                                            alt={rev.name}
-                                            className="w-7 h-7 rounded-xl border border-cyber-cyan/30 object-contain bg-slate-950 p-0.5 shrink-0"
-                                            referrerPolicy="no-referrer"
-                                            onError={(e) => {
-                                              (e.target as HTMLElement).style.display = 'none';
-                                            }}
-                                          />
-                                          <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                                            <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
-                                              {rev.name}
-                                            </span>
-                                            <span className="font-mono text-[11px] text-cyber-cyan font-bold uppercase shrink-0">
-                                              [{rev.symbol}]
-                                            </span>
-                                          </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 shrink-0">
-                                          <span className="text-[9px] font-mono text-cyber-text-muted hidden sm:inline-flex items-center gap-1">
-                                            <Clock className="w-2.5 h-2.5 text-cyber-cyan/70" />
-                                            {liveDate}
-                                          </span>
-                                          {rev.livePrice !== undefined && (
-                                            <span className="font-mono text-xs font-bold text-white bg-slate-900 border border-cyber-cyan/20 px-2 py-0.5 rounded-lg hidden sm:inline-block">
-                                              ${rev.livePrice < 1 ? rev.livePrice.toFixed(4) : rev.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                            </span>
-                                          )}
-                                          <button
-                                            type="button"
-                                            className="px-2.5 py-1 rounded-lg bg-cyber-cyan/15 group-hover:bg-cyber-cyan border border-cyber-cyan/30 text-cyber-cyan group-hover:text-slate-950 font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-1 shadow-sm"
-                                          >
-                                            <span>Report</span>
-                                            <ArrowRight className="w-3 h-3" />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </motion.div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  {/* Right Column: AI Auditor Sandbox Card */}
-                  <div className="lg:col-span-5">
-                    <div className="bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-cyber-cyan/10 backdrop-blur-md border border-cyber-cyan/35 rounded-2xl p-4.5 text-left relative overflow-hidden shadow-xl group">
-                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
-                      <div className="flex items-center gap-2 mb-2">
+                {/* 2. AI Auditor Sandbox Banner */}
+                <div className="bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-cyber-cyan/10 backdrop-blur-md border border-cyber-cyan/35 rounded-2xl p-4.5 sm:p-5 text-left relative overflow-hidden shadow-xl group">
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="space-y-1.5 max-w-2xl">
+                      <div className="flex items-center gap-2">
                         <div className="p-1.5 rounded-lg bg-cyber-cyan/20 border border-cyber-cyan/40 text-cyber-cyan">
                           <Terminal className="w-4 h-4" />
                         </div>
@@ -2236,21 +2021,22 @@ export default function BlogPreviewer({
                           AI Auditor Sandbox
                         </h4>
                       </div>
-                      <p className="text-[11px] text-slate-300 leading-relaxed mb-3.5">
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
                         Interact with our real-time AI security auditor to analyze smart contracts, verify tokenomics, or test protocol security parameters.
                       </p>
-                      <button
-                        onClick={() => {
-                          if (setActiveTab) {
-                            setActiveTab('chat');
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }
-                        }}
-                        className="w-full block text-center bg-cyber-cyan/15 hover:bg-cyber-cyan border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan hover:text-slate-950 font-display text-[11px] font-black uppercase tracking-widest py-2 rounded-xl transition-all duration-300 cursor-pointer shadow-[0_0_15px_rgba(0,229,255,0.15)] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)]"
-                      >
-                        Launch AI Auditor Chat →
-                      </button>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (setActiveTab) {
+                          setActiveTab('chat');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                      }}
+                      className="w-full sm:w-auto px-5 py-2.5 shrink-0 bg-cyber-cyan/15 hover:bg-cyber-cyan border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan hover:text-slate-950 font-display text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer shadow-[0_0_15px_rgba(0,229,255,0.15)] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] text-center"
+                    >
+                      Launch AI Auditor Chat →
+                    </button>
                   </div>
                 </div>
               </div>
