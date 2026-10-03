@@ -1,0 +1,1 @@
+ALTER TABLE "market_snapshots" ALTER COLUMN "asset_key" SET NOT NULL;

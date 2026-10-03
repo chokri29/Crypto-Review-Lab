@@ -91,7 +91,7 @@ export const marketAssets = pgTable('market_assets', {
 // 6. Market Snapshots Table (proactive multi-source consensus records)
 export const marketSnapshots = pgTable('market_snapshots', {
   id: serial('id').primaryKey(),
-  assetKey: text('asset_key'),
+  assetKey: text('asset_key').notNull(),
   symbol: text('symbol').notNull(),
   network: text('network').notNull(),
   priceUsd: text('price_usd'),

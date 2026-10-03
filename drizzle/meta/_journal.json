@@ -15,6 +15,13 @@
       "when": 1790939111156,
       "tag": "0001_acoustic_colonel_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791030347800,
+      "tag": "0002_smart_nitro",
+      "breakpoints": true
     }
   ]
 }
