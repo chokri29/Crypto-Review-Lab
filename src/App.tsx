@@ -450,17 +450,16 @@ export default function App() {
       .then(res => res.ok ? res.json() : null)
       .then(feed => {
         if (feed && Array.isArray(feed.assets)) {
-          const snapMap: Record<string, any> = {};
+          const snapMap = new Map<string, any>();
           if (Array.isArray(feed.snapshots)) {
             for (const snap of feed.snapshots) {
-              const key = snap.assetKey || snap.symbol?.toUpperCase();
-              if (key) snapMap[key] = snap;
+              if (snap.assetKey) snapMap.set(snap.assetKey, snap);
             }
           }
 
           const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
             const assetKey = asset.assetKey || getAssetKey(asset);
-            const s = snapMap[assetKey] || snapMap[asset.symbol?.toUpperCase()];
+            const s = snapMap.get(assetKey);
             const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
             const logoUrl = asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId);
 
@@ -555,6 +554,7 @@ export default function App() {
         setIsSearchFocused(true);
         setIsListening(false);
         setIsVoiceModalOpen(false);
+        setActiveTab('blog');
       };
 
       recognition.onerror = (err: any) => {
@@ -590,24 +590,24 @@ export default function App() {
     const q = headerSearchQuery.trim();
     if (!q) {
       setDynamicSearchResults([]);
+      setIsSearchingDb(false);
       return;
     }
+    setIsSearchingDb(true);
     const timer = setTimeout(() => {
-      setIsSearchingDb(true);
       fetch(`/api/market-intelligence/feed?q=${encodeURIComponent(q)}&limit=25`)
         .then(res => res.ok ? res.json() : null)
         .then(feed => {
           if (feed && Array.isArray(feed.assets)) {
-            const snapMap: Record<string, any> = {};
+            const snapMap = new Map<string, any>();
             if (Array.isArray(feed.snapshots)) {
               for (const s of feed.snapshots) {
-                const key = s.assetKey || s.symbol?.toUpperCase();
-                if (key) snapMap[key] = s;
+                if (s.assetKey) snapMap.set(s.assetKey, s);
               }
             }
             const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
               const assetKey = asset.assetKey || getAssetKey(asset);
-              const s = snapMap[assetKey] || snapMap[asset.symbol?.toUpperCase()];
+              const s = snapMap.get(assetKey);
               const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
               return {
                 id,
@@ -688,7 +688,9 @@ export default function App() {
         r.symbol.toLowerCase().includes(q) ||
         (r.category && r.category.toLowerCase().includes(q)) ||
         (r.network && r.network.toLowerCase().includes(q)) ||
-        (r.verdict && r.verdict.toLowerCase().includes(q))
+        (r.verdict && r.verdict.toLowerCase().includes(q)) ||
+        (r.coingeckoId && r.coingeckoId.toLowerCase().includes(q)) ||
+        (r.assetKey && r.assetKey.toLowerCase().includes(q))
     );
   }, [allReviewsList, headerSearchQuery]);
 
@@ -701,19 +703,19 @@ export default function App() {
 
     // Prioritize exact or prefix matches from local list
     const sortedLocal = [...localSearchResults].sort((a, b) => {
-      const aExact = a.symbol.toLowerCase() === q || a.name.toLowerCase() === q;
-      const bExact = b.symbol.toLowerCase() === q || b.name.toLowerCase() === q;
+      const aExact = a.symbol.toLowerCase() === q || a.name.toLowerCase() === q || a.assetKey?.toLowerCase() === q;
+      const bExact = b.symbol.toLowerCase() === q || b.name.toLowerCase() === q || b.assetKey?.toLowerCase() === q;
       if (aExact && !bExact) return -1;
       if (!aExact && bExact) return 1;
-      const aPrefix = a.symbol.toLowerCase().startsWith(q) || a.name.toLowerCase().startsWith(q);
-      const bPrefix = b.symbol.toLowerCase().startsWith(q) || b.name.toLowerCase().startsWith(q);
+      const aPrefix = a.symbol.toLowerCase().startsWith(q) || a.name.toLowerCase().startsWith(q) || (a.assetKey && a.assetKey.toLowerCase().startsWith(q));
+      const bPrefix = b.symbol.toLowerCase().startsWith(q) || b.name.toLowerCase().startsWith(q) || (b.assetKey && b.assetKey.toLowerCase().startsWith(q));
       if (aPrefix && !bPrefix) return -1;
       if (!aPrefix && bPrefix) return 1;
       return 0;
     });
 
     for (const r of sortedLocal) {
-      const key = (r.symbol + '|' + (r.network || '')).toUpperCase();
+      const key = (r.assetKey || `${r.symbol}|${r.network || ''}`).toUpperCase();
       if (!seen.has(key)) {
         seen.add(key);
         combined.push(r);
@@ -721,7 +723,7 @@ export default function App() {
     }
 
     for (const r of dynamicSearchResults) {
-      const key = (r.symbol + '|' + (r.network || '')).toUpperCase();
+      const key = (r.assetKey || `${r.symbol}|${r.network || ''}`).toUpperCase();
       if (!seen.has(key)) {
         seen.add(key);
         combined.push(r);
@@ -1665,6 +1667,12 @@ export default function App() {
                     onChange={(e) => {
                       setHeaderSearchQuery(e.target.value);
                       setIsSearchFocused(true);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSearchSubmit(e);
+                      }
                     }}
                     placeholder="Quick search project..."
                     className="w-full bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-8 pr-8 py-1.5 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_12px_rgba(0,229,255,0.3)] transition-all font-mono"
@@ -3227,6 +3235,7 @@ export default function App() {
                           setHeaderSearchQuery(token);
                           setIsSearchFocused(true);
                           setIsVoiceModalOpen(false);
+                          setActiveTab('blog');
                         }}
                         className="px-3 py-1.5 rounded-xl bg-cyber-cyan/10 hover:bg-cyber-cyan hover:text-slate-950 text-cyber-cyan border border-cyber-cyan/30 text-xs font-mono font-bold transition-all cursor-pointer"
                       >
@@ -3249,6 +3258,7 @@ export default function App() {
                             setHeaderSearchQuery(val);
                             setIsSearchFocused(true);
                             setIsVoiceModalOpen(false);
+                            setActiveTab('blog');
                           }
                         }
                       }}
@@ -3263,6 +3273,7 @@ export default function App() {
                           setHeaderSearchQuery(inputEl.value.trim());
                           setIsSearchFocused(true);
                           setIsVoiceModalOpen(false);
+                          setActiveTab('blog');
                         }
                       }}
                       className="px-4 py-2.5 rounded-xl bg-cyber-cyan text-slate-950 font-mono font-bold text-xs hover:bg-cyber-cyan/90 transition-all cursor-pointer"

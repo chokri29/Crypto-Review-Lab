@@ -268,7 +268,10 @@ export async function getMarketAssetsPaged(params: {
       conditions.push(or(
         ilike(marketAssets.symbol, pattern),
         ilike(marketAssets.name, pattern),
-        ilike(marketAssets.category, pattern)
+        ilike(marketAssets.category, pattern),
+        ilike(marketAssets.assetKey, pattern),
+        ilike(marketAssets.coingeckoId, pattern),
+        ilike(marketAssets.network, pattern)
       ));
     }
 

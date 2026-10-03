@@ -78,16 +78,16 @@ export const UserAuthButton: React.FC = () => {
       </button>
 
       {dropdownOpen && (
-        <div className="absolute left-0 mt-1.5 w-60 max-w-[calc(100vw-1.5rem)] bg-cyber-bg-secondary border border-cyber-cyan/40 rounded-xl shadow-2xl z-50 p-3 flex flex-col gap-2 backdrop-blur-md">
-          <div className="flex items-center gap-2 pb-2 border-b border-cyber-cyan/20">
+        <div className="absolute left-0 mt-2 w-60 max-w-[calc(100vw-2rem)] bg-cyber-bg-secondary border border-cyber-cyan/40 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(0,229,255,0.15)] z-50 p-3 flex flex-col gap-2.5 backdrop-blur-xl">
+          <div className="flex items-center gap-2.5 pb-2.5 border-b border-cyber-cyan/20">
             {user.photoURL ? (
               <img
                 src={user.photoURL}
                 alt=""
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-cyber-cyan/50"
+                className="w-8 h-8 rounded-full object-cover ring-1 ring-cyber-cyan/50 shrink-0"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-xs text-cyber-cyan font-bold">
+              <div className="w-8 h-8 rounded-full bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-xs text-cyber-cyan font-bold shrink-0">
                 {(user.displayName || user.email || 'U')[0].toUpperCase()}
               </div>
             )}
@@ -102,7 +102,7 @@ export const UserAuthButton: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5 text-[10px] text-cyber-cyan/80 font-mono py-0.5">
-            <CheckCircle2 className="w-3 h-3 text-cyber-cyan shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
             <span>Authenticated via Google OAuth</span>
           </div>
 
@@ -111,10 +111,11 @@ export const UserAuthButton: React.FC = () => {
               setDropdownOpen(false);
               signOut();
             }}
-            className="mt-1 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 hover:border-red-400 rounded-lg text-xs text-red-200 transition-all font-orbitron cursor-pointer"
+            className="mt-1 w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-950/50 hover:bg-red-900/70 border border-red-500/40 hover:border-red-400 rounded-lg text-xs font-orbitron text-red-200 transition-all cursor-pointer shadow-sm active:scale-95"
+            title="Terminate session and sign out"
           >
-            <LogOut className="w-3 h-3 text-red-400" />
-            <span>Sign Out</span>
+            <LogOut className="w-3.5 h-3.5 text-red-400 shrink-0" />
+            <span className="font-bold tracking-wider">Sign Out</span>
           </button>
         </div>
       )}

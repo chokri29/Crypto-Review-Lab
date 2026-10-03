@@ -256,7 +256,7 @@ export default function BlogPreviewer({
             setLiveSnapshotsMap((prev) => {
               const next = { ...prev };
               for (const s of feed.snapshots) {
-                const key = s.assetKey || s.symbol?.toUpperCase();
+                const key = s.assetKey;
                 if (!key) continue;
                 const existing = next[key];
                 if (!existing) {
@@ -332,7 +332,7 @@ export default function BlogPreviewer({
 
     return feedAssets.map((asset) => {
       const assetKey = asset.assetKey || getAssetKey(asset);
-      const snap = liveSnapshotsMap[assetKey] || liveSnapshotsMap[asset.symbol?.toUpperCase()];
+      const snap = liveSnapshotsMap[assetKey];
 
       // Optional enrichment matching order: 1. coingeckoId, 2. symbol
       const enrichment = reviews.find((r) => {
