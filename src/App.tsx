@@ -59,6 +59,7 @@ import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
 import { F3VerificationProvider } from './context/F3VerificationContext';
 import { isOrderReferencePattern, matchesStoredProOrder } from './services/proOrderService';
 import { getAssetKey } from './utils/assetKey';
+import { isXStockAsset } from './utils/xstockFilter';
 
 import BlogPreviewer from './components/BlogPreviewer';
 
@@ -457,7 +458,9 @@ export default function App() {
             }
           }
 
-          const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
+          const dbList: CryptoReview[] = feed.assets
+            .filter((asset: any) => !isXStockAsset(asset))
+            .map((asset: any) => {
             const assetKey = asset.assetKey || getAssetKey(asset);
             const s = snapMap.get(assetKey);
             const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
@@ -612,7 +615,9 @@ export default function App() {
                 if (s.assetKey) snapMap.set(s.assetKey, s);
               }
             }
-            const dbList: CryptoReview[] = feed.assets.map((asset: any) => {
+            const dbList: CryptoReview[] = feed.assets
+              .filter((asset: any) => !isXStockAsset(asset))
+              .map((asset: any) => {
               const assetKey = asset.assetKey || getAssetKey(asset);
               const s = snapMap.get(assetKey);
               const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
@@ -696,10 +701,12 @@ export default function App() {
   const localSearchResults = useMemo(() => {
     const q = headerSearchQuery.trim().toLowerCase();
     if (!q) return [];
-    return allReviewsList.filter(
-      (r) =>
-        r.name.toLowerCase().includes(q) ||
-        r.symbol.toLowerCase().includes(q) ||
+    return allReviewsList
+      .filter((r) => !isXStockAsset(r))
+      .filter(
+        (r) =>
+          r.name.toLowerCase().includes(q) ||
+          r.symbol.toLowerCase().includes(q) ||
         (r.category && r.category.toLowerCase().includes(q)) ||
         (r.network && r.network.toLowerCase().includes(q)) ||
         (r.verdict && r.verdict.toLowerCase().includes(q)) ||

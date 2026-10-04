@@ -259,7 +259,11 @@ export async function getMarketAssetsPaged(params: {
     const limit = Math.min(Math.max(params.limit ?? 250, 1), 1000);
     const offset = Math.max(params.offset ?? 0, 0);
 
-    const conditions = [];
+    const conditions = [
+      sql`LOWER(${marketAssets.category}) NOT LIKE '%tokenized stock%'`,
+      sql`LOWER(${marketAssets.name}) NOT LIKE '%xstock%'`,
+      sql`LOWER(${marketAssets.symbol}) NOT IN ('aaplx', 'tslax', 'nvdax', 'metax', 'googlx', 'msftx', 'amznx', 'coinx', 'hoodx', 'qqqx', 'spyx', 'mstrx', 'crclx', 'bspx', 'strcx')`
+    ];
     if (params.network && params.network.trim() && params.network.toLowerCase() !== 'all') {
       conditions.push(sql`LOWER(${marketAssets.network}) = LOWER(${params.network.trim()})`);
     }

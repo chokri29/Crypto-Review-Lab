@@ -9,8 +9,8 @@ import {
   pruneOldSnapshots 
 } from '../db/queries.ts';
 import { INITIAL_REVIEWS } from '../data.ts';
-import { XSTOCKS_REGISTRY } from '../data/xstocksRegistry.ts';
 import { getAssetKey } from '../utils/assetKey.ts';
+import { isXStockAsset } from '../utils/xstockFilter.ts';
 
 // Initial canonical networks
 const INITIAL_NETWORKS = [
@@ -333,28 +333,7 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
       });
     }
 
-    // 3. Seed Verified Tokenized Stocks from XSTOCKS_REGISTRY with deterministic assetKey
-    for (const xstock of XSTOCKS_REGISTRY) {
-      const assetKey = getAssetKey({
-        coingeckoId: xstock.coingeckoId,
-        network: xstock.chain,
-        contractAddress: xstock.contractAddress,
-        symbol: xstock.symbol,
-      });
-      await upsertMarketAsset({
-        assetKey,
-        symbol: xstock.symbol,
-        name: xstock.name,
-        coingeckoId: xstock.coingeckoId,
-        category: 'Tokenized Stock',
-        network: xstock.chain,
-        contractAddress: xstock.contractAddress,
-        logoUrl: xstock.logoUrl,
-        isVerified: 1,
-      });
-    }
-
-    // 4. Compute active counts per network based on actual registered assets
+    // 3. Compute active counts per network based on actual registered assets
     await recomputeNetworkActiveAssets();
 
     console.log('[MarketIntelligence] Initial networks and assets seeded into Cloud SQL successfully.');
@@ -397,6 +376,11 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
 
     for (const coin of coins) {
       if (!coin.id || !coin.symbol) continue;
+
+      // Strictly exclude tokenized stocks / xStocks from crypto market intelligence
+      if (isXStockAsset({ symbol: coin.symbol, name: coin.name, category: coin.category, coingeckoId: coin.id })) {
+        continue;
+      }
 
       const network = resolveNetworkFromCoin(coin);
       const networkLower = network.toLowerCase().trim();

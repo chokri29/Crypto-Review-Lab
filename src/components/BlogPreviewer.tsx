@@ -56,6 +56,7 @@ import {
   BarChart2
 } from 'lucide-react';
 import { DatabaseTelemetryModal } from './DatabaseTelemetryModal';
+import { isXStockAsset } from '../utils/xstockFilter';
 
 // All 10 standardized categories + All options with icons and badges matching ReviewLab style
 const CATEGORY_OPTIONS = [
@@ -336,7 +337,10 @@ export default function BlogPreviewer({
       return [];
     }
 
-    return feedAssets.map((asset) => {
+    // Filter out tokenized stocks (xStocks) so Market Intelligence contains strictly cryptocurrencies
+    const cryptoAssets = feedAssets.filter((asset) => !isXStockAsset(asset));
+
+    return cryptoAssets.map((asset) => {
       const assetKey = asset.assetKey || getAssetKey(asset);
       const snap = liveSnapshotsMap[assetKey];
 
