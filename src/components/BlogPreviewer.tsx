@@ -1278,8 +1278,8 @@ export default function BlogPreviewer({
                     : 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan/30'
                 }`}>
                   {selectedNetwork === 'All'
-                    ? `${reviews.length} Tracked on All Networks`
-                    : `${getNetworkAssetCount(selectedNetwork)} on ${selectedNetwork}`}
+                    ? 'All Networks'
+                    : selectedNetwork}
                 </span>
               </div>
 
@@ -1302,9 +1302,6 @@ export default function BlogPreviewer({
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
-                      {getNetworkAssetCount(selectedNetwork)}
-                    </span>
                     <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isNetworkDropdownOpen ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
@@ -1320,7 +1317,6 @@ export default function BlogPreviewer({
                       role="listbox"
                     >
                       {networkOptions.map((opt) => {
-                        const count = getNetworkAssetCount(opt.value);
                         const isSelected = selectedNetwork === opt.value;
                         const NetIconComp = opt.icon;
 
@@ -1347,13 +1343,6 @@ export default function BlogPreviewer({
                               </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold ${
-                                isSelected
-                                  ? 'bg-cyber-cyan/20 text-cyber-cyan border-cyber-cyan/40'
-                                  : 'bg-slate-950/80 text-slate-400 border-white/10'
-                              }`}>
-                                {count}
-                              </span>
                               {isSelected && <Check className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />}
                             </div>
                           </button>
@@ -1369,7 +1358,6 @@ export default function BlogPreviewer({
                 {networkOptions.map((opt) => {
                   const isSelected = selectedNetwork === opt.value;
                   const isRH = opt.value === 'Robinhood Chain';
-                  const count = getNetworkAssetCount(opt.value);
                   const NetIcon = opt.icon;
 
                   return (
@@ -1394,13 +1382,6 @@ export default function BlogPreviewer({
                           {getNetworkTvl(opt.value)}
                         </span>
                       )}
-                      <span className={`text-[9.5px] px-1.5 py-0.2 rounded-full ${
-                        isSelected 
-                          ? 'bg-slate-950/80 text-white' 
-                          : 'bg-slate-900 text-slate-400 border border-white/5'
-                      }`}>
-                        {count}
-                      </span>
                     </button>
                   );
                 })}
@@ -1421,8 +1402,8 @@ export default function BlogPreviewer({
                   </div>
                   <span className="text-[10px] font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-full font-mono">
                     {selectedCategory === 'All'
-                      ? `${reviews.length} Projects`
-                      : `${reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length} Projects`}
+                      ? 'All Categories'
+                      : selectedCategory}
                   </span>
                 </div>
 
@@ -1445,11 +1426,6 @@ export default function BlogPreviewer({
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/40 font-bold">
-                        {selectedCategory === 'All'
-                          ? reviews.length
-                          : reviews.filter(r => r.category === selectedCategory || r.category.toLowerCase().includes(selectedCategory.toLowerCase()) || selectedCategory.toLowerCase().includes(r.category.toLowerCase())).length}
-                      </span>
                       <ChevronDown className={`w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
                     </div>
                   </button>
@@ -1465,9 +1441,6 @@ export default function BlogPreviewer({
                         role="listbox"
                       >
                         {CATEGORY_OPTIONS.map((opt) => {
-                          const count = opt.value === 'All'
-                            ? reviews.length
-                            : reviews.filter(r => r.category === opt.value || r.category.toLowerCase().includes(opt.value.toLowerCase()) || opt.value.toLowerCase().includes(r.category.toLowerCase())).length;
                           const isSelected = selectedCategory === opt.value;
                           const IconComp = opt.icon;
 
@@ -1497,13 +1470,6 @@ export default function BlogPreviewer({
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full border font-bold ${
-                                  isSelected
-                                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                    : 'bg-slate-950/80 text-slate-400 border-white/10'
-                                }`}>
-                                  {count}
-                                </span>
                                 {isSelected && (
                                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                                 )}
