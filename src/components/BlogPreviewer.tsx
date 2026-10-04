@@ -456,13 +456,13 @@ export default function BlogPreviewer({
     return list;
   }, [networkMetricsList]);
 
-  const getNetworkAssetCount = (netName: string) => {
-    if (netName === 'All') return databaseAssetsCount !== null ? databaseAssetsCount : enrichedReviews.length;
+  const getNetworkAssetCount = (netName: string): number | string => {
+    if (netName === 'All') return databaseAssetsCount !== null ? databaseAssetsCount : '—';
     const lower = netName.toLowerCase();
     if (networkCounts[lower] !== undefined) return networkCounts[lower];
     const match = networkMetricsList.find(n => n.network.toLowerCase() === lower);
     if (match && match.activeAssetsCount !== undefined) return match.activeAssetsCount;
-    return enrichedReviews.filter(r => r.network && r.network.toLowerCase() === lower).length;
+    return '—';
   };
 
   const getNetworkTvl = (netName: string) => {
@@ -1278,7 +1278,7 @@ export default function BlogPreviewer({
                     : 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan/30'
                 }`}>
                   {selectedNetwork === 'All'
-                    ? 'All Networks'
+                    ? `${getNetworkAssetCount('All')} Tracked on All Networks`
                     : selectedNetwork}
                 </span>
               </div>

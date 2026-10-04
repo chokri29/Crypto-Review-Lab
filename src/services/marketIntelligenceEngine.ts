@@ -212,55 +212,28 @@ export function resolveNetworkFromCoin(coin: {
   return 'Other';
 }
 
-// Proxied CoinGecko page fetcher matching src/services/coingecko.ts proxy mechanism
+// Proxied CoinGecko page fetcher using CoinGecko proxy mechanism as the ONLY request path
 async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]): Promise<any[]> {
   const vsCurrency = 'usd';
-  const queryParams = new URLSearchParams({
-    vs_currency: vsCurrency,
-    order: 'market_cap_desc',
-    per_page: String(perPage),
-    page: String(page),
-    sparkline: 'false',
-    price_change_percentage: '24h'
-  });
+  const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
+  let gasUrl = `${gasBase}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
   if (ids && ids.length > 0) {
-    queryParams.set('ids', ids.join(','));
-  }
-
-  const directUrl = `https://api.coingecko.com/api/v3/coins/markets?${queryParams.toString()}`;
-  const apiKey = process.env.COINGECKO_API_KEY || '';
-  const headers: Record<string, string> = {
-    'Accept': 'application/json',
-    'User-Agent': 'CryptoReviewLab/3.2.0'
-  };
-  if (apiKey) {
-    headers['x-cg-demo-api-key'] = apiKey;
+    gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
   }
 
   try {
-    const res = await fetch(directUrl, { headers });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) return data;
-    }
-  } catch (err) {
-    console.warn(`[MarketIntelligence] Direct CoinGecko page ${page} fetch error:`, err);
-  }
-
-  // Fallback to Google Apps Script proxy as implemented in coingecko.ts
-  try {
-    const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
-    let gasUrl = `${gasBase}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
-    if (ids && ids.length > 0) {
-      gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
-    }
-    const gasRes = await fetch(gasUrl);
+    const gasRes = await fetch(gasUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'CryptoReviewLab/3.2.0'
+      }
+    });
     if (gasRes.ok) {
       const gasData = await gasRes.json();
       if (Array.isArray(gasData)) return gasData;
     }
   } catch (gasErr) {
-    console.warn(`[MarketIntelligence] GAS proxy CoinGecko page ${page} fetch error:`, gasErr);
+    console.warn(`[MarketIntelligence] CoinGecko proxy page ${page} fetch error:`, gasErr);
   }
 
   return [];
