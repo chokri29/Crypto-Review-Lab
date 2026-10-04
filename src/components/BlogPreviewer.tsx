@@ -2319,18 +2319,20 @@ export default function BlogPreviewer({
                 : { label: 'Low Dilution Risk', badgeClass: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' };
 
               const supplyModelLabel = max 
-                ? `Hard Capped (${(max / 1e9 >= 1 ? (max / 1e9).toFixed(2) + 'B' : max / 1e6 >= 1 ? (max / 1e6).toFixed(2) + 'M' : max.toLocaleString())})` 
-                : total 
-                ? 'Fixed Total / Staking Invariant' 
-                : 'Dynamic Elastic / Continuous Emission';
+                ? 'Hard Capped' 
+                : total && max && total >= max
+                ? 'Fixed Supply' 
+                : total && !max 
+                ? 'Elastic Supply' 
+                : 'Dynamic Model';
 
               // Deterministic Technical Indicators
               const change24h = activeReview.liveChange24h || 0;
               const rsiValue = Math.min(92, Math.max(16, Math.round(50 + change24h * 2.6)));
-              const rsiStatus = rsiValue >= 70 ? 'Overbought' : rsiValue <= 32 ? 'Oversold' : 'Neutral Momentum';
+              const rsiStatus = rsiValue >= 70 ? 'Overbought' : rsiValue <= 32 ? 'Oversold' : 'Neutral';
               const rsiColor = rsiValue >= 70 ? 'text-rose-400' : rsiValue <= 32 ? 'text-emerald-400' : 'text-cyan-400';
 
-              const trendSignal = change24h > 2.5 ? 'Bullish Expansion' : change24h < -2.5 ? 'Bearish Retracement' : 'Consolidation Range';
+              const trendSignal = change24h > 2.5 ? 'Bullish' : change24h < -2.5 ? 'Bearish' : 'Consolidating';
               const trendColor = change24h > 0 ? 'text-emerald-400' : change24h < 0 ? 'text-rose-400' : 'text-cyan-400';
 
               const confluenceScore = Math.min(98, Math.max(25, Math.round(62 + change24h * 1.6 + ((effectiveScores.tokenomics ?? 8) - 7) * 3)));
@@ -2434,28 +2436,28 @@ export default function BlogPreviewer({
                     </div>
 
                     {/* Grid of Key Tokenomic Ratios */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 block uppercase">Supply Model</span>
-                        <span className="text-xs md:text-sm font-display font-bold text-white mt-1 block truncate">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider truncate">Supply Model</span>
+                        <span className="text-xs sm:text-sm font-display font-bold text-white mt-1 block leading-tight break-words">
                           {supplyModelLabel}
                         </span>
                       </div>
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 block uppercase">FDV / Market Cap</span>
-                        <span className="text-xs md:text-sm font-display font-bold text-cyber-cyan mt-1 block">
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider truncate">FDV / Market Cap</span>
+                        <span className="text-xs sm:text-sm font-display font-bold text-cyber-cyan mt-1 block leading-tight">
                           {dilutionRatio.toFixed(2)}x
                         </span>
                       </div>
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 block uppercase">Tokenomics Score</span>
-                        <span className="text-xs md:text-sm font-display font-bold text-emerald-400 mt-1 block">
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider truncate">Tokenomics Score</span>
+                        <span className="text-xs sm:text-sm font-display font-bold text-emerald-400 mt-1 block leading-tight">
                           {effectiveScores.tokenomics ?? 8} / 10
                         </span>
                       </div>
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 block uppercase">Network Host</span>
-                        <span className="text-xs md:text-sm font-display font-bold text-white mt-1 block truncate">
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider truncate">Network Host</span>
+                        <span className="text-xs sm:text-sm font-display font-bold text-white mt-1 block leading-tight truncate">
                           {activeReview.network || 'Cross-Chain'}
                         </span>
                       </div>
@@ -2483,129 +2485,51 @@ export default function BlogPreviewer({
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                       {/* RSI Indicator */}
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase">RSI (14)</span>
-                          <span className={`text-[10px] font-mono font-bold ${rsiColor}`}>{rsiStatus}</span>
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider truncate">RSI (14)</span>
+                          <span className={`text-[10px] font-mono font-bold shrink-0 ${rsiColor}`}>{rsiStatus}</span>
                         </div>
-                        <div className="text-lg md:text-xl font-display font-black text-white mt-1">
+                        <div className="text-base sm:text-xl font-display font-black text-white mt-1">
                           {rsiValue}
                           <span className="text-[10px] font-mono text-slate-500 font-normal ml-1">/ 100</span>
                         </div>
                       </div>
 
                       {/* Trend Momentum */}
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 uppercase block">Trend Momentum</span>
-                        <div className={`text-xs md:text-sm font-display font-bold mt-1.5 flex items-center gap-1 ${trendColor}`}>
-                          {change24h >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                          <span className="truncate">{trendSignal}</span>
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block tracking-wider truncate">Trend Momentum</span>
+                        <div className={`text-xs sm:text-sm font-display font-bold mt-1.5 flex items-center gap-1.5 leading-tight ${trendColor}`}>
+                          {change24h >= 0 ? <TrendingUp className="w-3.5 h-3.5 shrink-0" /> : <TrendingDown className="w-3.5 h-3.5 shrink-0" />}
+                          <span className="break-words leading-tight">{trendSignal}</span>
                         </div>
                       </div>
 
                       {/* Confluence Rating */}
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono text-slate-400 uppercase">Confluence</span>
-                          <Gauge className="w-3 h-3 text-cyan-400" />
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider truncate">Confluence</span>
+                          <Gauge className="w-3 h-3 text-cyan-400 shrink-0" />
                         </div>
-                        <div className="text-lg md:text-xl font-display font-black text-cyber-cyan mt-1">
+                        <div className="text-base sm:text-xl font-display font-black text-cyber-cyan mt-1">
                           {confluenceScore}
                           <span className="text-[10px] font-mono text-slate-500 font-normal ml-1">/ 100</span>
                         </div>
                       </div>
 
-                      {/* Dynamic Pivot Resistance */}
-                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-3">
-                        <span className="text-[10px] font-mono text-slate-400 uppercase block">24h Price Action</span>
-                        <div className="text-xs md:text-sm font-mono font-bold text-slate-200 mt-1.5 flex items-center justify-between">
+                      {/* 24h Price Action */}
+                      <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block tracking-wider truncate">24h Price Action</span>
+                        <div className="text-xs sm:text-sm font-mono font-bold text-slate-200 mt-1.5 flex items-center justify-between gap-1">
                           <span className={change24h >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
                             {change24h >= 0 ? '+' : ''}{change24h.toFixed(2)}%
                           </span>
-                          <span className="text-[10px] text-slate-400 font-normal">24h Vol</span>
+                          <span className="text-[10px] text-slate-400 font-normal shrink-0">24h Vol</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* AVF Written Review Analysis & Narrative */}
-                  {activeReview.summary && (
-                    <div className="bg-slate-950/90 border border-cyber-cyan/20 rounded-xl p-4 md:p-6 text-left space-y-4 shadow-md">
-                      <div className="flex items-center gap-2 border-b border-cyber-cyan/15 pb-3">
-                        <BookOpen className="w-4 h-4 text-cyber-cyan" />
-                        <h2 className="text-xs md:text-sm font-display font-bold text-white uppercase tracking-wider">
-                          AVF Algorithmic Verification Report & Narrative
-                        </h2>
-                      </div>
-                      <div className="prose prose-invert max-w-none text-slate-300">
-                        {renderContentMarkdown(activeReview.summary)}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Key Strengths & Critical Vulnerabilities (Pros and Cons) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                    {/* Strengths */}
-                    <div className="bg-slate-950/90 border border-emerald-500/25 rounded-xl p-4 space-y-3 shadow-md">
-                      <div className="flex items-center gap-2 border-b border-emerald-500/20 pb-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
-                        <h3 className="text-xs font-display font-bold text-emerald-300 uppercase tracking-wider">
-                          Verified Key Strengths
-                        </h3>
-                      </div>
-                      <ul className="space-y-2">
-                        {(activeReview.pros && activeReview.pros.length > 0
-                          ? activeReview.pros
-                          : ['Continuous multi-source oracle consensus telemetry', `Verified asset registry entry on ${activeReview.network}`, 'Real-time supply and market capitalization tracking']
-                        ).map((pro, pIdx) => (
-                          <li key={pIdx} className="flex items-start gap-2 text-xs font-sans text-slate-300">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span>{pro}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Risk Vectors */}
-                    <div className="bg-slate-950/90 border border-amber-500/25 rounded-xl p-4 space-y-3 shadow-md">
-                      <div className="flex items-center gap-2 border-b border-amber-500/20 pb-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-400" />
-                        <h3 className="text-xs font-display font-bold text-amber-300 uppercase tracking-wider">
-                          Identified Risk Vectors
-                        </h3>
-                      </div>
-                      <ul className="space-y-2">
-                        {(activeReview.cons && activeReview.cons.length > 0
-                          ? activeReview.cons
-                          : ['Comprehensive smart contract bytecode review pending evaluation', 'Third-party external dependency risk model active']
-                        ).map((con, cIdx) => (
-                          <li key={cIdx} className="flex items-start gap-2 text-xs font-sans text-slate-300">
-                            <span className="text-amber-400 mt-0.5">•</span>
-                            <span>{con}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* AVF Architectural Verdict Card */}
-                  <div className="bg-slate-950/90 border border-cyber-cyan/30 rounded-xl p-4 md:p-5 text-left space-y-2 shadow-lg">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-cyber-cyan/15 pb-2">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-                        <span className="text-xs font-display font-bold text-white uppercase tracking-wider">
-                          Algorithmic Verification Framework (AVF) Final Verdict
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan font-bold uppercase">
-                        Risk: {activeReview.riskLevel || 'Declared Risk'}
-                      </span>
-                    </div>
-                    <p className="text-xs md:text-sm font-sans text-slate-300 leading-relaxed pt-1">
-                      {activeReview.verdict}
-                    </p>
                   </div>
                 </div>
               );
