@@ -40,6 +40,7 @@ import {
   XStockEvidenceDatum, 
   XStockEvidenceVerificationReport 
 } from '../services/xstockEvidenceEngine';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
 
 interface SecurityScanData {
   is_honeypot?: boolean;
@@ -63,6 +64,8 @@ interface SecurityScanData {
   verified_contract?: boolean;
   rugcheckScore?: number;
   rugcheckRisks?: Array<{ name: string; description: string; score: number; level: string }>;
+  top10HolderConcentrationPct?: number;
+  blockscoutCorroboration?: any;
 }
 
 interface SecurityScanResponse {
@@ -277,8 +280,8 @@ export default function XStockVerificationPanel({
     if (selectedStock.chain === 'BNB Chain') {
       return `https://bscscan.com/token/${selectedStock.contractAddress}`;
     }
-    if (selectedStock.chain === 'Robinhood Chain') {
-      return `https://robinhoodchain.blockscout.com/address/${selectedStock.contractAddress}`;
+    if (isRobinhoodChain(selectedStock.chain)) {
+      return `${ROBINHOOD_CHAIN.explorerUrl}/address/${selectedStock.contractAddress}`;
     }
     return `https://blockscan.com/address/${selectedStock.contractAddress}`;
   }, [selectedStock.contractAddress, selectedStock.chain, isSolana]);
@@ -302,6 +305,12 @@ export default function XStockVerificationPanel({
               <FileText className="w-3.5 h-3.5 text-slate-400" />
               <span>Issuer-Stated 1:1 Backing</span>
             </span>
+            {(selectedStock.chain === 'Robinhood Chain' || isRobinhoodChain(selectedStock.chain)) && (
+              <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-500/40 flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <span>Economic exposure only — no ownership or voting rights. Restricted for US persons.</span>
+              </span>
+            )}
           </div>
 
           {/* Toolbar: Share & Refresh Controls */}
@@ -586,12 +595,18 @@ export default function XStockVerificationPanel({
                   </div>
                   <div className="text-white font-bold text-base sm:text-lg flex items-center gap-2">
                     <span>{selectedStock.chain}</span>
-                    {selectedStock.chain === 'Robinhood Chain' && (
+                    {isRobinhoodChain(selectedStock.chain) && (
                       <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 py-0.5 rounded">
                         Arbitrum Orbit L2
                       </span>
                     )}
                   </div>
+                  {isRobinhoodChain(selectedStock.chain) && (
+                    <div className="text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-md flex items-center gap-1.5">
+                      <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0" />
+                      <span>Economic exposure only — no ownership or voting rights. Restricted for US persons.</span>
+                    </div>
+                  )}
                   <div className="text-[10.5px] text-slate-400">
                     {selectedStock.category}
                   </div>
@@ -734,15 +749,15 @@ export default function XStockVerificationPanel({
                   <span className="text-[10px] text-slate-400 uppercase block">Settlement Network &amp; Source</span>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-white font-bold text-xs block">{selectedStock.chain}</span>
-                    {selectedStock.chain === 'Robinhood Chain' && (
+                    {isRobinhoodChain(selectedStock.chain) && (
                       <span className="text-[8.5px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-bold">
                         Arbitrum Orbit L2
                       </span>
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-sans block">
-                    {selectedStock.chain === 'Robinhood Chain' 
-                      ? 'Arbitrum Orbit Nitro rollup with 24/7 equities settlement' 
+                    {isRobinhoodChain(selectedStock.chain) 
+                      ? 'Arbitrum Orbit Nitro rollup with 24/7 equities settlement. Economic exposure only — no ownership or voting rights. Restricted for US persons.' 
                       : 'Underlying blockchain settlement & token contract network'}
                   </span>
                 </div>
@@ -1269,6 +1284,11 @@ export default function XStockVerificationPanel({
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {scanData?.top10HolderConcentrationPct !== undefined && scanData.top10HolderConcentrationPct !== null && (
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-cyan-300 border border-cyan-700/50">
+                      Top 10 Holders: {scanData.top10HolderConcentrationPct}%
+                    </span>
+                  )}
                   {isSolana ? (
                     <>
                       <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">

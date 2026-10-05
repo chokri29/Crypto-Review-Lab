@@ -29,6 +29,7 @@ import {
   getUsMarketHoursStatus, 
   UsMarketHoursStatus 
 } from '../data/xstocksRegistry';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
 import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
 import XStockVerificationPanel from './XStockVerificationPanel';
@@ -540,7 +541,7 @@ export default function XStocksPage() {
   const availableChains = useMemo(() => {
     const set = new Set<string>();
     XSTOCKS_REGISTRY.forEach(s => set.add(s.chain));
-    set.add('Robinhood Chain');
+    set.add(ROBINHOOD_CHAIN.name);
     return ['All', ...Array.from(set)];
   }, []);
 
@@ -702,7 +703,7 @@ export default function XStocksPage() {
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[10px] font-mono">
                 {availableChains.map((ch) => {
                   const isSelected = chainFilter === ch;
-                  const isRH = ch === 'Robinhood Chain';
+                  const isRH = isRobinhoodChain(ch);
                   return (
                     <button
                       key={ch}
@@ -761,13 +762,13 @@ export default function XStocksPage() {
               {filteredStocks.length === 0 ? (
                 <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
                   <p className="text-slate-300 text-xs font-mono font-bold">
-                    {chainFilter === 'Robinhood Chain' 
-                      ? '0 Assets on Robinhood Chain' 
+                    {isRobinhoodChain(chainFilter)
+                      ? `0 Assets on ${ROBINHOOD_CHAIN.name}`
                       : 'No matching xStocks found'}
                   </p>
                   <p className="text-slate-500 text-[11px] font-mono">
-                    {chainFilter === 'Robinhood Chain'
-                      ? 'Awaiting token contract verification on robinhoodchain.blockscout.com with active proof-of-reserves.'
+                    {isRobinhoodChain(chainFilter)
+                      ? `Awaiting token contract verification on ${ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')} with active proof-of-reserves.`
                       : 'Try adjusting your search query, network source, or category filter.'}
                   </p>
                 </div>
@@ -810,9 +811,9 @@ export default function XStocksPage() {
                             <span className="text-[9px] font-mono text-purple-300 bg-purple-500/15 px-1 rounded">
                               {item.underlyingTicker}
                             </span>
-                            {item.chain === 'Robinhood Chain' ? (
+                            {isRobinhoodChain(item.chain) ? (
                               <span className="text-[8px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-1 py-0.2 rounded">
-                                Robinhood Chain
+                                {ROBINHOOD_CHAIN.name}
                               </span>
                             ) : (
                               <span className="text-[8px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-1 py-0.2 rounded">

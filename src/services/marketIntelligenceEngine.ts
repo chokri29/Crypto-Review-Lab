@@ -11,15 +11,16 @@ import {
 import { INITIAL_REVIEWS } from '../data.ts';
 import { getAssetKey } from '../utils/assetKey.ts';
 import { isXStockAsset } from '../utils/xstockFilter.ts';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains.ts';
 
 // Initial canonical networks
 const INITIAL_NETWORKS = [
   {
-    network: 'Robinhood Chain',
-    chainId: '4663',
-    gasToken: 'ETH',
+    network: ROBINHOOD_CHAIN.name,
+    chainId: String(ROBINHOOD_CHAIN.chainId),
+    gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
     nativeToken: 'none',
-    explorerUrl: 'https://robinhoodchain.blockscout.com',
+    explorerUrl: ROBINHOOD_CHAIN.explorerUrl,
     status: 'active',
   },
   {
@@ -126,8 +127,7 @@ export const PLATFORM_TO_NETWORK_MAP: Record<string, string> = {
   'scroll': 'Scroll',
   'zksync': 'zkSync',
   'mantle': 'Mantle',
-  'robinhood': 'Robinhood Chain',
-  'robinhood-chain': 'Robinhood Chain'
+  ...Object.fromEntries(ROBINHOOD_CHAIN.aliases.map(alias => [alias, ROBINHOOD_CHAIN.name]))
 };
 
 // Known native L1 assets by id or symbol when platform data is absent
@@ -400,7 +400,7 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
         symbol: coin.symbol.toUpperCase(),
         name: coin.name || coin.symbol.toUpperCase(),
         coingeckoId: coin.id,
-        category: coin.category || (network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+        category: coin.category || (isRobinhoodChain(network) ? 'Orbit L2' : 'Cryptocurrency'),
         network,
         logoUrl: coin.image || null,
         isVerified: 1

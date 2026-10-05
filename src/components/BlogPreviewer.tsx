@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { DatabaseTelemetryModal } from './DatabaseTelemetryModal';
 import { isXStockAsset } from '../utils/xstockFilter';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
 
 // All 10 standardized categories + All options with icons and badges matching ReviewLab style
 const CATEGORY_OPTIONS = [
@@ -89,15 +90,15 @@ export interface NetworkOption {
 export const NETWORK_OPTIONS: NetworkOption[] = [
   { value: 'All', label: 'All Networks', badge: 'All Blockchains', icon: Globe, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
   { 
-    value: 'Robinhood Chain', 
-    label: 'Robinhood Chain', 
-    badge: 'Arbitrum Orbit L2 (Chain 4663)', 
+    value: ROBINHOOD_CHAIN.name, 
+    label: ROBINHOOD_CHAIN.name, 
+    badge: `Arbitrum Orbit L2 (Chain ${ROBINHOOD_CHAIN.chainId})`, 
     icon: Building2, 
     color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    chainId: 4663,
-    gasToken: 'ETH',
+    chainId: ROBINHOOD_CHAIN.chainId,
+    gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
     nativeToken: 'none',
-    explorer: 'https://robinhoodchain.blockscout.com'
+    explorer: ROBINHOOD_CHAIN.explorerUrl
   },
   { value: 'Ethereum', label: 'Ethereum', badge: 'EVM Layer 1', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', chainId: 1, gasToken: 'ETH', nativeToken: 'ETH', explorer: 'https://etherscan.io' },
   { value: 'Arbitrum', label: 'Arbitrum', badge: 'Arbitrum One / L2', icon: Zap, color: 'text-sky-400 bg-sky-500/10 border-sky-500/20', chainId: 42161, gasToken: 'ETH', nativeToken: 'ARB', explorer: 'https://arbiscan.io' },
@@ -108,9 +109,9 @@ export const NETWORK_OPTIONS: NetworkOption[] = [
 
 export function getNetworkBadge(network?: string): { label: string; badgeClass: string } {
   const net = (network || '').trim();
-  if (net === 'Robinhood Chain') {
+  if (isRobinhoodChain(net)) {
     return {
-      label: 'Robinhood Chain (Orbit L2)',
+      label: `${ROBINHOOD_CHAIN.name} (Orbit L2)`,
       badgeClass: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/35 shadow-[0_0_8px_rgba(52,211,153,0.25)]'
     };
   }
@@ -1335,7 +1336,7 @@ export default function BlogPreviewer({
                   <span className="font-bold text-slate-200">Blockchain Network Filter</span>
                 </div>
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono border ${
-                  selectedNetwork === 'Robinhood Chain'
+                  isRobinhoodChain(selectedNetwork)
                     ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_10px_rgba(52,211,153,0.3)]'
                     : 'text-cyber-cyan bg-cyber-cyan/10 border-cyber-cyan/30'
                 }`}>
@@ -1419,7 +1420,7 @@ export default function BlogPreviewer({
               <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[11px] font-mono">
                 {networkOptions.map((opt) => {
                   const isSelected = selectedNetwork === opt.value;
-                  const isRH = opt.value === 'Robinhood Chain';
+                  const isRH = isRobinhoodChain(opt.value);
                   const NetIcon = opt.icon;
 
                   return (

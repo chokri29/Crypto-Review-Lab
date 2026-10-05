@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { MultiSourceConvergenceReport } from '../types';
 import { useCurrency } from '../context/CurrencyContext';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
 
 export interface NetworkMetadata {
   chainId?: number | string;
@@ -31,11 +32,11 @@ export interface NetworkMetadata {
 }
 
 export const NETWORK_METADATA: Record<string, NetworkMetadata> = {
-  'Robinhood Chain': {
-    chainId: 4663,
-    gasToken: 'ETH',
+  [ROBINHOOD_CHAIN.name]: {
+    chainId: ROBINHOOD_CHAIN.chainId,
+    gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
     nativeToken: 'none',
-    explorer: 'https://robinhoodchain.blockscout.com'
+    explorer: ROBINHOOD_CHAIN.explorerUrl
   },
   'Ethereum': {
     chainId: 1,
@@ -284,17 +285,17 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
           {data.network && (
             <span 
               className={`px-2 py-0.5 rounded text-[9.5px] font-mono font-bold border ${
-                data.network === 'Robinhood Chain'
+                isRobinhoodChain(data.network)
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                   : 'bg-slate-900 text-slate-300 border-slate-700'
               }`}
               title={
-                data.network === 'Robinhood Chain'
-                  ? 'Arbitrum Orbit L2 | Chain ID: 4663 | Gas: ETH | Native Token: none | Explorer: https://robinhoodchain.blockscout.com'
+                isRobinhoodChain(data.network)
+                  ? `Arbitrum Orbit L2 | Chain ID: ${ROBINHOOD_CHAIN.chainId} | Gas: ${ROBINHOOD_CHAIN.nativeCurrency.symbol} | Native Token: none | Explorer: ${ROBINHOOD_CHAIN.explorerUrl}`
                   : (NETWORK_METADATA[data.network]?.explorer || data.network)
               }
             >
-              {data.network === 'Robinhood Chain' ? 'Robinhood Chain (Orbit L2)' : data.network}
+              {isRobinhoodChain(data.network) ? `${ROBINHOOD_CHAIN.name} (Orbit L2)` : data.network}
             </span>
           )}
 

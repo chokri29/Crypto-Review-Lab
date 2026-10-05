@@ -32,30 +32,30 @@
       "Dependency on future hardware acceleration to achieve production-grade latency."
     ],
     "publishApproved": true,
-    "livePrice": 0.082878,
-    "liveChange24h": -3.90839,
-    "liveMarketCap": 211122101,
-    "liveVolume24h": null,
-    "liveRank": 191,
-    "cmcRank": 144,
-    "cmcPrice": 0.0826409094467946,
-    "cmcVolume24h": 29652703.6062696,
-    "csPrice": 0.08294197373556574,
-    "csRank": 274,
-    "csVolume24h": 9524161,
-    "csMarketCap": 211433895,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "circulatingSupply": 2547462630.900351,
+    "livePrice": 0.083258,
+    "liveChange24h": -2.60597,
+    "liveMarketCap": 212098267,
+    "liveVolume24h": 8878504.5,
+    "liveRank": 187,
+    "cmcRank": 142,
+    "cmcPrice": 0.08317334158031582,
+    "cmcVolume24h": 30493467.14075046,
+    "csPrice": 0.0833998423440969,
+    "csRank": 269,
+    "csVolume24h": 8884162,
+    "csMarketCap": 212460840,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "circulatingSupply": 2547496906.1544147,
     "totalSupply": 11313374436.93133,
     "allTimeHigh": 0.107368,
     "allTimeLow": 0.01673142,
     "ath": 0.107368,
     "atl": 0.01673142,
-    "athChangePct": -22.81,
-    "atlChangePct": 395.34,
-    "fdvCalculated": 937629847,
-    "priceDivergencePct": 0.29,
-    "supplyDivergencePct": 181.97,
+    "athChangePct": -22.46,
+    "atlChangePct": 397.61,
+    "fdvCalculated": 941928929,
+    "priceDivergencePct": 0.17,
+    "supplyDivergencePct": 243.23,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -64,9 +64,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -80,12 +80,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 0.082878,
+          "consensusValue": 0.083258,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 0.082878,
-            "coinmarketcap": 0.0826409094467946,
-            "coinstats": 0.08294197373556574
+            "coingecko": 0.083258,
+            "coinmarketcap": 0.08317334158031582,
+            "coinstats": 0.0833998423440969
           },
           "agreeingSources": [
             "coinmarketcap",
@@ -94,18 +94,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.29,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.0829, Max Δ: 0.29%)."
+          "divergencePct": 0.17,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.0833, Max Δ: 0.17%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 211122101,
+          "consensusValue": 212098267,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 211122101,
-            "coinmarketcap": 210524628.59932902,
-            "coinstats": 211433895
+            "coingecko": 212098267,
+            "coinmarketcap": 211883830.3503789,
+            "coinstats": 212460840
           },
           "agreeingSources": [
             "coinmarketcap",
@@ -114,24 +114,27 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.28,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 211,122,101, Max Δ: 0.28%)."
+          "divergencePct": 0.17,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 212,098,267, Max Δ: 0.17%)."
         },
         "volume24h": {
           "metricName": "volume24h",
-          "status": "UNRESOLVED_DIVERGENCE",
-          "consensusValue": null,
+          "status": "PARTIALLY_CROSS_VALIDATED",
+          "consensusValue": 8878504.5,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 10516095,
-            "coinmarketcap": 29652703.6062696,
-            "coinstats": 9524161
+            "coingecko": 8872847,
+            "coinmarketcap": 30493467.14075046,
+            "coinstats": 8884162
           },
-          "agreeingSources": [],
-          "outlierSource": "ALL_SOURCES_DIVERGED",
+          "agreeingSources": [
+            "coingecko",
+            "coinstats"
+          ],
+          "outlierSource": "coinmarketcap",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 181.97,
-          "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
+          "divergencePct": 243.23,
+          "details": "2 of 3 sources agreed (coingecko & coinstats). Outlier source flagged: coinmarketcap (30493467.14075046)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
@@ -139,32 +142,32 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 191,
-            "coinmarketcap": 144,
-            "coinstats": 274
+            "coingecko": 187,
+            "coinmarketcap": 142,
+            "coinstats": 269
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±1 rank",
-          "divergencePct": 83,
+          "divergencePct": 82,
           "details": "All 3 sources diverged beyond tolerance limit (±1 rank). Values attached for auditor inspection."
         }
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.29%), MCap: FULLY_CROSS_VALIDATED (Δ 0.28%), Vol: UNRESOLVED_DIVERGENCE (Δ 181.97%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.17%), MCap: FULLY_CROSS_VALIDATED (Δ 0.17%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 243.23%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
-        "volume24h": "UNAVAILABLE",
+        "volume24h": "SOURCE",
         "circulatingSupply": "SOURCE",
         "totalSupply": "SOURCE",
         "maxSupply": "UNAVAILABLE",
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 103268863.15093674
+    "realTvl": 103872355.71455364
   },
   {
     "id": "hyperliquid-decentralized-perp-exchange",
@@ -210,34 +213,34 @@
         "reentrancyVector": "NOT_PERFORMED",
         "flashLoanDrainCascade": "NOT_PERFORMED",
         "proxyAdminLock": "NOT_PERFORMED",
-        "tvlStressLimit": "Real TVL: $7.32B"
+        "tvlStressLimit": "Real TVL: $7.34B"
       }
     },
     "publishApproved": true,
-    "livePrice": 93.27140303775981,
-    "liveChange24h": 3.2337,
-    "liveMarketCap": 20764149065.5,
-    "liveVolume24h": 735116804,
+    "livePrice": 93.63323502765417,
+    "liveChange24h": 3.72382,
+    "liveMarketCap": 20857558035.5,
+    "liveVolume24h": 1047245332.4942513,
     "liveRank": 11,
     "cmcRank": 9,
-    "cmcPrice": 93.27140303775981,
-    "cmcVolume24h": 730424836.8100073,
-    "csPrice": 93.3166602212005,
+    "cmcPrice": 93.63323502765417,
+    "cmcVolume24h": 1047245332.4942513,
+    "csPrice": 93.8952699766654,
     "csRank": 11,
-    "csVolume24h": 735116804,
-    "csMarketCap": 20785312558,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "csVolume24h": 1035290255,
+    "csMarketCap": 20886600382,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 222445714.07414138,
     "totalSupply": 955307079.4341414,
     "allTimeHigh": 97.96,
     "allTimeLow": 3.81,
     "ath": 97.96,
     "atl": 3.81,
-    "athChangePct": -4.79,
-    "atlChangePct": 2348.07,
-    "fdvCalculated": 89102831631,
-    "priceDivergencePct": 0.05,
-    "supplyDivergencePct": 1.36,
+    "athChangePct": -4.42,
+    "atlChangePct": 2357.57,
+    "fdvCalculated": 89448492292,
+    "priceDivergencePct": 0.28,
+    "supplyDivergencePct": 1.14,
     "confidenceScore": 90,
     "confidenceLevel": "MODERATE",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -246,9 +249,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "2-Source Partial Consensus: Cross-validation confirmed across coingecko, coinmarketcap, coinstats",
     "multiSourceConvergence": {
       "overallStatus": "PARTIAL_CONSENSUS",
@@ -262,12 +265,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 93.27140303775981,
+          "consensusValue": 93.63323502765417,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 93.24,
-            "coinmarketcap": 93.27140303775981,
-            "coinstats": 93.3166602212005
+            "coingecko": 93.63,
+            "coinmarketcap": 93.63323502765417,
+            "coinstats": 93.8952699766654
           },
           "agreeingSources": [
             "coingecko",
@@ -276,18 +279,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.05,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 93.271, Max Δ: 0.05%)."
+          "divergencePct": 0.28,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 93.633, Max Δ: 0.28%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "PARTIALLY_CROSS_VALIDATED",
-          "consensusValue": 20764149065.5,
+          "consensusValue": 20857558035.5,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 20742985573,
-            "coinmarketcap": 23378026647.866226,
-            "coinstats": 20785312558
+            "coingecko": 20828515689,
+            "coinmarketcap": 23466728561.215237,
+            "coinstats": 20886600382
           },
           "agreeingSources": [
             "coingecko",
@@ -295,28 +298,28 @@
           ],
           "outlierSource": "coinmarketcap",
           "toleranceUsed": "±1.5%",
-          "divergencePct": 12.47,
-          "details": "2 of 3 sources agreed (coingecko & coinstats). Outlier source flagged: coinmarketcap (23378026647.866226)."
+          "divergencePct": 12.35,
+          "details": "2 of 3 sources agreed (coingecko & coinstats). Outlier source flagged: coinmarketcap (23466728561.215237)."
         },
         "volume24h": {
           "metricName": "volume24h",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 735116804,
+          "consensusValue": 1047245332.4942513,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 745097835,
-            "coinmarketcap": 730424836.8100073,
-            "coinstats": 735116804
+            "coingecko": 1052746773,
+            "coinmarketcap": 1047245332.4942513,
+            "coinstats": 1035290255
           },
           "agreeingSources": [
-            "coinmarketcap",
             "coinstats",
+            "coinmarketcap",
             "coingecko"
           ],
           "outlierSource": null,
           "toleranceUsed": "±3.0%",
-          "divergencePct": 1.36,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 735,116,804, Max Δ: 1.36%)."
+          "divergencePct": 1.14,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,047,245,332.494, Max Δ: 1.14%)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
@@ -340,8 +343,8 @@
       },
       "confidenceScore": 90,
       "confidenceLevel": "MODERATE",
-      "summary": "PARTIAL_CONSENSUS across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.05%), MCap: PARTIALLY_CROSS_VALIDATED (Δ 12.47%), Vol: FULLY_CROSS_VALIDATED (Δ 1.36%), Rank: PARTIALLY_CROSS_VALIDATED.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "PARTIAL_CONSENSUS across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.28%), MCap: PARTIALLY_CROSS_VALIDATED (Δ 12.35%), Vol: FULLY_CROSS_VALIDATED (Δ 1.14%), Rank: PARTIALLY_CROSS_VALIDATED.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -352,7 +355,7 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 7321169839.685456
+    "realTvl": 7341869756.471059
   },
   {
     "id": "arbitrum-scaling-ethereum-layer2",
@@ -389,30 +392,30 @@
       "Token utility is currently restricted to governance rights."
     ],
     "publishApproved": true,
-    "livePrice": 0.20638700326035628,
-    "liveChange24h": 2.96828,
-    "liveMarketCap": 1400454408.1255257,
-    "liveVolume24h": null,
-    "liveRank": 69,
-    "cmcRank": 58,
-    "cmcPrice": 0.20638700326035628,
-    "cmcVolume24h": 151184789.25093827,
-    "csPrice": 0.206445969218501,
-    "csRank": 87,
-    "csVolume24h": 183387794.7538231,
-    "csMarketCap": 1400854526.033672,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "livePrice": 0.20594435215867135,
+    "liveChange24h": 1.85796,
+    "liveMarketCap": 1397450766.0510573,
+    "liveVolume24h": 179997557.86433005,
+    "liveRank": 67,
+    "cmcRank": 56,
+    "cmcPrice": 0.20594435215867135,
+    "cmcVolume24h": 176924830.7286601,
+    "csPrice": 0.20596193784961467,
+    "csRank": 85,
+    "csVolume24h": 206318439.29453143,
+    "csMarketCap": 1397570095.0689335,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 6785574605,
     "totalSupply": 10000000000,
     "allTimeHigh": 2.39,
     "allTimeLow": 0.07048,
     "ath": 2.39,
     "atl": 0.07048,
-    "athChangePct": -91.36,
-    "atlChangePct": 192.83,
-    "fdvCalculated": 2063870033,
+    "athChangePct": -91.38,
+    "atlChangePct": 192.2,
+    "fdvCalculated": 2059443522,
     "priceDivergencePct": 0.09,
-    "supplyDivergencePct": 12.73,
+    "supplyDivergencePct": 12.7,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -421,9 +424,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -437,12 +440,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 0.20638700326035628,
+          "consensusValue": 0.20594435215867135,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 0.20621,
-            "coinmarketcap": 0.20638700326035628,
-            "coinstats": 0.206445969218501
+            "coingecko": 0.205764,
+            "coinmarketcap": 0.20594435215867135,
+            "coinstats": 0.20596193784961467
           },
           "agreeingSources": [
             "coingecko",
@@ -452,17 +455,17 @@
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
           "divergencePct": 0.09,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.2064, Max Δ: 0.09%)."
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.2059, Max Δ: 0.09%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1400454408.1255257,
+          "consensusValue": 1397450766.0510573,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 1399225682,
-            "coinmarketcap": 1400454408.1255257,
-            "coinstats": 1400854526.033672
+            "coingecko": 1396226544,
+            "coinmarketcap": 1397450766.0510573,
+            "coinstats": 1397570095.0689335
           },
           "agreeingSources": [
             "coingecko",
@@ -472,23 +475,26 @@
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
           "divergencePct": 0.09,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,400,454,408.126, Max Δ: 0.09%)."
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,397,450,766.051, Max Δ: 0.09%)."
         },
         "volume24h": {
           "metricName": "volume24h",
-          "status": "UNRESOLVED_DIVERGENCE",
-          "consensusValue": null,
+          "status": "PARTIALLY_CROSS_VALIDATED",
+          "consensusValue": 179997557.86433005,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 162671762,
-            "coinmarketcap": 151184789.25093827,
-            "coinstats": 183387794.7538231
+            "coingecko": 183070285,
+            "coinmarketcap": 176924830.7286601,
+            "coinstats": 206318439.29453143
           },
-          "agreeingSources": [],
-          "outlierSource": "ALL_SOURCES_DIVERGED",
+          "agreeingSources": [
+            "coinmarketcap",
+            "coingecko"
+          ],
+          "outlierSource": "coinstats",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 12.73,
-          "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
+          "divergencePct": 12.7,
+          "details": "2 of 3 sources agreed (coinmarketcap & coingecko). Outlier source flagged: coinstats (206318439.29453143)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
@@ -496,9 +502,9 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 69,
-            "coinmarketcap": 58,
-            "coinstats": 87
+            "coingecko": 67,
+            "coinmarketcap": 56,
+            "coinstats": 85
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
@@ -509,19 +515,19 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.09%), MCap: FULLY_CROSS_VALIDATED (Δ 0.09%), Vol: UNRESOLVED_DIVERGENCE (Δ 12.73%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.09%), MCap: FULLY_CROSS_VALIDATED (Δ 0.09%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 12.7%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
-        "volume24h": "UNAVAILABLE",
+        "volume24h": "SOURCE",
         "circulatingSupply": "SOURCE",
         "totalSupply": "SOURCE",
         "maxSupply": "UNAVAILABLE",
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 3811833095.490016
+    "realTvl": 3791987103.2068524
   },
   {
     "id": "uniswap-defi-amm-gold-standard",
@@ -558,30 +564,30 @@
       "Active regulatory scrutiny over decentralized web interfaces."
     ],
     "publishApproved": true,
-    "livePrice": 9.02,
-    "liveChange24h": -0.26344,
-    "liveMarketCap": 5638044882,
-    "liveVolume24h": 384100419.3065196,
+    "livePrice": 8.962759400304007,
+    "liveChange24h": -0.70565,
+    "liveMarketCap": 5603090751.231841,
+    "liveVolume24h": 492101169.18850076,
     "liveRank": 23,
     "cmcRank": 19,
-    "cmcPrice": 9.01756763992695,
-    "cmcVolume24h": 389286364.87166375,
-    "csPrice": 9.02000941353729,
+    "cmcPrice": 8.962759400304007,
+    "cmcVolume24h": 492288276.2251849,
+    "csPrice": 8.966408998001873,
     "csRank": 30,
-    "csVolume24h": 384100419.3065196,
-    "csMarketCap": 5638916820.3933,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "circulatingSupply": 625156422.6104751,
-    "totalSupply": 887432418.9163101,
+    "csVolume24h": 491914062.15181655,
+    "csMarketCap": 5605408167.379456,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "circulatingSupply": 625156422.4829454,
+    "totalSupply": 887404418.9163101,
     "allTimeHigh": 44.92,
     "allTimeLow": 1.03,
     "ath": 44.92,
     "atl": 1.03,
-    "athChangePct": -79.92,
-    "atlChangePct": 775.73,
-    "fdvCalculated": 8004640419,
-    "priceDivergencePct": 0.03,
-    "supplyDivergencePct": 2.71,
+    "athChangePct": -80.05,
+    "atlChangePct": 770.17,
+    "fdvCalculated": 7953592298,
+    "priceDivergencePct": 0.04,
+    "supplyDivergencePct": 5.75,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -590,9 +596,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -606,62 +612,61 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 9.02,
+          "consensusValue": 8.962759400304007,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 9.02,
-            "coinmarketcap": 9.01756763992695,
-            "coinstats": 9.02000941353729
+            "coingecko": 8.96,
+            "coinmarketcap": 8.962759400304007,
+            "coinstats": 8.966408998001873
           },
           "agreeingSources": [
-            "coinmarketcap",
             "coingecko",
+            "coinmarketcap",
             "coinstats"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.03,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 9.02, Max Δ: 0.03%)."
+          "divergencePct": 0.04,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 8.963, Max Δ: 0.04%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 5638044882,
+          "consensusValue": 5603090751.231841,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 5638044882,
-            "coinmarketcap": 5637390326.424717,
-            "coinstats": 5638916820.3933
+            "coingecko": 5601832207,
+            "coinmarketcap": 5603090751.231841,
+            "coinstats": 5605408167.379456
           },
           "agreeingSources": [
-            "coinmarketcap",
             "coingecko",
+            "coinmarketcap",
             "coinstats"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.02,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 5,638,044,882, Max Δ: 0.02%)."
+          "divergencePct": 0.04,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 5,603,090,751.232, Max Δ: 0.04%)."
         },
         "volume24h": {
           "metricName": "volume24h",
-          "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 384100419.3065196,
+          "status": "PARTIALLY_CROSS_VALIDATED",
+          "consensusValue": 492101169.18850076,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 373708011,
-            "coinmarketcap": 389286364.87166375,
-            "coinstats": 384100419.3065196
+            "coingecko": 463639391,
+            "coinmarketcap": 492288276.2251849,
+            "coinstats": 491914062.15181655
           },
           "agreeingSources": [
-            "coingecko",
             "coinstats",
             "coinmarketcap"
           ],
-          "outlierSource": null,
+          "outlierSource": "coingecko",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 2.71,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 384,100,419.307, Max Δ: 2.71%)."
+          "divergencePct": 5.75,
+          "details": "2 of 3 sources agreed (coinstats & coinmarketcap). Outlier source flagged: coingecko (463639391)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
@@ -682,8 +687,8 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.03%), MCap: FULLY_CROSS_VALIDATED (Δ 0.02%), Vol: FULLY_CROSS_VALIDATED (Δ 2.71%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.04%), MCap: FULLY_CROSS_VALIDATED (Δ 0.04%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 5.75%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -694,7 +699,7 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 3965091634.467596
+    "realTvl": 3974054281.905486
   },
   {
     "id": "render-network-depin-ai-compute",
@@ -730,30 +735,30 @@
       "Subject to volatile computer hardware pricing trends."
     ],
     "publishApproved": true,
-    "livePrice": 1.988178073007811,
-    "liveChange24h": 2.00224,
-    "liveMarketCap": 1030683746.499976,
+    "livePrice": 1.9923123634817614,
+    "liveChange24h": 1.17611,
+    "liveMarketCap": 1033564319.3881036,
     "liveVolume24h": null,
-    "liveRank": 80,
+    "liveRank": 79,
     "cmcRank": 66,
-    "cmcPrice": 1.988178073007811,
-    "cmcVolume24h": 35277594.33360552,
-    "csPrice": 1.986759733856,
-    "csRank": 105,
-    "csVolume24h": 51559431.56156566,
-    "csMarketCap": 1030683746.499976,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "cmcPrice": 1.9923123634817614,
+    "cmcVolume24h": 42593052.27436373,
+    "csPrice": 1.9924400269608833,
+    "csRank": 104,
+    "csVolume24h": 59334758.316232026,
+    "csMarketCap": 1033630547.6047057,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 518776241.28269154,
     "totalSupply": 533536414.5626915,
     "allTimeHigh": 13.53,
     "allTimeLow": 0.03665669,
     "ath": 13.53,
     "atl": 0.03665669,
-    "athChangePct": -85.31,
-    "atlChangePct": 5323.78,
-    "fdvCalculated": 1060765401,
-    "priceDivergencePct": 0.09,
-    "supplyDivergencePct": 31.58,
+    "athChangePct": -85.27,
+    "atlChangePct": 5335.06,
+    "fdvCalculated": 1062971195,
+    "priceDivergencePct": 0.12,
+    "supplyDivergencePct": 28.22,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -762,9 +767,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -778,42 +783,42 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1.988178073007811,
+          "consensusValue": 1.9923123634817614,
           "validSourcesCount": 3,
           "sourceValues": {
             "coingecko": 1.99,
-            "coinmarketcap": 1.988178073007811,
-            "coinstats": 1.986759733856
+            "coinmarketcap": 1.9923123634817614,
+            "coinstats": 1.9924400269608833
           },
           "agreeingSources": [
-            "coinstats",
+            "coingecko",
             "coinmarketcap",
-            "coingecko"
+            "coinstats"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.09,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1.988, Max Δ: 0.09%)."
+          "divergencePct": 0.12,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1.992, Max Δ: 0.12%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1030683746.499976,
+          "consensusValue": 1033564319.3881036,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 1030381693,
-            "coinmarketcap": 1031419547.7156568,
-            "coinstats": 1030683746.499976
+            "coingecko": 1033397765,
+            "coinmarketcap": 1033564319.3881036,
+            "coinstats": 1033630547.6047057
           },
           "agreeingSources": [
             "coingecko",
-            "coinstats",
-            "coinmarketcap"
+            "coinmarketcap",
+            "coinstats"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.07,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,030,683,746.5, Max Δ: 0.07%)."
+          "divergencePct": 0.02,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,033,564,319.388, Max Δ: 0.02%)."
         },
         "volume24h": {
           "metricName": "volume24h",
@@ -821,14 +826,14 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 57021987,
-            "coinmarketcap": 35277594.33360552,
-            "coinstats": 51559431.56156566
+            "coingecko": 65593888,
+            "coinmarketcap": 42593052.27436373,
+            "coinstats": 59334758.316232026
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 31.58,
+          "divergencePct": 28.22,
           "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
         },
         "marketCapRank": {
@@ -837,9 +842,9 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 80,
+            "coingecko": 79,
             "coinmarketcap": 66,
-            "coinstats": 105
+            "coinstats": 104
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
@@ -850,8 +855,8 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.09%), MCap: FULLY_CROSS_VALIDATED (Δ 0.07%), Vol: UNRESOLVED_DIVERGENCE (Δ 31.58%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.12%), MCap: FULLY_CROSS_VALIDATED (Δ 0.02%), Vol: UNRESOLVED_DIVERGENCE (Δ 28.22%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -896,30 +901,30 @@
       "Substantial inflation rewards during early ecosystem phases."
     ],
     "publishApproved": true,
-    "livePrice": 120.75812509492975,
-    "liveChange24h": -0.38415,
-    "liveMarketCap": 71043673329.73843,
+    "livePrice": 119.9435905604655,
+    "liveChange24h": -1.26644,
+    "liveMarketCap": 70572984687.52501,
     "liveVolume24h": null,
     "liveRank": 7,
     "cmcRank": 7,
-    "cmcPrice": 120.75812509492975,
-    "cmcVolume24h": 2307815090.706389,
-    "csPrice": 120.68810960371654,
+    "cmcPrice": 119.9435905604655,
+    "cmcVolume24h": 2601346990.7874374,
+    "csPrice": 119.91644021180322,
     "csRank": 7,
-    "csVolume24h": 2685234294.135418,
-    "csMarketCap": 71002483272.29361,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "circulatingSupply": 588313811.8717961,
-    "totalSupply": 635227295.4663675,
+    "csVolume24h": 3137523706.0733433,
+    "csMarketCap": 70557014647.97632,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "circulatingSupply": 588384833.2079778,
+    "totalSupply": 635305658.9358269,
     "allTimeHigh": 293.31,
     "allTimeLow": 0.500801,
     "ath": 293.31,
     "atl": 0.500801,
-    "athChangePct": -58.83,
-    "atlChangePct": 24013,
-    "fdvCalculated": 76708857210,
-    "priceDivergencePct": 0.06,
-    "supplyDivergencePct": 7.89,
+    "athChangePct": -59.11,
+    "atlChangePct": 23850.35,
+    "fdvCalculated": 76200841836,
+    "priceDivergencePct": 0.02,
+    "supplyDivergencePct": 13.25,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -928,9 +933,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -944,12 +949,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 120.75812509492975,
+          "consensusValue": 119.9435905604655,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 120.77,
-            "coinmarketcap": 120.75812509492975,
-            "coinstats": 120.68810960371654
+            "coingecko": 119.97,
+            "coinmarketcap": 119.9435905604655,
+            "coinstats": 119.91644021180322
           },
           "agreeingSources": [
             "coinstats",
@@ -958,18 +963,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.06,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 120.758, Max Δ: 0.06%)."
+          "divergencePct": 0.02,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 119.944, Max Δ: 0.02%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 71043673329.73843,
+          "consensusValue": 70572984687.52501,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 71044927619,
-            "coinmarketcap": 71043673329.73843,
-            "coinstats": 71002483272.29361
+            "coingecko": 70591297093,
+            "coinmarketcap": 70572984687.52501,
+            "coinstats": 70557014647.97632
           },
           "agreeingSources": [
             "coinstats",
@@ -978,8 +983,8 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.06,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 71,043,673,329.738, Max Δ: 0.06%)."
+          "divergencePct": 0.03,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 70,572,984,687.525, Max Δ: 0.03%)."
         },
         "volume24h": {
           "metricName": "volume24h",
@@ -987,14 +992,14 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 2505476450,
-            "coinmarketcap": 2307815090.706389,
-            "coinstats": 2685234294.135418
+            "coingecko": 2770490018,
+            "coinmarketcap": 2601346990.7874374,
+            "coinstats": 3137523706.0733433
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 7.89,
+          "divergencePct": 13.25,
           "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
         },
         "marketCapRank": {
@@ -1020,8 +1025,8 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.06%), MCap: FULLY_CROSS_VALIDATED (Δ 0.06%), Vol: UNRESOLVED_DIVERGENCE (Δ 7.89%), Rank: FULLY_CROSS_VALIDATED.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.02%), MCap: FULLY_CROSS_VALIDATED (Δ 0.03%), Vol: UNRESOLVED_DIVERGENCE (Δ 13.25%), Rank: FULLY_CROSS_VALIDATED.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -1069,44 +1074,44 @@
       "Token utility is largely tied to node operator staking."
     ],
     "publishApproved": true,
-    "livePrice": 14.173476787283887,
-    "liveChange24h": 0.5198,
-    "liveMarketCap": 10603177565.384855,
-    "liveVolume24h": null,
-    "liveRank": 13,
-    "cmcRank": 12,
-    "cmcPrice": 14.173476787283887,
-    "cmcVolume24h": 234929589.03850946,
-    "csPrice": 14.182515300344699,
-    "csRank": 14,
-    "csVolume24h": 319980189.36828786,
-    "csMarketCap": 10609939270.71241,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "livePrice": 13.867134969820459,
+    "liveChange24h": -2.18534,
+    "liveMarketCap": 10374003260.80056,
+    "liveVolume24h": 292905371.62837017,
+    "liveRank": 14,
+    "cmcRank": 13,
+    "cmcPrice": 13.867134969820459,
+    "cmcVolume24h": 284580238.25674033,
+    "csPrice": 13.87815542375954,
+    "csRank": 15,
+    "csVolume24h": 382812540.95171916,
+    "csMarketCap": 10382247656.16985,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 748099970.424884,
     "totalSupply": 1000000000,
     "allTimeHigh": 52.7,
     "allTimeLow": 0.148183,
     "ath": 52.7,
     "atl": 0.148183,
-    "athChangePct": -73.11,
-    "atlChangePct": 9464.85,
-    "fdvCalculated": 14173476787,
-    "priceDivergencePct": 0.06,
-    "supplyDivergencePct": 15.38,
-    "confidenceScore": 60,
-    "confidenceLevel": "DIVERGENT",
+    "athChangePct": -73.69,
+    "atlChangePct": 9258.11,
+    "fdvCalculated": 13867134970,
+    "priceDivergencePct": 0.08,
+    "supplyDivergencePct": 27.08,
+    "confidenceScore": 99,
+    "confidenceLevel": "HIGH",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
     "dataSources": [
       "CoinGecko (Primary Feed)",
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "syncRuleApplied": "3-Source Full Consensus: CoinGecko + CMC + CoinStats agree within ±1% median",
     "multiSourceConvergence": {
-      "overallStatus": "UNRESOLVED_DIVERGENCE",
+      "overallStatus": "FULL_CONSENSUS",
       "activeSourcesCount": 3,
       "activeSources": [
         "coingecko",
@@ -1117,12 +1122,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 14.173476787283887,
+          "consensusValue": 13.867134969820459,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 14.17,
-            "coinmarketcap": 14.173476787283887,
-            "coinstats": 14.182515300344699
+            "coingecko": 13.86,
+            "coinmarketcap": 13.867134969820459,
+            "coinstats": 13.87815542375954
           },
           "agreeingSources": [
             "coingecko",
@@ -1131,18 +1136,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.06,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 14.173, Max Δ: 0.06%)."
+          "divergencePct": 0.08,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 13.867, Max Δ: 0.08%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 10603177565.384855,
+          "consensusValue": 10374003260.80056,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 10599615306,
-            "coinmarketcap": 10603177565.384855,
-            "coinstats": 10609939270.71241
+            "coingecko": 10371409869,
+            "coinmarketcap": 10374003260.80056,
+            "coinstats": 10382247656.16985
           },
           "agreeingSources": [
             "coingecko",
@@ -1151,34 +1156,37 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.06,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 10,603,177,565.385, Max Δ: 0.06%)."
+          "divergencePct": 0.08,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 10,374,003,260.801, Max Δ: 0.08%)."
         },
         "volume24h": {
           "metricName": "volume24h",
-          "status": "UNRESOLVED_DIVERGENCE",
-          "consensusValue": null,
+          "status": "PARTIALLY_CROSS_VALIDATED",
+          "consensusValue": 292905371.62837017,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 277321683,
-            "coinmarketcap": 234929589.03850946,
-            "coinstats": 319980189.36828786
+            "coingecko": 301230505,
+            "coinmarketcap": 284580238.25674033,
+            "coinstats": 382812540.95171916
           },
-          "agreeingSources": [],
-          "outlierSource": "ALL_SOURCES_DIVERGED",
+          "agreeingSources": [
+            "coinmarketcap",
+            "coingecko"
+          ],
+          "outlierSource": "coinstats",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 15.38,
-          "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
+          "divergencePct": 27.08,
+          "details": "2 of 3 sources agreed (coinmarketcap & coingecko). Outlier source flagged: coinstats (382812540.95171916)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 13,
+          "consensusValue": 14,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 13,
-            "coinmarketcap": 12,
-            "coinstats": 14
+            "coingecko": 14,
+            "coinmarketcap": 13,
+            "coinstats": 15
           },
           "agreeingSources": [
             "coinmarketcap",
@@ -1188,24 +1196,24 @@
           "outlierSource": null,
           "toleranceUsed": "±1 rank",
           "divergencePct": 1,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: #13, Max Δ: 1 rank)."
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: #14, Max Δ: 1 rank)."
         }
       },
-      "confidenceScore": 60,
-      "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.06%), MCap: FULLY_CROSS_VALIDATED (Δ 0.06%), Vol: UNRESOLVED_DIVERGENCE (Δ 15.38%), Rank: FULLY_CROSS_VALIDATED.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "confidenceScore": 99,
+      "confidenceLevel": "HIGH",
+      "summary": "FULL_CONSENSUS across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.08%), MCap: FULLY_CROSS_VALIDATED (Δ 0.08%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 27.08%), Rank: FULLY_CROSS_VALIDATED.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
-        "volume24h": "UNAVAILABLE",
+        "volume24h": "SOURCE",
         "circulatingSupply": "SOURCE",
         "totalSupply": "SOURCE",
         "maxSupply": "UNAVAILABLE",
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 1906378305.8428228
+    "realTvl": 1900139466.4516137
   },
   {
     "id": "sui-network-object-centric-l1",
@@ -1242,30 +1250,30 @@
       "High validator infrastructure requirements for full node operators."
     ],
     "publishApproved": true,
-    "livePrice": 1.2343048700206363,
-    "liveChange24h": 4.97017,
-    "liveMarketCap": 5083201269.584599,
+    "livePrice": 1.1895436441895275,
+    "liveChange24h": -2.56867,
+    "liveMarketCap": 4898862436.044186,
     "liveVolume24h": null,
-    "liveRank": 25,
-    "cmcRank": 21,
-    "cmcPrice": 1.2343048700206363,
-    "cmcVolume24h": 1062168884.5560325,
-    "csPrice": 1.2336394681083862,
-    "csRank": 32,
-    "csVolume24h": 768887905.6518035,
-    "csMarketCap": 5080460964.997206,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "liveRank": 27,
+    "cmcRank": 23,
+    "cmcPrice": 1.1895436441895275,
+    "cmcVolume24h": 965683469.4564304,
+    "csPrice": 1.1893502549430117,
+    "csRank": 34,
+    "csVolume24h": 690986160.4400781,
+    "csMarketCap": 4898066007.253071,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 4118270447.6403894,
     "totalSupply": 10000000000,
     "allTimeHigh": 5.35,
     "allTimeLow": 0.364846,
     "ath": 5.35,
     "atl": 0.364846,
-    "athChangePct": -76.93,
-    "atlChangePct": 238.31,
-    "fdvCalculated": 12343048700,
-    "priceDivergencePct": 0.46,
-    "supplyDivergencePct": 22.49,
+    "athChangePct": -77.77,
+    "atlChangePct": 226.04,
+    "fdvCalculated": 11895436442,
+    "priceDivergencePct": 0.04,
+    "supplyDivergencePct": 17.05,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -1274,9 +1282,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -1290,12 +1298,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1.2343048700206363,
+          "consensusValue": 1.1895436441895275,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 1.24,
-            "coinmarketcap": 1.2343048700206363,
-            "coinstats": 1.2336394681083862
+            "coingecko": 1.19,
+            "coinmarketcap": 1.1895436441895275,
+            "coinstats": 1.1893502549430117
           },
           "agreeingSources": [
             "coinstats",
@@ -1304,18 +1312,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.46,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1.234, Max Δ: 0.46%)."
+          "divergencePct": 0.04,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1.19, Max Δ: 0.04%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 5083201269.584599,
+          "consensusValue": 4898862436.044186,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 5083654683,
-            "coinmarketcap": 5083201269.584599,
-            "coinstats": 5080460964.997206
+            "coingecko": 4899182594,
+            "coinmarketcap": 4898862436.044186,
+            "coinstats": 4898066007.253071
           },
           "agreeingSources": [
             "coinstats",
@@ -1324,8 +1332,8 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.05,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 5,083,201,269.585, Max Δ: 0.05%)."
+          "divergencePct": 0.02,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 4,898,862,436.044, Max Δ: 0.02%)."
         },
         "volume24h": {
           "metricName": "volume24h",
@@ -1333,14 +1341,14 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 992013490,
-            "coinmarketcap": 1062168884.5560325,
-            "coinstats": 768887905.6518035
+            "coingecko": 825052306,
+            "coinmarketcap": 965683469.4564304,
+            "coinstats": 690986160.4400781
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 22.49,
+          "divergencePct": 17.05,
           "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
         },
         "marketCapRank": {
@@ -1349,9 +1357,9 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 25,
-            "coinmarketcap": 21,
-            "coinstats": 32
+            "coingecko": 27,
+            "coinmarketcap": 23,
+            "coinstats": 34
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
@@ -1362,8 +1370,8 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.46%), MCap: FULLY_CROSS_VALIDATED (Δ 0.05%), Vol: UNRESOLVED_DIVERGENCE (Δ 22.49%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.04%), MCap: FULLY_CROSS_VALIDATED (Δ 0.02%), Vol: UNRESOLVED_DIVERGENCE (Δ 17.05%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -1374,7 +1382,7 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 31197097.47840759
+    "realTvl": 30711324.796009403
   },
   {
     "id": "kaspa-proof-of-work-blockdag",
@@ -1408,30 +1416,30 @@
       "Ecosystem is currently focused primarily on peer-to-peer payment utility."
     ],
     "publishApproved": true,
-    "livePrice": 0.04429939,
-    "liveChange24h": 5.7369,
-    "liveMarketCap": 1228473082,
-    "liveVolume24h": 16378076,
-    "liveRank": 73,
+    "livePrice": 0.04321942,
+    "liveChange24h": 2.31302,
+    "liveMarketCap": 1198744602,
+    "liveVolume24h": 20878014.962143656,
+    "liveRank": 72,
     "cmcRank": 59,
-    "cmcPrice": 0.04431797793044687,
-    "cmcVolume24h": 15208327.86073515,
-    "csPrice": 0.04425395577870496,
-    "csRank": 96,
-    "csVolume24h": 16211159,
-    "csMarketCap": 1226270140,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "cmcPrice": 0.04323926738771279,
+    "cmcVolume24h": 20337922.92428731,
+    "csPrice": 0.04319329868569202,
+    "csRank": 95,
+    "csVolume24h": 21394705,
+    "csMarketCap": 1198020087,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 27736249000.038242,
-    "totalSupply": 27739277422.75544,
+    "totalSupply": 27739795026.60702,
     "allTimeHigh": 0.207411,
     "allTimeLow": 0.00017105,
     "ath": 0.207411,
     "atl": 0.00017105,
-    "athChangePct": -78.64,
-    "atlChangePct": 25798.5,
-    "fdvCalculated": 1228833069,
-    "priceDivergencePct": 0.1,
-    "supplyDivergencePct": 6.19,
+    "athChangePct": -79.16,
+    "atlChangePct": 25167.13,
+    "fdvCalculated": 1198897852,
+    "priceDivergencePct": 0.06,
+    "supplyDivergencePct": 4.94,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -1440,9 +1448,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -1456,12 +1464,12 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 0.04429939,
+          "consensusValue": 0.04321942,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 0.04429939,
-            "coinmarketcap": 0.04431797793044687,
-            "coinstats": 0.04425395577870496
+            "coingecko": 0.04321942,
+            "coinmarketcap": 0.04323926738771279,
+            "coinstats": 0.04319329868569202
           },
           "agreeingSources": [
             "coinstats",
@@ -1470,18 +1478,18 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.1,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.0443, Max Δ: 0.10%)."
+          "divergencePct": 0.06,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.0432, Max Δ: 0.06%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1228473082,
+          "consensusValue": 1198744602,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 1228473082,
-            "coinmarketcap": 1229350659.7783053,
-            "coinstats": 1226270140
+            "coingecko": 1198744602,
+            "coinmarketcap": 1199447263.072439,
+            "coinstats": 1198020087
           },
           "agreeingSources": [
             "coinstats",
@@ -1490,27 +1498,27 @@
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.18,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,228,473,082, Max Δ: 0.18%)."
+          "divergencePct": 0.06,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,198,744,602, Max Δ: 0.06%)."
         },
         "volume24h": {
           "metricName": "volume24h",
           "status": "PARTIALLY_CROSS_VALIDATED",
-          "consensusValue": 16378076,
+          "consensusValue": 20878014.962143656,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 16544993,
-            "coinmarketcap": 15208327.86073515,
-            "coinstats": 16211159
+            "coingecko": 21418107,
+            "coinmarketcap": 20337922.92428731,
+            "coinstats": 21394705
           },
           "agreeingSources": [
-            "coinstats",
+            "coinmarketcap",
             "coingecko"
           ],
-          "outlierSource": "coinmarketcap",
+          "outlierSource": "coinstats",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 6.19,
-          "details": "2 of 3 sources agreed (coinstats & coingecko). Outlier source flagged: coinmarketcap (15208327.86073515)."
+          "divergencePct": 4.94,
+          "details": "2 of 3 sources agreed (coinmarketcap & coingecko). Outlier source flagged: coinstats (21394705)."
         },
         "marketCapRank": {
           "metricName": "marketCapRank",
@@ -1518,9 +1526,9 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 73,
+            "coingecko": 72,
             "coinmarketcap": 59,
-            "coinstats": 96
+            "coinstats": 95
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
@@ -1531,8 +1539,8 @@
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.1%), MCap: FULLY_CROSS_VALIDATED (Δ 0.18%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 6.19%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.06%), MCap: FULLY_CROSS_VALIDATED (Δ 0.06%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 4.94%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -1543,7 +1551,7 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 96186.95686016623,
+    "realTvl": 96887.61896188435,
     "defiLlamaSlug": "kaspacom-dex"
   },
   {
@@ -1581,30 +1589,30 @@
       "Systemic dependency on Solana network uptime and Pyth/Switchboard oracle latency, exposing the perpetuals platform to liquidation cascade risks during periods of extreme network congestion."
     ],
     "publishApproved": true,
-    "livePrice": 0.335006497649728,
-    "liveChange24h": 1.88857,
-    "liveMarketCap": 1112010251.4384055,
+    "livePrice": 0.34808252974428855,
+    "liveChange24h": 5.60659,
+    "liveMarketCap": 1155414429.812396,
     "liveVolume24h": null,
-    "liveRank": 78,
-    "cmcRank": 64,
-    "cmcPrice": 0.3353649451265416,
-    "cmcVolume24h": 36924983.96545608,
-    "csPrice": 0.335006497649728,
-    "csRank": 103,
-    "csVolume24h": 54752824.216312975,
-    "csMarketCap": 1112010251.4384055,
-    "csLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "liveRank": 74,
+    "cmcRank": 61,
+    "cmcPrice": 0.34808252974428855,
+    "cmcVolume24h": 56055008.18168193,
+    "csPrice": 0.34791812505328706,
+    "csRank": 98,
+    "csVolume24h": 68461757.03943653,
+    "csMarketCap": 1154868709.815302,
+    "csLastSyncedAt": "06:59 PM (TTL: 3m)",
     "circulatingSupply": 3319369204.37,
-    "totalSupply": 6861486421.656465,
+    "totalSupply": 6861486414.888562,
     "allTimeHigh": 2,
     "allTimeLow": 0.135801,
     "ath": 2,
     "atl": 0.135801,
-    "athChangePct": -83.25,
-    "atlChangePct": 146.69,
-    "fdvCalculated": 2298642535,
-    "priceDivergencePct": 0.11,
-    "supplyDivergencePct": 32.56,
+    "athChangePct": -82.6,
+    "atlChangePct": 156.32,
+    "fdvCalculated": 2388363549,
+    "priceDivergencePct": 0.08,
+    "supplyDivergencePct": 29.43,
     "confidenceScore": 60,
     "confidenceLevel": "DIVERGENT",
     "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
@@ -1613,9 +1621,9 @@
       "CoinMarketCap Pro API (Liquidity & Depth)",
       "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
     ],
-    "lastSyncedAt": "12:39 PM",
-    "cgLastSyncedAt": "12:39 PM (TTL: 3m)",
-    "cmcLastSyncedAt": "12:39 PM (TTL: 3m)",
+    "lastSyncedAt": "06:59 PM",
+    "cgLastSyncedAt": "06:59 PM (TTL: 3m)",
+    "cmcLastSyncedAt": "06:59 PM (TTL: 3m)",
     "syncRuleApplied": "⚠️ Multi-Source Divergence Detected: Feeds diverged beyond tolerance limit — consensus unresolved",
     "multiSourceConvergence": {
       "overallStatus": "UNRESOLVED_DIVERGENCE",
@@ -1629,42 +1637,42 @@
         "price": {
           "metricName": "price",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 0.335006497649728,
+          "consensusValue": 0.34808252974428855,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 0.334941,
-            "coinmarketcap": 0.3353649451265416,
-            "coinstats": 0.335006497649728
+            "coingecko": 0.348372,
+            "coinmarketcap": 0.34808252974428855,
+            "coinstats": 0.34791812505328706
           },
           "agreeingSources": [
-            "coingecko",
             "coinstats",
-            "coinmarketcap"
+            "coinmarketcap",
+            "coingecko"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.0%",
-          "divergencePct": 0.11,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.3350, Max Δ: 0.11%)."
+          "divergencePct": 0.08,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 0.3481, Max Δ: 0.08%)."
         },
         "marketCap": {
           "metricName": "marketCap",
           "status": "FULLY_CROSS_VALIDATED",
-          "consensusValue": 1112010251.4384055,
+          "consensusValue": 1155414429.812396,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 1111566982,
-            "coinmarketcap": 1113200071.078277,
-            "coinstats": 1112010251.4384055
+            "coingecko": 1156375466,
+            "coinmarketcap": 1155414429.812396,
+            "coinstats": 1154868709.815302
           },
           "agreeingSources": [
-            "coingecko",
             "coinstats",
-            "coinmarketcap"
+            "coinmarketcap",
+            "coingecko"
           ],
           "outlierSource": null,
           "toleranceUsed": "±1.5%",
-          "divergencePct": 0.11,
-          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,112,010,251.438, Max Δ: 0.11%)."
+          "divergencePct": 0.08,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 1,155,414,429.812, Max Δ: 0.08%)."
         },
         "volume24h": {
           "metricName": "volume24h",
@@ -1672,14 +1680,14 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 66894274,
-            "coinmarketcap": 36924983.96545608,
-            "coinstats": 54752824.216312975
+            "coingecko": 88608731,
+            "coinmarketcap": 56055008.18168193,
+            "coinstats": 68461757.03943653
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±3.0%",
-          "divergencePct": 32.56,
+          "divergencePct": 29.43,
           "details": "All 3 sources diverged beyond tolerance limit (±3.0%). Values attached for auditor inspection."
         },
         "marketCapRank": {
@@ -1688,21 +1696,21 @@
           "consensusValue": null,
           "validSourcesCount": 3,
           "sourceValues": {
-            "coingecko": 78,
-            "coinmarketcap": 64,
-            "coinstats": 103
+            "coingecko": 74,
+            "coinmarketcap": 61,
+            "coinstats": 98
           },
           "agreeingSources": [],
           "outlierSource": "ALL_SOURCES_DIVERGED",
           "toleranceUsed": "±1 rank",
-          "divergencePct": 25,
+          "divergencePct": 24,
           "details": "All 3 sources diverged beyond tolerance limit (±1 rank). Values attached for auditor inspection."
         }
       },
       "confidenceScore": 60,
       "confidenceLevel": "DIVERGENT",
-      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.11%), MCap: FULLY_CROSS_VALIDATED (Δ 0.11%), Vol: UNRESOLVED_DIVERGENCE (Δ 32.56%), Rank: UNRESOLVED_DIVERGENCE.",
-      "reconciledAt": "12:39 PM (TTL: 3m)",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.08%), MCap: FULLY_CROSS_VALIDATED (Δ 0.08%), Vol: UNRESOLVED_DIVERGENCE (Δ 29.43%), Rank: UNRESOLVED_DIVERGENCE.",
+      "reconciledAt": "06:59 PM (TTL: 3m)",
       "metricProvenances": {
         "price": "SOURCE",
         "marketCap": "SOURCE",
@@ -1713,6 +1721,6 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 2153919781.29107
+    "realTvl": 2180832846.87834
   }
 ]

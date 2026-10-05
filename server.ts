@@ -53,6 +53,7 @@ import {
   startMarketIntelligenceSyncService, 
   runMarketIntelligenceSync 
 } from "./src/services/marketIntelligenceEngine.ts";
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from "./src/constants/chains.ts";
 
 if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
@@ -1634,7 +1635,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   const SUPPORTED_GOPLUS_EVM_CHAINS = new Set([
     "1", "56", "42161", "137", "204", "324", "59144", "8453", "5000", "130",
     "48900", "534352", "10", "43114", "25", "100", "321", "201022", "42766",
-    "4663", "1030", "1672", "9745", "143", "5734951", "688688", "988", "1868",
+    String(ROBINHOOD_CHAIN.chainId), "1030", "1672", "9745", "143", "5734951", "688688", "988", "1868",
     "1514", "146", "2741", "177", "80094", "480", "2818", "1625", "185", "196",
     "810180", "200901", "4200", "169", "81457"
   ]);
@@ -1653,7 +1654,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     if (str === "324" || str === "zksync") return "324";
     if (str === "25" || str === "cronos") return "25";
     if (str === "100" || str === "gnosis") return "100";
-    if (str === "robinhood" || str === "robinhood-chain" || str === "robinhood chain" || str === "rh" || str === "rh-chain" || str === "4663" || str === "0x1237") return "4663";
+    if (isRobinhoodChain(str)) return String(ROBINHOOD_CHAIN.chainId);
     if (/^\d+$/.test(str)) return str;
     return str;
   }
@@ -1921,12 +1922,13 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       return { status: "UNAVAILABLE", error: "Blockscout corroboration is only applicable for EVM chains" };
     }
 
+    const resolvedChain = resolveEvmChainId(chainId);
+    const isRobinhood = isRobinhoodChain(chainId) || resolvedChain === String(ROBINHOOD_CHAIN.chainId);
     const blockscoutKey = (process.env.BLOCKSCOUT_API_KEY || "").trim();
-    if (!blockscoutKey) {
+    if (!blockscoutKey && !isRobinhood) {
       return { status: "UNAVAILABLE", error: "BLOCKSCOUT_API_KEY not configured" };
     }
 
-    const resolvedChain = resolveEvmChainId(chainId);
     if (!SUPPORTED_GOPLUS_EVM_CHAINS.has(resolvedChain) && !/^\d+$/.test(resolvedChain)) {
       return { status: "UNAVAILABLE", error: `Network/Chain ${chainId} not supported by Blockscout` };
     }
@@ -1947,9 +1949,12 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
 
     // Run token metadata and token holders requests concurrently
     await Promise.allSettled([
-      // 1. Token Metadata endpoint: https://api.blockscout.com/{chainId}/api/v2/tokens/{contractAddress}?apikey={key}
+      // 1. Token Metadata endpoint: Blockscout v2 API
       (async () => {
-        const tokenUrl = `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}?apikey=${encodeURIComponent(blockscoutKey)}`;
+        const tokenBase = isRobinhood
+          ? `${ROBINHOOD_CHAIN.explorerUrl}/api/v2/tokens/${encodeURIComponent(contractAddress)}`
+          : `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}`;
+        const tokenUrl = blockscoutKey ? `${tokenBase}?apikey=${encodeURIComponent(blockscoutKey)}` : tokenBase;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
@@ -1996,9 +2001,12 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           }
         }
       })(),
-      // 2. Token Holders endpoint: https://api.blockscout.com/{chainId}/api/v2/tokens/{contractAddress}/holders?apikey={key}
+      // 2. Token Holders endpoint: Blockscout v2 API
       (async () => {
-        const holdersUrl = `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}/holders?apikey=${encodeURIComponent(blockscoutKey)}`;
+        const holdersBase = isRobinhood
+          ? `${ROBINHOOD_CHAIN.explorerUrl}/api/v2/tokens/${encodeURIComponent(contractAddress)}/holders`
+          : `https://api.blockscout.com/${encodeURIComponent(resolvedChain)}/api/v2/tokens/${encodeURIComponent(contractAddress)}/holders`;
+        const holdersUrl = blockscoutKey ? `${holdersBase}?apikey=${encodeURIComponent(blockscoutKey)}` : holdersBase;
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         try {
@@ -2084,12 +2092,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         tokenSymbol?: string;
         decimals?: number;
         logo?: string;
+        totalSupply?: string;
         top10HolderConcentrationPct?: number;
       } = {};
       if (tokenName) blockscoutData.tokenName = tokenName;
       if (tokenSymbol) blockscoutData.tokenSymbol = tokenSymbol;
       if (decimals !== undefined) blockscoutData.decimals = decimals;
       if (logo) blockscoutData.logo = logo;
+      if (totalSupplyStr) blockscoutData.totalSupply = totalSupplyStr;
       if (top10HolderConcentrationPct !== undefined) blockscoutData.top10HolderConcentrationPct = top10HolderConcentrationPct;
 
       return {
@@ -2311,6 +2321,15 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         }
         if (!consolidatedData.tokenSymbol && blockscoutResult.data.tokenSymbol) {
           consolidatedData.tokenSymbol = blockscoutResult.data.tokenSymbol;
+        }
+        if (consolidatedData.decimals === undefined && blockscoutResult.data.decimals !== undefined) {
+          consolidatedData.decimals = blockscoutResult.data.decimals;
+        }
+        if (!consolidatedData.logo && blockscoutResult.data.logo) {
+          consolidatedData.logo = blockscoutResult.data.logo;
+        }
+        if (!consolidatedData.totalSupply && blockscoutResult.data.totalSupply) {
+          consolidatedData.totalSupply = blockscoutResult.data.totalSupply;
         }
         consolidatedData.blockscoutCorroboration = blockscoutResult.data;
         activeSources.push("Blockscout");

@@ -64,6 +64,7 @@ import { enrichReviewWithDefiLlamaTvl, formatDefiLlamaTvl } from '../services/de
 import { getCoinLogoUrl } from '../utils/coinLogos';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 import { isNativeGasCoin } from '../utils/nativeCoins';
+import { ROBINHOOD_CHAIN } from '../constants/chains';
 
 interface ReviewLabProps {
   onSaveReview: (review: CryptoReview) => void;
@@ -184,7 +185,7 @@ export const SUPPORTED_CHAINS: ChainOption[] = [
   { id: '10', name: 'Optimism (OP)', isEvm: true, badge: 'OP Mainnet', placeholder: '0x4200000000000000000000000000000000000042', color: 'text-red-400 bg-red-500/10 border-red-500/30' },
   { id: '43114', name: 'Avalanche C-Chain', isEvm: true, badge: 'AVAX C-Chain', placeholder: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7', color: 'text-rose-400 bg-rose-500/10 border-rose-500/30' },
   { id: 'sui', name: 'Sui Network', isEvm: false, badge: 'Move / Sui', placeholder: '0x2::sui::SUI or object ID', color: 'text-teal-400 bg-teal-500/10 border-teal-500/30' },
-  { id: 'robinhood', name: 'Robinhood Chain', isEvm: true, badge: 'Arbitrum Orbit L2', placeholder: '0x…', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', chainId: 4663, gasToken: 'ETH', nativeToken: 'none', explorer: 'https://robinhoodchain.blockscout.com' },
+  { id: 'robinhood', name: ROBINHOOD_CHAIN.name, isEvm: true, badge: 'Arbitrum Orbit L2', placeholder: '0x…', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', chainId: ROBINHOOD_CHAIN.chainId, gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol, nativeToken: 'none', explorer: ROBINHOOD_CHAIN.explorerUrl },
   { id: 'other', name: 'Other / Non-EVM', isEvm: false, badge: 'Custom Chain', placeholder: 'e.g. Non-EVM token address', color: 'text-slate-400 bg-slate-500/10 border-slate-500/30' },
 ];
 
