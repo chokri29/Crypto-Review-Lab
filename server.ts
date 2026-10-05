@@ -46,7 +46,8 @@ import {
   getNetworkMetrics,
   getTelemetrySyncLogs,
   getMarketSnapshotBySymbol,
-  getHistoricalSnapshots
+  getHistoricalSnapshots,
+  upsertMarketSnapshot
 } from "./src/db/queries.ts";
 import { 
   startMarketIntelligenceSyncService, 
@@ -3677,10 +3678,53 @@ ${dualSyncContext}`;
       if (!symbol) {
         return res.status(400).json({ error: "Symbol parameter is required." });
       }
-      const [latest, history] = await Promise.all([
+      let [latest, history] = await Promise.all([
         getMarketSnapshotBySymbol(symbol),
         getHistoricalSnapshots(symbol, 20)
       ]);
+
+      if (!latest || !latest.allTimeHighUsd || !latest.circulatingSupply) {
+        try {
+          const allAssets = await getMarketAssets();
+          const matched = allAssets.find(a => 
+            a.symbol.toLowerCase() === symbol.toLowerCase() || 
+            (a.coingeckoId && a.coingeckoId.toLowerCase() === symbol.toLowerCase())
+          );
+          const targetId = matched?.coingeckoId || symbol.toLowerCase();
+          const targetNet = matched?.network || 'Other';
+          const targetKey = matched?.assetKey || symbol.toLowerCase();
+          const cgRes = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(targetId)}`);
+          if (cgRes.ok) {
+            const cgList = await cgRes.json();
+            if (Array.isArray(cgList) && cgList.length > 0) {
+              const item = cgList[0];
+              const saved = await upsertMarketSnapshot({
+                assetKey: targetKey,
+                symbol: (matched?.symbol || symbol).toUpperCase(),
+                network: targetNet,
+                priceUsd: item.current_price !== undefined && item.current_price !== null ? String(item.current_price) : undefined,
+                change24h: item.price_change_percentage_24h !== undefined && item.price_change_percentage_24h !== null ? String(item.price_change_percentage_24h) : undefined,
+                marketCapUsd: item.market_cap !== undefined && item.market_cap !== null ? String(item.market_cap) : undefined,
+                volume24hUsd: item.total_volume !== undefined && item.total_volume !== null ? String(item.total_volume) : undefined,
+                circulatingSupply: item.circulating_supply !== undefined && item.circulating_supply !== null ? String(item.circulating_supply) : undefined,
+                totalSupply: item.total_supply !== undefined && item.total_supply !== null ? String(item.total_supply) : undefined,
+                maxSupply: item.max_supply !== undefined && item.max_supply !== null ? String(item.max_supply) : undefined,
+                allTimeHighUsd: item.ath !== undefined && item.ath !== null ? String(item.ath) : undefined,
+                allTimeLowUsd: item.atl !== undefined && item.atl !== null ? String(item.atl) : undefined,
+                confidenceScore: 95,
+                confidenceLevel: 'VERY_HIGH',
+                sourceConsensus: 'COINGECKO_ON_DEMAND_HYDRATED',
+              });
+              if (saved) {
+                latest = saved;
+              }
+            }
+          }
+        } catch (onDemandErr) {
+          console.warn(`On-demand snapshot hydration error for ${symbol}:`, onDemandErr);
+        }
+      }
+
       res.json({
         symbol: symbol.toUpperCase(),
         latest,

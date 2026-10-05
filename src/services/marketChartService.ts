@@ -128,6 +128,12 @@ const HISTORICAL_ATH_ATL_MAP: Record<string, { ath: number; atl: number; totalSu
   pyth: { ath: 1.15, atl: 0.22, totalSupply: 10000000000, circulatingSupply: 3620000000 },
   wormhole: { ath: 1.61, atl: 0.18, totalSupply: 10000000000, circulatingSupply: 2740000000 },
   starknet: { ath: 3.66, atl: 0.34, totalSupply: 10000000000, circulatingSupply: 2090000000 },
+  xrp: { ath: 3.65, atl: 0.00268, totalSupply: 99985612577, circulatingSupply: 63092975951 },
+  ripple: { ath: 3.65, atl: 0.00268, totalSupply: 99985612577, circulatingSupply: 63092975951 },
+  zec: { ath: 3191.93, atl: 16.08, totalSupply: 21000000, circulatingSupply: 16966725 },
+  zcash: { ath: 3191.93, atl: 16.08, totalSupply: 21000000, circulatingSupply: 16966725 },
+  xmr: { ath: 797.73, atl: 0.216, totalSupply: 18813600, circulatingSupply: 18813600 },
+  monero: { ath: 797.73, atl: 0.216, totalSupply: 18813600, circulatingSupply: 18813600 },
 };
 
 /**

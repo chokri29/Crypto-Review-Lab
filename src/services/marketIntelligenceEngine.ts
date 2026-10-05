@@ -171,7 +171,9 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
   'algorand': 'Algorand',
   'algo': 'Algorand',
   'hedera-hashgraph': 'Hedera',
-  'hbar': 'Hedera'
+  'hbar': 'Hedera',
+  'zcash': 'Zcash',
+  'zec': 'Zcash'
 };
 
 export function resolveNetworkFromCoin(coin: {
@@ -216,6 +218,19 @@ export function resolveNetworkFromCoin(coin: {
 async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]): Promise<any[]> {
   const vsCurrency = 'usd';
   const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
+
+  // Sub-chunk IDs if more than 50 to prevent Google Apps Script URL length limit overflow (Limiet overschreden: Lengte URLFetch-URL)
+  if (ids && ids.length > 50) {
+    const allResults: any[] = [];
+    const SAFE_BATCH = 50;
+    for (let i = 0; i < ids.length; i += SAFE_BATCH) {
+      const batchIds = ids.slice(i, i + SAFE_BATCH);
+      const batchItems = await fetchCoinGeckoMarketsPage(page, perPage, batchIds);
+      allResults.push(...batchItems);
+    }
+    return allResults;
+  }
+
   let gasUrl = `${gasBase}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
   if (ids && ids.length > 0) {
     gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
@@ -231,6 +246,9 @@ async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]
     if (gasRes.ok) {
       const gasData = await gasRes.json();
       if (Array.isArray(gasData)) return gasData;
+      if (gasData && gasData.error) {
+        console.warn('[MarketIntelligence] CoinGecko proxy response warning:', gasData.message || gasData);
+      }
     }
   } catch (gasErr) {
     console.warn(`[MarketIntelligence] CoinGecko proxy page ${page} fetch error:`, gasErr);
@@ -460,7 +478,7 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
     const assetsWithCg = assets.filter(a => a.coingeckoId && a.coingeckoId.trim());
     const cgDataMap: Record<string, any> = {};
 
-    const CHUNK_SIZE = 250;
+    const CHUNK_SIZE = 50;
     for (let i = 0; i < assetsWithCg.length; i += CHUNK_SIZE) {
       const chunk = assetsWithCg.slice(i, i + CHUNK_SIZE);
       const chunkIds = chunk.map(a => a.coingeckoId!).filter(Boolean);

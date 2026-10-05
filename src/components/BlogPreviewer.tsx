@@ -749,8 +749,9 @@ export default function BlogPreviewer({
   };
 
   const [copied, setCopied] = useState(false);
+  const [activeReviewLivePatch, setActiveReviewLivePatch] = useState<Partial<CryptoReview> | null>(null);
 
-  const activeReview = enrichedReviews.find((r) => 
+  const baseActiveReview = enrichedReviews.find((r) => 
     r.id === activeReviewId || 
     r.assetKey === activeReviewId ||
     r.coingeckoId === activeReviewId || 
@@ -760,6 +761,67 @@ export default function BlogPreviewer({
     (activeReviewId && r.symbol.toLowerCase() === activeReviewId.toLowerCase()) ||
     (activeReviewId && r.coingeckoId && r.coingeckoId.toLowerCase() === activeReviewId.replace(/^cg-/, '').toLowerCase())
   );
+
+  useEffect(() => {
+    if (!baseActiveReview) {
+      setActiveReviewLivePatch(null);
+      return;
+    }
+    // If review already has real ath, circulatingSupply and livePrice, no patch needed
+    if (baseActiveReview.ath && baseActiveReview.circulatingSupply && baseActiveReview.livePrice) {
+      return;
+    }
+
+    let isMounted = true;
+    const fetchLiveDetails = async () => {
+      try {
+        const idOrSymbol = baseActiveReview.coingeckoId || baseActiveReview.symbol.toLowerCase();
+        const res = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(idOrSymbol)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0 && isMounted) {
+          const item = data[0];
+          setActiveReviewLivePatch({
+            livePrice: typeof item.current_price === 'number' ? item.current_price : undefined,
+            liveChange24h: typeof item.price_change_percentage_24h === 'number' ? item.price_change_percentage_24h : undefined,
+            liveMarketCap: typeof item.market_cap === 'number' ? item.market_cap : undefined,
+            liveVolume24h: typeof item.total_volume === 'number' ? item.total_volume : undefined,
+            circulatingSupply: typeof item.circulating_supply === 'number' ? item.circulating_supply : undefined,
+            totalSupply: typeof item.total_supply === 'number' ? item.total_supply : undefined,
+            maxSupply: typeof item.max_supply === 'number' ? item.max_supply : undefined,
+            allTimeHigh: typeof item.ath === 'number' ? item.ath : undefined,
+            allTimeLow: typeof item.atl === 'number' ? item.atl : undefined,
+            ath: typeof item.ath === 'number' ? item.ath : undefined,
+            atl: typeof item.atl === 'number' ? item.atl : undefined,
+          });
+        }
+      } catch (err) {
+        console.warn('On-demand tokenomics fetch failed:', err);
+      }
+    };
+
+    fetchLiveDetails();
+    return () => { isMounted = false; };
+  }, [activeReviewId, baseActiveReview?.symbol, baseActiveReview?.coingeckoId]);
+
+  const activeReview = useMemo(() => {
+    if (!baseActiveReview) return undefined;
+    if (!activeReviewLivePatch) return baseActiveReview;
+    return {
+      ...baseActiveReview,
+      livePrice: activeReviewLivePatch.livePrice ?? baseActiveReview.livePrice,
+      liveChange24h: activeReviewLivePatch.liveChange24h ?? baseActiveReview.liveChange24h,
+      liveMarketCap: activeReviewLivePatch.liveMarketCap ?? baseActiveReview.liveMarketCap,
+      liveVolume24h: activeReviewLivePatch.liveVolume24h ?? baseActiveReview.liveVolume24h,
+      circulatingSupply: activeReviewLivePatch.circulatingSupply ?? baseActiveReview.circulatingSupply,
+      totalSupply: activeReviewLivePatch.totalSupply ?? baseActiveReview.totalSupply,
+      maxSupply: activeReviewLivePatch.maxSupply ?? baseActiveReview.maxSupply,
+      allTimeHigh: activeReviewLivePatch.allTimeHigh ?? baseActiveReview.allTimeHigh,
+      allTimeLow: activeReviewLivePatch.allTimeLow ?? baseActiveReview.allTimeLow,
+      ath: activeReviewLivePatch.ath ?? baseActiveReview.ath,
+      atl: activeReviewLivePatch.atl ?? baseActiveReview.atl,
+    };
+  }, [baseActiveReview, activeReviewLivePatch]);
 
   const getPublicShareUrl = () => {
     const targetId = activeReview?.id || activeReviewId;
