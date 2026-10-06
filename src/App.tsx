@@ -60,6 +60,7 @@ import { F3VerificationProvider } from './context/F3VerificationContext';
 import { isOrderReferencePattern, matchesStoredProOrder } from './services/proOrderService';
 import { getAssetKey } from './utils/assetKey';
 import { isXStockAsset } from './utils/xstockFilter';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from './constants/chains';
 
 import BlogPreviewer from './components/BlogPreviewer';
 
@@ -1737,6 +1738,11 @@ export default function App() {
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             <span>Querying Crypto Pipeline...</span>
                           </div>
+                        ) : isRobinhoodChain(headerSearchQuery.trim()) ? (
+                          <>
+                            <div className="font-bold text-emerald-300">{ROBINHOOD_CHAIN.name} (Chain ID {ROBINHOOD_CHAIN.chainId})</div>
+                            <div className="text-[10px] text-slate-400">No tracked crypto assets yet · Registered Arbitrum Orbit L2</div>
+                          </>
                         ) : (
                           <>
                             <div className="font-bold text-slate-300">No matching projects found</div>
