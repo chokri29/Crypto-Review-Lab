@@ -44,6 +44,9 @@ export interface SecurityTelemetrySnapshot {
   rugcheckScore: number | null;
   rugcheckRisks: RugCheckRiskItem[];
   top10HolderConcentrationPct: number | null;
+  eth_getCode?: string | null;
+  hasBytecode?: boolean | null;
+  bytecodeLength?: number | null;
 }
 
 /**
@@ -171,6 +174,9 @@ export function normalizeSecurityTelemetry(
     rugcheckScore,
     rugcheckRisks,
     top10HolderConcentrationPct,
+    eth_getCode: typeof data.eth_getCode === 'string' ? data.eth_getCode : null,
+    hasBytecode: typeof data.hasBytecode === 'boolean' ? data.hasBytecode : (typeof data.eth_getCode === 'string' ? (data.eth_getCode !== '0x' && data.eth_getCode.length > 2) : null),
+    bytecodeLength: typeof data.bytecodeLength === 'number' ? data.bytecodeLength : null,
   };
 }
 

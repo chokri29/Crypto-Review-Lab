@@ -2121,6 +2121,64 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
   }
 
+  // --- Deterministic Robinhood Chain RPC Bytecode Checker (eth_getCode) ---
+  async function runRobinhoodEthGetCode(contractAddress: string): Promise<{
+    status: SecurityProviderStatus;
+    data?: {
+      eth_getCode: string;
+      hasBytecode: boolean;
+      bytecodeLength: number;
+      isContract: boolean;
+      rpcUrl: string;
+      explorerUrl: string;
+    };
+    error?: string;
+  }> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const rpcRes = await fetch(ROBINHOOD_CHAIN.rpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "eth_getCode",
+          params: [contractAddress, "latest"]
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!rpcRes.ok) {
+        return { status: "FAILED", error: `Robinhood RPC returned HTTP ${rpcRes.status}` };
+      }
+
+      const json = await rpcRes.json();
+      const bytecode = typeof json?.result === "string" ? json.result : "0x";
+      const clean = bytecode.trim().toLowerCase();
+      const hasBytecode = clean.startsWith("0x") && clean !== "0x" && clean !== "0x0" && clean.length > 2;
+      const bytecodeLength = hasBytecode ? Math.max(0, (bytecode.length - 2) / 2) : 0;
+
+      return {
+        status: "AVAILABLE",
+        data: {
+          eth_getCode: bytecode,
+          hasBytecode,
+          bytecodeLength,
+          isContract: hasBytecode,
+          rpcUrl: ROBINHOOD_CHAIN.rpcUrl,
+          explorerUrl: `${ROBINHOOD_CHAIN.explorerUrl}/address/${contractAddress}`
+        }
+      };
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        return { status: "TIMEOUT", error: "Robinhood RPC eth_getCode request timed out" };
+      }
+      return { status: "FAILED", error: err?.message || "Failed to query Robinhood RPC eth_getCode" };
+    }
+  }
+
   // --- In-Memory Rate Limiter for /api/security/scan (20 req / 60s per IP) ---
   const securityScanRateLimitMap = new Map<string, { count: number; windowStart: number }>();
   const SECURITY_SCAN_RATE_LIMIT_WINDOW_MS = 60 * 1000; // 60 seconds
@@ -2258,8 +2316,10 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         }
       }
 
+      const isRobinhood = isRobinhoodChain(chainInput) || resolvedChainId === String(ROBINHOOD_CHAIN.chainId);
+
       // Execute applicable providers independently in parallel with individual safety wrappers
-      const [goplusResult, rugcheckResult, blockscoutResult] = await Promise.all([
+      const [goplusResult, rugcheckResult, blockscoutResult, robinhoodRpcResult] = await Promise.all([
         runGoPlusScan(resolvedChainId, normalizedAddress, isSolana, isSui).catch((e: any) => ({
           status: "FAILED" as const,
           error: e?.message || "GoPlus scan failed"
@@ -2271,7 +2331,13 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         runBlockscoutScan(resolvedChainId, normalizedAddress, isSolana, isSui).catch((e: any) => ({
           status: "FAILED" as const,
           error: e?.message || "Blockscout scan failed"
-        }))
+        })),
+        isRobinhood
+          ? runRobinhoodEthGetCode(normalizedAddress).catch((e: any) => ({
+              status: "FAILED" as const,
+              error: e?.message || "Robinhood eth_getCode RPC check failed"
+            }))
+          : Promise.resolve(null)
       ]);
 
       const providers: Record<string, { status: SecurityProviderStatus; error?: string }> = {
@@ -2280,9 +2346,26 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         blockscout: { status: blockscoutResult?.status || "UNKNOWN", ...(blockscoutResult?.error ? { error: blockscoutResult.error } : {}) }
       };
 
+      if (isRobinhood && robinhoodRpcResult) {
+        providers.robinhoodRpc = {
+          status: robinhoodRpcResult.status || "UNKNOWN",
+          ...(robinhoodRpcResult.error ? { error: robinhoodRpcResult.error } : {})
+        };
+      }
+
       // Consolidate verified data from any available provider
       const consolidatedData: any = {};
       const activeSources: string[] = [];
+
+      if (isRobinhood && robinhoodRpcResult?.status === "AVAILABLE" && robinhoodRpcResult.data) {
+        consolidatedData.eth_getCode = robinhoodRpcResult.data.eth_getCode;
+        consolidatedData.hasBytecode = robinhoodRpcResult.data.hasBytecode;
+        consolidatedData.bytecodeLength = robinhoodRpcResult.data.bytecodeLength;
+        consolidatedData.isContract = robinhoodRpcResult.data.isContract;
+        consolidatedData.bytecodeVerified = robinhoodRpcResult.data.hasBytecode;
+        consolidatedData.robinhoodRpc = robinhoodRpcResult.data;
+        activeSources.push("Robinhood Chain RPC (eth_getCode)");
+      }
 
       if (goplusResult?.status === "AVAILABLE" && goplusResult.data) {
         Object.assign(consolidatedData, goplusResult.data);
@@ -2338,7 +2421,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
       const hasAnyData = activeSources.length > 0;
       const sourceLabel = hasAnyData
         ? activeSources.join(" + ")
-        : (isSolana ? "GoPlus / RugCheck" : isSui ? "GoPlus Security" : "GoPlus / Blockscout");
+        : (isSolana ? "GoPlus / RugCheck" : isSui ? "GoPlus Security" : isRobinhood ? "Robinhood RPC / Blockscout" : "GoPlus / Blockscout");
 
       const responsePayload = {
         success: hasAnyData,
@@ -2378,6 +2461,57 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
           blockscout: { status: "FAILED", error: err?.message || "Internal error" }
         },
         data: {}
+      });
+    }
+  });
+
+  // Dedicated Robinhood Chain contract bytecode verification endpoint (eth_getCode)
+  app.get("/api/robinhood/verify-contract", async (req, res) => {
+    try {
+      const rawAddress = Array.isArray(req.query.address)
+        ? req.query.address[0]
+        : (req.query.address || "");
+      const address = String(rawAddress || "").trim();
+
+      if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid EVM contract address format (expected 40-character hexadecimal with 0x prefix)",
+          chain: ROBINHOOD_CHAIN.name,
+          chainId: ROBINHOOD_CHAIN.chainId,
+          contractAddress: address
+        });
+      }
+
+      const outcome = await runRobinhoodEthGetCode(address);
+      if (outcome.status === "AVAILABLE" && outcome.data) {
+        return res.json({
+          success: true,
+          chain: ROBINHOOD_CHAIN.name,
+          chainId: ROBINHOOD_CHAIN.chainId,
+          contractAddress: address,
+          eth_getCode: outcome.data.eth_getCode,
+          hasBytecode: outcome.data.hasBytecode,
+          isContract: outcome.data.isContract,
+          bytecodeBytes: outcome.data.bytecodeLength,
+          isLiveOnRobinhoodChain: outcome.data.hasBytecode,
+          explorerUrl: outcome.data.explorerUrl,
+          rpcUrl: outcome.data.rpcUrl,
+          checkedAt: new Date().toISOString()
+        });
+      }
+
+      return res.status(502).json({
+        success: false,
+        chain: ROBINHOOD_CHAIN.name,
+        chainId: ROBINHOOD_CHAIN.chainId,
+        contractAddress: address,
+        error: outcome.error || "Failed to query Robinhood Chain RPC for eth_getCode"
+      });
+    } catch (err: any) {
+      return res.status(500).json({
+        success: false,
+        error: err?.message || "Internal server error verifying contract bytecode"
       });
     }
   });

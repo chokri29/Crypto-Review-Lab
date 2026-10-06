@@ -14,6 +14,7 @@ export interface ChainDefinition {
     symbol: string;
     decimals: number;
   };
+  nativeToken: string;
   aliases: readonly string[];
 }
 
@@ -28,6 +29,7 @@ export const ROBINHOOD_CHAIN: ChainDefinition = {
     symbol: 'ETH',
     decimals: 18,
   },
+  nativeToken: 'ETH',
   aliases: [
     'robinhood',
     'rh',

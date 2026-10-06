@@ -6,6 +6,7 @@
 import { XStockRegistryItem, UsMarketHoursStatus } from '../data/xstocksRegistry';
 import { XStockQuoteState } from '../components/XStocksPage';
 import { CoinGeckoRwaDetail } from './coingeckoRwa';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
 
 /**
  * Deterministic F3 / AVF Evidence States for xStocks Verification
@@ -586,7 +587,9 @@ export function buildXStockEvidenceDataset(
   if (!hasContract) {
     scanState = 'MISSING';
     formattedValue = 'UNAVAILABLE';
-    scanDetails = 'No contract or mint address registered on file. Status: UNAVAILABLE.';
+    scanDetails = isRobinhoodChain(stock.chain)
+      ? `Awaiting live contract verification on ${ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')} (eth_getCode != 0x) with public Proof of Reserves.`
+      : 'No contract or mint address registered on file. Status: UNAVAILABLE.';
   } else if (!isScanSuccess) {
     if (scanResponse?.error) {
       scanState = 'INVALID';
@@ -599,6 +602,12 @@ export function buildXStockEvidenceDataset(
     }
   } else {
     // Scan is AVAILABLE: Evaluate actual findings
+    if (isRobinhoodChain(stock.chain) && scanData?.eth_getCode !== undefined) {
+      if (scanData.hasBytecode === false || scanData.eth_getCode === '0x') {
+        detectedRiskFlags.push('Zero Bytecode Deployed (eth_getCode == 0x)');
+      }
+    }
+
     if (detectedRiskFlags.length > 0) {
       scanState = 'INVALID';
       formattedValue = 'RISK FLAGS DETECTED';
@@ -607,6 +616,9 @@ export function buildXStockEvidenceDataset(
       scanState = 'VALID';
       formattedValue = 'SCAN CLEAN / NO FLAGS OBSERVED';
       scanDetails = `Automated security scan (${providerProvenance}) observed 0 high-risk flags. Evaluated transfer restrictions, taxes, honeypot vectors, and authorities. Scan availability confirms observable telemetry only, not a blanket safety certification.`;
+      if (isRobinhoodChain(stock.chain) && scanData?.hasBytecode) {
+        scanDetails = `Deterministic eth_getCode verified live bytecode (${scanData.bytecodeLength ? `${scanData.bytecodeLength.toLocaleString()} bytes` : 'active'}) on Robinhood Chain mainnet (${ROBINHOOD_CHAIN.rpcUrl}). ` + scanDetails;
+      }
     }
   }
 
@@ -639,6 +651,59 @@ export function buildXStockEvidenceDataset(
     } : undefined,
     details: scanDetails
   };
+
+  // 13. Robinhood Chain Deterministic Bytecode & PoR Gate (eth_getCode != 0x)
+  if (isRobinhoodChain(stock.chain)) {
+    const hasCodeCheck = scanData?.eth_getCode !== undefined;
+    const isLiveBytecode = scanData?.hasBytecode === true || (typeof scanData?.eth_getCode === 'string' && scanData.eth_getCode !== '0x' && scanData.eth_getCode.length > 2);
+    const hasPoR = Boolean(stock.proofOfReserveUrl && stock.proofOfReserveUrl.trim().length > 0);
+
+    let rhState: XStockEvidenceState = 'MISSING';
+    let rhFormatted = 'AWAITING CONTRACT DISCOVERY';
+    let rhDetails = `Awaiting contract address verification on ${ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')} (eth_getCode != 0x) and active Proof of Reserves URL.`;
+
+    if (hasContract) {
+      if (isLiveBytecode) {
+        rhState = hasPoR ? 'VALID' : 'MISSING';
+        rhFormatted = hasPoR ? 'VERIFIED (eth_getCode != 0x + PoR)' : 'BYTECODE LIVE (Awaiting PoR)';
+        rhDetails = `Deterministic eth_getCode confirmed live bytecode (${scanData?.bytecodeLength ? `${scanData.bytecodeLength.toLocaleString()} bytes` : 'active'}) on Robinhood Chain mainnet (${ROBINHOOD_CHAIN.rpcUrl}). Explorer: ${ROBINHOOD_CHAIN.explorerUrl}/address/${stock.contractAddress}.${hasPoR ? ` Public PoR URL verified: ${stock.proofOfReserveUrl}` : ' Awaiting public Proof of Reserves URL.'}`;
+      } else if (hasCodeCheck && !isLiveBytecode) {
+        rhState = 'INVALID';
+        rhFormatted = 'FAILED (eth_getCode == 0x)';
+        rhDetails = `Deterministic eth_getCode returned 0x: No deployed smart contract bytecode at ${stock.contractAddress} on Robinhood Chain. Contract is unverified on ${ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')}.`;
+      } else {
+        rhState = 'MISSING';
+        rhFormatted = 'RPC VERIFICATION PENDING';
+        rhDetails = `Contract address registered but eth_getCode verification pending or unreachable from ${ROBINHOOD_CHAIN.rpcUrl}.`;
+      }
+    }
+
+    data['robinhood_bytecode_verification'] = {
+      id: 'robinhood_bytecode_verification',
+      name: 'Robinhood Chain Bytecode Verification (eth_getCode)',
+      dataType: 'Deterministic RPC Bytecode & PoR Gate',
+      source: 'ON_CHAIN',
+      assetId: stock.contractAddress || stock.symbol,
+      value: isLiveBytecode ? 1 : 0,
+      formattedValue: rhFormatted,
+      timestamp: scanTimestamp,
+      providerTimestamp: scanTimestamp ? new Date(scanTimestamp).toLocaleTimeString() : null,
+      freshness: hasCodeCheck ? 'LIVE' : 'UNAVAILABLE',
+      freshnessStatus: hasCodeCheck ? 'LIVE' : 'UNAVAILABLE',
+      state: rhState,
+      provenance: rhState,
+      provenanceCategory: 'SOURCE',
+      isVerificationGrade: true,
+      rawSourceValues: hasCodeCheck ? {
+        'robinhood_rpc': {
+          value: scanData?.eth_getCode || '0x',
+          timestamp: scanTimestamp,
+          source: 'Robinhood Chain RPC'
+        }
+      } : undefined,
+      details: rhDetails
+    };
+  }
 
   return data;
 }

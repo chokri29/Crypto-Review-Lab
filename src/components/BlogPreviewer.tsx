@@ -97,7 +97,7 @@ export const NETWORK_OPTIONS: NetworkOption[] = [
     color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
     chainId: ROBINHOOD_CHAIN.chainId,
     gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
-    nativeToken: 'none',
+    nativeToken: ROBINHOOD_CHAIN.nativeToken,
     explorer: ROBINHOOD_CHAIN.explorerUrl
   },
   { value: 'Ethereum', label: 'Ethereum', badge: 'EVM Layer 1', icon: Layers, color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', chainId: 1, gasToken: 'ETH', nativeToken: 'ETH', explorer: 'https://etherscan.io' },

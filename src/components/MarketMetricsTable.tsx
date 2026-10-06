@@ -35,7 +35,7 @@ export const NETWORK_METADATA: Record<string, NetworkMetadata> = {
   [ROBINHOOD_CHAIN.name]: {
     chainId: ROBINHOOD_CHAIN.chainId,
     gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
-    nativeToken: 'none',
+    nativeToken: ROBINHOOD_CHAIN.nativeToken,
     explorer: ROBINHOOD_CHAIN.explorerUrl
   },
   'Ethereum': {
@@ -291,7 +291,7 @@ export const MarketMetricsTable: React.FC<MarketMetricsTableProps> = ({
               }`}
               title={
                 isRobinhoodChain(data.network)
-                  ? `Arbitrum Orbit L2 | Chain ID: ${ROBINHOOD_CHAIN.chainId} | Gas: ${ROBINHOOD_CHAIN.nativeCurrency.symbol} | Native Token: none | Explorer: ${ROBINHOOD_CHAIN.explorerUrl}`
+                  ? `Arbitrum Orbit L2 | Chain ID: ${ROBINHOOD_CHAIN.chainId} | Gas: ${ROBINHOOD_CHAIN.nativeCurrency.symbol} | Native Token: ${ROBINHOOD_CHAIN.nativeToken} | Explorer: ${ROBINHOOD_CHAIN.explorerUrl}`
                   : (NETWORK_METADATA[data.network]?.explorer || data.network)
               }
             >

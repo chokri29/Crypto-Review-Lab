@@ -19,7 +19,7 @@ const INITIAL_NETWORKS = [
     network: ROBINHOOD_CHAIN.name,
     chainId: String(ROBINHOOD_CHAIN.chainId),
     gasToken: ROBINHOOD_CHAIN.nativeCurrency.symbol,
-    nativeToken: 'none',
+    nativeToken: ROBINHOOD_CHAIN.nativeToken,
     explorerUrl: ROBINHOOD_CHAIN.explorerUrl,
     status: 'active',
   },

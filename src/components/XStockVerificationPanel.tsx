@@ -66,6 +66,11 @@ interface SecurityScanData {
   rugcheckRisks?: Array<{ name: string; description: string; score: number; level: string }>;
   top10HolderConcentrationPct?: number;
   blockscoutCorroboration?: any;
+  eth_getCode?: string;
+  hasBytecode?: boolean;
+  bytecodeLength?: number;
+  isContract?: boolean;
+  robinhoodRpc?: any;
 }
 
 interface SecurityScanResponse {
@@ -1081,6 +1086,79 @@ export default function XStockVerificationPanel({
               </div>
             )}
 
+            {(selectedStock.chain === 'Robinhood Chain' || isRobinhoodChain(selectedStock.chain)) && (
+              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 font-mono text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+                      Deterministic RPC Bytecode Gate (eth_getCode)
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">
+                    RPC: {ROBINHOOD_CHAIN.rpcUrl.replace('https://', '')} (Chain ID {ROBINHOOD_CHAIN.chainId})
+                  </span>
+                </div>
+
+                {selectedStock.contractAddress ? (
+                  scanData?.eth_getCode !== undefined ? (
+                    scanData.hasBytecode ? (
+                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 space-y-1">
+                        <div className="flex items-center gap-2 text-emerald-300 font-bold text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>eth_getCode != 0x: Smart Contract Bytecode Live ({scanData.bytecodeLength ? `${scanData.bytecodeLength.toLocaleString()} bytes` : 'Active Bytecode'})</span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-300 font-sans leading-relaxed">
+                          Verified live on Robinhood Chain mainnet via JSON-RPC. Explorer reference on{' '}
+                          <a
+                            href={`${ROBINHOOD_CHAIN.explorerUrl}/address/${selectedStock.contractAddress}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-cyber-cyan hover:underline inline-flex items-center gap-1"
+                          >
+                            <span>{ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')}</span>
+                            <ExternalLink className="w-3 h-3 inline" />
+                          </a>.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 space-y-1">
+                        <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
+                          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                          <span>eth_getCode == 0x: No Contract Bytecode Deployed</span>
+                        </div>
+                        <p className="text-[10.5px] text-rose-200/90 font-sans leading-relaxed">
+                          The JSON-RPC method <code className="text-rose-300 bg-rose-950/80 px-1 py-0.5 rounded">eth_getCode</code> returned <strong>0x</strong>. This address is an EOA or empty account, not a verified deployed smart contract on Robinhood Chain.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 space-y-1 text-slate-400">
+                      <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Querying RPC Bytecode...</span>
+                      </div>
+                      <p className="text-[10.5px] font-sans">
+                        Executing deterministic JSON-RPC eth_getCode call to {ROBINHOOD_CHAIN.rpcUrl}...
+                      </p>
+                    </div>
+                  )
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-amber-950/30 border border-amber-500/30 space-y-1">
+                    <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                      <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>Registry Gate: Pending Verified Contract Address (eth_getCode != 0x)</span>
+                    </div>
+                    <p className="text-[10.5px] text-slate-300 font-sans leading-relaxed">
+                      Per protocol rules, no Robinhood Stock Tokens are registered until a deployed contract address is verified live on{' '}
+                      <span className="text-slate-100 font-mono">{ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')}</span>{' '}
+                      (with <code className="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">eth_getCode != 0x</code>) AND a verifiable public Proof-of-Reserves URL exists.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
               <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                 <div className="text-[10px] text-slate-500 uppercase">Transfer Restrictions</div>
@@ -1296,6 +1374,15 @@ export default function XStockVerificationPanel({
                       </span>
                       <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
                         GoPlus: Token Security Scanner
+                      </span>
+                    </>
+                  ) : (selectedStock.chain === 'Robinhood Chain' || isRobinhoodChain(selectedStock.chain)) ? (
+                    <>
+                      <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-emerald-950/70 text-emerald-300 border border-emerald-700/50">
+                        Robinhood RPC: eth_getCode
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[9.5px] bg-slate-800 text-slate-300 border border-slate-700">
+                        Blockscout: Explorer &amp; Token Telemetry
                       </span>
                     </>
                   ) : (
