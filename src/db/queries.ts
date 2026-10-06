@@ -170,8 +170,16 @@ export async function addToWatchlist(item: {
         category: item.category || null,
         network: item.network || null,
       })
+      .onConflictDoNothing()
       .returning();
-    return result[0];
+    if (result && result.length > 0) {
+      return result[0];
+    }
+    // Return existing record if already present
+    const existing = await db.select().from(userWatchlists).where(
+      and(eq(userWatchlists.userUid, item.userUid), eq(userWatchlists.symbol, item.symbol))
+    );
+    return existing[0];
   } catch (error) {
     console.error("Database addToWatchlist failed:", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
@@ -205,6 +213,7 @@ export async function upsertMarketAsset(asset: {
   coingeckoId?: string;
   category?: string;
   network: string;
+  platforms?: Record<string, string> | any;
   contractAddress?: string;
   decimals?: number;
   logoUrl?: string;
@@ -220,6 +229,7 @@ export async function upsertMarketAsset(asset: {
         coingeckoId: asset.coingeckoId || null,
         category: asset.category || null,
         network: asset.network,
+        platforms: asset.platforms || null,
         contractAddress: asset.contractAddress || null,
         decimals: asset.decimals ?? null,
         logoUrl: asset.logoUrl || null,
@@ -234,6 +244,7 @@ export async function upsertMarketAsset(asset: {
           coingeckoId: asset.coingeckoId || null,
           category: asset.category || null,
           network: asset.network,
+          platforms: asset.platforms !== undefined ? asset.platforms : undefined,
           contractAddress: asset.contractAddress || null,
           decimals: asset.decimals ?? null,
           logoUrl: asset.logoUrl || null,

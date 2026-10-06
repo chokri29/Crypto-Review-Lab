@@ -3194,31 +3194,36 @@ ${dualSyncContext}`;
     }
   });
 
+  // Reusable server-side helper for CoinGecko Markets
+  async function fetchCoinGeckoMarketsHelper(ids: string, vsCurrency = "usd"): Promise<any[]> {
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${encodeURIComponent(vsCurrency)}&ids=${encodeURIComponent(ids)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
+    
+    let response = await fetch(url, {
+      headers: {
+        "Accept": "application/json",
+        ...(COINGECKO_KEY ? { "x-cg-demo-api-key": COINGECKO_KEY } : {})
+      }
+    });
+
+    // Fallback to Google Apps Script proxy if direct API errors
+    if (!response.ok) {
+      console.warn(`Direct CoinGecko API HTTP ${response.status}. Trying GAS Web App Proxy...`);
+      const gasUrl = `${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
+      response = await fetch(gasUrl);
+    }
+
+    if (!response.ok) {
+      throw new Error(`CoinGecko API error HTTP ${response.status}`);
+    }
+    return await response.json();
+  }
+
   // API endpoint: CoinGecko Proxy for Markets
   app.get("/api/coingecko/markets", async (req, res) => {
     try {
       const ids = (req.query.ids as string) || "solana,ethereum,bitcoin,chainlink,render-token,arbitrum,sui,hyperliquid";
       const vsCurrency = (req.query.vs_currency as string) || "usd";
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${encodeURIComponent(vsCurrency)}&ids=${encodeURIComponent(ids)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
-      
-      let response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "x-cg-demo-api-key": COINGECKO_KEY
-        }
-      });
-
-      // Fallback to Google Apps Script proxy if direct API errors
-      if (!response.ok) {
-        console.warn(`Direct CoinGecko API HTTP ${response.status}. Trying GAS Web App Proxy...`);
-        const gasUrl = `${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
-        response = await fetch(gasUrl);
-      }
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `CoinGecko API error HTTP ${response.status}` });
-      }
-      const data = await response.json();
+      const data = await fetchCoinGeckoMarketsHelper(ids, vsCurrency);
       res.json(data);
     } catch (error: any) {
       console.error("CoinGecko markets proxy error:", error);
@@ -3846,35 +3851,32 @@ ${dualSyncContext}`;
           const targetId = matched?.coingeckoId || symbol.toLowerCase();
           const targetNet = matched?.network || 'Other';
           const targetKey = matched?.assetKey || symbol.toLowerCase();
-          const cgRes = await fetch(`/api/coingecko/markets?ids=${encodeURIComponent(targetId)}`);
-          if (cgRes.ok) {
-            const cgList = await cgRes.json();
-            if (Array.isArray(cgList) && cgList.length > 0) {
-              const item = cgList[0];
-              const saved = await upsertMarketSnapshot({
-                assetKey: targetKey,
-                symbol: (matched?.symbol || symbol).toUpperCase(),
-                network: targetNet,
-                priceUsd: item.current_price !== undefined && item.current_price !== null ? String(item.current_price) : undefined,
-                change24h: item.price_change_percentage_24h !== undefined && item.price_change_percentage_24h !== null ? String(item.price_change_percentage_24h) : undefined,
-                marketCapUsd: item.market_cap !== undefined && item.market_cap !== null ? String(item.market_cap) : undefined,
-                volume24hUsd: item.total_volume !== undefined && item.total_volume !== null ? String(item.total_volume) : undefined,
-                circulatingSupply: item.circulating_supply !== undefined && item.circulating_supply !== null ? String(item.circulating_supply) : undefined,
-                totalSupply: item.total_supply !== undefined && item.total_supply !== null ? String(item.total_supply) : undefined,
-                maxSupply: item.max_supply !== undefined && item.max_supply !== null ? String(item.max_supply) : undefined,
-                allTimeHighUsd: item.ath !== undefined && item.ath !== null ? String(item.ath) : undefined,
-                allTimeLowUsd: item.atl !== undefined && item.atl !== null ? String(item.atl) : undefined,
-                confidenceScore: 95,
-                confidenceLevel: 'VERY_HIGH',
-                sourceConsensus: 'COINGECKO_ON_DEMAND_HYDRATED',
-              });
-              if (saved) {
-                latest = saved;
-              }
+          const cgList = await fetchCoinGeckoMarketsHelper(targetId);
+          if (Array.isArray(cgList) && cgList.length > 0) {
+            const item = cgList[0];
+            const saved = await upsertMarketSnapshot({
+              assetKey: targetKey,
+              symbol: (matched?.symbol || symbol).toUpperCase(),
+              network: targetNet,
+              priceUsd: item.current_price !== undefined && item.current_price !== null ? String(item.current_price) : undefined,
+              change24h: item.price_change_percentage_24h !== undefined && item.price_change_percentage_24h !== null ? String(item.price_change_percentage_24h) : undefined,
+              marketCapUsd: item.market_cap !== undefined && item.market_cap !== null ? String(item.market_cap) : undefined,
+              volume24hUsd: item.total_volume !== undefined && item.total_volume !== null ? String(item.total_volume) : undefined,
+              circulatingSupply: item.circulating_supply !== undefined && item.circulating_supply !== null ? String(item.circulating_supply) : undefined,
+              totalSupply: item.total_supply !== undefined && item.total_supply !== null ? String(item.total_supply) : undefined,
+              maxSupply: item.max_supply !== undefined && item.max_supply !== null ? String(item.max_supply) : undefined,
+              allTimeHighUsd: item.ath !== undefined && item.ath !== null ? String(item.ath) : undefined,
+              allTimeLowUsd: item.atl !== undefined && item.atl !== null ? String(item.atl) : undefined,
+              confidenceScore: 95,
+              confidenceLevel: 'VERY_HIGH',
+              sourceConsensus: 'COINGECKO_ON_DEMAND_HYDRATED',
+            });
+            if (saved) {
+              latest = saved;
             }
           }
         } catch (onDemandErr) {
-          console.warn(`On-demand snapshot hydration error for ${symbol}:`, onDemandErr);
+          console.error(`[MarketIntelligence] On-demand snapshot hydration error for ${symbol}:`, onDemandErr);
         }
       }
 
@@ -3902,6 +3904,28 @@ ${dualSyncContext}`;
 
   app.post("/api/market-intelligence/sync", async (req, res) => {
     try {
+      // Require admin (isAuthorizedAdmin or users.role === 'admin')
+      let isAdmin = isAuthorizedAdmin(req);
+      if (!isAdmin) {
+        const authHeader = req.headers["authorization"];
+        if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
+          const token = authHeader.slice(7).trim();
+          try {
+            const decoded = await adminAuth.verifyIdToken(token);
+            if (decoded?.uid) {
+              const dbUser = await getUserByUid(decoded.uid);
+              if (dbUser && dbUser.role === 'admin') {
+                isAdmin = true;
+              }
+            }
+          } catch {}
+        }
+      }
+
+      if (!isAdmin) {
+        return res.status(401).json({ error: "Unauthorized: Admin privileges required to trigger sync." });
+      }
+
       const now = Date.now();
       if (now - lastSyncTimestamp < SYNC_DEBOUNCE_MS) {
         return res.json({ 

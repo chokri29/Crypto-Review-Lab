@@ -127,10 +127,35 @@ export const PLATFORM_TO_NETWORK_MAP: Record<string, string> = {
   'scroll': 'Scroll',
   'zksync': 'zkSync',
   'mantle': 'Mantle',
-  ...Object.fromEntries(ROBINHOOD_CHAIN.aliases.map(alias => [alias, ROBINHOOD_CHAIN.name]))
+  'hyperliquid': 'Hyperliquid',
+  'sei-network': 'Sei',
+  'sei': 'Sei',
+  'cronos': 'Cronos',
+  'celo': 'Celo',
+  'gnosis': 'Gnosis',
+  'kaia': 'Kaia',
+  'klay-token': 'Kaia',
+  // Robinhood Chain mainnet (Chain ID 4663): only map verified mainnet identifiers, never testnet
+  '4663': ROBINHOOD_CHAIN.name,
+  '0x1237': ROBINHOOD_CHAIN.name,
+  'robinhood-chain-mainnet': ROBINHOOD_CHAIN.name,
 };
 
-// Known native L1 assets by id or symbol when platform data is absent
+// Canonical alias map for DefiLlama v2 chains lookup (e.g. "BNB Chain"→"BSC", "XRP Ledger"→"Ripple", "zkSync"→"zkSync Era")
+export const DEFILLAMA_CHAIN_ALIAS_MAP: Record<string, string> = {
+  'bnb chain': 'bsc',
+  'binance smart chain': 'bsc',
+  'xrp ledger': 'ripple',
+  'xrpl': 'ripple',
+  'zksync': 'zksync era',
+  'zksync era': 'zksync era',
+  'op mainnet': 'optimism',
+  'the open network': 'ton',
+  'polygon pos': 'polygon',
+  'optimistic ethereum': 'optimism',
+};
+
+// Known native L1 assets by id or symbol when platform data is absent (FALLBACK ONLY)
 export const NATIVE_L1_COIN_MAP: Record<string, string> = {
   'bitcoin': 'Bitcoin',
   'btc': 'Bitcoin',
@@ -138,6 +163,8 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
   'eth': 'Ethereum',
   'solana': 'Solana',
   'sol': 'Solana',
+  'binancecoin': 'BNB Chain',
+  'bnb': 'BNB Chain',
   'kaspa': 'Kaspa',
   'kas': 'Kaspa',
   'sui': 'Sui',
@@ -173,16 +200,26 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
   'hedera-hashgraph': 'Hedera',
   'hbar': 'Hedera',
   'zcash': 'Zcash',
-  'zec': 'Zcash'
+  'zec': 'Zcash',
+  'hyperliquid': 'Hyperliquid',
+  'hype': 'Hyperliquid'
 };
 
 export function resolveNetworkFromCoin(coin: {
   id?: string;
   symbol?: string;
   asset_platform_id?: string | null;
-  platforms?: Record<string, string>;
+  platforms?: Record<string, string> | null;
 }): string {
-  // 1. Resolve from asset_platform_id
+  const idLower = (coin.id || '').toLowerCase().trim();
+  const symLower = (coin.symbol || '').toLowerCase().trim();
+
+  // Edge case for BNB: CoinGecko still lists legacy 2017 ERC-20 contract in platforms, but BNB is the native coin of BNB Chain
+  if (idLower === 'binancecoin' || symLower === 'bnb') {
+    return 'BNB Chain';
+  }
+
+  // 1. Resolve from explicit asset_platform_id
   if (coin.asset_platform_id && typeof coin.asset_platform_id === 'string') {
     const rawPlatform = coin.asset_platform_id.toLowerCase().trim();
     if (PLATFORM_TO_NETWORK_MAP[rawPlatform]) {
@@ -190,19 +227,18 @@ export function resolveNetworkFromCoin(coin: {
     }
   }
 
-  // 2. Resolve from platforms object
+  // 2. Resolve from platforms object (from /coins/list?include_platform=true)
   if (coin.platforms && typeof coin.platforms === 'object') {
     const platformKeys = Object.keys(coin.platforms).map(k => k.toLowerCase().trim());
     for (const key of platformKeys) {
+      if (!key) continue; // Skip empty key ""
       if (PLATFORM_TO_NETWORK_MAP[key]) {
         return PLATFORM_TO_NETWORK_MAP[key];
       }
     }
   }
 
-  // 3. Coins without platform data: Treat as native L1 assets
-  const idLower = (coin.id || '').toLowerCase().trim();
-  const symLower = (coin.symbol || '').toLowerCase().trim();
+  // 3. Fallback only: Coins without platform data: Treat as native L1 assets
   if (idLower && NATIVE_L1_COIN_MAP[idLower]) {
     return NATIVE_L1_COIN_MAP[idLower];
   }
@@ -214,9 +250,29 @@ export function resolveNetworkFromCoin(coin: {
   return 'Other';
 }
 
-// Proxied CoinGecko page fetcher using CoinGecko proxy mechanism as the ONLY request path
+// CoinGecko page fetcher: direct API with GAS proxy fallback
 async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]): Promise<any[]> {
   const vsCurrency = 'usd';
+  const directHeaders: Record<string, string> = {
+    'Accept': 'application/json',
+    'User-Agent': 'CryptoReviewLab/3.2.0',
+    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
+  };
+
+  // For global discovery (no specific ids), try direct CoinGecko API first for full 250-item pages
+  if (!ids || ids.length === 0) {
+    const directUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency}&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false`;
+    try {
+      const res = await fetch(directUrl, { headers: directHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) return data;
+      }
+    } catch (directErr) {
+      console.warn(`[MarketIntelligence] Direct CoinGecko page ${page} fetch error, trying proxy fallback...`, directErr);
+    }
+  }
+
   const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
 
   // Sub-chunk IDs if more than 50 to prevent Google Apps Script URL length limit overflow (Limiet overschreden: Lengte URLFetch-URL)
@@ -333,6 +389,38 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
   }
 }
 
+// Fetch complete id -> platforms mapping from CoinGecko /coins/list?include_platform=true
+export async function fetchCoinGeckoCoinsListPlatforms(): Promise<Map<string, Record<string, string>>> {
+  const map = new Map<string, Record<string, string>>();
+  const url = 'https://api.coingecko.com/api/v3/coins/list?include_platform=true';
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'User-Agent': 'CryptoReviewLab/3.2.0',
+    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
+  };
+
+  try {
+    const res = await fetch(url, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (item && item.id && item.platforms && typeof item.platforms === 'object') {
+            map.set(item.id.toLowerCase().trim(), item.platforms);
+          }
+        }
+        console.log(`[MarketIntelligence] Loaded platforms mapping for ${map.size} coins from CoinGecko /coins/list.`);
+        return map;
+      }
+    } else {
+      console.warn(`[MarketIntelligence] /coins/list?include_platform=true returned HTTP ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[MarketIntelligence] Error fetching CoinGecko /coins/list platforms:', err);
+  }
+  return map;
+}
+
 // DISCOVERY: Fetch current top 500 coins by market cap (pages 1-2, per_page=250) and merge into Cloud SQL
 export async function discoverAssets(): Promise<{ discovered: number }> {
   if (isDiscoveryRunning) {
@@ -343,18 +431,19 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
     console.log('[MarketIntelligence] Starting top 500 asset discovery via CoinGecko...');
     let discovered = 0;
 
-    // Fetch page 1 and page 2 (per_page=250 -> 500 coins total)
-    const [page1, page2] = await Promise.allSettled([
-      fetchCoinGeckoMarketsPage(1, 250),
-      fetchCoinGeckoMarketsPage(2, 250)
+    // Concurrently fetch page 1, page 2 (per_page=250 -> 500 coins total) AND platforms mapping once
+    const [page1, page2, platformsMap] = await Promise.all([
+      fetchCoinGeckoMarketsPage(1, 250).catch(err => { console.warn('[MarketIntelligence] Page 1 fetch error:', err); return []; }),
+      fetchCoinGeckoMarketsPage(2, 250).catch(err => { console.warn('[MarketIntelligence] Page 2 fetch error:', err); return []; }),
+      fetchCoinGeckoCoinsListPlatforms()
     ]);
 
     const coins: any[] = [];
-    if (page1.status === 'fulfilled' && Array.isArray(page1.value)) {
-      coins.push(...page1.value);
+    if (Array.isArray(page1)) {
+      coins.push(...page1);
     }
-    if (page2.status === 'fulfilled' && Array.isArray(page2.value)) {
-      coins.push(...page2.value);
+    if (Array.isArray(page2)) {
+      coins.push(...page2);
     }
 
     if (coins.length === 0) {
@@ -373,7 +462,15 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
         continue;
       }
 
-      const network = resolveNetworkFromCoin(coin);
+      // Look up platform mapping from /coins/list?include_platform=true (or coin.platforms)
+      const coinPlatforms = platformsMap.get(coin.id.toLowerCase().trim()) || coin.platforms || null;
+
+      const network = resolveNetworkFromCoin({
+        id: coin.id,
+        symbol: coin.symbol,
+        asset_platform_id: coin.asset_platform_id,
+        platforms: coinPlatforms
+      });
       const networkLower = network.toLowerCase().trim();
 
       // Ensure network_metrics exists if network does not already exist
@@ -394,7 +491,7 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
         symbol: coin.symbol.toUpperCase()
       });
 
-      // Merge/upsert behavior: never delete existing market_assets
+      // Merge/upsert behavior: persist platforms JSON and never delete existing market_assets
       await upsertMarketAsset({
         assetKey,
         symbol: coin.symbol.toUpperCase(),
@@ -402,6 +499,7 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
         coingeckoId: coin.id,
         category: coin.category || (isRobinhoodChain(network) ? 'Orbit L2' : 'Cryptocurrency'),
         network,
+        platforms: coinPlatforms && Object.keys(coinPlatforms).length > 0 ? coinPlatforms : null,
         logoUrl: coin.image || null,
         isVerified: 1
       });
@@ -447,7 +545,15 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
           }
           const allNets = await getNetworkMetrics();
           for (const net of allNets) {
-            const tvl = chainMap[net.network.toLowerCase()];
+            const netKey = net.network.toLowerCase().trim();
+            const aliasKey = DEFILLAMA_CHAIN_ALIAS_MAP[netKey] || netKey;
+            let tvl = chainMap[aliasKey];
+            if (tvl === undefined && (aliasKey === 'ripple' || netKey === 'xrp ledger')) {
+              tvl = chainMap['xrpl'] ?? chainMap['ripple'];
+            }
+            if (tvl === undefined) {
+              tvl = chainMap[netKey];
+            }
             if (tvl !== undefined) {
               const formattedTvl = tvl >= 1e9 
                 ? `$${(tvl / 1e9).toFixed(2)}B` 
@@ -636,7 +742,15 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
   }
 }
 
-// Start the continuous proactive background sync service
+/**
+ * Background jobs architecture & lifecycle:
+ * Note that in-process setInterval timers will NOT run under serverless container runtimes
+ * such as Cloud Run with scale-to-zero enabled; instances are suspended or terminated when idle.
+ * Production environments rely on an external Cloud Scheduler job hitting the admin-protected
+ * POST /api/market-intelligence/sync endpoint (e.g. every 5-15 minutes).
+ *
+ * The in-process intervals below are retained for local development, testing, and warm container runtimes.
+ */
 export function startMarketIntelligenceSyncService(): void {
   if (syncInterval) {
     clearInterval(syncInterval);

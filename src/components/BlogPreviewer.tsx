@@ -316,7 +316,13 @@ export default function BlogPreviewer({
   const triggerPipelineSync = async () => {
     setIsSyncingPipeline(true);
     try {
-      const res = await fetch('/api/market-intelligence/sync', { method: 'POST' });
+      const sessionToken = localStorage.getItem('crl_admin_session_token') || sessionStorage.getItem('crl_admin_session_token');
+      const headers: Record<string, string> = {};
+      if (sessionToken) {
+        headers['x-admin-session'] = sessionToken;
+        headers['Authorization'] = `Bearer ${sessionToken}`;
+      }
+      const res = await fetch('/api/market-intelligence/sync', { method: 'POST', headers });
       if (res.ok) {
         loadMarketIntelligenceFeed();
         if (onSyncCoinGecko) onSyncCoinGecko();

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { index, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // 1. Users Table (keyed to Firebase Auth UID)
 export const users = pgTable('users', {
@@ -66,6 +66,7 @@ export const userWatchlists = pgTable('user_watchlists', {
   addedAt: timestamp('added_at').defaultNow(),
 }, (table) => [
   index('user_watchlists_user_uid_idx').on(table.userUid),
+  unique('user_watchlists_user_uid_symbol_unique').on(table.userUid, table.symbol),
 ]);
 
 // 5. Market Assets Registry Table (canonical registry of tracked market assets)
@@ -77,6 +78,7 @@ export const marketAssets = pgTable('market_assets', {
   coingeckoId: text('coingecko_id'),
   category: text('category'),
   network: text('network').notNull(), // 'Robinhood Chain', 'Ethereum', 'Arbitrum', 'Solana', 'Sui', 'Kaspa'
+  platforms: jsonb('platforms'),
   contractAddress: text('contract_address'),
   decimals: integer('decimals'),
   logoUrl: text('logo_url'),
