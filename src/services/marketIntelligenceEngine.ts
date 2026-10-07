@@ -744,7 +744,6 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
         const items = await fetchCoinGeckoMarketsPage(1, CHUNK_SIZE, chunkIds);
         for (const item of items) {
           if (item.id) cgDataMap[item.id.toLowerCase()] = item;
-          if (item.symbol) cgDataMap[item.symbol.toLowerCase()] = item;
         }
       } catch (chunkErr) {
         console.warn(`[MarketIntelligence] Error syncing CoinGecko chunk ${i}:`, chunkErr);
@@ -764,7 +763,6 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
         if (Array.isArray(items)) {
           for (const it of items) {
             if (it.id) csDataMap[it.id.toLowerCase()] = it;
-            if (it.symbol) csDataMap[it.symbol.toLowerCase()] = it;
           }
         }
       }
@@ -772,8 +770,8 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
 
     // 4. Process Multi-Source Consensus Convergence and Upsert Snapshots
     for (const asset of assets) {
-      const cgItem = asset.coingeckoId ? (cgDataMap[asset.coingeckoId.toLowerCase()] || cgDataMap[asset.symbol.toLowerCase()]) : null;
-      const csItem = asset.coingeckoId ? (csDataMap[asset.coingeckoId.toLowerCase()] || csDataMap[asset.symbol.toLowerCase()]) : null;
+      const cgItem = asset.coingeckoId ? cgDataMap[asset.coingeckoId.toLowerCase()] : null;
+      const csItem = asset.coingeckoId ? csDataMap[asset.coingeckoId.toLowerCase()] : null;
 
       if (!cgItem && !csItem) {
         continue;

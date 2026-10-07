@@ -1450,7 +1450,7 @@ export function generateAuditPdfReport(inputData: AuditPdfData | PublicCryptoRev
       }
       proRiskModelBlock = `## CRL RISK MODEL — AVF VERIFICATION & ON-CHAIN TELEMETRY\n${lines.join('\n')}\n\n`;
     }
-    const analysisText = `${review.verdict ? `## EXECUTIVE VERDICT\n${review.verdict}\n\n` : ''}${proRiskModelBlock}## DETAILED LABORATORY ANALYSIS\n${review.summary}\n\n${review.pros?.length ? `## KEY STRENGTHS & CATALYSTS\n${review.pros.map(p => `• ${p}`).join('\n')}\n\n` : ''}${review.cons?.length ? `## STRUCTURAL VULNERABILITIES & RISK VECTORS\n${review.cons.map(c => `• ${c}`).join('\n')}` : ''}`;
+    const analysisText = `${review.verdict ? `## EXECUTIVE VERDICT\n${review.verdict}\n\n` : ''}${proRiskModelBlock}## DETAILED LABORATORY ANALYSIS\n${review.summary || 'No detailed analysis available.'}\n\n${review.pros?.length ? `## KEY STRENGTHS & CATALYSTS\n${review.pros.map(p => `• ${p}`).join('\n')}\n\n` : ''}${review.cons?.length ? `## STRUCTURAL VULNERABILITIES & RISK VECTORS\n${review.cons.map(c => `• ${c}`).join('\n')}` : ''}`;
     data = {
       projectName: `${review.name} (${review.symbol})`,
       category: review.category,

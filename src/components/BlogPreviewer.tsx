@@ -389,7 +389,6 @@ export default function BlogPreviewer({
         createdAt: asset.createdAt || enrichment?.createdAt || new Date().toISOString(),
         proBenchmarks: enrichment?.proBenchmarks,
         comparisonReport: enrichment?.comparisonReport,
-        auditSignature: enrichment?.auditSignature ?? undefined,
       };
 
       if (!snap) return baseReview;
@@ -1322,18 +1321,20 @@ export default function BlogPreviewer({
                   Cryptocurrency Pipeline
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={triggerPipelineSync}
-                  disabled={isSyncingPipeline}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors disabled:opacity-50"
-                  title="Force proactive multi-source telemetry synchronization"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isSyncingPipeline ? 'animate-spin' : ''}`} />
-                  <span>{isSyncingPipeline ? 'Syncing...' : 'Sync Pipeline'}</span>
-                </button>
-              </div>
+              {isAdminMaster && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={triggerPipelineSync}
+                    disabled={isSyncingPipeline}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/30 text-cyber-cyan text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors disabled:opacity-50"
+                    title="Force proactive multi-source telemetry synchronization"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSyncingPipeline ? 'animate-spin' : ''}`} />
+                    <span>{isSyncingPipeline ? 'Syncing...' : 'Sync Pipeline'}</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 1. Blockchain Network Classification Bar */}
