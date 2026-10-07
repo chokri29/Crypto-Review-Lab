@@ -68,14 +68,14 @@ export interface CryptoReview {
   symbol: string;
   category: string;
   overallScore?: number | null;
-  verdict: string;
+  verdict?: string;
   scores?: CryptoReviewScores;
-  summary: string;      // Markdown review detail
-  pros: string[];
-  cons: string[];
-  riskLevel: RiskLevel;
+  summary?: string;      // Markdown review detail
+  pros?: string[];
+  cons?: string[];
+  riskLevel?: RiskLevel;
   createdAt: string;
-  author: string;
+  author?: string;
   logoUrl?: string;
   proBenchmarks?: ProSecurityBenchmarks;
   comparisonReport?: ComparisonReportData;

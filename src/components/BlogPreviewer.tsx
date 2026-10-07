@@ -378,31 +378,18 @@ export default function BlogPreviewer({
         contractAddress: asset.contractAddress || enrichment?.contractAddress || undefined,
         logoUrl,
         coingeckoId: asset.coingeckoId || enrichment?.coingeckoId || undefined,
-        overallScore: enrichment?.overallScore ?? (snap?.confidenceScore ? Math.min(Math.max(snap.confidenceScore, 65), 98) : 85),
-        scores: enrichment?.scores || {
-          utility: snap?.confidenceScore ? Math.min(10, Math.max(1, Math.round(snap.confidenceScore / 10))) : 8,
-          tokenomics: snap?.confidenceScore ? Math.min(10, Math.max(1, Math.round((snap.confidenceScore / 10) * 0.95))) : 8,
-          security: snap?.confidenceScore ? Math.min(10, Math.max(1, Math.round((snap.confidenceScore / 10) * 0.92))) : 8,
-          team: snap?.confidenceScore ? Math.min(10, Math.max(1, Math.round((snap.confidenceScore / 10) * 0.9))) : 8,
-          community: snap?.confidenceScore ? Math.min(10, Math.max(1, Math.round((snap.confidenceScore / 10) * 0.9))) : 8,
-        },
-        riskLevel: enrichment?.riskLevel ?? ('Declared Risk' as RiskLevel),
-        verdict: enrichment?.verdict ?? `Active multi-source consensus tracking on ${asset.network}. Continuous telemetry convergence verified in Cloud SQL.`,
-        summary: enrichment?.summary ?? `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
-        pros: enrichment?.pros ?? [
-          'Continuous multi-source oracle consensus telemetry',
-          `Verified asset registry entry on ${asset.network}`,
-          'Real-time supply and market capitalization tracking'
-        ],
-        cons: enrichment?.cons ?? [
-          'Comprehensive smart contract bytecode review pending evaluation',
-          'Third-party external dependency risk model active'
-        ],
-        author: enrichment?.author ?? 'AVF Automated Data Pipeline',
+        overallScore: enrichment?.overallScore ?? undefined,
+        scores: enrichment?.scores ?? undefined,
+        riskLevel: enrichment?.riskLevel ?? undefined,
+        verdict: enrichment?.verdict ?? undefined,
+        summary: enrichment?.summary ?? undefined,
+        pros: enrichment?.pros ?? undefined,
+        cons: enrichment?.cons ?? undefined,
+        author: enrichment?.author ?? undefined,
         createdAt: asset.createdAt || enrichment?.createdAt || new Date().toISOString(),
         proBenchmarks: enrichment?.proBenchmarks,
         comparisonReport: enrichment?.comparisonReport,
-        auditSignature: enrichment?.auditSignature,
+        auditSignature: enrichment?.auditSignature ?? undefined,
       };
 
       if (!snap) return baseReview;
@@ -1243,9 +1230,15 @@ export default function BlogPreviewer({
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
-                          {review.overallScore}/100
-                        </span>
+                        {review.overallScore != null ? (
+                          <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
+                            {review.overallScore}/100
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[10px] font-semibold text-slate-400 bg-slate-800/60 border border-slate-700/60 px-2 py-0.5 rounded-md">
+                            Not reviewed
+                          </span>
+                        )}
                       </div>
                     </button>
                   ))}
@@ -2059,7 +2052,7 @@ export default function BlogPreviewer({
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     {reviews
-                      .slice()
+                      .filter((item): item is CryptoReview & { overallScore: number } => typeof item.overallScore === 'number')
                       .sort((a, b) => b.overallScore - a.overallScore)
                       .slice(0, 4)
                       .map((item) => {
@@ -2389,16 +2382,10 @@ export default function BlogPreviewer({
             />
 
             {(() => {
-              const effectiveScores = activeReview.scores || {
-                utility: 8,
-                tokenomics: 8,
-                security: 8,
-                team: 8,
-                community: 8,
-              };
-              const activeBlueprint = calculateBlueprintScore(effectiveScores, activeReview.category);
-              const scoreVal = activeReview.overallScore || activeBlueprint.overallScore;
-              const overallColor = scoreVal >= 75 ? 'text-emerald-400' : scoreVal >= 50 ? 'text-amber-400' : 'text-rose-400';
+              const effectiveScores = activeReview.scores;
+              const activeBlueprint = effectiveScores ? calculateBlueprintScore(effectiveScores, activeReview.category) : null;
+              const scoreVal = activeReview.overallScore ?? activeBlueprint?.overallScore;
+              const overallColor = scoreVal != null && scoreVal >= 75 ? 'text-emerald-400' : scoreVal != null && scoreVal >= 50 ? 'text-amber-400' : 'text-rose-400';
 
               // Tokenomics metrics
               const circulating = activeReview.circulatingSupply;
@@ -2435,7 +2422,7 @@ export default function BlogPreviewer({
               const trendSignal = change24h > 2.5 ? 'Bullish' : change24h < -2.5 ? 'Bearish' : 'Consolidating';
               const trendColor = change24h > 0 ? 'text-emerald-400' : change24h < 0 ? 'text-rose-400' : 'text-cyan-400';
 
-              const confluenceScore = Math.min(98, Math.max(25, Math.round(62 + change24h * 1.6 + ((effectiveScores.tokenomics ?? 8) - 7) * 3)));
+              const confluenceScore = Math.min(98, Math.max(25, Math.round(62 + change24h * 1.6 + ((effectiveScores?.tokenomics ?? 7) - 7) * 3)));
               const confluenceSignal = confluenceScore >= 70 ? 'Bullish Confluence' : confluenceScore <= 45 ? 'Bearish Divergence' : 'Neutral Stance';
               const confluenceColor = confluenceScore >= 70 ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30' : confluenceScore <= 45 ? 'text-rose-400 bg-rose-500/15 border-rose-500/30' : 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30';
 
@@ -2449,45 +2436,67 @@ export default function BlogPreviewer({
 
               return (
                 <div className="space-y-6">
-                  {/* Evaluation Score & Dimension Bars */}
+                  {/* Evaluation Score & Dimension Bars OR Not Reviewed State */}
                   <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                      <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-2">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
-                        <div className="flex items-baseline justify-center">
-                          <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{scoreVal}</span>
-                          <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
+                    {scoreVal != null && effectiveScores ? (
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                        <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-2">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
+                          <div className="flex items-baseline justify-center">
+                            <span className={`text-4xl md:text-5xl font-display font-black tracking-wider ${overallColor}`}>{scoreVal}</span>
+                            <span className="text-sm font-mono text-slate-400 font-semibold ml-1">/100</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Col 2: Color-Coded Dimension Bars & Indices */}
-                      <div className="md:col-span-8 space-y-2.5 p-0.5">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[11px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Evaluation Blueprint Metrics</span>
-                          <span className="text-[10px] font-mono text-slate-400">Locked Blueprint Invariants</span>
-                        </div>
-                        <div className="space-y-3">
-                          {[
-                            { label: 'Utility', val: effectiveScores.utility ?? 8 },
-                            { label: 'Tokenomics', val: effectiveScores.tokenomics ?? 8 },
-                            { label: 'Security/Code', val: effectiveScores.security ?? 8 },
-                            { label: 'Team', val: effectiveScores.team ?? 8 },
-                            { label: 'Community', val: effectiveScores.community ?? 8 },
-                          ].map((metric, index) => {
-                            const c = getMetricColor(metric.val);
-                            return (
-                              <div key={index} className="flex items-center gap-3 text-[11px] md:text-xs font-sans">
-                                <span className="w-28 text-slate-200 font-display font-bold uppercase tracking-wider text-left text-[11px] truncate">{metric.label}</span>
-                                <div className="flex-1 h-2 bg-slate-950/80 border border-slate-800 rounded-full overflow-hidden p-0.5">
-                                  <div className={`h-full ${c.bgClass} rounded-full transition-all duration-700`} style={{ width: `${metric.val * 10}%` }}></div>
+                        {/* Col 2: Color-Coded Dimension Bars & Indices */}
+                        <div className="md:col-span-8 space-y-2.5 p-0.5">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] font-mono uppercase tracking-widest text-cyber-text-secondary block text-left">Evaluation Blueprint Metrics</span>
+                            <span className="text-[10px] font-mono text-slate-400">Locked Blueprint Invariants</span>
+                          </div>
+                          <div className="space-y-3">
+                            {[
+                              { label: 'Utility', val: effectiveScores.utility },
+                              { label: 'Tokenomics', val: effectiveScores.tokenomics },
+                              { label: 'Security/Code', val: effectiveScores.security },
+                              { label: 'Team', val: effectiveScores.team },
+                              { label: 'Community', val: effectiveScores.community },
+                            ].map((metric, index) => {
+                              const c = getMetricColor(metric.val);
+                              return (
+                                <div key={index} className="flex items-center gap-3 text-[11px] md:text-xs font-sans">
+                                  <span className="w-28 text-slate-200 font-display font-bold uppercase tracking-wider text-left text-[11px] truncate">{metric.label}</span>
+                                  <div className="flex-1 h-2 bg-slate-950/80 border border-slate-800 rounded-full overflow-hidden p-0.5">
+                                    <div className={`h-full ${c.bgClass} rounded-full transition-all duration-700`} style={{ width: `${metric.val * 10}%` }}></div>
+                                  </div>
+                                  <span className={`w-12 text-right font-mono font-extrabold text-[12px] ${c.textClass}`}>{metric.val}/10</span>
                                 </div>
-                                <span className={`w-12 text-right font-mono font-extrabold text-[12px] ${c.textClass}`}>{metric.val}/10</span>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 text-left">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-md">
+                              Not Reviewed
+                            </span>
+                            <span className="text-xs font-mono text-cyber-text-muted">Telemetry-Only Feed Asset</span>
+                          </div>
+                          <p className="text-xs text-cyber-text-secondary font-mono leading-relaxed">
+                            No editorial Evaluation Blueprint review has been conducted for {activeReview.name}. Showing live market depth and consensus telemetry without fabricated scores.
+                          </p>
+                        </div>
+                        <div className="shrink-0">
+                          <span className="text-[11px] font-mono text-slate-300 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                            Live Telemetry Active
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Comprehensive Tokenomics Assessment Panel */}
@@ -2552,7 +2561,7 @@ export default function BlogPreviewer({
                       <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
                         <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider truncate">Tokenomics Score</span>
                         <span className="text-xs sm:text-sm font-display font-bold text-emerald-400 mt-1 block leading-tight">
-                          {effectiveScores.tokenomics ?? 8} / 10
+                          {effectiveScores?.tokenomics != null ? `${effectiveScores.tokenomics} / 10` : 'Not reviewed'}
                         </span>
                       </div>
                       <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
