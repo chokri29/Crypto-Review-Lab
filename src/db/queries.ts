@@ -1,6 +1,6 @@
 import { db } from './index.ts';
 import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.ts';
-import { eq, desc, and, or, sql, count, inArray, ilike } from 'drizzle-orm';
+import { eq, desc, and, or, sql, count, inArray, ilike, like } from 'drizzle-orm';
 import { getAssetKey } from '../utils/assetKey.ts';
 
 // Reviews Queries
@@ -243,7 +243,7 @@ export async function upsertMarketAsset(asset: {
           name: asset.name,
           coingeckoId: asset.coingeckoId || null,
           category: asset.category || null,
-          network: asset.network,
+          network: sql`CASE WHEN ${marketAssets.network} IS NOT NULL AND ${marketAssets.network} != 'Other' AND ${asset.network} = 'Other' THEN ${marketAssets.network} ELSE ${asset.network} END`,
           platforms: asset.platforms !== undefined ? asset.platforms : undefined,
           contractAddress: asset.contractAddress || null,
           decimals: asset.decimals ?? null,
@@ -257,6 +257,20 @@ export async function upsertMarketAsset(asset: {
   } catch (error) {
     console.error("Database upsertMarketAsset failed:", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function deleteMarketAssetsByCoingeckoIds(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return;
+    await db.delete(marketAssets).where(
+      or(
+        inArray(marketAssets.coingeckoId, ids),
+        like(marketAssets.coingeckoId, 'tradable-%')
+      )
+    );
+  } catch (error) {
+    console.error("Database deleteMarketAssetsByCoingeckoIds failed:", error);
   }
 }
 

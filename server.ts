@@ -3904,9 +3904,16 @@ ${dualSyncContext}`;
 
   app.post("/api/market-intelligence/sync", async (req, res) => {
     try {
-      // Require admin (isAuthorizedAdmin or users.role === 'admin')
-      let isAdmin = isAuthorizedAdmin(req);
-      if (!isAdmin) {
+      // Accept Cloud Scheduler secret or require admin (isAuthorizedAdmin or users.role === 'admin')
+      const syncSecret = process.env.SYNC_SECRET;
+      const isSchedulerAuth = Boolean(
+        syncSecret &&
+        syncSecret.trim() !== '' &&
+        req.headers['x-sync-secret'] === syncSecret
+      );
+
+      let isAuthorized = isSchedulerAuth || isAuthorizedAdmin(req);
+      if (!isAuthorized) {
         const authHeader = req.headers["authorization"];
         if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
           const token = authHeader.slice(7).trim();
@@ -3915,14 +3922,14 @@ ${dualSyncContext}`;
             if (decoded?.uid) {
               const dbUser = await getUserByUid(decoded.uid);
               if (dbUser && dbUser.role === 'admin') {
-                isAdmin = true;
+                isAuthorized = true;
               }
             }
           } catch {}
         }
       }
 
-      if (!isAdmin) {
+      if (!isAuthorized) {
         return res.status(401).json({ error: "Unauthorized: Admin privileges required to trigger sync." });
       }
 
