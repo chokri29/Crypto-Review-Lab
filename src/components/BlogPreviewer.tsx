@@ -2611,9 +2611,9 @@ export default function BlogPreviewer({
                       {/* Trend Momentum */}
                       <div className="bg-slate-900/50 border border-cyber-cyan/15 rounded-lg p-2.5 sm:p-3 min-w-0">
                         <span className="text-[10px] font-mono text-slate-400 uppercase block tracking-wider truncate">Trend Momentum</span>
-                        <div className={`text-xs sm:text-sm font-display font-bold mt-1.5 flex items-center gap-1.5 leading-tight ${trendColor}`}>
-                          {change24h >= 0 ? <TrendingUp className="w-3.5 h-3.5 shrink-0" /> : <TrendingDown className="w-3.5 h-3.5 shrink-0" />}
-                          <span className="break-words leading-tight">{trendSignal}</span>
+                        <div className={`text-[10px] sm:text-xs md:text-sm font-display font-bold mt-1.5 flex items-center gap-1 leading-normal ${trendColor}`}>
+                          {change24h >= 0 ? <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> : <TrendingDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />}
+                          <span className="truncate">{trendSignal}</span>
                         </div>
                       </div>
 

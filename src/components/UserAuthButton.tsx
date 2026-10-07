@@ -26,6 +26,17 @@ export const UserAuthButton: React.FC = () => {
   }
 
   if (!user) {
+    // Only show the Google Sign-In button for the workspace owner ghalmichokri@gmail.com (or allow sign-in prompt via secret URL / local storage).
+    // For general visitors, return null to keep it completely hidden.
+    const isOwnerOrAdmin = typeof window !== 'undefined' && (
+      localStorage.getItem('crl_admin_authenticated') === 'true' ||
+      localStorage.getItem('crl_show_auth') === 'true' ||
+      window.location.search.includes('admin=true')
+    );
+    if (!isOwnerOrAdmin) {
+      return null;
+    }
+
     return (
       <button
         onClick={signInWithGoogle}
@@ -53,6 +64,11 @@ export const UserAuthButton: React.FC = () => {
         <span className="hidden sm:inline tracking-wider">Sign In</span>
       </button>
     );
+  }
+
+  // If signed in, only display the button if email is ghalmichokri@gmail.com
+  if (user.email && user.email.toLowerCase() !== 'ghalmichokri@gmail.com') {
+    return null;
   }
 
   return (
