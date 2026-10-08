@@ -264,6 +264,14 @@ export default function App() {
   const [adminGateError, setAdminGateError] = useState<string | null>(null);
   const [pendingTabRequest, setPendingTabRequest] = useState<'auditor' | 'orders' | 'f3' | null>(null);
   const [chatInitialQuery, setChatInitialQuery] = useState<string>('');
+  const [selectedStockSymbol, setSelectedStockSymbol] = useState<string>(() => {
+    try {
+      const params = getInitialUrlParams();
+      return params.get('stock') || params.get('xstock') || 'AAPLX';
+    } catch {
+      return 'AAPLX';
+    }
+  });
 
   const [activeTab, setActiveTab] = useState<'lab' | 'blog' | 'chat' | 'xstocks' | 'academy' | 'auditor' | 'orders' | 'f3'>(() => {
     try {
@@ -1984,7 +1992,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Lower Section: Audited Projects Showcase */}
+              {/* Lower Section: Most Tracked Crypto and RWA Tokens */}
               <div className="w-full">
                 <MarketTicker 
                   mode="showcase"
@@ -1992,6 +2000,17 @@ export default function App() {
                   onSelectReview={(id) => {
                     setSelectedReviewId(id);
                     setActiveTab('blog');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onSelectStock={(symbol) => {
+                    setSelectedStockSymbol(symbol);
+                    setActiveTab('xstocks');
+                    try {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('tab', 'xstocks');
+                      url.searchParams.set('stock', symbol);
+                      window.history.replaceState({ tab: 'xstocks', stock: symbol }, '', url.toString());
+                    } catch {}
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 />
@@ -2099,7 +2118,10 @@ export default function App() {
                 )}
 
                 {(activeTab === 'xstocks' || activeTab === 'academy') && (
-                  <XStocksPage />
+                  <XStocksPage 
+                    initialStockSymbol={selectedStockSymbol}
+                    onStockSelected={setSelectedStockSymbol}
+                  />
                 )}
 
                 {activeTab === 'auditor' && (

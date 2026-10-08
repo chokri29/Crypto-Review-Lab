@@ -48,6 +48,12 @@ import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
 import { computeMultiSourceConvergence } from '../services/marketConvergence';
 import { MultiSourceConvergenceReport } from '../types';
 import { XStockNormalizedEvidence } from '../services/xstockEvidenceEngine';
+import { recordAssetView } from '../services/trackedAssetsService';
+
+export interface XStocksPageProps {
+  initialStockSymbol?: string;
+  onStockSelected?: (symbol: string) => void;
+}
 
 export interface XStockQuoteState {
   livePrice: number | null; // Converged tokenized price (null if divergent or unavailable)
@@ -82,12 +88,12 @@ export interface XStockQuoteState {
   evidence?: Record<string, XStockNormalizedEvidence>;
 }
 
-export default function XStocksPage() {
+export default function XStocksPage({ initialStockSymbol, onStockSelected }: XStocksPageProps = {}) {
   const [selectedStock, setSelectedStock] = useState<XStockRegistryItem>(() => {
     try {
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
-        const stockParam = params.get('stock') || params.get('xstock') || params.get('symbol');
+        const stockParam = initialStockSymbol || params.get('stock') || params.get('xstock') || params.get('symbol');
         if (stockParam) {
           const clean = stockParam.trim().toLowerCase();
           const match = XSTOCKS_REGISTRY.find(
@@ -110,6 +116,22 @@ export default function XStocksPage() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [marketHours, setMarketHours] = useState<UsMarketHoursStatus>(() => getUsMarketHoursStatus());
 
+  // Handle external prop changes for initialStockSymbol
+  useEffect(() => {
+    if (initialStockSymbol) {
+      const clean = initialStockSymbol.trim().toLowerCase();
+      const match = XSTOCKS_REGISTRY.find(
+        s => s.symbol.toLowerCase() === clean || 
+             s.underlyingTicker.toLowerCase() === clean || 
+             s.coingeckoId.toLowerCase() === clean ||
+             s.name.toLowerCase().includes(clean)
+      );
+      if (match && match.symbol !== selectedStock.symbol) {
+        setSelectedStock(match);
+      }
+    }
+  }, [initialStockSymbol, selectedStock.symbol]);
+
   // Sync selectedStock to URL search params when in xstocks tab
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -125,6 +147,27 @@ export default function XStocksPage() {
       console.warn('Failed to sync stock to URL:', e);
     }
   }, [selectedStock.symbol]);
+
+  // Record 24h view for the selected stock and notify parent
+  useEffect(() => {
+    if (onStockSelected) {
+      onStockSelected(selectedStock.symbol);
+    }
+    recordAssetView({
+      id: selectedStock.symbol,
+      type: 'xstock',
+      symbol: selectedStock.symbol,
+      name: selectedStock.name,
+      underlyingTicker: selectedStock.underlyingTicker,
+      category: selectedStock.category,
+      logoUrl: selectedStock.logoUrl,
+      chain: selectedStock.chain,
+      issuer: selectedStock.issuer,
+      score: 98,
+      riskLevel: 'Low',
+      stabilityStatus: 'Peg Synchronized (1:1)'
+    });
+  }, [selectedStock.symbol, onStockSelected]);
 
   // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});

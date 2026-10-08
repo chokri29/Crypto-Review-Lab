@@ -157,6 +157,8 @@ import { getAssetKey } from '../utils/assetKey';
 import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
+import MarketTicker from './MarketTicker';
+import { recordAssetView } from '../services/trackedAssetsService';
 import { getMetricColor } from '../utils/metricColors';
 import { TiltCard } from './TiltCard';
 import MarketMetricsTable from './MarketMetricsTable';
@@ -169,7 +171,7 @@ interface BlogPreviewerProps {
   reviews: CryptoReview[];
   selectedReviewId?: string | null;
   setSelectedReviewId?: (id: string | null) => void;
-  setActiveTab?: (tab: 'lab' | 'blog' | 'chat' | 'academy' | 'auditor' | 'orders') => void;
+  setActiveTab?: (tab: 'lab' | 'blog' | 'chat' | 'xstocks' | 'academy' | 'auditor' | 'orders') => void;
   headerSearchQuery?: string;
   setHeaderSearchQuery?: (query: string) => void;
   onOpenCoinGeckoModal?: () => void;
@@ -823,6 +825,24 @@ export default function BlogPreviewer({
     };
   }, [baseActiveReview, activeReviewLivePatch]);
 
+  // Track 24h view for activeReview in Most Tracked registry
+  useEffect(() => {
+    if (activeReview) {
+      recordAssetView({
+        id: activeReview.id,
+        type: 'crypto',
+        symbol: activeReview.symbol,
+        name: activeReview.name,
+        category: activeReview.category,
+        logoUrl: activeReview.logoUrl,
+        coingeckoId: activeReview.coingeckoId,
+        score: activeReview.overallScore || 95,
+        riskLevel: (activeReview.riskLevel as any) || 'Low',
+        stabilityStatus: 'Consensus & State Verified'
+      });
+    }
+  }, [activeReview?.id, activeReview?.symbol, activeReview?.name]);
+
   const getPublicShareUrl = () => {
     const targetId = activeReview?.id || activeReviewId;
     return getPublicReviewShareUrl(targetId);
@@ -1090,9 +1110,33 @@ export default function BlogPreviewer({
         </div>
       </div>
 
-      {/* AI Market Summary Widget at top before search bar */}
-      <div className="mb-8 sm:mb-10 md:mb-12">
+      {/* AI Market Summary Widget & Most Tracked Crypto and RWA Tokens at top before search bar */}
+      <div className="mb-8 sm:mb-10 md:mb-12 space-y-6">
         <AIMarketSummary reviews={reviews} />
+
+        {/* Most Tracked Crypto and RWA Tokens Dashboard */}
+        {!activeReview && (
+          <MarketTicker 
+            mode="showcase"
+            reviews={enrichedReviews.length > 0 ? enrichedReviews : reviews}
+            onSelectReview={(id) => {
+              setActiveReviewId(id);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSelectStock={(symbol) => {
+              if (setActiveTab) {
+                setActiveTab('xstocks');
+                try {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('tab', 'xstocks');
+                  url.searchParams.set('stock', symbol);
+                  window.history.replaceState({ tab: 'xstocks', stock: symbol }, '', url.toString());
+                } catch {}
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          />
+        )}
       </div>
 
       {/* Top Header Navigation Bar with Breadcrumbs & Search */}
