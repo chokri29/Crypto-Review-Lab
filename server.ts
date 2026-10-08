@@ -66,7 +66,7 @@ if (typeof globalThis.fetch === 'function') {
 }
 
 // Proxy-only: never call api.coingecko.com from this process.
-const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec";
+const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec";
 
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'crypto_reviews.json');
 
@@ -2876,7 +2876,7 @@ ${dualSyncContext}`;
   });
 
   const COINGECKO_KEY = process.env.COINGECKO_API_KEY || "";
-  const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec";
+  const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec";
   const COINSTATS_GAS_URL = "https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec";
   const CMC_GAS_URL = "https://script.google.com/macros/s/AKfycbzjgMcPBg3IKS8HDrDVSax_xH6IuJITWT6OSZtTl_56q7A9S9a0c-LxIb7e6WxRwXM/exec";
   const FINNHUB_GAS_URL = "https://script.google.com/macros/s/AKfycbz3gpHcXA-yc7myC5UNJ-pIJyNnE1xXfAO_v3vlfbjJOSH345Cc4DtoGPYzcHq3diUUAg/exec";

@@ -207,7 +207,7 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
 };
 
 // Proxy-only: never call api.coingecko.com from this process.
-export const COINGECKO_GAS_URL = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
+export const COINGECKO_GAS_URL = 'https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec';
 
 let cachedAssetPlatforms: Map<string, string> = new Map();
 let lastAssetPlatformsFetchTime = 0;

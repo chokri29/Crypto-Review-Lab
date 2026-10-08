@@ -4,7 +4,7 @@
  * ============================================================================
  * 
  * Live Deployed Web App Endpoint:
- * https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec
+ * https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec
  * 
  * Description:
  * A production-grade Google Apps Script Web App that acts as a secure proxy and 
@@ -14,7 +14,7 @@
  */
 
 // Deployed GAS Proxy Endpoint URL
-var DEPLOYED_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec";
+var DEPLOYED_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec";
 
 // Default CoinGecko Demo API Key (configure via Script Properties COINGECKO_API_KEY)
 var DEFAULT_API_KEY = "";
