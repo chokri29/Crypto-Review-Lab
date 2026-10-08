@@ -95,17 +95,22 @@ function doGet(e) {
   var result = {};
   
   if (action === "markets" || params.ids) {
-    var ids = params.ids || "bitcoin,ethereum,solana,chainlink,render-token,arbitrum,sui,hyperliquid";
     var vsCurrency = params.vs_currency || "usd";
-    result = callCoinGeckoApi("/coins/markets", {
+    var queryParams = {
       vs_currency: vsCurrency,
-      ids: ids,
-      order: "market_cap_desc",
-      per_page: 250,
-      page: 1,
-      sparkline: false,
-      price_change_percentage: "24h"
-    });
+      order: params.order || "market_cap_desc",
+      per_page: params.per_page ? parseInt(params.per_page) : 250,
+      page: params.page ? parseInt(params.page) : 1,
+      sparkline: params.sparkline === "true",
+      price_change_percentage: params.price_change_percentage || "24h"
+    };
+    if (params.ids) {
+      queryParams.ids = params.ids;
+    }
+    if (params.category) {
+      queryParams.category = params.category;
+    }
+    result = callCoinGeckoApi("/coins/markets", queryParams);
   } else if (action === "search" || params.query) {
     var query = params.query || "";
     result = callCoinGeckoApi("/search", { query: query });
@@ -118,6 +123,45 @@ function doGet(e) {
       tickers: false,
       community_data: false,
       developer_data: false
+    });
+  } else if (action === "chart" || action === "market_chart") {
+    var coinId = params.coin_id || params.id || "solana";
+    var vsCurrency = params.vs_currency || "usd";
+    var days = params.days || "1";
+    result = callCoinGeckoApi("/coins/" + encodeURIComponent(coinId) + "/market_chart", {
+      vs_currency: vsCurrency,
+      days: days
+    });
+  } else if (action === "list") {
+    var queryParams = {};
+    if (params.include_platform === "true" || params.include_platform === true) {
+      queryParams.include_platform = true;
+    }
+    result = callCoinGeckoApi("/coins/list", queryParams);
+  } else if (action === "asset_platforms") {
+    result = callCoinGeckoApi("/asset_platforms", {});
+  } else if (action === "rwas_list") {
+    var queryParams = {};
+    if (params.asset_type) queryParams.asset_type = params.asset_type;
+    result = callCoinGeckoApi("/rwas/list", queryParams);
+  } else if (action === "rwas_markets") {
+    var queryParams = {
+      per_page: params.per_page ? parseInt(params.per_page) : 100,
+      page: params.page ? parseInt(params.page) : 1
+    };
+    if (params.ids) queryParams.ids = params.ids;
+    if (params.asset_type) queryParams.asset_type = params.asset_type;
+    result = callCoinGeckoApi("/rwas/markets", queryParams);
+  } else if (action === "rwas_issuers_list") {
+    result = callCoinGeckoApi("/rwas/issuers/list", {});
+  } else if (action === "rwas_issuer") {
+    var issuerId = params.id || "";
+    result = callCoinGeckoApi("/rwas/issuers/" + encodeURIComponent(issuerId), {});
+  } else if (action === "rwa_detail") {
+    var rwaId = params.id || "";
+    result = callCoinGeckoApi("/rwas/" + encodeURIComponent(rwaId), {
+      tokens: true,
+      tokenized_market_data: true
     });
   } else if (action === "mcp" || params.mcp) {
     result = getMcpManifest();

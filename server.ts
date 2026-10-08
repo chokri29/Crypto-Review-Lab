@@ -65,6 +65,9 @@ if (typeof globalThis.fetch === 'function') {
   } as any;
 }
 
+// Proxy-only: never call api.coingecko.com from this process.
+const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec";
+
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'crypto_reviews.json');
 
 function loadReviewsFromFile(): any[] {
@@ -2578,12 +2581,8 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     let liveMarketsMap: Record<string, any> = {};
     try {
       const ids = "solana,ethereum,bitcoin,chainlink,render-token,arbitrum,sui,hyperliquid,zama,uniswap,kaspa";
-      const apiKey = process.env.COINGECKO_API_KEY || "";
-      const headers: Record<string, string> = { "Accept": "application/json" };
-      if (apiKey) headers["x-cg-demo-api-key"] = apiKey;
-      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`, {
-        headers
-      });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const res = await fetch(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=usd`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -2604,19 +2603,13 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     const matchedExtraTicker = commonTickers.find(t => queryLower.includes(t));
     if (matchedExtraTicker && !liveMarketsMap[matchedExtraTicker]) {
       try {
-        const apiKey = process.env.COINGECKO_API_KEY || "";
-        const headers: Record<string, string> = { "Accept": "application/json" };
-        if (apiKey) headers["x-cg-demo-api-key"] = apiKey;
-        const sRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${matchedExtraTicker}`, {
-          headers
-        });
+        // Proxy-only: never call api.coingecko.com from this process.
+        const sRes = await fetch(`${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(matchedExtraTicker)}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           if (sData.coins && sData.coins.length > 0) {
             const topCoinId = sData.coins[0].id;
-            const mRes = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${topCoinId}&sparkline=false&price_change_percentage=24h`, {
-              headers
-            });
+            const mRes = await fetch(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(topCoinId)}&vs_currency=usd`);
             if (mRes.ok) {
               const mData = await mRes.json();
               if (Array.isArray(mData) && mData.length > 0) {
@@ -3194,28 +3187,20 @@ ${dualSyncContext}`;
     }
   });
 
-  // Reusable server-side helper for CoinGecko Markets
+  // Reusable server-side helper for CoinGecko Markets (Proxy-only)
   async function fetchCoinGeckoMarketsHelper(ids: string, vsCurrency = "usd"): Promise<any[]> {
-    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${encodeURIComponent(vsCurrency)}&ids=${encodeURIComponent(ids)}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=24h`;
-    
-    let response = await fetch(url, {
-      headers: {
-        "Accept": "application/json",
-        ...(COINGECKO_KEY ? { "x-cg-demo-api-key": COINGECKO_KEY } : {})
-      }
-    });
-
-    // Fallback to Google Apps Script proxy if direct API errors
-    if (!response.ok) {
-      console.warn(`Direct CoinGecko API HTTP ${response.status}. Trying GAS Web App Proxy...`);
-      const gasUrl = `${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
-      response = await fetch(gasUrl);
-    }
+    // Proxy-only: never call api.coingecko.com from this process.
+    const gasUrl = `${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
+    const response = await fetch(gasUrl);
 
     if (!response.ok) {
-      throw new Error(`CoinGecko API error HTTP ${response.status}`);
+      throw new Error(`CoinGecko proxy error HTTP ${response.status}`);
     }
-    return await response.json();
+    const data = await response.json();
+    if (data && data.error) {
+      throw new Error(data.message || "CoinGecko proxy error");
+    }
+    return Array.isArray(data) ? data : [];
   }
 
   // API endpoint: CoinGecko Proxy for Markets
@@ -3236,22 +3221,12 @@ ${dualSyncContext}`;
     try {
       const query = (req.query.query as string) || "";
       if (!query) return res.json({ coins: [] });
-      const url = `https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`;
-      
-      let response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "x-cg-demo-api-key": COINGECKO_KEY
-        }
-      });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(query)}`;
+      const response = await fetch(gasUrl);
 
       if (!response.ok) {
-        const gasUrl = `${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(query)}`;
-        response = await fetch(gasUrl);
-      }
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `CoinGecko API error HTTP ${response.status}` });
+        return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
       const data = await response.json();
       res.json(data);
@@ -3264,21 +3239,12 @@ ${dualSyncContext}`;
   // API endpoint: CoinGecko Proxy for Trending
   app.get("/api/coingecko/trending", async (req, res) => {
     try {
-      const url = `https://api.coingecko.com/api/v3/search/trending`;
-      let response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "x-cg-demo-api-key": COINGECKO_KEY
-        }
-      });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=trending`;
+      const response = await fetch(gasUrl);
 
       if (!response.ok) {
-        const gasUrl = `${COINGECKO_GAS_URL}?action=trending`;
-        response = await fetch(gasUrl);
-      }
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `CoinGecko API error HTTP ${response.status}` });
+        return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
       const data = await response.json();
       res.json(data);
@@ -3292,21 +3258,12 @@ ${dualSyncContext}`;
   app.get("/api/coingecko/coin/:id", async (req, res) => {
     try {
       const coinId = req.params.id;
-      const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coinId)}?localization=false&tickers=false&community_data=false&developer_data=false`;
-      let response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "x-cg-demo-api-key": COINGECKO_KEY
-        }
-      });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`;
+      const response = await fetch(gasUrl);
 
       if (!response.ok) {
-        const gasUrl = `${COINGECKO_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`;
-        response = await fetch(gasUrl);
-      }
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `CoinGecko API error HTTP ${response.status}` });
+        return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
       const data = await response.json();
       res.json(data);
@@ -3322,22 +3279,12 @@ ${dualSyncContext}`;
       const days = (req.query.days as string) || "1";
       const vsCurrency = (req.query.vs_currency as string) || "usd";
 
-      const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coinId)}/market_chart?vs_currency=${encodeURIComponent(vsCurrency)}&days=${encodeURIComponent(days)}`;
-
-      let response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "x-cg-demo-api-key": COINGECKO_KEY
-        }
-      });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=chart&id=${encodeURIComponent(coinId)}&days=${encodeURIComponent(days)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
+      const response = await fetch(gasUrl);
 
       if (!response.ok) {
-        const gasUrl = `${COINGECKO_GAS_URL}?action=chart&id=${encodeURIComponent(coinId)}&days=${encodeURIComponent(days)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
-        response = await fetch(gasUrl);
-      }
-
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `CoinGecko market chart API error HTTP ${response.status}` });
+        return res.status(response.status).json({ error: `CoinGecko market chart proxy error HTTP ${response.status}` });
       }
       const data = await response.json();
       res.json(data);
@@ -3346,16 +3293,6 @@ ${dualSyncContext}`;
       res.status(500).json({ error: error.message || "Failed to fetch market chart from CoinGecko" });
     }
   });
-
-  const getCgRwaHeaders = () => {
-    const headers: Record<string, string> = {
-      "Accept": "application/json"
-    };
-    if (COINGECKO_KEY) {
-      headers["x-cg-demo-api-key"] = COINGECKO_KEY;
-    }
-    return headers;
-  };
 
   app.get("/api/coingecko/rwas/:id/tickers", (req, res) => {
     return res.status(403).json({
@@ -3372,16 +3309,16 @@ ${dualSyncContext}`;
   app.get("/api/coingecko/rwas/list", async (req, res) => {
     try {
       const assetType = req.query.asset_type as string | undefined;
-
-      let url = "https://api.coingecko.com/api/v3/rwas/list";
+      // Proxy-only: never call api.coingecko.com from this process.
+      let gasUrl = `${COINGECKO_GAS_URL}?action=rwas_list`;
       if (assetType) {
-        url += `?asset_type=${encodeURIComponent(assetType)}`;
+        gasUrl += `&asset_type=${encodeURIComponent(assetType)}`;
       }
 
-      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
-          error: `CoinGecko RWA list API error HTTP ${response.status}`
+          error: `CoinGecko RWA list proxy error HTTP ${response.status}`
         });
       }
       const data = await response.json();
@@ -3400,16 +3337,18 @@ ${dualSyncContext}`;
       const page = (req.query.page as string) || "1";
 
       const params = new URLSearchParams();
+      params.set("action", "rwas_markets");
       if (ids) params.set("ids", ids);
       if (assetType) params.set("asset_type", assetType);
       if (perPage) params.set("per_page", perPage);
       if (page) params.set("page", page);
 
-      const url = `https://api.coingecko.com/api/v3/rwas/markets?${params.toString()}`;
-      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?${params.toString()}`;
+      const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
-          error: `CoinGecko RWA markets API error HTTP ${response.status}`
+          error: `CoinGecko RWA markets proxy error HTTP ${response.status}`
         });
       }
       const data = await response.json();
@@ -3422,11 +3361,12 @@ ${dualSyncContext}`;
 
   app.get("/api/coingecko/rwas/issuers/list", async (req, res) => {
     try {
-      const url = "https://api.coingecko.com/api/v3/rwas/issuers/list";
-      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=rwas_issuers_list`;
+      const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
-          error: `CoinGecko RWA issuers list API error HTTP ${response.status}`
+          error: `CoinGecko RWA issuers list proxy error HTTP ${response.status}`
         });
       }
       const data = await response.json();
@@ -3444,11 +3384,12 @@ ${dualSyncContext}`;
         return res.status(400).json({ error: "Missing issuer ID" });
       }
 
-      const url = `https://api.coingecko.com/api/v3/rwas/issuers/${encodeURIComponent(issuerId)}`;
-      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=rwas_issuer&id=${encodeURIComponent(issuerId)}`;
+      const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
-          error: `CoinGecko RWA issuer API error HTTP ${response.status}`
+          error: `CoinGecko RWA issuer proxy error HTTP ${response.status}`
         });
       }
       const data = await response.json();
@@ -3466,11 +3407,12 @@ ${dualSyncContext}`;
         return res.status(400).json({ error: "Missing RWA ID" });
       }
 
-      const url = `https://api.coingecko.com/api/v3/rwas/${encodeURIComponent(rwaId)}?tokens=true&tokenized_market_data=true`;
-      const response = await fetch(url, { headers: getCgRwaHeaders() });
+      // Proxy-only: never call api.coingecko.com from this process.
+      const gasUrl = `${COINGECKO_GAS_URL}?action=rwa_detail&id=${encodeURIComponent(rwaId)}`;
+      const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
-          error: `CoinGecko RWA detail API error HTTP ${response.status}`
+          error: `CoinGecko RWA detail proxy error HTTP ${response.status}`
         });
       }
       const data = await response.json();

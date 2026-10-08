@@ -206,6 +206,9 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
   'hype': 'Hyperliquid'
 };
 
+// Proxy-only: never call api.coingecko.com from this process.
+export const COINGECKO_GAS_URL = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
+
 let cachedAssetPlatforms: Map<string, string> = new Map();
 let lastAssetPlatformsFetchTime = 0;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -216,11 +219,11 @@ export async function fetchAssetPlatformsMap(): Promise<Map<string, string>> {
     return cachedAssetPlatforms;
   }
 
-  const url = 'https://api.coingecko.com/api/v3/asset_platforms';
+  // Proxy-only: never call api.coingecko.com from this process.
+  const url = `${COINGECKO_GAS_URL}?action=asset_platforms`;
   const headers: Record<string, string> = {
     'Accept': 'application/json',
-    'User-Agent': 'CryptoReviewLab/3.2.0',
-    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
+    'User-Agent': 'CryptoReviewLab/3.2.0'
   };
 
   try {
@@ -236,14 +239,14 @@ export async function fetchAssetPlatformsMap(): Promise<Map<string, string>> {
         }
         cachedAssetPlatforms = newMap;
         lastAssetPlatformsFetchTime = now;
-        console.log(`[MarketIntelligence] Loaded ${newMap.size} asset platforms from CoinGecko.`);
+        console.log(`[MarketIntelligence] Loaded ${newMap.size} asset platforms from CoinGecko proxy.`);
         return cachedAssetPlatforms;
       }
     } else {
-      console.warn(`[MarketIntelligence] /asset_platforms returned HTTP ${res.status}`);
+      console.warn(`[MarketIntelligence] /asset_platforms proxy returned HTTP ${res.status}`);
     }
   } catch (err) {
-    console.warn('[MarketIntelligence] Error fetching asset platforms:', err);
+    console.warn('[MarketIntelligence] Error fetching asset platforms from proxy:', err);
   }
   return cachedAssetPlatforms;
 }
@@ -320,30 +323,9 @@ export function resolveNetworkFromCoin(
   return 'Other';
 }
 
-// CoinGecko page fetcher: direct API with GAS proxy fallback
+// Proxy-only: never call api.coingecko.com from this process.
 async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]): Promise<any[]> {
   const vsCurrency = 'usd';
-  const directHeaders: Record<string, string> = {
-    'Accept': 'application/json',
-    'User-Agent': 'CryptoReviewLab/3.2.0',
-    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
-  };
-
-  // For global discovery (no specific ids), try direct CoinGecko API first for full 250-item pages
-  if (!ids || ids.length === 0) {
-    const directUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${vsCurrency}&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false`;
-    try {
-      const res = await fetch(directUrl, { headers: directHeaders });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) return data;
-      }
-    } catch (directErr) {
-      console.warn(`[MarketIntelligence] Direct CoinGecko page ${page} fetch error, trying proxy fallback...`, directErr);
-    }
-  }
-
-  const gasBase = 'https://script.google.com/macros/s/AKfycbyE6MqLewGEK4aq-fCD1tbQpO-IWetUk7-uuTYZDD_3XUvUuxRnWaPZQBZE3H_ui32y5g/exec';
 
   // Sub-chunk IDs if more than 50 to prevent Google Apps Script URL length limit overflow (Limiet overschreden: Lengte URLFetch-URL)
   if (ids && ids.length > 50) {
@@ -357,7 +339,7 @@ async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]
     return allResults;
   }
 
-  let gasUrl = `${gasBase}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
+  let gasUrl = `${COINGECKO_GAS_URL}?action=markets&page=${page}&per_page=${perPage}&vs_currency=${vsCurrency}`;
   if (ids && ids.length > 0) {
     gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
   }
@@ -460,13 +442,13 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
 }
 
 // Fetch complete id -> platforms mapping from CoinGecko /coins/list?include_platform=true
+// Proxy-only: never call api.coingecko.com from this process.
 export async function fetchCoinGeckoCoinsListPlatforms(): Promise<Map<string, Record<string, string>>> {
   const map = new Map<string, Record<string, string>>();
-  const url = 'https://api.coingecko.com/api/v3/coins/list?include_platform=true';
+  const url = `${COINGECKO_GAS_URL}?action=list&include_platform=true`;
   const headers: Record<string, string> = {
     'Accept': 'application/json',
-    'User-Agent': 'CryptoReviewLab/3.2.0',
-    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
+    'User-Agent': 'CryptoReviewLab/3.2.0'
   };
 
   try {
@@ -479,30 +461,30 @@ export async function fetchCoinGeckoCoinsListPlatforms(): Promise<Map<string, Re
             map.set(item.id.toLowerCase().trim(), item.platforms);
           }
         }
-        console.log(`[MarketIntelligence] Loaded platforms mapping for ${map.size} coins from CoinGecko /coins/list.`);
+        console.log(`[MarketIntelligence] Loaded platforms mapping for ${map.size} coins from CoinGecko proxy /coins/list.`);
         return map;
       }
     } else {
-      console.warn(`[MarketIntelligence] /coins/list?include_platform=true returned HTTP ${res.status}`);
+      console.warn(`[MarketIntelligence] Proxy /coins/list?include_platform=true returned HTTP ${res.status}`);
     }
   } catch (err) {
-    console.warn('[MarketIntelligence] Error fetching CoinGecko /coins/list platforms:', err);
+    console.warn('[MarketIntelligence] Error fetching CoinGecko proxy /coins/list platforms:', err);
   }
   return map;
 }
 
 // Fetch excluded tokenized RWA coins from CoinGecko /coins/markets?category=real-world-assets-rwa (pages 1-2)
+// Proxy-only: never call api.coingecko.com from this process.
 export async function fetchRwaExcludedCoinIds(): Promise<Set<string>> {
   const rwaIds = new Set<string>();
   const headers: Record<string, string> = {
     'Accept': 'application/json',
-    'User-Agent': 'CryptoReviewLab/3.2.0',
-    ...(process.env.COINGECKO_API_KEY ? { 'x-cg-demo-api-key': process.env.COINGECKO_API_KEY } : {})
+    'User-Agent': 'CryptoReviewLab/3.2.0'
   };
 
   for (const page of [1, 2]) {
     try {
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=real-world-assets-rwa&per_page=250&page=${page}&sparkline=false`;
+      const url = `${COINGECKO_GAS_URL}?action=markets&category=real-world-assets-rwa&per_page=250&page=${page}&sparkline=false&vs_currency=usd`;
       const res = await fetch(url, { headers });
       if (res.ok) {
         const data = await res.json();
@@ -514,10 +496,10 @@ export async function fetchRwaExcludedCoinIds(): Promise<Set<string>> {
           }
         }
       } else {
-        console.warn(`[MarketIntelligence] /coins/markets RWA page ${page} returned HTTP ${res.status}`);
+        console.warn(`[MarketIntelligence] Proxy RWA page ${page} returned HTTP ${res.status}`);
       }
     } catch (err) {
-      console.warn(`[MarketIntelligence] Error fetching RWA coins page ${page}:`, err);
+      console.warn(`[MarketIntelligence] Error fetching RWA coins page ${page} from proxy:`, err);
     }
   }
   return rwaIds;
