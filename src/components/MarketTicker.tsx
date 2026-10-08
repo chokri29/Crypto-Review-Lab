@@ -139,7 +139,7 @@ export default function MarketTicker({
 
   // Auto-cycling showcase states
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [isFading, setIsFading] = useState(false);
 
