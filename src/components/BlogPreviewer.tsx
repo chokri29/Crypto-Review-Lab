@@ -163,7 +163,6 @@ import MarketMetricsTable from './MarketMetricsTable';
 import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
-import { SecurityTelemetryWidget } from './SecurityTelemetryWidget';
 import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 
 interface BlogPreviewerProps {
@@ -2658,16 +2657,6 @@ export default function BlogPreviewer({
                 </span>
               </div>
             </div>
-
-            {/* Security Telemetry & Alert Monitor Section (Observable multi-provider contract telemetry) */}
-            {activeReview.contractAddress && (
-              <SecurityTelemetryWidget
-                contractAddress={activeReview.contractAddress}
-                chainId={activeReview.chainId}
-                symbol={activeReview.symbol}
-                name={activeReview.name}
-              />
-            )}
 
             {/* Protocol Benchmark Comparison Section */}
             {activeReview.comparisonReport && (
