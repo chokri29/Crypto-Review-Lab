@@ -127,6 +127,11 @@ export default function XStockPriceChart({
     };
   }, [symbol, name, coingeckoId, coingeckoRwaId, timeframe, propCurrentPrice, propChange24h]);
 
+  // Reset cached timeframe map when symbol changes to prevent cross-asset leakage
+  useEffect(() => {
+    setTimeframePricesMap({});
+  }, [symbol]);
+
   // Pre-load background timeframes sequentially with delay to prevent rate-limit bursts
   useEffect(() => {
     let isMounted = true;

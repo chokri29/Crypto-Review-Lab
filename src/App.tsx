@@ -128,7 +128,6 @@ class ComponentErrorBoundary extends (React.Component as any) {
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
-              window.location.reload();
             }}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono rounded-xl transition-colors cursor-pointer"
           >

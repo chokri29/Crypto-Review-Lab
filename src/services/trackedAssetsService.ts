@@ -271,8 +271,27 @@ export function recordAssetView(item: {
 
   if (existingIdx >= 0) {
     const rec = records[existingIdx];
-    // Filter timestamps to 24h window and add now
+    // Filter timestamps to 24h window
     const validTimestamps = (rec.viewTimestamps || []).filter(ts => (now - ts) <= WINDOW_MS);
+    
+    // If viewed within the last 60 seconds, update metadata without duplicating timestamp or spamming events
+    if (validTimestamps.length > 0 && (now - validTimestamps[0]) < 60000) {
+      records[existingIdx] = {
+        ...rec,
+        ...item,
+        category: item.category || rec.category,
+        logoUrl: item.logoUrl || rec.logoUrl,
+        score: item.score ?? rec.score ?? 95,
+        riskLevel: item.riskLevel || rec.riskLevel || 'Low',
+        stabilityStatus: item.stabilityStatus || rec.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
+        viewTimestamps: validTimestamps
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      } catch {}
+      return;
+    }
+
     validTimestamps.unshift(now);
 
     records[existingIdx] = {

@@ -23,9 +23,10 @@ import { getConfidenceLevel, formatRiskAndConfidencePair } from './f3Engine';
 function getFsAndPath() {
   if (typeof window === 'undefined') {
     try {
-      const _fs = (globalThis as any).require ? (globalThis as any).require('fs') : eval("require('fs')");
-      const _path = (globalThis as any).require ? (globalThis as any).require('path') : eval("require('path')");
-      return { fs: _fs, path: _path };
+      const req = (globalThis as any).require;
+      if (typeof req === 'function') {
+        return { fs: req('fs'), path: req('path') };
+      }
     } catch (e) {
       return { fs: null, path: null };
     }

@@ -857,20 +857,18 @@ export default function BlogPreviewer({
     }
   };
 
-  const handleShareTwitter = () => {
+  const shareTwitterHref = useMemo(() => {
     const shareUrl = getPublicShareUrl();
     const text = activeReview 
       ? `Explore live tokenomics, metrics, and technical indicators for ${activeReview.name} (${activeReview.symbol}) on Crypto Review Lab!`
       : `Check out live cryptocurrency market intelligence and technical indicators on Crypto Review Lab!`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+  }, [activeReview, getPublicShareUrl]);
 
-  const handleShareFacebook = () => {
+  const shareFacebookHref = useMemo(() => {
     const shareUrl = getPublicShareUrl();
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
+    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+  }, [getPublicShareUrl]);
 
   // Derive categories and networks from standard configuration lists
   const categories = CATEGORY_OPTIONS.map((opt) => opt.value);
@@ -2775,26 +2773,30 @@ export default function BlogPreviewer({
                   <Share2 className="w-3 h-3 text-cyber-cyan" />
                   Share:
                 </span>
-                <button
-                  onClick={handleShareTwitter}
-                  className="p-1.5 bg-cyber-bg-secondary hover:bg-cyber-cyan/20 text-cyber-text-secondary hover:text-cyber-cyan rounded-lg border border-cyber-cyan/15 transition-colors cursor-pointer"
+                <a
+                  href={shareTwitterHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 bg-cyber-bg-secondary hover:bg-cyber-cyan/20 text-cyber-text-secondary hover:text-cyber-cyan rounded-lg border border-cyber-cyan/15 transition-colors inline-flex items-center justify-center cursor-pointer"
                   title="Share on X / Twitter"
                   aria-label="Share on X / Twitter"
                 >
                   <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
-                </button>
-                <button
-                  onClick={handleShareFacebook}
-                  className="p-1.5 bg-cyber-bg-secondary hover:bg-cyber-cyan/20 text-cyber-text-secondary hover:text-cyber-cyan rounded-lg border border-cyber-cyan/15 transition-colors cursor-pointer"
+                </a>
+                <a
+                  href={shareFacebookHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 bg-cyber-bg-secondary hover:bg-cyber-cyan/20 text-cyber-text-secondary hover:text-cyber-cyan rounded-lg border border-cyber-cyan/15 transition-colors inline-flex items-center justify-center cursor-pointer"
                   title="Share on Facebook"
                   aria-label="Share on Facebook"
                 >
                   <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
-                </button>
+                </a>
                 <button
                   onClick={handleCopyLink}
                   className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
