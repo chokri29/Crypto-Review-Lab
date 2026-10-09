@@ -912,9 +912,9 @@ export default function BlogPreviewer({
     return matchesSearch && matchesCategory && matchesNetwork;
   });
 
-  // State & Auto-rotation timer for Live Cryptocurrencies
+  // State & Auto-rotation timer for Live Cryptocurrencies (defaults to false to prevent automatic sweeping)
   const [latestPage, setLatestPage] = useState(0);
-  const [isLatestAutoPlay, setIsLatestAutoPlay] = useState(true);
+  const [isLatestAutoPlay, setIsLatestAutoPlay] = useState(false);
   const [isLatestHovered, setIsLatestHovered] = useState(false);
 
   const itemsPerPage = 4;

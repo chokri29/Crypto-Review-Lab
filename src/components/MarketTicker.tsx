@@ -3,13 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   TrendingUp, 
   ChevronRight, 
   ChevronLeft, 
-  Play, 
-  Pause, 
   Building2, 
   ShieldCheck, 
   Activity, 
@@ -137,66 +135,43 @@ export default function MarketTicker({
     return trackedItems.filter(item => item.type === filterType);
   }, [trackedItems, filterType]);
 
-  // Auto-cycling showcase states
+  // Manual showcase navigation states (strictly no automatic sweeping or rotation)
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [progressPercent, setProgressPercent] = useState(0);
   const [isFading, setIsFading] = useState(false);
-
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressRef = useRef<NodeJS.Timeout | null>(null);
-  const CYCLE_TIME = 5000; // 5 seconds per cycle
 
   // Reset index if filtered list changes
   useEffect(() => {
     setActiveIdx(0);
-    setProgressPercent(0);
   }, [filterType]);
 
   const itemsCount = displayedItems.length;
 
   const handleNext = useCallback(() => {
+    if (displayedItems.length <= 1) return;
     setIsFading(true);
     setTimeout(() => {
       setActiveIdx(prev => (prev + 1) % (displayedItems.length || 1));
-      setProgressPercent(0);
       setIsFading(false);
-    }, 150);
+    }, 120);
   }, [displayedItems.length]);
 
   const handlePrev = useCallback(() => {
+    if (displayedItems.length <= 1) return;
     setIsFading(true);
     setTimeout(() => {
       setActiveIdx(prev => (prev - 1 + (displayedItems.length || 1)) % (displayedItems.length || 1));
-      setProgressPercent(0);
       setIsFading(false);
-    }, 150);
+    }, 120);
   }, [displayedItems.length]);
 
-  // Auto cycle timer
-  useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (progressRef.current) clearInterval(progressRef.current);
-
-    if (isPlaying && itemsCount > 0) {
-      const startTime = Date.now();
-      
-      progressRef.current = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const percentage = Math.min((elapsed / CYCLE_TIME) * 100, 100);
-        setProgressPercent(percentage);
-      }, 50);
-
-      timerRef.current = setTimeout(() => {
-        handleNext();
-      }, CYCLE_TIME);
-    }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (progressRef.current) clearInterval(progressRef.current);
-    };
-  }, [isPlaying, activeIdx, itemsCount, handleNext]);
+  const handleSelectIdx = useCallback((idx: number) => {
+    if (idx === activeIdx || idx < 0 || idx >= displayedItems.length) return;
+    setIsFading(true);
+    setTimeout(() => {
+      setActiveIdx(idx);
+      setIsFading(false);
+    }, 120);
+  }, [activeIdx, displayedItems.length]);
 
   const getRiskStyles = (risk: string) => {
     switch (risk) {
@@ -308,29 +283,45 @@ export default function MarketTicker({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Quick interactive pagination indicator dots */}
+          {displayedItems.length > 1 && (
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-950/80 border border-slate-800/80">
+              {displayedItems.map((item, i) => (
+                <button
+                  key={`${item.id || item.symbol}-${i}`}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleSelectIdx(i); }}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    activeIdx === i
+                      ? isXStock 
+                        ? 'w-4 bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.8)]' 
+                        : 'w-4 bg-cyber-cyan shadow-[0_0_6px_rgba(0,229,255,0.8)]'
+                      : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                  }`}
+                  title={`View tracked ${isXStock ? 'xStock' : 'crypto'}: ${item.name || item.symbol} (${i + 1}/${displayedItems.length})`}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Previous / Next buttons */}
           <button 
+            type="button"
             onClick={(e) => { e.stopPropagation(); handlePrev(); }}
-            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
+            disabled={displayedItems.length <= 1}
+            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
             title="Previous Tracked Asset"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
           <button 
+            type="button"
             onClick={(e) => { e.stopPropagation(); handleNext(); }}
-            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
+            disabled={displayedItems.length <= 1}
+            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
             title="Next Tracked Asset"
           >
             <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-
-          {/* Pause / Play button */}
-          <button 
-            onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
-            className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer flex items-center justify-center shrink-0"
-            title={isPlaying ? "Pause rotation" : "Play rotation"}
-          >
-            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
           </button>
 
           {/* Counter Badge */}
@@ -494,15 +485,14 @@ export default function MarketTicker({
         </div>
       </div>
 
-      {/* Cycle timer progress bar */}
-      <div className="w-full bg-slate-900/60 rounded-full h-1 overflow-hidden mt-3.5 relative">
+      {/* Static cyber accent line (zero automatic sweeping or rotation) */}
+      <div className="w-full bg-slate-900/60 rounded-full h-[2px] overflow-hidden mt-3.5 relative">
         <div 
-          className={`h-full ${
+          className={`h-full w-full ${
             isXStock 
-              ? 'bg-gradient-to-r from-purple-500 via-pink-400 to-cyber-cyan' 
-              : 'bg-gradient-to-r from-cyber-blue via-cyber-cyan to-emerald-400'
-          } rounded-full transition-all duration-75 shadow-[0_0_8px_rgba(0,229,255,0.6)]`}
-          style={{ width: `${progressPercent}%` }}
+              ? 'bg-gradient-to-r from-transparent via-purple-500/35 to-transparent' 
+              : 'bg-gradient-to-r from-transparent via-cyber-cyan/35 to-transparent'
+          } rounded-full`}
         />
       </div>
     </div>

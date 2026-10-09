@@ -286,9 +286,9 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
     return PAST_VERDICTS;
   }, [reviews]);
 
-  // Verdicts Auto-Rotation State & Timer
+  // Verdicts Auto-Rotation State & Timer (defaults to false)
   const [verdictPage, setVerdictPage] = useState(0);
-  const [isVerdictAutoPlay, setIsVerdictAutoPlay] = useState(true);
+  const [isVerdictAutoPlay, setIsVerdictAutoPlay] = useState(false);
   const [isVerdictHovered, setIsVerdictHovered] = useState(false);
 
   const verdictsPerPage = 4;
