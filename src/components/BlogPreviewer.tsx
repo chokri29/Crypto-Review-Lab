@@ -157,7 +157,7 @@ import { getAssetKey } from '../utils/assetKey';
 import { calculateBlueprintScore } from '../services/EvaluationBlueprint';
 import { ComparisonReportView } from './ComparisonReportView';
 import AIMarketSummary from './AIMarketSummary';
-import MarketTicker from './MarketTicker';
+
 import { recordAssetView } from '../services/trackedAssetsService';
 import { getMetricColor } from '../utils/metricColors';
 import { TiltCard } from './TiltCard';
@@ -1108,33 +1108,9 @@ export default function BlogPreviewer({
         </div>
       </div>
 
-      {/* AI Market Summary Widget & Most Tracked Crypto and RWA Tokens at top before search bar */}
-      <div className="mb-8 sm:mb-10 md:mb-12 space-y-6">
+      {/* AI Market Summary Widget */}
+      <div className="mb-8 sm:mb-10 md:mb-12">
         <AIMarketSummary reviews={reviews} />
-
-        {/* Most Tracked Crypto and RWA Tokens Dashboard */}
-        {!activeReview && (
-          <MarketTicker 
-            mode="showcase"
-            reviews={enrichedReviews.length > 0 ? enrichedReviews : reviews}
-            onSelectReview={(id) => {
-              setActiveReviewId(id);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onSelectStock={(symbol) => {
-              if (setActiveTab) {
-                setActiveTab('xstocks');
-                try {
-                  const url = new URL(window.location.href);
-                  url.searchParams.set('tab', 'xstocks');
-                  url.searchParams.set('stock', symbol);
-                  window.history.replaceState({ tab: 'xstocks', stock: symbol }, '', url.toString());
-                } catch {}
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-            }}
-          />
-        )}
       </div>
 
       {/* Top Header Navigation Bar with Breadcrumbs & Search */}
