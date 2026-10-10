@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   Building2, 
   TrendingUp, 
@@ -116,7 +116,44 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [marketHours, setMarketHours] = useState<UsMarketHoursStatus>(() => getUsMarketHoursStatus());
 
-  // Handle external prop changes for initialStockSymbol
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Explicit user selection handler (single source of truth for updates, notifications, views, and URL syncing)
+  const handleExplicitSelect = useCallback((item: XStockRegistryItem) => {
+    if (item.symbol === selectedStock.symbol) return;
+    setSelectedStock(item);
+    if (onStockSelected) {
+      onStockSelected(item.symbol);
+    }
+    recordAssetView({
+      id: item.symbol,
+      type: 'xstock',
+      symbol: item.symbol,
+      name: item.name,
+      underlyingTicker: item.underlyingTicker,
+      category: item.category,
+      logoUrl: item.logoUrl,
+      chain: item.chain,
+      issuer: item.issuer,
+      score: 98,
+      riskLevel: 'Low',
+      stabilityStatus: 'Peg Synchronized (1:1)'
+    });
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get('stock') !== item.symbol) {
+          url.searchParams.set('tab', 'xstocks');
+          url.searchParams.set('stock', item.symbol);
+          window.history.replaceState({ tab: 'xstocks', stock: item.symbol }, '', url.toString());
+        }
+      } catch (e) {
+        console.warn('Failed to sync stock to URL:', e);
+      }
+    }
+  }, [selectedStock.symbol, onStockSelected]);
+
+  // Handle external prop changes for initialStockSymbol (external intent only, depends on initialStockSymbol only)
   useEffect(() => {
     if (initialStockSymbol) {
       const clean = initialStockSymbol.trim().toLowerCase();
@@ -128,46 +165,21 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
       );
       if (match && match.symbol !== selectedStock.symbol) {
         setSelectedStock(match);
-      }
-    }
-  }, [initialStockSymbol, selectedStock.symbol]);
-
-  // Sync selectedStock to URL search params when in xstocks tab
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const url = new URL(window.location.href);
-      if (url.searchParams.get('tab') === 'xstocks' || url.searchParams.has('stock')) {
-        if (url.searchParams.get('stock') !== selectedStock.symbol) {
-          url.searchParams.set('stock', selectedStock.symbol);
-          window.history.replaceState({ tab: 'xstocks', stock: selectedStock.symbol }, '', url.toString());
+        if (typeof window !== 'undefined') {
+          try {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('stock') !== match.symbol) {
+              url.searchParams.set('tab', 'xstocks');
+              url.searchParams.set('stock', match.symbol);
+              window.history.replaceState({ tab: 'xstocks', stock: match.symbol }, '', url.toString());
+            }
+          } catch (e) {
+            console.warn('Failed to sync stock to URL:', e);
+          }
         }
       }
-    } catch (e) {
-      console.warn('Failed to sync stock to URL:', e);
     }
-  }, [selectedStock.symbol]);
-
-  // Record 24h view for the selected stock and notify parent
-  useEffect(() => {
-    if (onStockSelected) {
-      onStockSelected(selectedStock.symbol);
-    }
-    recordAssetView({
-      id: selectedStock.symbol,
-      type: 'xstock',
-      symbol: selectedStock.symbol,
-      name: selectedStock.name,
-      underlyingTicker: selectedStock.underlyingTicker,
-      category: selectedStock.category,
-      logoUrl: selectedStock.logoUrl,
-      chain: selectedStock.chain,
-      issuer: selectedStock.issuer,
-      score: 98,
-      riskLevel: 'Low',
-      stabilityStatus: 'Peg Synchronized (1:1)'
-    });
-  }, [selectedStock.symbol, onStockSelected]);
+  }, [initialStockSymbol]);
 
   // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
@@ -865,7 +877,22 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
                   return (
                     <div
                       key={item.symbol}
-                      onClick={() => setSelectedStock(item)}
+                      onPointerDown={(e) => {
+                        pointerDownRef.current = { x: e.clientX, y: e.clientY };
+                      }}
+                      onClick={(e) => {
+                        const pd = pointerDownRef.current;
+                        if (pd) {
+                          const dx = Math.abs(e.clientX - pd.x);
+                          const dy = Math.abs(e.clientY - pd.y);
+                          if (dx > 8 || dy > 8) {
+                            pointerDownRef.current = null;
+                            return;
+                          }
+                        }
+                        pointerDownRef.current = null;
+                        handleExplicitSelect(item);
+                      }}
                       className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 group relative ${
                         isSelected
                           ? 'bg-cyber-cyan/15 border-cyber-cyan shadow-[0_0_15px_rgba(0,229,255,0.2)]'
