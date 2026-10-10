@@ -24,7 +24,6 @@ import {
   computeTechnicalIndicators,
   computeTechnicalConfluenceScore,
   computeMultiTimeframeAlignment,
-  generateSyntheticChart,
   filterNyseMarketHours,
   isStockAsset,
   ChartDataResult,
@@ -208,17 +207,30 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
     return activeIndicators.confluence || computeTechnicalConfluenceScore(currentPrice, activeIndicators);
   }, [activeIndicators, currentPrice]);
 
-  // Multi-Timeframe Alignment across 24H, 7D, 1M, 1Y
+  // Multi-Timeframe Alignment across 24H, 7D, 1M, 1Y (Strict: Zero Synthetic Fabrication)
   const mtfAlignment = useMemo(() => {
+    if (!chartData || chartData.provenance === 'UNAVAILABLE' || activePrices.length < 2) {
+      return undefined;
+    }
+
+    const map24H = timeframePricesMap['24H'] || (chartData?.timeframe === '24H' ? activePrices : undefined);
+    const map7D = timeframePricesMap['7D'] || (chartData?.timeframe === '7D' ? activePrices : undefined);
+    const map1M = timeframePricesMap['1M'] || (chartData?.timeframe === '1M' ? activePrices : undefined);
+    const map1Y = timeframePricesMap['1Y'] || (chartData?.timeframe === '1Y' ? activePrices : undefined);
+
+    if (!map24H && !map7D && !map1M && !map1Y) {
+      return undefined;
+    }
+
     const fullMap: Record<ChartTimeframe, PricePoint[]> = {
-      '24H': timeframePricesMap['24H'] || (chartData?.timeframe === '24H' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, '24H', symbol, name).prices),
-      '7D': timeframePricesMap['7D'] || (chartData?.timeframe === '7D' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, '7D', symbol, name).prices),
-      '1M': timeframePricesMap['1M'] || (chartData?.timeframe === '1M' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, '1M', symbol, name).prices),
-      '1Y': timeframePricesMap['1Y'] || (chartData?.timeframe === '1Y' ? activePrices : generateSyntheticChart(currentPrice > 0 ? currentPrice : 100, change24h, '1Y', symbol, name).prices),
+      '24H': map24H || activePrices,
+      '7D': map7D || activePrices,
+      '1M': map1M || activePrices,
+      '1Y': map1Y || activePrices,
     };
 
     return computeMultiTimeframeAlignment(fullMap, currentPrice, isStockEffective);
-  }, [timeframePricesMap, chartData, activePrices, currentPrice, change24h, symbol, name, isStockEffective]);
+  }, [timeframePricesMap, chartData, activePrices, currentPrice, isStockEffective]);
 
   const { minVal, maxVal, priceRange, isPositive } = useMemo(() => {
     if (activePrices.length === 0) {
@@ -565,6 +577,7 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
           </div>
         )}
 
+        {activePrices.length > 0 && chartData?.provenance !== 'UNAVAILABLE' ? (
         <svg
           width="100%"
           height={svgDimensions.height}
@@ -751,6 +764,25 @@ export const CryptoPriceChart: React.FC<CryptoPriceChartProps> = ({
             </text>
           ))}
         </svg>
+        ) : !isLoading ? (
+          <div className="flex flex-col items-center justify-center text-center p-8 space-y-3 text-slate-400 font-mono text-xs h-[250px]">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900/80 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shadow-[0_0_20px_rgba(0,229,255,0.12)]">
+              <Activity className="w-6 h-6" />
+            </div>
+            <div className="space-y-1 max-w-md">
+              <span className="text-white font-bold text-sm block">
+                {timeframe} Chart Telemetry Unavailable
+              </span>
+              <p className="text-[11px] text-slate-400 leading-relaxed whitespace-pre-line">
+                Historical timeseries for {symbol} ({timeframe}) are currently unavailable on connected market data endpoints. Real data is required under our zero synthetic data policy.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-cyber-cyan bg-slate-950 px-3 py-1.5 rounded-lg border border-cyber-cyan/30">
+              <span className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse" />
+              <span>Zero Synthetic Policy Enforced • Status: UNAVAILABLE</span>
+            </div>
+          </div>
+        ) : null}
 
         {/* Floating Tooltip Card */}
         {hoverPoint && hoverIndex !== null && (

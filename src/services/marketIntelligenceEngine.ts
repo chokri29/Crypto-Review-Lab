@@ -6,6 +6,7 @@ import {
   upsertNetworkMetric, 
   upsertMarketSnapshot, 
   recordTelemetrySyncLog, 
+  getTelemetrySyncLogs,
   getLatestMarketSnapshots,
   pruneOldSnapshots 
 } from '../db/queries.ts';
@@ -351,14 +352,32 @@ async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]
         'User-Agent': 'CryptoReviewLab/3.2.0'
       }
     });
+
+    if (gasRes.status === 429) {
+      throw { error: true, statusCode: 429, message: 'CoinGecko HTTP 429 Rate Limit Exceeded' };
+    }
+
     if (gasRes.ok) {
       const gasData = await gasRes.json();
       if (Array.isArray(gasData)) return gasData;
-      if (gasData && gasData.error) {
-        console.warn('[MarketIntelligence] CoinGecko proxy response warning:', gasData.message || gasData);
+      if (gasData && typeof gasData === 'object') {
+        if (gasData.error === true && (gasData.statusCode === 429 || gasData.status === 429)) {
+          throw { error: true, statusCode: 429, message: gasData.message || 'CoinGecko proxy reported HTTP 429' };
+        }
+        if (gasData.error) {
+          console.warn('[MarketIntelligence] CoinGecko proxy response warning:', gasData.message || gasData);
+        }
+      }
+    } else {
+      const text = await gasRes.text().catch(() => '');
+      if (gasRes.status === 429 || text.includes('429') || text.toLowerCase().includes('rate limit')) {
+        throw { error: true, statusCode: 429, message: `CoinGecko HTTP ${gasRes.status} Rate Limit` };
       }
     }
-  } catch (gasErr) {
+  } catch (gasErr: any) {
+    if (gasErr && (gasErr.statusCode === 429 || gasErr.status === 429 || (gasErr.error === true && gasErr.statusCode === 429))) {
+      throw gasErr;
+    }
     console.warn(`[MarketIntelligence] CoinGecko proxy page ${page} fetch error:`, gasErr);
   }
 
@@ -506,10 +525,27 @@ export async function fetchRwaExcludedCoinIds(): Promise<Set<string>> {
 }
 
 // DISCOVERY: Fetch current top 500 coins by market cap (pages 1-2, per_page=250) and merge into Cloud SQL
-export async function discoverAssets(): Promise<{ discovered: number }> {
+export async function discoverAssets(force = false): Promise<{ discovered: number }> {
   if (isDiscoveryRunning) {
     return { discovered: 0 };
   }
+
+  // Skip discovery if a successful discovery already ran in the last 24h
+  if (!force) {
+    try {
+      const logs = await getTelemetrySyncLogs(30);
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const lastSuccess = logs.find(l => l.jobName === 'asset_discovery' && l.status === 'success');
+      if (lastSuccess && lastSuccess.executedAt && (now - new Date(lastSuccess.executedAt).getTime()) < oneDayMs) {
+        console.log('[MarketIntelligence] Skipping asset discovery: successful discovery already ran in the last 24h.');
+        return { discovered: 0 };
+      }
+    } catch (checkErr) {
+      console.warn('[MarketIntelligence] Could not check previous discovery logs:', checkErr);
+    }
+  }
+
   isDiscoveryRunning = true;
   try {
     console.log('[MarketIntelligence] Starting top 500 asset discovery via CoinGecko...');
@@ -642,6 +678,12 @@ export async function discoverAssets(): Promise<{ discovered: number }> {
 
     await recomputeNetworkActiveAssets();
     console.log(`[MarketIntelligence] Discovery finished. Upserted/merged ${discovered} assets into market_assets.`);
+    await recordTelemetrySyncLog({
+      jobName: 'asset_discovery',
+      status: 'success',
+      itemsSynced: discovered,
+      details: `Asset discovery finished. Upserted/merged ${discovered} assets into market_assets.`
+    }).catch(() => {});
     return { discovered };
   } catch (error) {
     console.error('[MarketIntelligence] Asset discovery error:', error);
@@ -714,21 +756,37 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
       return { success: true, itemsSynced: 0, networksSynced };
     }
 
-    // 3. Batch CoinGecko IDs in chunks of 250
-    const assetsWithCg = assets.filter(a => a.coingeckoId && a.coingeckoId.trim());
+    // 3. Query CoinGecko top 500 assets in 2 calls (pages 1 & 2, per_page=250, no ids)
     const cgDataMap: Record<string, any> = {};
+    let isCgRateLimited = false;
 
-    const CHUNK_SIZE = 50;
-    for (let i = 0; i < assetsWithCg.length; i += CHUNK_SIZE) {
-      const chunk = assetsWithCg.slice(i, i + CHUNK_SIZE);
-      const chunkIds = chunk.map(a => a.coingeckoId!).filter(Boolean);
+    for (const page of [1, 2]) {
+      if (isCgRateLimited) break;
       try {
-        const items = await fetchCoinGeckoMarketsPage(1, CHUNK_SIZE, chunkIds);
-        for (const item of items) {
-          if (item.id) cgDataMap[item.id.toLowerCase()] = item;
+        const pageItems = await fetchCoinGeckoMarketsPage(page, 250);
+        if (Array.isArray(pageItems)) {
+          for (const item of pageItems) {
+            if (item && item.id) {
+              cgDataMap[item.id.toLowerCase()] = item;
+            }
+          }
         }
-      } catch (chunkErr) {
-        console.warn(`[MarketIntelligence] Error syncing CoinGecko chunk ${i}:`, chunkErr);
+        if (page === 1) {
+          await new Promise(res => setTimeout(res, 1000));
+        }
+      } catch (cgErr: any) {
+        if (cgErr && (cgErr.statusCode === 429 || cgErr.status === 429 || (cgErr.error && cgErr.statusCode === 429))) {
+          isCgRateLimited = true;
+          console.warn(`[MarketIntelligence] CoinGecko returned HTTP 429 on page ${page}. Aborting CoinGecko for this cycle; continuing with CoinStats/CMC only.`);
+          await recordTelemetrySyncLog({
+            jobName: 'proactive_market_sync',
+            status: 'degraded',
+            details: `CoinGecko returned HTTP 429 on page ${page}. Aborted CoinGecko queries for this cycle; continued with CoinStats/CMC only.`
+          }).catch(() => {});
+          break;
+        } else {
+          console.warn(`[MarketIntelligence] Error fetching CoinGecko page ${page}:`, cgErr);
+        }
       }
     }
 
@@ -891,20 +949,19 @@ export function startMarketIntelligenceSyncService(): void {
     clearInterval(discoveryInterval);
   }
 
-  // Initial seeding, discovery, and sync after 3 seconds
+  // Initial seeding and sync after 3 seconds (discoverAssets is not run on startup; only on 24h interval)
   setTimeout(async () => {
     await seedInitialMarketIntelligenceData();
-    await discoverAssets();
     await runMarketIntelligenceSync();
   }, 3000);
 
-  // Discovery every 24 hours
+  // Discovery every 24 hours (skips if already ran in last 24h)
   discoveryInterval = setInterval(async () => {
     await discoverAssets();
   }, 24 * 60 * 60 * 1000);
 
-  // Sync cycle every 5 minutes
+  // Sync cycle every 60 minutes (changed from 5 minutes to conserve CoinGecko API credits)
   syncInterval = setInterval(async () => {
     await runMarketIntelligenceSync();
-  }, 5 * 60 * 1000);
+  }, 60 * 60 * 1000);
 }

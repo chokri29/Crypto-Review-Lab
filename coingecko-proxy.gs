@@ -35,6 +35,32 @@ function getApiKey() {
 }
 
 /**
+ * Helper to determine cache TTL in seconds based on endpoint
+ */
+function getEndpointCacheTtl(endpoint) {
+  var ep = (endpoint || "").toLowerCase();
+  if (ep.indexOf("/search/trending") !== -1 || ep.indexOf("/trending") !== -1) {
+    return 900; // trending: 900s
+  }
+  if (ep.indexOf("/search") !== -1) {
+    return 3600; // search: 3600s
+  }
+  if (ep.indexOf("/markets") !== -1) {
+    return 600; // markets: 600s
+  }
+  if (ep.indexOf("/market_chart") !== -1) {
+    return 1800; // market_chart: 1800s
+  }
+  if (ep.indexOf("/rwas") !== -1) {
+    return 3600; // rwas_*: 3600s
+  }
+  if (ep.indexOf("/coins/") !== -1 || ep.indexOf("/coin") !== -1) {
+    return 3600; // coin: 3600s
+  }
+  return 600;
+}
+
+/**
  * Perform authenticated request to CoinGecko API
  */
 function callCoinGeckoApi(endpoint, queryParams) {
@@ -53,6 +79,35 @@ function callCoinGeckoApi(endpoint, queryParams) {
   
   var url = baseUrl + (queryArray.length > 0 ? "?" + queryArray.join("&") : "");
   
+  // Script Cache lookup (keyed by full URL)
+  var cache = null;
+  var cacheKey = url;
+  try {
+    cache = CacheService.getScriptCache();
+    if (cacheKey.length > 240) {
+      try {
+        var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, url);
+        cacheKey = "cg_" + Utilities.base64Encode(digest);
+      } catch (digestErr) {
+        cacheKey = url.substring(0, 240);
+      }
+    }
+  } catch (e) {
+    // Cache service unavailable
+  }
+
+  // Return cached JSON when present
+  if (cache) {
+    try {
+      var cached = cache.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (cacheGetErr) {
+      // Ignore cache lookup error and proceed to fetch
+    }
+  }
+
   var options = {
     method: "get",
     headers: {
@@ -68,8 +123,21 @@ function callCoinGeckoApi(endpoint, queryParams) {
     var responseText = response.getContentText();
     
     if (responseCode >= 200 && responseCode < 300) {
-      return JSON.parse(responseText);
+      var parsedData = JSON.parse(responseText);
+      // Cache only successful (2xx) responses
+      if (cache) {
+        try {
+          var ttl = getEndpointCacheTtl(endpoint);
+          if (responseText.length < 100000) {
+            cache.put(cacheKey, responseText, ttl);
+          }
+        } catch (cachePutErr) {
+          // Ignore cache put error
+        }
+      }
+      return parsedData;
     } else {
+      // Never cache error responses
       return {
         error: true,
         statusCode: responseCode,
