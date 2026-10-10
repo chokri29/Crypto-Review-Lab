@@ -2344,31 +2344,37 @@ export default function App() {
             </div>
 
             {/* Column 2: NOWPayments Crypto Donation Button & QR Code Modal Trigger */}
-            <div className="md:col-span-3 lg:col-span-3 flex flex-row md:flex-col items-center justify-center md:items-start gap-2.5 sm:gap-3 w-full">
-              <a 
-                href="https://nowpayments.io/donation?api_key=39e04c13-4de0-4f88-9b45-c2a47d895d35" 
-                target="_blank" 
-                rel="noreferrer noopener"
-                className="inline-flex items-center justify-center transition-all duration-300 hover:scale-[1.02] focus:outline-none shrink-0"
-                title="Support Crypto Review Lab with Crypto Donation"
-              >
-                <img 
-                  src="https://nowpayments.io/images/embeds/donation-button-black.svg" 
-                  alt="Crypto donation button by NOWPayments" 
-                  className="h-9 sm:h-10 w-auto object-contain rounded-xl border border-cyber-cyan/35 hover:border-cyber-cyan shadow-sm transition-all"
-                  referrerPolicy="no-referrer"
-                />
-              </a>
+            <div className="md:col-span-3 lg:col-span-3 flex flex-col items-center md:items-start gap-2.5 sm:gap-3 w-full">
+              <div className="flex flex-row items-center gap-2 w-full">
+                <a 
+                  href="https://nowpayments.io/donation?api_key=39e04c13-4de0-4f88-9b45-c2a47d895d35" 
+                  target="_blank" 
+                  rel="noreferrer noopener"
+                  className="flex-1 inline-flex items-center justify-center transition-all duration-300 hover:scale-[1.02] focus:outline-none"
+                  title="Support Crypto Review Lab with Crypto Donation"
+                >
+                  <img 
+                    src="https://nowpayments.io/images/embeds/donation-button-black.svg" 
+                    alt="Crypto donation button by NOWPayments" 
+                    className="h-10 sm:h-11 w-full object-contain rounded-xl border border-cyber-cyan/35 hover:border-cyber-cyan shadow-sm transition-all"
+                    referrerPolicy="no-referrer"
+                  />
+                </a>
 
-              <button
-                type="button"
-                onClick={() => setActiveModal('qr-donation')}
-                className="inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 px-2.5 sm:px-3 bg-cyber-bg-card hover:bg-cyber-cyan/10 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan rounded-xl text-[9.5px] sm:text-[11px] font-orbitron font-extrabold uppercase tracking-tight shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-                title="Crypto Direct Donation"
-              >
-                <QrCode className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
-                <span>Crypto Direct Donation</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('qr-donation')}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 sm:h-11 px-2 bg-cyber-bg-card hover:bg-cyber-cyan/10 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan rounded-xl text-[9.5px] sm:text-[10.5px] font-orbitron font-extrabold uppercase tracking-tighter shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                  title="Crypto Direct Donation"
+                >
+                  <QrCode className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
+                  <span>Crypto Direct Donation</span>
+                </button>
+              </div>
+
+              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[10px] sm:text-[11px] text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis">
+                If you 🩵 this Website — we welcome Crypto Tip
+              </div>
             </div>
 
             {/* Column 3: SITE */}
