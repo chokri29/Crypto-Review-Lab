@@ -1141,13 +1141,13 @@ export default function BlogPreviewer({
               title="Return to Market Overview"
             >
               <BookOpen className="w-3.5 h-3.5 text-cyber-cyan/80 shrink-0" />
-              <span className="sm:hidden">Market</span>
-              <span className="hidden sm:inline">Market Intelligence</span>
+              <span className="sm:hidden">Crypto</span>
+              <span className="hidden sm:inline">Cryptocurrency</span>
             </button>
           ) : (
             <span className="text-cyber-cyan font-bold flex items-center gap-1.5 shrink-0">
               <BookOpen className="w-3.5 h-3.5 text-cyber-cyan shrink-0" />
-              <span>Market Intelligence</span>
+              <span>Cryptocurrency</span>
             </span>
           )}
 
@@ -1644,7 +1644,7 @@ export default function BlogPreviewer({
                     No tracked crypto assets on {ROBINHOOD_CHAIN.name} yet.
                   </h3>
                   <p className="text-xs font-mono text-slate-300 leading-relaxed max-w-md mx-auto">
-                    The network is registered (Chain ID {ROBINHOOD_CHAIN.chainId}). Market Intelligence will populate assets as they are discovered or verified.
+                    The network is registered (Chain ID {ROBINHOOD_CHAIN.chainId}). Cryptocurrency data will populate assets as they are discovered or verified.
                   </p>
                 </div>
                 <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-2 text-[10.5px] font-mono text-slate-400">

@@ -459,7 +459,7 @@ export default function MarketTicker({
               ? 'border-purple-500/35 hover:border-purple-400 hover:bg-purple-500/10' 
               : 'border-cyber-cyan/30 hover:border-cyber-cyan/65 hover:bg-cyber-cyan/5'
           } flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
-          title={isXStock ? `Navigate to Tokenized Stocks for ${activeAsset.name}` : `View ${activeAsset.name} Market Report in Market Intelligence`}
+          title={isXStock ? `Navigate to Tokenized Stocks for ${activeAsset.name}` : `View ${activeAsset.name} Market Report in Cryptocurrency`}
         >
           <div className="flex items-center justify-between gap-1">
             <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">

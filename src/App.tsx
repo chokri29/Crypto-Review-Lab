@@ -1517,7 +1517,7 @@ export default function App() {
         descriptionText = "Execute algorithmic evaluations, multi-source market data convergence, on-chain security telemetry, and quantitative risk appraisals using AVF Engine.";
         keywords = "AVF review lab, crypto security audit, smart contract vulnerability scanner, crypto risk assessment, DeFi protocol security";
       } else if (activeTab === 'blog') {
-        title = "Market Intelligence Portal | Crypto Review Lab";
+        title = "Cryptocurrency | Crypto Review Lab";
         descriptionText = "Explore comprehensive independent security audits, project risk ratings, market confidence metrics, and deep-dive technical evaluations.";
         keywords = "crypto project reviews, cryptocurrency ratings, crypto audit reports, blockchain project evaluation, DeFi ratings";
       } else if (activeTab === 'chat') {
@@ -1525,7 +1525,7 @@ export default function App() {
         descriptionText = "Consult our AI Contract Auditor for instant smart contract vulnerability checks, exchange rating breakdowns, and custom blockchain security advice.";
         keywords = "AI contract auditor, crypto security chat, smart contract checker, crypto AI assistant, vulnerability audit";
       } else if (activeTab === 'xstocks' || activeTab === 'academy') {
-        title = "Tokenized Stocks (xStocks) & Real-time Market Intelligence | Crypto Review Lab";
+        title = "Tokenized Stocks (xStocks) & Real-time Cryptocurrency | Crypto Review Lab";
         descriptionText = "24/7 on-chain secondary market quoting, multi-source market data convergence, and technical indicator analytics for tokenized US equities (AAPLX, TSLAX, NVDAX, QQQX).";
         keywords = "tokenized stocks, xstocks, backed finance, AAPLX, TSLAX, NVDAX, crypto equities, tokenized US stocks";
       } else if (activeTab === 'orders') {
@@ -1844,7 +1844,7 @@ export default function App() {
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                <span>Market Intelligence</span>
+                <span>Cryptocurrency</span>
               </button>
 
               <button

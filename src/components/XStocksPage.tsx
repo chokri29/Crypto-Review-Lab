@@ -646,7 +646,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
             </div>
 
             <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">
-              Tokenized Equities &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Market Intelligence</span>
+              Tokenized Equities &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Cryptocurrency</span>
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
