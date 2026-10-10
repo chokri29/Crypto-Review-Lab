@@ -444,7 +444,7 @@ export default function MarketTicker({
             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse shrink-0" />
           </div>
           <div className="font-display font-black text-xl sm:text-2xl text-emerald-400 tracking-tight flex items-center gap-1.5 py-1">
-            {isXStock ? '24/7 ACTIVE' : 'ACTIVE'}
+            {isXStock ? '24 / 7 ACTIVE' : 'ACTIVE'}
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
             {isXStock ? 'Finnhub & CMC equity peg' : 'consensus & state verified'}
@@ -480,7 +480,7 @@ export default function MarketTicker({
             <ChevronRight className={`w-4 h-4 ${isXStock ? 'text-purple-400' : 'text-cyber-cyan'} animate-pulse`} />
           </div>
           <div className="font-mono text-[9.5px] text-slate-400 truncate">
-            {isXStock ? 'open 24/7 equity desk →' : 'inspect full findings →'}
+            {isXStock ? 'open 24 / 7 equity desk →' : 'inspect full findings →'}
           </div>
         </div>
       </div>
