@@ -1857,7 +1857,7 @@ export default function App() {
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 shrink-0" />
-                <span>Tokenized Stocks</span>
+                <span>xStocks</span>
               </button>
 
               <button

@@ -943,8 +943,33 @@ export async function fetchHistoricalMarketChart(
     return unavailableResult;
   }
 
-  // Graceful fallback for standard non-RWA crypto assets only
-  const fallback = generateSyntheticChart((typeof currentPrice === 'number' && currentPrice > 0) ? currentPrice : 100, change24h, timeframe, symbol, name);
-  chartCache.set(cacheKey, { data: fallback, timestamp: Date.now() });
-  return fallback;
+  // If real historical data is missing, return explicit UNAVAILABLE state (no synthetic price fabrication)
+  const numPrice = (typeof currentPrice === 'number' && currentPrice > 0) ? currentPrice : 0;
+  const unavailableResult: ChartDataResult = {
+    symbol: symbol.toUpperCase(),
+    name,
+    timeframe,
+    prices: [],
+    currentPrice: numPrice,
+    startPrice: numPrice,
+    priceChange: 0,
+    priceChangePct: change24h || 0,
+    highPrice: numPrice,
+    lowPrice: numPrice,
+    averageVolume: 0,
+    source: 'Tri-Sync Engine',
+    isLiveFeed: false,
+    provenance: 'UNAVAILABLE',
+    isVerificationGrade: false,
+    isRwaHistoricalUnavailable: true,
+    rwaAdvisory: 'Historical chart data unavailable!\nArtificial indicators and synthetic series are strictly suppressed to avoid fabricated telemetry.',
+    indicators: {
+      pivotHighs: [],
+      pivotLows: [],
+      isUnavailable: true,
+      unavailableReason: 'Historical data unavailable'
+    }
+  };
+  chartCache.set(cacheKey, { data: unavailableResult, timestamp: Date.now() });
+  return unavailableResult;
 }

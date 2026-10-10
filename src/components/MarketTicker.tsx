@@ -267,10 +267,10 @@ export default function MarketTicker({
                   ? 'bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600 text-white border-t border-purple-200/60 border-x border-purple-500 border-b-[3px] border-b-purple-900 shadow-[0_4px_14px_rgba(168,85,247,0.55),0_2px_0_0_#581c87] translate-y-[-1px]'
                   : 'bg-gradient-to-b from-slate-800/95 via-slate-900 to-slate-950 text-purple-300 hover:text-white border-t border-purple-500/30 border-x border-purple-500/30 border-b-[3px] border-b-purple-950/90 hover:border-purple-400/50 shadow-[0_3px_0_0_#3b0764,0_0_14px_rgba(168,85,247,0.18)] hover:shadow-[0_4px_18px_rgba(168,85,247,0.35)] active:translate-y-0.5 active:border-b-[1px] active:shadow-none'
               }`}
-              title="Filter by Tracked Tokenized Stocks"
+              title="Filter by Tracked xStocks"
             >
               <span className={`w-2 h-2 rounded-full ${filterType === 'xstock' ? 'bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]' : 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.9)] animate-pulse'}`}></span>
-              <span>Tokenized Stocks</span>
+              <span>xStocks</span>
               <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-md ${
                 filterType === 'xstock'
                   ? 'bg-purple-950/50 text-white border border-purple-300/40'

@@ -391,5 +391,58 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
     return b.lastViewedAt - a.lastViewedAt;
   });
 
+  // Ensure default fallback items if empty so MarketTicker never disappears
+  const hasCrypto = activeItems.some(i => i.type === 'crypto');
+  const hasXStock = activeItems.some(i => i.type === 'xstock');
+
+  if (!hasCrypto) {
+    activeItems.push({
+      id: 'btc',
+      type: 'crypto',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      category: 'Cryptocurrency',
+      score: 95,
+      riskLevel: 'Low',
+      stabilityStatus: 'Consensus & State Verified',
+      lastViewedAt: now,
+      viewCount24h: 10
+    });
+    activeItems.push({
+      id: 'eth',
+      type: 'crypto',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      category: 'Smart Contract Platform',
+      score: 96,
+      riskLevel: 'Low',
+      stabilityStatus: 'Consensus & State Verified',
+      lastViewedAt: now,
+      viewCount24h: 9
+    });
+  }
+
+  if (!hasXStock) {
+    const defaultStock = XSTOCKS_REGISTRY[0];
+    if (defaultStock) {
+      activeItems.push({
+        id: defaultStock.symbol,
+        type: 'xstock',
+        symbol: defaultStock.symbol,
+        name: defaultStock.name,
+        underlyingTicker: defaultStock.underlyingTicker,
+        category: defaultStock.category,
+        logoUrl: defaultStock.logoUrl,
+        chain: defaultStock.chain,
+        issuer: defaultStock.issuer,
+        score: 98,
+        riskLevel: 'Low',
+        stabilityStatus: 'Peg Synchronized (1:1)',
+        lastViewedAt: now,
+        viewCount24h: 10
+      });
+    }
+  }
+
   return activeItems;
 }
