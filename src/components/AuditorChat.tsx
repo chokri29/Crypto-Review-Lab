@@ -648,69 +648,6 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
 
   return (
     <div id="auditor-chat-view" className="flex flex-col gap-5 w-full py-2">
-      {/* High-Tech Terminal News Feed Ticker */}
-      <a 
-        href="https://www.coingecko.com/en/news"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full bg-slate-950/90 border border-emerald-500/15 rounded-xl h-9 relative overflow-hidden flex items-center shadow-[0_0_15px_rgba(16,185,129,0.03)] group/ticker select-none cursor-pointer hover:border-emerald-500/30 hover:bg-slate-950/100 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)] transition-all"
-      >
-        {/* Terminal scanline layer */}
-        <div className="absolute inset-0 bg-scanline pointer-events-none opacity-[0.03]"></div>
-        
-        {/* Live Indicator Prefix */}
-        <div className="bg-emerald-950/90 border-r border-emerald-500/20 px-3.5 h-full flex items-center gap-2 text-[9px] font-mono text-emerald-400 font-bold tracking-wider shrink-0 z-10 relative">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-          </span>
-          <span className="uppercase tracking-widest text-[8.5px]">CRYPTO NEWS</span>
-        </div>
-
-        {/* Marquee Content Area */}
-        <div className="flex-1 overflow-hidden relative h-full flex items-center">
-          <style dangerouslySetInnerHTML={{__html: `
-            @keyframes auditor-ticker {
-              0% { transform: translate3d(0, 0, 0); }
-              100% { transform: translate3d(-50%, 0, 0); }
-            }
-            .auditor-marquee {
-              display: flex;
-              white-space: nowrap;
-              animation: auditor-ticker 60s linear infinite;
-            }
-            @media (hover: hover) {
-              .auditor-marquee:hover {
-                animation-play-state: paused;
-              }
-            }
-          `}} />
-          
-          <div className="auditor-marquee">
-            {[...tickerItems, ...tickerItems].map((item, index) => {
-              const badgeColors = {
-                ALERT: 'text-rose-400 bg-rose-500/10 border border-rose-500/20',
-                VULN: 'text-amber-400 bg-amber-500/10 border border-amber-500/20',
-                SYSTEM: 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20',
-                NEWS: 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/20'
-              };
-
-              return (
-                <div key={`${item.id}-${index}`} className="flex items-center gap-2.5 mx-5 font-mono text-[10px] tracking-wide shrink-0">
-                  <span className={`text-[8px] px-1.5 py-0.2 rounded font-bold tracking-widest ${badgeColors[item.category]}`}>
-                    {item.category}
-                  </span>
-                  <span className="text-slate-300 group-hover/ticker:text-emerald-300/90 transition-colors">
-                    {item.text}
-                  </span>
-                  <span className="text-emerald-500/30 font-bold ml-2 select-none">//</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </a>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 lg:gap-6 w-full items-stretch">
         {/* Suggestions and intro left column */}
         <div className="lg:col-span-4 flex flex-col">
