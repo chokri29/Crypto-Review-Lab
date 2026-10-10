@@ -2380,18 +2380,17 @@ export default function App() {
             {/* Column 3: SITE */}
             <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
               <h4 className="font-display font-bold text-xs text-cyber-text-secondary uppercase tracking-widest mb-3">Site</h4>
-              <ul className="space-y-1.5 text-[10px] sm:text-[11px] text-cyber-text-muted text-left font-syncopate tracking-normal">
-                <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>What's AVF?</span></button></li>
-                <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>About Author</span></button></li>
+              <ul className="space-y-1 text-[9px] sm:text-[10px] text-cyber-text-muted text-left font-syncopate tracking-normal">
+                <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What's AVF?</button></li>
+                <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
                 <li>
                   <a 
                     href="https://github.com/chokri29/Crypto-Review-Lab" 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"
+                    className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
                   >
-                    <span className="shrink-0 text-cyber-cyan">›</span>
-                    <span>GitHub</span>
+                    GitHub
                   </a>
                 </li>
                 <li>
@@ -2399,16 +2398,15 @@ export default function App() {
                     href="https://www.crypto-academy.online/search/label/Reviews?m=1" 
                     target="_blank" 
                     rel="noopener noreferrer" 
-                    className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"
+                    className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
                   >
-                    <span className="shrink-0 text-cyber-cyan">›</span>
-                    <span>Blog</span>
+                    Blog
                   </a>
                 </li>
-                <li><button onClick={() => setActiveModal('contact')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>Contact</span></button></li>
-                <li><button onClick={() => setActiveModal('privacy')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>Privacy Policy</span></button></li>
-                <li><button onClick={() => setActiveModal('disclaimer')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>Disclaimer</span></button></li>
-                <li><button onClick={() => setActiveModal('tos')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>Terms of Service</span></button></li>
+                <li><button onClick={() => setActiveModal('contact')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Contact</button></li>
+                <li><button onClick={() => setActiveModal('privacy')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Privacy Policy</button></li>
+                <li><button onClick={() => setActiveModal('disclaimer')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Disclaimer</button></li>
+                <li><button onClick={() => setActiveModal('tos')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Terms of Service</button></li>
               </ul>
             </div>
           </div>
