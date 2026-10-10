@@ -1058,7 +1058,7 @@ export default function BlogPreviewer({
                 <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping shrink-0" />
                 LIVE CRYPTO MARKETS STREAM
               </span>
-              <span className="text-slate-400 text-xs font-mono">
+              <span className="text-slate-400 text-xs font-syncopate">
                 Multi-Chain Surveillance &amp; Multi-Source Market Data Convergence
               </span>
             </div>
@@ -1071,7 +1071,7 @@ export default function BlogPreviewer({
               Economy
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
               Real-time global crypto market surveillance, algorithmic cross-chain metrics, and multi-source market data intelligence powered by automated market telemetry.
             </p>
           </div>

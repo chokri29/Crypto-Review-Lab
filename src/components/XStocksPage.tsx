@@ -640,7 +640,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
               <span className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
                 TOKENIZED STOCKS (xSTOCKS)
               </span>
-              <span className="text-slate-400 text-xs font-mono">
+              <span className="text-slate-400 text-xs font-syncopate">
                 Backed Finance Collateralized Assets
               </span>
             </div>
@@ -649,7 +649,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
               Tokenized Equities &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Cryptocurrency</span>
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
               24/7 on-chain secondary market quoting for tokenized US equities with Market Data Cross-Check (CoinGecko &amp; CoinMarketCap aggregators) and real-time underlying equity basis verification via Finnhub.
             </p>
           </div>

@@ -1671,7 +1671,7 @@ export default function App() {
                 <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-300 to-cyan-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
                   CRYPTO REVIEW LAB
                 </h1>
-                <span className="text-[7.5px] sm:text-[9px] font-orbitron font-semibold text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-0.5">
+                <span className="text-[7.5px] sm:text-[9px] font-syncopate text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-0.5">
                   Algorithmic Security Intelligence for Digital Assets
                 </span>
               </div>
@@ -1952,8 +1952,8 @@ export default function App() {
                       AVF Security &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Risk Assessment</span>
                     </h2>
 
-                    <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed max-w-2xl">
-                      Algorithmic Verification Framework (AVF Engine) performing deterministic scoring verification, multi-source market data convergence, on-chain telemetry corroboration, and quantitative risk assessments. An independent crypto intelligence and verification suite for digital assets.
+                    <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
+                      An Interactive crypto and xStocks verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
                     </p>
                   </div>
 
@@ -2327,8 +2327,8 @@ export default function App() {
                 </div>
 
                 {/* Description Text */}
-                <p className="text-[11px] sm:text-xs text-cyber-text-secondary leading-relaxed font-sans tracking-normal">
-                  An Interactive Crypto Intelligence and Verification AI Platform — Powered by AVF Engine (Algorithmic Verification Framework)
+                <p className="text-[11px] sm:text-xs text-cyber-text-secondary leading-relaxed font-syncopate tracking-normal">
+                  An Interactive crypto and xStocks verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
                 </p>
 
                 {/* Creative Feature Badges - single row side-by-side */}
@@ -2372,7 +2372,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[11px] sm:text-xs text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis">
+              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[11px] sm:text-xs text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis font-mono">
                 If you <span className="text-sm sm:text-base">♡</span> this Website — we welcome Crypto Tip
               </div>
             </div>
