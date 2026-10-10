@@ -2380,7 +2380,7 @@ export default function App() {
             {/* Column 3: SITE */}
             <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
               <h4 className="font-display font-bold text-xs text-cyber-text-secondary uppercase tracking-widest mb-4">Site</h4>
-              <ul className="space-y-2.5 text-xs text-cyber-text-muted text-left">
+              <ul className="space-y-2.5 text-[11px] sm:text-xs text-cyber-text-muted text-left font-syncopate tracking-normal">
                 <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1.5 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>What's AVF?</span></button></li>
                 <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer flex items-start gap-1.5 text-left w-full"><span className="shrink-0 text-cyber-cyan">›</span><span>About Author</span></button></li>
                 <li>
