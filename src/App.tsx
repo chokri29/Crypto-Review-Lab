@@ -2372,8 +2372,8 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[10px] sm:text-[11px] text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis">
-                If you 🩵 this Website — we welcome Crypto Tip
+              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[11px] sm:text-xs text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis">
+                If you <span className="text-sm sm:text-base">♡</span> this Website — we welcome Crypto Tip
               </div>
             </div>
 
