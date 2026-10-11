@@ -1352,54 +1352,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 </div>
               )}
 
-              {/* Dedicated B2B Security & Risk Assessment Advisory Banner - Optimized for Desktop & Mobile */}
-              <div className="p-3.5 sm:p-4 bg-gradient-to-r from-purple-950/80 via-slate-950 to-slate-950 border border-purple-500/40 rounded-xl sm:rounded-2xl shadow-lg relative overflow-hidden space-y-3">
-                <div className="absolute top-0 right-0 w-36 h-36 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
-                
-                <div className="flex flex-col gap-3 relative z-10">
-                  <div className="flex items-start gap-2.5">
-                    <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 shrink-0 mt-0.5">
-                      <Crown className="w-5 h-5 fill-amber-400/30 text-amber-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 uppercase tracking-wide">
-                          Security & Risk Assessment
-                        </span>
-                        <span className="text-[9px] font-orbitron font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap">
-                          Security Diagnostic Check
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400 font-sans mt-1 leading-relaxed">
-                        Actionable diagnostic check: Bytecode scans, tokenomics overhang, and remediation guidance — conducted prior to launch, contract upgrades, or whenever detailed security verification is required.
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Clean Action & Status Row */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2 pt-2 border-t border-purple-500/20 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-orbitron font-bold uppercase bg-slate-900 border border-cyan-400/50 text-cyan-300 shadow-sm shrink-0">
-                      <Cpu className="w-3 h-3 text-cyan-400 animate-pulse shrink-0" />
-                      <span>AVF Active</span>
-                    </span>
-                    {isProUnlocked ? (
-                      <span className="text-[10px] bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 px-2.5 py-1 rounded-lg font-orbitron uppercase font-bold flex items-center gap-1.5 shadow-sm shrink-0">
-                        <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
-                        <span>Assessment Active</span>
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowProModal(true)}
-                        className="text-[10px] bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-orbitron uppercase font-extrabold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-md transition-all cursor-pointer shrink-0"
-                      >
-                        <Lock className="w-3 h-3 text-slate-950 shrink-0" />
-                        <span className="whitespace-nowrap">Order Security Check</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
             
             {/* Form Inputs */}
@@ -1502,20 +1455,8 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 </div>
               </div>
 
-              {/* Security Diagnostic & Advisory Controls */}
-              <div className="space-y-3.5 pt-2 border-t border-purple-500/30 bg-purple-500/5 p-3.5 rounded-xl border">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase font-bold text-amber-300 flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-amber-400" />
-                    Security Diagnostic Parameters
-                  </span>
-                  <span className="text-[10px] font-mono text-amber-400/90 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 font-bold">
-                    B2B Security Advisory
-                  </span>
-                </div>
-
-                {/* Blockchain Network & Contract Address Inputs */}
-                <div className="space-y-3">
+              {/* Blockchain Network & Contract Address Inputs */}
+              <div className="space-y-3 pt-2">
                   {/* Custom Blockchain Network Dropdown */}
                   <div className="relative" ref={chainDropdownRef}>
                     <div className="flex items-center justify-between mb-1.5">
@@ -1649,24 +1590,9 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                       disabled={isLoading}
                       required={isContractRequired}
                     />
-                    <p className="mt-1 text-[10px] text-slate-400 font-mono leading-relaxed">
-                      {!isContractRequired ? (
-                        <span className="text-emerald-400/90">
-                          ✓ Base layer coin used to pay gas fees (e.g. Bitcoin, Ethereum on main chain, Solana, Sui Network). Smart contract address is optional.
-                        </span>
-                      ) : (
-                        <span>
-                          {SUPPORTED_CHAINS.find(c => c.id === selectedChain)?.isEvm 
-                            ? "Required for EVM interchangeable tokens (ERC-20, BEP-20, governance, or LP tokens). Format: 0x + 40 hex characters." 
-                            : selectedChain === 'solana'
-                              ? "Required for Solana tokens (SPL, governance, LP tokens). Format: 32-44 character Base58 mint ID (no 0x)."
-                              : "Required for standard interchangeable assets (governance, LP, or sub-network tokens)."}
-                        </span>
-                      )}
-                    </p>
+
                   </div>
                 </div>
-              </div>
 
               {/* Custom Focus Lens */}
               <div>
