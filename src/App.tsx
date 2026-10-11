@@ -2353,12 +2353,10 @@ export default function App() {
                   className="flex-1 inline-flex items-center justify-center transition-all duration-300 hover:scale-[1.02] focus:outline-none"
                   title="Support Crypto Review Lab with Crypto Donation"
                 >
-                  <img 
-                    src="https://nowpayments.io/images/embeds/donation-button-black.svg" 
-                    alt="Crypto donation button by NOWPayments" 
-                    className="h-10 sm:h-11 w-full object-contain rounded-xl border border-cyber-cyan/35 hover:border-cyber-cyan shadow-sm transition-all"
-                    referrerPolicy="no-referrer"
-                  />
+                  <div className="h-10 sm:h-11 w-full bg-slate-900 hover:bg-slate-800 border border-cyber-cyan/40 hover:border-cyber-cyan rounded-xl px-3 flex items-center justify-center gap-2 shadow-sm transition-all text-cyber-cyan font-orbitron font-bold text-[10px] sm:text-xs uppercase tracking-wider">
+                    <DollarSign className="w-4 h-4 text-cyber-cyan shrink-0 animate-pulse" />
+                    <span>NOWPayments</span>
+                  </div>
                 </a>
 
                 <button
@@ -2372,8 +2370,8 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[11px] sm:text-xs text-cyber-text-muted leading-relaxed text-center whitespace-nowrap overflow-hidden text-ellipsis font-mono">
-                If you <span className="text-sm sm:text-base">♡</span> this Website — we welcome Crypto Tip
+              <div className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 bg-cyber-bg-card/60 text-[11px] sm:text-xs text-cyber-text-muted leading-snug text-center font-mono">
+                If you <span className="text-sm sm:text-base text-red-400">♡</span> this Website — we welcome Crypto Tip
               </div>
             </div>
 
