@@ -1462,7 +1462,7 @@ export default function App() {
     }
 
     let title = "Crypto Review Lab — Algorithmic Security Intelligence & Code Evaluation Terminal";
-    let descriptionText = "An Interactive Crypto Intelligence and Verification AI Platform — Powered by AVF Engine (Algorithmic Verification Framework) monitoring smart contracts, liquidity depth, TVL stress vectors, and live market anomalies.";
+    let descriptionText = "An Interactive digital assets verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)";
     let keywords = "crypto audit, crypto reviews, AVF engine, smart contract audit, prop firm reviews, DeFi security rating, crypto intelligence, tokenomics review, blockchain security";
     let imageUrl = "https://www.cryptoreviewlab.com/og-banner.jpg";
     let ogType = "website";
@@ -1953,7 +1953,7 @@ export default function App() {
                     </h2>
 
                     <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
-                      An Interactive crypto and xStocks verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
+                      An Interactive digital assets verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
                     </p>
                   </div>
 
@@ -2328,7 +2328,7 @@ export default function App() {
 
                 {/* Description Text */}
                 <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed">
-                  An Interactive crypto and xStocks verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
+                  An Interactive digital assets verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
                 </p>
 
                 {/* Creative Feature Badges - single row side-by-side */}
