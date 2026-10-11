@@ -1668,11 +1668,11 @@ export default function App() {
                   <line x1="21.5" y1="21.5" x2="28" y2="28" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" />
                 </svg>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col pt-1 sm:pt-1.5">
                 <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-300 to-cyan-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
                   CRYPTO REVIEW LAB
                 </h1>
-                <span className="text-[7.5px] sm:text-[9px] font-syncopate text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-0.5">
+                <span className="text-[7.5px] sm:text-[9px] font-syncopate text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-2">
                   Algorithmic Security Intelligence for Digital Assets
                 </span>
               </div>
@@ -2349,10 +2349,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowDonationDropdown(!showDonationDropdown)}
-                className="w-full relative p-2 sm:p-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-center cursor-pointer transition-all shadow-sm"
+                className="w-full relative px-6 py-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-center cursor-pointer transition-all shadow-sm"
               >
                 <span className="mx-auto">YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE TIP US</span>
-                <ChevronDown className={`absolute right-2.5 w-4 h-4 text-cyber-text-muted shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`absolute right-3.5 w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {showDonationDropdown && (
