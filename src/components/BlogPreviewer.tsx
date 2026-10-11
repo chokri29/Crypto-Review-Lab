@@ -1110,6 +1110,61 @@ export default function BlogPreviewer({
         <AIMarketSummary reviews={reviews} />
       </div>
 
+      {/* Header & Tagline (Moved above search bar and size decreased) */}
+      {!activeReview && (
+        <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-3 border-b border-cyber-cyan/15 pb-4">
+          <div className="space-y-1">
+            <h2 className="font-display font-bold text-sm sm:text-base md:text-lg text-cyber-text-primary tracking-wider flex items-center gap-2">
+              <Activity className="w-4 h-4 text-cyber-cyan" />
+              CRYPTOCURRENCY VERIFICATION & INDICATORS
+            </h2>
+            <p className="text-[11px] sm:text-xs text-cyber-text-secondary max-w-xl leading-relaxed">
+              Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.
+            </p>
+          </div>
+
+          {/* CoinGecko + CMC Live Dual Controls & Quick Stats */}
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenCoinGeckoModal && (
+              <button
+                type="button"
+                onClick={onOpenCoinGeckoModal}
+                className="relative group overflow-hidden px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-950 via-slate-900 to-cyan-950 border border-cyber-cyan/50 hover:border-cyber-cyan text-cyber-cyan hover:text-white font-display text-[11px] font-black uppercase tracking-wider flex items-center gap-2 transition-all duration-300 shadow-[0_0_15px_rgba(0,229,255,0.2)] hover:shadow-[0_0_25px_rgba(0,229,255,0.4)] cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-cyber-cyan/0 via-cyber-cyan/20 to-cyber-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="p-1 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan group-hover:bg-cyber-cyan group-hover:text-slate-950 transition-colors">
+                  <Sparkles className="w-3 h-3 animate-pulse" />
+                </div>
+                <span className="font-bold tracking-wider">Switch / Import via CoinGecko + CMC</span>
+                <span className="text-[8px] font-mono font-extrabold text-slate-950 bg-cyber-cyan px-1.5 py-0.5 rounded shadow-sm">
+                  DUAL API LIVE
+                </span>
+              </button>
+            )}
+
+            {onSyncCoinGecko && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSyncClick}
+                  disabled={isSyncingCoinGecko}
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-cyber-cyan/30 text-slate-300 hover:text-cyber-cyan font-mono text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                  title="Sync all live market prices from CoinGecko + CMC Dual Engine"
+                >
+                  <RefreshCw className={`w-3 h-3 text-cyber-cyan ${isSyncingCoinGecko ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">{isSyncingCoinGecko ? 'Dual Syncing...' : 'Sync Prices (CG + CMC)'}</span>
+                </button>
+                {showSyncToast && (
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg animate-fade-in">
+                    ✓ CG + CMC Synced!
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Top Header Navigation Bar with Breadcrumbs & Search */}
       <div className="mb-4 bg-cyber-bg-card/70 border border-cyber-cyan/25 rounded-2xl p-2.5 md:px-4 md:py-2.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         {/* Breadcrumb Navigation Trail */}
@@ -1271,60 +1326,6 @@ export default function BlogPreviewer({
 
       {!activeReview ? (
         <div className="space-y-4 md:space-y-5">
-          {/* Header & Tagline */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 border-b border-cyber-cyan/15 pb-4 md:pb-5">
-            <div className="space-y-1">
-              <h2 className="font-display font-bold text-xl md:text-2xl text-cyber-text-primary tracking-wider flex items-center gap-2">
-                <Activity className="w-5 h-5 text-cyber-cyan" />
-                CRYPTOCURRENCY VERIFICATION & INDICATORS
-              </h2>
-              <p className="text-xs md:text-sm text-cyber-text-secondary max-w-xl leading-relaxed">
-                Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.
-              </p>
-            </div>
-
-            {/* CoinGecko + CMC Live Dual Controls & Quick Stats */}
-            <div className="flex flex-wrap items-center gap-2">
-              {onOpenCoinGeckoModal && (
-                <button
-                  type="button"
-                  onClick={onOpenCoinGeckoModal}
-                  className="relative group overflow-hidden px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-950 via-slate-900 to-cyan-950 border border-cyber-cyan/50 hover:border-cyber-cyan text-cyber-cyan hover:text-white font-display text-xs font-black uppercase tracking-wider flex items-center gap-2.5 transition-all duration-300 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.5)] cursor-pointer"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyber-cyan/0 via-cyber-cyan/20 to-cyber-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                  <div className="p-1 rounded-lg bg-cyber-cyan/15 border border-cyber-cyan/30 text-cyber-cyan group-hover:bg-cyber-cyan group-hover:text-slate-950 transition-colors">
-                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                  </div>
-                  <span className="font-bold tracking-wider">Switch / Import via CoinGecko + CMC</span>
-                  <span className="text-[9px] font-mono font-extrabold text-slate-950 bg-cyber-cyan px-1.5 py-0.5 rounded shadow-sm">
-                    DUAL API LIVE
-                  </span>
-                </button>
-              )}
-
-              {onSyncCoinGecko && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSyncClick}
-                    disabled={isSyncingCoinGecko}
-                    className="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-cyber-cyan/30 text-slate-300 hover:text-cyber-cyan font-mono text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
-                    title="Sync all live market prices from CoinGecko + CMC Dual Engine"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 text-cyber-cyan ${isSyncingCoinGecko ? 'animate-spin' : ''}`} />
-                    <span className="hidden sm:inline">{isSyncingCoinGecko ? 'Dual Syncing...' : 'Sync Prices (CG + CMC)'}</span>
-                  </button>
-                  {showSyncToast && (
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg animate-fade-in">
-                      ✓ CG + CMC Synced!
-                    </span>
-                  )}
-                </div>
-              )}
-
-            </div>
-          </div>
-
           {/* Classification & Filter Bar (Blockchain Networks + Categories) */}
           <div className="bg-cyber-bg-card border border-cyber-cyan/15 rounded-2xl p-3 md:p-4 shadow-lg space-y-3.5 relative">
             {/* Proactive Market Intelligence Pipeline Status Header */}
