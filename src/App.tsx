@@ -2349,10 +2349,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowDonationDropdown(!showDonationDropdown)}
-                className="w-full relative px-6 py-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-center cursor-pointer transition-all shadow-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 flex items-center justify-between gap-3 cursor-pointer transition-all shadow-sm group"
               >
-                <span className="mx-auto">YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE TIP US</span>
-                <ChevronDown className={`absolute right-3.5 w-4 h-4 text-cyber-cyan shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
+                <span className="text-[10px] sm:text-[11px] text-cyber-text-secondary group-hover:text-white leading-snug font-syncopate font-bold uppercase tracking-tight text-center flex-1">
+                  YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE TIP US
+                </span>
+                <div className={`p-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-transform duration-300 shrink-0 ${showDonationDropdown ? 'rotate-180' : ''}`}>
+                  <ChevronDown className="w-4 h-4" />
+                </div>
               </button>
 
               {showDonationDropdown && (
