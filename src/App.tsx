@@ -2349,10 +2349,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowDonationDropdown(!showDonationDropdown)}
-                className="w-full p-2 sm:p-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-between gap-2 cursor-pointer transition-all shadow-sm"
+                className="w-full relative p-2 sm:p-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-center cursor-pointer transition-all shadow-sm"
               >
-                <span>IF YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE — CRYPTO TIP</span>
-                <ChevronDown className={`w-4 h-4 text-cyber-text-muted shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
+                <span className="mx-auto">YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE TIP US</span>
+                <ChevronDown className={`absolute right-2.5 w-4 h-4 text-cyber-text-muted shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
               </button>
 
               {showDonationDropdown && (
