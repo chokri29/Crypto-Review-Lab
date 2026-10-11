@@ -1306,31 +1306,31 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
         {/* Configuration & Inputs panel (Terminal) */}
         <div className="lg:col-span-6 flex flex-col h-full">
-          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_0_40px_rgba(0,229,255,0.12)] hover:shadow-[0_12px_40px_rgba(0,229,255,0.25)] relative overflow-hidden transition-all duration-300 group flex flex-col flex-1 h-full">
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
-            <div className="absolute top-0 right-0 w-44 h-44 bg-cyber-cyan/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+          <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-purple-500/40 hover:border-purple-500/70 rounded-2xl p-4 sm:p-5 md:p-6 shadow-[0_0_40px_rgba(168,85,247,0.15)] hover:shadow-[0_12px_40px_rgba(168,85,247,0.25)] relative overflow-hidden transition-all duration-300 group flex flex-col flex-1 h-full">
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
               <div className="flex items-start sm:items-center justify-between gap-2.5 sm:gap-3">
                 <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-cyber-cyan/20 to-teal-500/10 border border-cyber-cyan/30 text-cyber-cyan shadow-sm shrink-0 mt-0.5 sm:mt-0">
-                    <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-purple-900/60 to-purple-950/80 border border-purple-500/40 text-amber-400 shadow-[0_0_15px_rgba(168,85,247,0.25)] shrink-0 mt-0.5 sm:mt-0 flex items-center justify-center">
+                    <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight">
-                      Evaluation Blueprint Terminal
+                      Security & Risk Assessment Terminal
                     </h2>
-                    <p className="text-[9px] sm:text-[10px] font-orbitron text-cyber-cyan font-bold tracking-wider leading-relaxed mt-1 flex flex-wrap items-center gap-x-1.5">
+                    <p className="text-[9px] sm:text-[10px] font-orbitron text-purple-300 font-bold tracking-wider leading-relaxed mt-1 flex flex-wrap items-center gap-x-1.5">
                       <span>ALGORITHMIC SECURITY INTELLIGENCE</span>
                       <span className="text-slate-500 hidden sm:inline">•</span>
-                      <span className="text-purple-400">AVF ENGINE</span>
+                      <span className="text-amber-400">AVF ENGINE</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0 mt-0.5 sm:mt-0">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyber-cyan animate-pulse"></span>
+                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0 mt-0.5 sm:mt-0">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400 animate-pulse"></span>
                   <span className="hidden sm:inline">LIVE CONSOLE</span>
                   <span className="inline sm:hidden">LIVE</span>
                 </div>
@@ -1850,7 +1850,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
               </div>
 
               {/* Center Screen Sandbox Hero */}
-              <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-6 space-y-4">
+              <div className="flex-1 flex flex-col items-center justify-center py-3 sm:py-6 space-y-4">
                 <div className="relative">
                   <div className="absolute -inset-2 bg-cyber-cyan/20 rounded-2xl blur-lg group-hover:bg-cyber-cyan/30 transition-all"></div>
                   <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-cyber-cyan/20 via-slate-900 to-slate-950 border border-cyber-cyan/40 rounded-2xl flex items-center justify-center text-cyber-cyan shadow-[0_0_25px_rgba(0,229,255,0.2)] group-hover:scale-105 transition-all relative z-10">
@@ -1863,52 +1863,39 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     Security Check Screen Standby
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
-                    Define a project in the Blueprint configuration or click one of our Sandbox accelerators to run a comprehensive crypto security check.
+                    Select a project in the Security &amp; Risk Assessment Terminal to run a professional crypto security report.
                   </p>
                 </div>
 
-                {/* Quick-Load Sandbox Accelerators Section */}
-                <div className="w-full max-w-md pt-2 space-y-2">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-[10px] font-orbitron font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-cyber-cyan" />
-                      Sandbox Accelerators
-                    </span>
-                    <span className="text-[9px] font-mono text-slate-500">Quick-load into Terminal</span>
+                {/* Mobile F1, F2, F3 Stacking below text */}
+                <div className="flex flex-col sm:hidden gap-2 w-full max-w-[280px] mx-auto pt-2 text-left">
+                  <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-2.5 shadow-sm">
+                    <div className="text-[9px] font-orbitron font-bold text-cyber-cyan flex items-center gap-1">
+                      <Cpu className="w-2.5 h-2.5" />
+                      F1 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Bytecode Scanner</p>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-                    {displayedAccelerators.slice(0, 4).map((accel) => (
-                      <button
-                        key={`${accel.symbol}-${accel.name}`}
-                        type="button"
-                        onClick={() => handleSuggestionClick(accel)}
-                        className="bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800/90 hover:border-cyber-cyan/50 rounded-xl p-2.5 transition-all text-left group/accel cursor-pointer flex items-center justify-between shadow-sm hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]"
-                        title={`Click to load ${accel.name} into Evaluation Blueprint`}
-                      >
-                        <div className="min-w-0 pr-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-orbitron font-bold text-xs text-slate-100 group-hover/accel:text-cyber-cyan transition-colors">
-                              {accel.symbol}
-                            </span>
-                            <span className="text-[10px] font-mono text-slate-400 truncate">
-                              {accel.name}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-500 truncate font-sans mt-0.5">
-                            {accel.category}
-                          </p>
-                        </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover/accel:text-cyber-cyan shrink-0 transition-transform group-hover/accel:translate-x-0.5" />
-                      </button>
-                    ))}
+                  <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-2.5 shadow-sm">
+                    <div className="text-[9px] font-orbitron font-bold text-amber-400 flex items-center gap-1">
+                      <ShieldCheck className="w-2.5 h-2.5" />
+                      F2 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Cross-Validation</p>
+                  </div>
+                  <div className="bg-slate-900/80 border border-slate-800/80 rounded-lg p-2.5 shadow-sm">
+                    <div className="text-[9px] font-orbitron font-bold text-emerald-400 flex items-center gap-1">
+                      <Activity className="w-2.5 h-2.5" />
+                      F3 Engine
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-mono mt-0.5 truncate">Deterministic Risk</p>
                   </div>
                 </div>
               </div>
 
               {/* Bottom Pipeline Modules */}
               <div className="w-full pt-3.5 mt-2 border-t border-slate-800/80 shrink-0 space-y-2">
-                <div className="grid grid-cols-3 gap-2 text-left">
+                <div className="hidden sm:grid grid-cols-3 gap-2 text-left">
                   <div className="bg-slate-900/70 border border-slate-800/80 rounded-lg p-2">
                     <div className="text-[9px] font-orbitron font-bold text-cyber-cyan flex items-center gap-1">
                       <Cpu className="w-2.5 h-2.5" />

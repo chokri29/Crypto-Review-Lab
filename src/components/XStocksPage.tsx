@@ -640,9 +640,6 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
               <span className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
                 TOKENIZED STOCKS (xSTOCKS)
               </span>
-              <span className="text-slate-400 text-xs font-syncopate">
-                Backed Finance Collateralized Assets
-              </span>
             </div>
 
             <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">

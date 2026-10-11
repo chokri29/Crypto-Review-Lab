@@ -1058,9 +1058,6 @@ export default function BlogPreviewer({
                 <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-ping shrink-0" />
                 LIVE CRYPTO MARKETS STREAM
               </span>
-              <span className="text-slate-400 text-xs font-syncopate">
-                Multi-Chain Surveillance &amp; Multi-Source Market Data Convergence
-              </span>
             </div>
 
             <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">
