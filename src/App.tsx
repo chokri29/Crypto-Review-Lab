@@ -2349,9 +2349,9 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowDonationDropdown(!showDonationDropdown)}
-                className="w-full p-2.5 sm:p-3 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[11px] sm:text-xs text-cyber-text-secondary hover:text-white leading-snug text-center font-mono font-medium flex items-center justify-between gap-2 cursor-pointer transition-all shadow-sm"
+                className="w-full p-2 sm:p-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 text-[10px] sm:text-[11px] text-cyber-text-secondary hover:text-white leading-snug text-center font-syncopate font-bold uppercase tracking-tight flex items-center justify-between gap-2 cursor-pointer transition-all shadow-sm"
               >
-                <span>If you <span className="text-sm sm:text-base text-red-400">♡</span> this Website — we welcome Crypto Tip</span>
+                <span>IF YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE — CRYPTO TIP</span>
                 <ChevronDown className={`w-4 h-4 text-cyber-text-muted shrink-0 transition-transform duration-300 ${showDonationDropdown ? 'rotate-180' : ''}`} />
               </button>
 
@@ -2375,7 +2375,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setActiveModal('qr-donation')}
-                    className="w-full inline-flex items-center justify-center gap-1.5 h-10 sm:h-11 px-3 bg-cyber-bg-card hover:bg-cyber-cyan/10 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan rounded-xl text-[10px] sm:text-xs font-orbitron font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                    className="w-full inline-flex items-center justify-center gap-1.5 h-10 sm:h-11 px-2 bg-cyber-bg-card hover:bg-cyber-cyan/10 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan rounded-xl text-[9px] sm:text-[10px] font-orbitron font-extrabold uppercase tracking-tight shadow-sm transition-all cursor-pointer whitespace-nowrap"
                     title="Crypto Direct Donation"
                   >
                     <QrCode className="w-4 h-4 text-cyber-cyan shrink-0" />
