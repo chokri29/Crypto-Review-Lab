@@ -1311,20 +1311,20 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
             
             {/* Terminal Header */}
-            <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-slate-800/80">
+            <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-purple-500/30">
               <div className="flex items-start sm:items-center justify-between gap-2.5 sm:gap-3">
-                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-purple-900/60 to-purple-950/80 border border-purple-500/40 text-amber-400 shadow-[0_0_15px_rgba(168,85,247,0.25)] shrink-0 mt-0.5 sm:mt-0 flex items-center justify-center">
-                    <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+                <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
+                  <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-purple-800/80 via-purple-950 to-indigo-950 border-2 border-purple-400/60 text-amber-300 shadow-[0_0_25px_rgba(168,85,247,0.4)] shrink-0 mt-0.5 sm:mt-0 flex items-center justify-center">
+                    <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-orbitron font-extrabold text-sm sm:text-base md:text-xl text-slate-100 tracking-tight sm:tracking-wider leading-tight">
+                    <h2 className="font-orbitron font-black text-base sm:text-lg md:text-xl lg:text-2xl bg-gradient-to-r from-white via-slate-100 to-purple-200 bg-clip-text text-transparent tracking-tight sm:tracking-wider leading-tight drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
                       Security & Risk Assessment Terminal
                     </h2>
-                    <p className="text-[9px] sm:text-[10px] font-orbitron text-purple-300 font-bold tracking-wider leading-relaxed mt-1 flex flex-wrap items-center gap-x-1.5">
-                      <span>ALGORITHMIC SECURITY INTELLIGENCE</span>
-                      <span className="text-slate-500 hidden sm:inline">•</span>
-                      <span className="text-amber-400">AVF ENGINE</span>
+                    <p className="text-[10px] sm:text-[11px] font-orbitron text-purple-200 font-extrabold tracking-wider leading-relaxed mt-1.5 flex flex-wrap items-center gap-x-2">
+                      <span className="text-purple-300/90 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-500/30">ALGORITHMIC SECURITY INTELLIGENCE</span>
+                      <span className="text-purple-400 hidden sm:inline">•</span>
+                      <span className="text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">AVF ENGINE</span>
                     </p>
                   </div>
                 </div>
@@ -1596,12 +1596,12 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
               {/* Custom Focus Lens */}
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-orbitron font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-[10px] font-orbitron font-extrabold uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-amber-400" />
                     Targeted Security Focus / Advisory Lens
                   </label>
-                  <span className="text-[10px] font-orbitron text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full font-extrabold tracking-wider">
+                  <span className="text-[8px] font-orbitron text-amber-300 bg-amber-400/15 border border-amber-400/30 px-1.5 py-0.5 rounded-full font-extrabold tracking-wider">
                     ADVISORY ACTIVE
                   </span>
                 </div>

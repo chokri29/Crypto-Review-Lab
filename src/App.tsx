@@ -2318,16 +2318,16 @@ export default function App() {
 
                 {/* Header bar inside card */}
                 <div className="flex items-center gap-1.5 border-b border-cyber-cyan/15 pb-1.5">
-                  <div className="flex items-center gap-1.5 text-cyber-cyan font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-cyber-cyan font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                     <div className="p-0.5 rounded-md bg-cyber-cyan/10 border border-cyber-cyan/25 text-cyber-cyan shadow-xs">
                       <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
                     </div>
-                    <span>Crypto Security & Audit Stream</span>
+                    <span>CRYPTO REVIEW LAB — SECURITY VERIFICATION TERMINAL</span>
                   </div>
                 </div>
 
                 {/* Description Text */}
-                <p className="text-[11px] sm:text-xs text-cyber-text-secondary leading-relaxed font-syncopate tracking-normal">
+                <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed">
                   An Interactive crypto and xStocks verification AI platform, performing multi-source market data convergence — Powered by AVF Engine (Algorithmic Verification Framework)
                 </p>
 
