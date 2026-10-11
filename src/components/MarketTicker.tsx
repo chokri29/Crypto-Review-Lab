@@ -215,46 +215,46 @@ export default function MarketTicker({
   const xstockCount = trackedItems.filter(i => i.type === 'xstock').length;
 
   return (
-    <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-5 md:p-6 shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] relative overflow-hidden group flex flex-col justify-between h-full select-none transition-all duration-300">
+    <div className="bg-gradient-to-br from-slate-950 via-slate-900/95 to-slate-950 backdrop-blur-md border border-cyber-cyan/35 hover:border-cyber-cyan/65 rounded-2xl p-3.5 md:p-4 shadow-xl hover:shadow-[0_12px_40px_rgba(0,229,255,0.22)] relative overflow-hidden group flex flex-col justify-between h-full select-none transition-all duration-300">
       {/* Top Cyber Glow Line */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan to-transparent"></div>
       <div className={`absolute top-0 right-0 w-36 h-36 ${isXStock ? 'bg-purple-500/10' : 'bg-cyber-cyan/10'} rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none transition-colors duration-500`}></div>
 
       {/* Header */}
-      <div className="flex justify-between items-center pb-3.5 border-b border-slate-800/80 mb-4 relative z-10 flex-wrap gap-2.5">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div className={`w-7 h-7 rounded-xl ${isXStock ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]' : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)]'} border flex items-center justify-center shrink-0 transition-colors`}>
-            {isXStock ? <Building2 className="w-4 h-4 stroke-[2.2]" /> : <TrendingUp className="w-4 h-4 stroke-[2.5]" />}
+      <div className="flex justify-between items-center pb-2.5 border-b border-slate-800/80 mb-3 relative z-10 flex-wrap gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className={`w-6 h-6 rounded-lg ${isXStock ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]' : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)]'} border flex items-center justify-center shrink-0 transition-colors`}>
+            {isXStock ? <Building2 className="w-3.5 h-3.5 stroke-[2.2]" /> : <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />}
           </div>
           
           <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] flex items-center gap-2">
-            <span>Most Tracked Crypto and RWA Tokens</span>
+            <span>Most Tracked Digital Assets</span>
           </h3>
 
           {/* 24h Window Badge */}
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-            24h Live Tracking
+            24h Live
           </span>
 
           {/* Quick Filter Tabs / 3D Buttons */}
-          <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-950/70 border border-slate-800/90 shadow-inner">
+          <div className="flex items-center gap-1.5 p-0.5 rounded-xl bg-slate-950/70 border border-slate-800/90 shadow-inner">
             <button 
               type="button"
               onClick={(e) => { e.stopPropagation(); setFilterType('crypto'); }}
-              className={`relative inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-extrabold tracking-wide px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 cursor-pointer select-none group/cryptobtn ${
+              className={`relative inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-extrabold tracking-wide px-3 py-1 rounded-lg transition-all duration-150 cursor-pointer select-none group/cryptobtn ${
                 filterType === 'crypto'
-                  ? 'bg-gradient-to-b from-cyan-400 via-cyan-500 to-cyan-600 text-slate-950 border-t border-cyan-200/60 border-x border-cyan-500 border-b-[3px] border-b-cyan-800 shadow-[0_4px_14px_rgba(6,182,212,0.55),0_2px_0_0_#155e75] translate-y-[-1px]'
-                  : 'bg-gradient-to-b from-slate-800/95 via-slate-900 to-slate-950 text-cyan-300 hover:text-white border-t border-cyan-500/30 border-x border-cyan-500/30 border-b-[3px] border-b-cyan-950/90 hover:border-cyan-400/50 shadow-[0_3px_0_0_#082f49,0_0_14px_rgba(6,182,212,0.18)] hover:shadow-[0_4px_18px_rgba(6,182,212,0.35)] active:translate-y-0.5 active:border-b-[1px] active:shadow-none'
+                  ? 'bg-gradient-to-b from-cyan-400 via-cyan-500 to-cyan-600 text-slate-950 border-t border-cyan-200/60 border-x border-cyan-500 border-b-[2px] border-b-cyan-800 shadow-[0_3px_10px_rgba(6,182,212,0.55)] translate-y-[-1px]'
+                  : 'bg-gradient-to-b from-slate-800/95 via-slate-900 to-slate-950 text-cyan-300 hover:text-white border border-cyan-500/30 shadow-sm'
               }`}
               title="Filter by Tracked Cryptocurrencies"
             >
-              <span className={`w-2 h-2 rounded-full ${filterType === 'crypto' ? 'bg-slate-950 shadow-[0_0_6px_rgba(0,0,0,0.6)]' : 'bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)] animate-pulse'}`}></span>
+              <span className={`w-1.5 h-1.5 rounded-full ${filterType === 'crypto' ? 'bg-slate-950' : 'bg-cyan-400 animate-pulse'}`}></span>
               <span>Crypto</span>
-              <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-md ${
+              <span className={`text-[10px] font-black px-1 py-0.2 rounded ${
                 filterType === 'crypto'
-                  ? 'bg-cyan-900/40 text-slate-950 border border-cyan-900/30'
-                  : 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/30'
+                  ? 'bg-cyan-900/40 text-slate-950'
+                  : 'bg-cyan-500/20 text-cyan-200'
               }`}>
                 {cryptoCount}
               </span>
@@ -262,19 +262,19 @@ export default function MarketTicker({
             <button 
               type="button"
               onClick={(e) => { e.stopPropagation(); setFilterType('xstock'); }}
-              className={`relative inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-extrabold tracking-wide px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all duration-150 cursor-pointer select-none group/stockbtn ${
+              className={`relative inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono font-extrabold tracking-wide px-3 py-1 rounded-lg transition-all duration-150 cursor-pointer select-none group/stockbtn ${
                 filterType === 'xstock'
-                  ? 'bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600 text-white border-t border-purple-200/60 border-x border-purple-500 border-b-[3px] border-b-purple-900 shadow-[0_4px_14px_rgba(168,85,247,0.55),0_2px_0_0_#581c87] translate-y-[-1px]'
-                  : 'bg-gradient-to-b from-slate-800/95 via-slate-900 to-slate-950 text-purple-300 hover:text-white border-t border-purple-500/30 border-x border-purple-500/30 border-b-[3px] border-b-purple-950/90 hover:border-purple-400/50 shadow-[0_3px_0_0_#3b0764,0_0_14px_rgba(168,85,247,0.18)] hover:shadow-[0_4px_18px_rgba(168,85,247,0.35)] active:translate-y-0.5 active:border-b-[1px] active:shadow-none'
+                  ? 'bg-gradient-to-b from-purple-400 via-purple-500 to-purple-600 text-white border-t border-purple-200/60 border-x border-purple-500 border-b-[2px] border-b-purple-900 shadow-[0_3px_10px_rgba(168,85,247,0.55)] translate-y-[-1px]'
+                  : 'bg-gradient-to-b from-slate-800/95 via-slate-900 to-slate-950 text-purple-300 hover:text-white border border-purple-500/30 shadow-sm'
               }`}
               title="Filter by Tracked xStocks"
             >
-              <span className={`w-2 h-2 rounded-full ${filterType === 'xstock' ? 'bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]' : 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.9)] animate-pulse'}`}></span>
+              <span className={`w-1.5 h-1.5 rounded-full ${filterType === 'xstock' ? 'bg-white' : 'bg-purple-400 animate-pulse'}`}></span>
               <span>xStocks</span>
-              <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-md ${
+              <span className={`text-[10px] font-black px-1 py-0.2 rounded ${
                 filterType === 'xstock'
-                  ? 'bg-purple-950/50 text-white border border-purple-300/40'
-                  : 'bg-purple-500/20 text-purple-200 border border-purple-400/30'
+                  ? 'bg-purple-950/50 text-white'
+                  : 'bg-purple-500/20 text-purple-200'
               }`}>
                 {xstockCount}
               </span>
@@ -282,10 +282,10 @@ export default function MarketTicker({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Quick interactive pagination indicator dots */}
           {displayedItems.length > 1 && (
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-950/80 border border-slate-800/80">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80">
               {displayedItems.map((item, i) => (
                 <button
                   key={`${item.id || item.symbol}-${i}`}
@@ -294,9 +294,9 @@ export default function MarketTicker({
                   className={`h-1.5 rounded-full transition-all cursor-pointer ${
                     activeIdx === i
                       ? isXStock 
-                        ? 'w-4 bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.8)]' 
-                        : 'w-4 bg-cyber-cyan shadow-[0_0_6px_rgba(0,229,255,0.8)]'
-                      : 'w-1.5 bg-slate-700 hover:bg-slate-500'
+                        ? 'w-3.5 bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.8)]' 
+                        : 'w-3.5 bg-cyber-cyan shadow-[0_0_6px_rgba(0,229,255,0.8)]'
+                      : 'w-1 bg-slate-700 hover:bg-slate-500'
                   }`}
                   title={`View tracked ${isXStock ? 'xStock' : 'crypto'}: ${item.name || item.symbol} (${i + 1}/${displayedItems.length})`}
                 />
@@ -312,7 +312,7 @@ export default function MarketTicker({
             className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
             title="Previous Tracked Asset"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-3 h-3" />
           </button>
           <button 
             type="button"
@@ -321,29 +321,29 @@ export default function MarketTicker({
             className="p-1 hover:text-cyber-cyan text-cyber-text-muted transition-colors rounded hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
             title="Next Tracked Asset"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-3 h-3" />
           </button>
 
           {/* Counter Badge */}
-          <span className={`font-mono text-[9px] ${isXStock ? 'text-purple-300 bg-purple-500/15 border-purple-500/35' : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/35'} border px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm`}>
+          <span className={`font-mono text-[9px] ${isXStock ? 'text-purple-300 bg-purple-500/15 border-purple-500/35' : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/35'} border px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm`}>
             {activeIdx + 1} / {displayedItems.length}
           </span>
         </div>
       </div>
 
       {/* 5-Column Grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 transition-opacity duration-150 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 transition-opacity duration-150 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
         {/* Metric 1: Tracked Asset Identity */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3.5 rounded-2xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-inner transition-colors cursor-pointer group/tile`}
+          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-inner transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} ${isXStock ? 'in Tokenized Stocks' : 'Market Report'}`}
         >
           <div className="flex items-center justify-between gap-1">
-            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+            <div className="font-mono text-[9.5px] text-slate-400 uppercase tracking-widest font-bold truncate">
               {isXStock ? 'TRACKED RWA STOCK' : 'TRACKED CRYPTO'}
             </div>
-            <span className={`font-mono text-[9px] font-black px-1.5 py-0.5 rounded uppercase shrink-0 border ${
+            <span className={`font-mono text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase shrink-0 border ${
               isXStock 
                 ? 'text-purple-300 bg-purple-500/15 border-purple-500/40' 
                 : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/30'
@@ -352,7 +352,7 @@ export default function MarketTicker({
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5 py-1 min-w-0">
+          <div className="flex items-center gap-2 py-1 min-w-0">
             <CoinIcon 
               symbol={activeAsset.symbol} 
               logoUrl={activeAsset.logoUrl} 
@@ -362,10 +362,10 @@ export default function MarketTicker({
               size="sm"
             />
             <div className="min-w-0 flex-1">
-              <div className="font-display font-black text-base sm:text-lg text-white group-hover/tile:text-cyber-cyan transition-colors truncate">
+              <div className="font-display font-black text-sm sm:text-base text-white group-hover/tile:text-cyber-cyan transition-colors truncate">
                 {activeAsset.name}
               </div>
-              <div className="font-mono text-[10px] text-slate-400 truncate">
+              <div className="font-mono text-[9.5px] text-slate-400 truncate">
                 {isXStock && activeAsset.underlyingTicker 
                   ? `${activeAsset.symbol} • ${activeAsset.underlyingTicker} (${activeAsset.chain || 'Solana'})` 
                   : activeAsset.symbol}
@@ -373,7 +373,7 @@ export default function MarketTicker({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 border-t border-slate-900 pt-1 mt-1">
+          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 border-t border-slate-900 pt-1 mt-0.5">
             <span className="truncate">{activeAsset.category}</span>
             <span className="text-emerald-400 font-bold shrink-0 ml-1">
               {activeAsset.viewCount24h}x viewed (24h)
@@ -384,14 +384,14 @@ export default function MarketTicker({
         {/* Metric 2: Audit Index / Peg Convergence */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3.5 rounded-2xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} verification details`}
         >
           <div className="flex items-center justify-between gap-1">
-            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+            <div className="font-mono text-[9.5px] text-slate-400 uppercase tracking-widest font-bold truncate">
               {isXStock ? 'PEG CONVERGENCE' : 'AUDIT INDEX'}
             </div>
-            <span className={`font-mono text-[9.5px] font-black px-1.5 py-0.5 rounded shrink-0 border ${
+            <span className={`font-mono text-[9px] font-black px-1.5 py-0.2 rounded shrink-0 border ${
               isXStock
                 ? 'text-purple-300 bg-purple-500/15 border-purple-500/40'
                 : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/30'
@@ -399,10 +399,10 @@ export default function MarketTicker({
               {isXStock ? '1:1 BACKED' : 'VERIFIED'}
             </span>
           </div>
-          <div className={`font-display font-black text-xl sm:text-2xl ${isXStock ? 'text-purple-300 drop-shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'text-cyber-cyan drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]'} tracking-tight py-1`}>
+          <div className={`font-display font-black text-lg sm:text-xl ${isXStock ? 'text-purple-300 drop-shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'text-cyber-cyan drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]'} tracking-tight py-0.5`}>
             {activeAsset.score}%
           </div>
-          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+          <div className="font-mono text-[9px] text-slate-400 truncate">
             {isXStock ? 'multi-source price peg' : 'algorithmic security score'}
           </div>
         </div>
@@ -410,23 +410,23 @@ export default function MarketTicker({
         {/* Metric 3: Risk Profile / Regulatory Backing */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3.5 rounded-2xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} risk profile`}
         >
           <div className="flex items-center justify-between gap-1">
-            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+            <div className="font-mono text-[9.5px] text-slate-400 uppercase tracking-widest font-bold truncate">
               {isXStock ? 'CUSTODY & RISK' : 'RISK PROFILE'}
             </div>
-            <span className={`font-mono text-[9.5px] font-extrabold px-1.5 py-0.5 rounded border uppercase shrink-0 ${getRiskStyles(activeAsset.riskLevel)}`}>
+            <span className={`font-mono text-[9px] font-extrabold px-1.5 py-0.2 rounded border uppercase shrink-0 ${getRiskStyles(activeAsset.riskLevel)}`}>
               {isXStock ? 'SWISS DLT' : 'STATUS'}
             </span>
           </div>
-          <div className="flex items-baseline gap-2 py-1">
-            <span className={`font-display font-black text-xl sm:text-2xl tracking-tight ${activeAsset.riskLevel === 'Low' ? 'text-cyber-green' : activeAsset.riskLevel === 'Medium' ? 'text-amber-400' : 'text-cyber-orange'}`}>
+          <div className="flex items-baseline gap-2 py-0.5">
+            <span className={`font-display font-black text-lg sm:text-xl tracking-tight ${activeAsset.riskLevel === 'Low' ? 'text-cyber-green' : activeAsset.riskLevel === 'Medium' ? 'text-amber-400' : 'text-cyber-orange'}`}>
               {activeAsset.riskLevel} Risk
             </span>
           </div>
-          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+          <div className="font-mono text-[9px] text-slate-400 truncate">
             {isXStock ? `${activeAsset.issuer || 'Backed Finance'} Custody` : 'assessed risk classification'}
           </div>
         </div>
@@ -434,19 +434,19 @@ export default function MarketTicker({
         {/* Metric 4: System Stability / Underlying Tracking */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3.5 rounded-2xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} tracking details`}
         >
           <div className="flex items-center justify-between gap-1">
-            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+            <div className="font-mono text-[9.5px] text-slate-400 uppercase tracking-widest font-bold truncate">
               {isXStock ? 'ORACLE TRACKING' : 'SYSTEM STABILITY'}
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse shrink-0" />
           </div>
-          <div className="font-display font-black text-xl sm:text-2xl text-emerald-400 tracking-tight flex items-center gap-1.5 py-1">
+          <div className="font-display font-black text-lg sm:text-xl text-emerald-400 tracking-tight flex items-center gap-1.5 py-0.5">
             {isXStock ? '24 / 7 ACTIVE' : 'ACTIVE'}
           </div>
-          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+          <div className="font-mono text-[9px] text-slate-400 truncate">
             {isXStock ? 'Finnhub & CMC equity peg' : 'consensus & state verified'}
           </div>
         </div>
@@ -454,7 +454,7 @@ export default function MarketTicker({
         {/* Metric 5: Action Link (Market Intelligence vs Tokenized Stocks) */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3.5 rounded-2xl bg-slate-950/80 border ${
+          className={`p-3 rounded-xl bg-slate-950/80 border ${
             isXStock 
               ? 'border-purple-500/35 hover:border-purple-400 hover:bg-purple-500/10' 
               : 'border-cyber-cyan/30 hover:border-cyber-cyan/65 hover:bg-cyber-cyan/5'
@@ -462,10 +462,10 @@ export default function MarketTicker({
           title={isXStock ? `Navigate to Tokenized Stocks for ${activeAsset.name}` : `View ${activeAsset.name} Market Report in Cryptocurrency`}
         >
           <div className="flex items-center justify-between gap-1">
-            <div className="font-mono text-[10px] text-slate-400 uppercase tracking-widest font-bold truncate">
+            <div className="font-mono text-[9.5px] text-slate-400 uppercase tracking-widest font-bold truncate">
               {isXStock ? 'TOKENIZED STOCKS' : 'MARKET REPORT'}
             </div>
-            <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 border ${
+            <span className={`font-mono text-[8.5px] font-bold px-1.5 py-0.2 rounded shrink-0 border ${
               isXStock
                 ? 'text-purple-300 bg-purple-500/20 border-purple-500/40'
                 : 'text-amber-300 bg-amber-500/10 border-amber-500/20'
@@ -473,20 +473,20 @@ export default function MarketTicker({
               {isXStock ? 'XSTOCKS DESK' : 'REAL-TIME'}
             </span>
           </div>
-          <div className={`flex items-center gap-1.5 py-1 font-orbitron font-extrabold text-sm sm:text-base ${
+          <div className={`flex items-center gap-1.5 py-0.5 font-orbitron font-extrabold text-xs sm:text-sm ${
             isXStock ? 'text-purple-300 group-hover/tile:text-white' : 'text-cyber-cyan group-hover/tile:text-white'
           } group-hover/tile:translate-x-1 transition-all`}>
             <span>{isXStock ? 'VIEW XSTOCK' : 'VIEW REPORT'}</span>
-            <ChevronRight className={`w-4 h-4 ${isXStock ? 'text-purple-400' : 'text-cyber-cyan'} animate-pulse`} />
+            <ChevronRight className={`w-3.5 h-3.5 ${isXStock ? 'text-purple-400' : 'text-cyber-cyan'} animate-pulse`} />
           </div>
-          <div className="font-mono text-[9.5px] text-slate-400 truncate">
+          <div className="font-mono text-[9px] text-slate-400 truncate">
             {isXStock ? 'open 24 / 7 equity desk →' : 'inspect full findings →'}
           </div>
         </div>
       </div>
 
-      {/* Static cyber accent line (zero automatic sweeping or rotation) */}
-      <div className="w-full bg-slate-900/60 rounded-full h-[2px] overflow-hidden mt-3.5 relative">
+      {/* Static cyber accent line */}
+      <div className="w-full bg-slate-900/60 rounded-full h-[1.5px] overflow-hidden mt-2.5 relative">
         <div 
           className={`h-full w-full ${
             isXStock 
