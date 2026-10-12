@@ -1112,7 +1112,7 @@ export default function BlogPreviewer({
           <div className="space-y-1">
             <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyber-cyan" />
-              CRYPTOCURRENCY VERIFICATION &amp; INDICATORS
+              CRYPTO VERIFICATION &amp; INDICATORS
             </h2>
             <p className="text-[11px] sm:text-xs text-cyber-text-secondary max-w-xl leading-relaxed">
               Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.
