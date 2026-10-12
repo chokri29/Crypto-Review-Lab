@@ -2243,7 +2243,7 @@ export default function App() {
                 </div>
                 <div className="flex flex-col text-left min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-orbitron font-extrabold text-xs md:text-sm text-slate-100 group-hover:text-cyber-cyan transition-colors tracking-wider uppercase">
+                    <span className="font-orbitron font-extrabold text-xs md:text-sm text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 transition-colors tracking-wider uppercase">
                       Top Crypto Platforms to Start Your {(activeTab === 'xstocks' || activeTab === 'academy') ? 'xStocks' : 'Crypto'} Trading Journey
                     </span>
                   </div>
@@ -2351,7 +2351,7 @@ export default function App() {
                 onClick={() => setShowDonationDropdown(!showDonationDropdown)}
                 className="w-full px-4 py-2.5 rounded-xl border border-cyber-cyan/30 hover:border-cyber-cyan/60 bg-cyber-bg-card/80 hover:bg-cyber-cyan/5 flex items-center justify-between gap-3 cursor-pointer transition-all shadow-sm group"
               >
-                <span className="text-[10px] sm:text-[11px] text-cyber-text-secondary group-hover:text-white leading-snug font-syncopate font-bold uppercase tracking-tight text-center flex-1">
+                <span className="text-[10px] sm:text-[11px] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 leading-snug font-syncopate font-bold uppercase tracking-tight text-center flex-1">
                   YOU <span className="text-sm sm:text-base text-red-400 font-sans">♡</span> THIS SITE TIP US
                 </span>
                 <div className={`p-1.5 rounded-lg bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 transition-transform duration-300 shrink-0 ${showDonationDropdown ? 'rotate-180' : ''}`}>
@@ -2391,7 +2391,7 @@ export default function App() {
 
             {/* Column 3: SITE */}
             <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
-              <h4 className="font-display font-bold text-xs text-cyber-text-secondary uppercase tracking-widest mb-3">Site</h4>
+              <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
               <ul className="space-y-1 text-[9px] sm:text-[10px] text-cyber-text-muted text-left font-syncopate tracking-normal">
                 <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What's AVF?</button></li>
                 <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
@@ -2469,7 +2469,7 @@ export default function App() {
             </div>
 
             {/* High contrast, well-spaced copyright notice */}
-            <p className="font-mono text-[11px] sm:text-xs text-slate-400 font-medium uppercase tracking-wider text-center md:text-right pt-1 md:pt-0 shrink-0">
+            <p className="font-mono text-[11px] sm:text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 font-medium uppercase tracking-wider text-center md:text-right pt-1 md:pt-0 shrink-0">
               © 2026 CRYPTO REVIEW LAB — ALL RIGHTS RESERVED
             </p>
           </div>
