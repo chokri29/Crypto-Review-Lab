@@ -1110,9 +1110,9 @@ export default function BlogPreviewer({
       {!activeReview && (
         <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-3 border-b border-cyber-cyan/15 pb-4">
           <div className="space-y-1">
-            <h2 className="font-display font-bold text-sm sm:text-base md:text-lg text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wider flex items-center gap-2">
+            <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
               <Activity className="w-4 h-4 text-cyber-cyan" />
-              CRYPTOCURRENCY VERIFICATION & INDICATORS
+              CRYPTOCURRENCY VERIFICATION &amp; INDICATORS
             </h2>
             <p className="text-[11px] sm:text-xs text-cyber-text-secondary max-w-xl leading-relaxed">
               Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.

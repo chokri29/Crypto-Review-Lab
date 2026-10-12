@@ -75,8 +75,8 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 max-w-full">
-              <h3 className="font-orbitron font-black text-base md:text-xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wider flex items-center gap-2">
-                Public Evaluation Blueprint & Rubric
+              <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
+                Public Evaluation Blueprint &amp; Rubric
               </h3>
               <span className="font-orbitron text-[9px] sm:text-[10px] uppercase tracking-wider text-cyan-300 bg-cyan-500/15 border border-cyan-500/40 px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1 shadow-sm max-w-full">
                 <Lock className="w-3 h-3 text-cyan-400 shrink-0" />

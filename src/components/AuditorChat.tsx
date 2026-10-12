@@ -658,7 +658,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
             <div className="flex-1 flex flex-col min-h-0">
               {/* Header */}
               <div className="flex items-center justify-between gap-2 mb-2">
-                <h2 className="font-sans font-semibold text-base text-slate-100 flex items-center gap-2">
+                <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.2)]">
                     <Terminal className="w-4 h-4" />
                   </div>
@@ -953,7 +953,7 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-800/80 pb-3">
         <div>
-          <h2 className="font-sans font-semibold text-lg text-slate-100 flex items-center gap-2">
+          <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
             Recent Audit Verdicts
           </h2>
@@ -1057,8 +1057,8 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
         <div>
           <div className="flex items-center gap-2">
             <HelpCircle className="w-5 h-5 text-cyber-cyan" />
-            <h3 className="font-orbitron font-bold text-sm sm:text-base text-white uppercase tracking-wider">
-              Security & Audit Knowledge Base (FAQs)
+            <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase">
+              Security &amp; Audit Knowledge Base (FAQs)
             </h3>
           </div>
           <p className="text-xs text-slate-400 font-sans mt-0.5">

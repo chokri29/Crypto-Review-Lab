@@ -1318,8 +1318,8 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                     <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h2 className="font-orbitron font-black text-base sm:text-lg md:text-xl lg:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-tight sm:tracking-wider leading-tight drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
-                      Security & Risk Assessment Terminal
+                    <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase leading-tight drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
+                      Security &amp; Risk Assessment Terminal
                     </h2>
                     <p className="text-[10px] sm:text-[11px] font-orbitron text-purple-200 font-extrabold tracking-wider leading-relaxed mt-1.5 flex flex-wrap items-center gap-x-2">
                       <span className="text-purple-300/90 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-500/30">ALGORITHMIC SECURITY INTELLIGENCE</span>
@@ -1859,7 +1859,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                 </div>
 
                 <div className="space-y-1.5 max-w-md px-2">
-                  <h3 className="font-orbitron font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 text-base sm:text-lg md:text-xl tracking-wide">
+                  <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase leading-tight">
                     Security Check Screen Standby
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
