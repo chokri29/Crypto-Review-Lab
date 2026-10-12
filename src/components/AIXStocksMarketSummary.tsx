@@ -272,7 +272,7 @@ export default function AIXStocksMarketSummary({
             <Sparkles className="w-4 h-4 stroke-[2.5]" />
           </div>
           <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]">
-            AI xStocks Market Summary
+            xStocks Market Summary
           </h3>
         </div>
 
