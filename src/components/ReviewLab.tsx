@@ -1312,27 +1312,28 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
             
             {/* Terminal Header */}
             <div className="flex flex-col gap-3 pb-4 mb-5 border-b border-purple-500/30">
-              <div className="flex items-start sm:items-center justify-between gap-2.5 sm:gap-3">
-                <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-                  <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-purple-800/80 via-purple-950 to-indigo-950 border-2 border-purple-400/60 text-amber-300 shadow-[0_0_25px_rgba(168,85,247,0.4)] shrink-0 mt-0.5 sm:mt-0 flex items-center justify-center">
-                    <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase leading-tight drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
-                      Security &amp; Risk Assessment Terminal
-                    </h2>
-                    <p className="text-[10px] sm:text-[11px] font-orbitron text-purple-200 font-extrabold tracking-wider leading-relaxed mt-1.5 flex flex-wrap items-center gap-x-2">
-                      <span className="text-purple-300/90 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-500/30">ALGORITHMIC SECURITY INTELLIGENCE</span>
-                      <span className="text-purple-400 hidden sm:inline">•</span>
-                      <span className="text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30 shadow-[0_0_10px_rgba(245,158,11,0.2)]">AVF ENGINE</span>
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-br from-purple-800/80 via-purple-950 to-indigo-950 border-2 border-purple-400/60 text-amber-300 shadow-[0_0_25px_rgba(168,85,247,0.4)] shrink-0 flex items-center justify-center">
+                  <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
                 </div>
-
-                <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-orbitron font-black text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 sm:px-2.5 py-1 rounded-full shadow-sm tracking-wider shrink-0 mt-0.5 sm:mt-0">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-400 animate-pulse"></span>
-                  <span className="hidden sm:inline">LIVE CONSOLE</span>
-                  <span className="inline sm:hidden">LIVE</span>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <h2 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase leading-tight drop-shadow-[0_2px_12px_rgba(168,85,247,0.3)]">
+                    Security &amp; Risk Assessment Terminal
+                  </h2>
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                    <span className="text-[10px] sm:text-[11px] font-orbitron text-purple-300 bg-purple-950/80 px-2.5 py-1 rounded-xl border border-purple-500/40 shadow-sm">
+                      ALGORITHMIC SECURITY INTELLIGENCE
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 text-[10px] font-orbitron font-bold text-purple-300 bg-purple-950/80 border border-purple-500/40 px-2.5 py-1 rounded-xl shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                        <span>LIVE</span>
+                      </div>
+                      <div className="text-[10px] font-orbitron font-bold text-amber-400 bg-slate-950 border border-amber-500/50 px-2.5 py-1 rounded-xl shadow-sm">
+                        AVF ENGINE
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1860,7 +1861,10 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
                 <div className="space-y-1.5 max-w-md px-2">
                   <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase leading-tight">
-                    Security Check Screen Standby
+                    Security Check
+                    <span className="block text-sm sm:text-base font-bold lowercase tracking-normal mt-1">
+                      screen standby
+                    </span>
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
                     Select a project in the Security &amp; Risk Assessment Terminal to run a professional crypto security report.

@@ -1660,19 +1660,26 @@ export default function App() {
               title="Return to AVF Review Lab Home"
             >
               <div className="w-9 h-9 sm:w-10 sm:h-10 relative flex-shrink-0">
-                <svg fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_8px_rgba(0,229,255,0.6)] group-hover:scale-105 transition-transform animate-pulse">
-                  <polygon fill="none" points="20,2 38,11 38,29 20,38 2,29 2,11" stroke="#00e5ff" strokeWidth="1.5"/>
-                  <polygon fill="none" opacity="0.3" points="20,8 32,14 32,26 20,32 8,26 8,14" stroke="#00e5ff" strokeWidth="0.8"/>
-                  <circle cx="17.5" cy="17.5" r="5.5" stroke="#00e5ff" strokeWidth="1.8" fill="none" />
-                  <path d="M15 15.5 a 2.5 2.5 0 0 1 2.5 -2.5" stroke="#00e5ff" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-                  <line x1="21.5" y1="21.5" x2="28" y2="28" stroke="#00e5ff" strokeWidth="2.2" strokeLinecap="round" />
+                <svg fill="none" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_12px_rgba(168,85,247,0.5)] group-hover:scale-105 transition-transform animate-pulse">
+                  <polygon fill="none" points="20,2 38,11 38,29 20,38 2,29 2,11" stroke="url(#logo-grad)" strokeWidth="1.5"/>
+                  <polygon fill="none" opacity="0.35" points="20,8 32,14 32,26 20,32 8,26 8,14" stroke="url(#logo-grad)" strokeWidth="0.8"/>
+                  <circle cx="17.5" cy="17.5" r="5.5" stroke="url(#logo-grad)" strokeWidth="1.8" fill="none" />
+                  <path d="M15 15.5 a 2.5 2.5 0 0 1 2.5 -2.5" stroke="url(#logo-grad)" strokeWidth="0.8" strokeLinecap="round" fill="none" />
+                  <line x1="21.5" y1="21.5" x2="28" y2="28" stroke="url(#logo-grad)" strokeWidth="2.2" strokeLinecap="round" />
+                  <defs>
+                    <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#00e5ff" />
+                      <stop offset="0.5" stopColor="#3b82f6" />
+                      <stop offset="1" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
                 </svg>
               </div>
               <div className="flex flex-col pt-1 sm:pt-1.5">
-                <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-300 to-cyan-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
+                <h1 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl tracking-[2px] sm:tracking-[3.5px] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase leading-none whitespace-nowrap drop-shadow-[0_0_16px_rgba(0,229,255,0.5)]">
                   CRYPTO REVIEW LAB
                 </h1>
-                <span className="text-[7.5px] sm:text-[9px] font-syncopate text-cyan-400/90 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-2">
+                <span className="text-[7.5px] sm:text-[9px] font-syncopate text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-[1.5px] sm:tracking-[2.5px] block mt-2 font-bold">
                   Algorithmic Security Intelligence for Digital Assets
                 </span>
               </div>

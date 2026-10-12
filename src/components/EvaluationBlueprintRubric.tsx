@@ -75,7 +75,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 max-w-full">
-              <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
+              <h3 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
                 Public Evaluation Blueprint &amp; Rubric
               </h3>
               <span className="font-orbitron text-[9px] sm:text-[10px] uppercase tracking-wider text-cyan-300 bg-cyan-500/15 border border-cyan-500/40 px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1 shadow-sm max-w-full">
@@ -85,6 +85,7 @@ export const EvaluationBlueprintRubric: React.FC<EvaluationBlueprintRubricProps>
               <span className="font-orbitron text-[9px] sm:text-[10px] uppercase tracking-wider text-purple-300 bg-purple-500/15 border border-purple-500/40 px-2 sm:px-2.5 py-0.5 rounded-full font-extrabold flex items-center gap-1 shadow-sm max-w-full">
                 <Cpu className="w-3 h-3 text-purple-400 shrink-0" />
                 <span className="truncate">AVF ENGINE</span>
+                <ChevronDown className={`w-3 h-3 text-purple-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
               </span>
             </div>
             <p className="text-xs text-slate-400 font-sans mt-1 hidden sm:block">
