@@ -1949,8 +1949,8 @@ export default function App() {
                       </div>
                     </div>
 
-                    <h2 className="font-orbitron font-extrabold text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide leading-tight">
-                      AVF Security &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Risk Assessment</span>
+                    <h2 className="font-orbitron font-extrabold text-2xl sm:text-3xl lg:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight">
+                      AVF Security &amp; Risk Assessment
                     </h2>
 
                     <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">

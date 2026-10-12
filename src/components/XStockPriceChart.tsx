@@ -19,7 +19,11 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
-  AlertTriangle
+  AlertTriangle,
+  Share2,
+  Send,
+  Copy,
+  Check
 } from 'lucide-react';
 import { 
   ChartDataResult, 
@@ -34,6 +38,7 @@ import {
   ChartTimeframe
 } from '../services/marketChartService';
 import { useCurrency } from '../context/CurrencyContext';
+import { getPublicXStockShareUrl, copyTextToClipboard } from '../utils/shareUtils';
 
 interface XStockPriceChartProps {
   symbol: string;
@@ -70,6 +75,34 @@ export default function XStockPriceChart({
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [svgDimensions, setSvgDimensions] = useState({ width: 700, height: 260 });
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const handleCopyShareLink = async () => {
+    const url = getPublicXStockShareUrl(symbol);
+    const success = await copyTextToClipboard(url);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const shareTwitterHref = useMemo(() => {
+    const url = getPublicXStockShareUrl(symbol);
+    const text = `Explore verified stock details and 1:1 backing for ${name} (${symbol} ↔ ${underlyingTicker || symbol}) on Crypto Review Lab:`;
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  }, [symbol, name, underlyingTicker]);
+
+  const shareFacebookHref = useMemo(() => {
+    const url = getPublicXStockShareUrl(symbol);
+    return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  }, [symbol]);
+
+  const shareTelegramHref = useMemo(() => {
+    const url = getPublicXStockShareUrl(symbol);
+    const text = `Stock Details & Verification for ${name} (${symbol}):`;
+    return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  }, [symbol, name]);
 
   // ResizeObserver for responsive SVG
   useEffect(() => {
@@ -1157,6 +1190,63 @@ export default function XStockPriceChart({
         </div>
         ) : null
       )}
+
+      {/* Social Sharing Toolbar at the Bottom of xStocks Chart Card */}
+      <div className="pt-3 border-t border-cyber-cyan/15 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-xl shadow-sm">
+          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+            <Share2 className="w-3 h-3 text-cyber-cyan" />
+            <span>Share:</span>
+          </span>
+          <a
+            href={shareTwitterHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer"
+            title="Share on X (Twitter)"
+            aria-label="Share on X"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+          </a>
+          <a
+            href={shareTelegramHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-400 rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer"
+            title="Share on Telegram"
+            aria-label="Share on Telegram"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href={shareFacebookHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 hover:bg-blue-600/20 text-slate-300 hover:text-blue-400 rounded-lg transition-colors inline-flex items-center justify-center cursor-pointer"
+            title="Share on Facebook"
+            aria-label="Share on Facebook"
+          >
+            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+          </a>
+          <button
+            type="button"
+            onClick={handleCopyShareLink}
+            className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer ${
+              copied
+                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                : 'bg-slate-900 hover:bg-cyber-cyan/20 text-slate-300 hover:text-cyber-cyan border-slate-800'
+            }`}
+            title="Copy share link"
+          >
+            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-cyber-cyan" />}
+            <span>{copied ? 'Copied' : 'Link'}</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

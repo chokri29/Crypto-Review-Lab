@@ -227,7 +227,7 @@ export default function MarketTicker({
             {isXStock ? <Building2 className="w-3.5 h-3.5 stroke-[2.2]" /> : <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />}
           </div>
           
-          <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] flex items-center gap-2">
+          <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] flex items-center gap-2">
             <span>Most Tracked Digital Assets</span>
           </h3>
 

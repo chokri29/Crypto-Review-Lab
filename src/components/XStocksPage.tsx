@@ -642,8 +642,8 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
               </span>
             </div>
 
-            <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-white tracking-wide leading-tight">
-              Tokenized Equities &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Cryptocurrency</span>
+            <h1 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight">
+              Tokenized Stocks &amp; Equities
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
@@ -713,7 +713,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-cyber-cyan" />
-                <span className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">
+                <span className="font-orbitron font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-wider">
                   xStocks Registry ({filteredStocks.length})
                 </span>
               </div>

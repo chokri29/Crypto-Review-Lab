@@ -98,7 +98,7 @@ export default function AIMarketSummary({ reviews = [] }: AIMarketSummaryProps) 
           <div className="w-7 h-7 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
             <Sparkles className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-slate-100 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]">
+          <h3 className="font-orbitron font-extrabold text-xs sm:text-sm text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-[2px] uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]">
             AI Market Summary
           </h3>
         </div>
