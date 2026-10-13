@@ -267,12 +267,13 @@ export default function AIXStocksMarketSummary({
 
       {/* Header */}
       <div className="flex justify-between items-center pb-3.5 border-b border-slate-800/80 mb-4 relative z-10 flex-wrap gap-2">
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2.5 w-full sm:w-auto">
           <div className="w-7 h-7 rounded-xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,229,255,0.25)]">
             <Sparkles className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)]">
-            xStocks Market Summary
+          <h3 className="font-orbitron font-black text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] text-center sm:text-left leading-tight w-full sm:w-auto">
+            <span>xStocks Market </span>
+            <span className="block text-center sm:inline">Summary</span>
           </h3>
         </div>
 

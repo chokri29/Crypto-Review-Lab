@@ -221,22 +221,25 @@ export default function MarketTicker({
       <div className={`absolute top-0 right-0 w-36 h-36 ${isXStock ? 'bg-purple-500/10' : 'bg-cyber-cyan/10'} rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none transition-colors duration-500`}></div>
 
       {/* Header */}
-      <div className="flex justify-between items-center pb-2.5 border-b border-slate-800/80 mb-3 relative z-10 flex-wrap gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className={`w-6 h-6 rounded-lg ${isXStock ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]' : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)]'} border flex items-center justify-center shrink-0 transition-colors`}>
-            {isXStock ? <Building2 className="w-3.5 h-3.5 stroke-[2.2]" /> : <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />}
+      <div className="flex flex-col items-center pb-3 border-b border-slate-800/80 mb-3 relative z-10 gap-2.5">
+        <div className="flex items-center justify-between w-full">
+          <div className={`w-7 h-7 rounded-xl ${isXStock ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]' : 'bg-cyber-cyan/10 border-cyber-cyan/30 text-cyber-cyan shadow-[0_0_12px_rgba(0,229,255,0.25)]'} border flex items-center justify-center shrink-0 transition-colors`}>
+            {isXStock ? <Building2 className="w-4 h-4 stroke-[2.2]" /> : <TrendingUp className="w-4 h-4 stroke-[2.5]" />}
           </div>
-          
-          <h3 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] flex items-center gap-2">
-            <span>Most Tracked Digital Assets</span>
-          </h3>
 
           {/* 24h Window Badge */}
-          <span className="hidden sm:inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
             24h Live
           </span>
+        </div>
 
+        <h3 className="font-orbitron font-black text-lg sm:text-xl md:text-2xl lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase drop-shadow-[0_0_8px_rgba(0,229,255,0.3)] text-center w-full py-1 leading-snug">
+          <span>Most Tracked Digital Assets</span>
+        </h3>
+
+        {/* Filters and Controls Row */}
+        <div className="flex flex-wrap items-center justify-between w-full gap-2 pt-1">
           {/* Quick Filter Tabs / 3D Buttons */}
           <div className="flex items-center gap-1.5 p-0.5 rounded-xl bg-slate-950/70 border border-slate-800/90 shadow-inner">
             <button 
@@ -280,9 +283,8 @@ export default function MarketTicker({
               </span>
             </button>
           </div>
-        </div>
 
-        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
           {/* Quick interactive pagination indicator dots */}
           {displayedItems.length > 1 && (
             <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-950/80 border border-slate-800/80">
@@ -328,6 +330,7 @@ export default function MarketTicker({
           <span className={`font-mono text-[9px] ${isXStock ? 'text-purple-300 bg-purple-500/15 border-purple-500/35' : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/35'} border px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm`}>
             {activeIdx + 1} / {displayedItems.length}
           </span>
+          </div>
         </div>
       </div>
 

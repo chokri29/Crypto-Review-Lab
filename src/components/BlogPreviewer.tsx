@@ -1110,9 +1110,12 @@ export default function BlogPreviewer({
       {!activeReview && (
         <div className="mb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-3 border-b border-cyber-cyan/15 pb-4">
           <div className="space-y-1">
-            <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex items-center gap-2">
-              <Activity className="w-4 h-4 text-cyber-cyan" />
-              CRYPTO VERIFICATION &amp; INDICATORS
+            <h2 className="font-orbitron font-black text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide uppercase flex flex-col sm:flex-row items-center sm:items-center gap-2 text-center sm:text-left w-full leading-tight">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <Activity className="w-4 h-4 text-cyber-cyan shrink-0" />
+                <span>Crypto Verification </span>
+              </div>
+              <span className="block text-center sm:inline">&amp; Indicators</span>
             </h2>
             <p className="text-[11px] sm:text-xs text-cyber-text-secondary max-w-xl leading-relaxed">
               Real-time multi-source market intelligence, live price discovery, tokenomics metrics, and technical indicators.

@@ -710,11 +710,12 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
         {/* Left Column (4 cols): Configurable Ticker Selector & Search */}
         <div className="lg:col-span-4 flex flex-col">
           <div className="p-4 rounded-2xl bg-cyber-bg-card/90 border border-cyber-cyan/30 backdrop-blur-md shadow-xl flex flex-col h-full space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-cyber-cyan" />
-                <span className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-wide">
-                  xStocks Registry ({filteredStocks.length})
+            <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                <Building2 className="w-4 h-4 text-cyber-cyan shrink-0" />
+                <span className="font-orbitron font-black text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-wide text-center sm:text-left leading-tight w-full sm:w-auto">
+                  <span>xStocks </span>
+                  <span className="block text-center sm:inline">Registry ({filteredStocks.length})</span>
                 </span>
               </div>
               <div className="flex items-center gap-1">
