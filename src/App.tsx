@@ -2325,12 +2325,12 @@ export default function App() {
                 <div className="absolute top-0 left-4 right-4 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/40 to-transparent" />
 
                 {/* Header bar inside card */}
-                <div className="flex items-center gap-1.5 border-b border-cyber-cyan/15 pb-1.5">
-                  <div className="flex items-center gap-1.5 text-cyber-cyan font-mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 border-b border-cyber-cyan/15 pb-2">
+                  <div className="flex items-center gap-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 font-orbitron text-xs sm:text-sm font-black uppercase tracking-wider">
                     <div className="p-0.5 rounded-md bg-cyber-cyan/10 border border-cyber-cyan/25 text-cyber-cyan shadow-xs">
-                      <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
                     </div>
-                    <span>CRYPTO REVIEW LAB — SECURITY VERIFICATION TERMINAL</span>
+                    <span>CRYPTO REVIEW LAB</span>
                   </div>
                 </div>
 
@@ -2399,7 +2399,7 @@ export default function App() {
             {/* Column 3: SITE */}
             <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
               <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
-              <ul className="space-y-1 text-[9px] sm:text-[10px] text-cyber-text-muted text-left font-syncopate tracking-normal">
+              <ul className="space-y-1.5 text-[10px] sm:text-xs text-slate-200 font-medium text-left font-syncopate tracking-normal">
                 <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What's AVF?</button></li>
                 <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
                 <li>
