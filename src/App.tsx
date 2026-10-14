@@ -1956,7 +1956,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <h2 className="font-orbitron font-black text-xl sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight uppercase">
+                    <h2 className="font-orbitron font-black text-base sm:text-lg lg:text-xl xl:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight uppercase">
                       AVF Security &amp; Risk Assessment
                     </h2>
 
@@ -2399,7 +2399,7 @@ export default function App() {
             {/* Column 3: SITE */}
             <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
               <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
-              <ul className="space-y-1.5 text-[10px] sm:text-xs text-slate-200 font-medium text-left font-syncopate tracking-normal">
+              <ul className="space-y-1.5 text-[9px] sm:text-[10px] text-slate-200 font-medium text-left font-syncopate tracking-normal">
                 <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What's AVF?</button></li>
                 <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
                 <li>
