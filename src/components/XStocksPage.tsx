@@ -713,9 +713,8 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
             <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3">
               <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <Building2 className="w-4 h-4 text-cyber-cyan shrink-0" />
-                <span className="font-orbitron font-black text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-wide text-center sm:text-left leading-tight w-full sm:w-auto">
-                  <span>xStocks </span>
-                  <span className="block text-center sm:inline">Registry ({filteredStocks.length})</span>
+                <span className="font-orbitron font-black text-lg sm:text-2xl lg:text-3xl xl:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-wide whitespace-nowrap">
+                  xStocks Registry
                 </span>
               </div>
               <div className="flex items-center gap-1">

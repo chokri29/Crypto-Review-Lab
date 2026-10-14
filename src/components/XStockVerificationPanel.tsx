@@ -289,10 +289,10 @@ export default function XStockVerificationPanel({
   }, [selectedStock.contractAddress, selectedStock.chain, isSolana]);
 
   return (
-    <div id="xstock-verification-panel" className="p-5 sm:p-7 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border border-cyber-cyan/30 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.06)] space-y-6">
+    <div id="xstock-verification-panel" className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-950 via-[#0a1017] to-slate-950 border border-cyber-cyan/30 shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_24px_rgba(0,229,255,0.06)] space-y-4">
       
       {/* 1. Header: Clear Stock Identity & Panel Purpose for Visitors */}
-      <div className="space-y-4 border-b border-cyber-cyan/15 pb-5">
+      <div className="space-y-2.5 border-b border-cyber-cyan/15 pb-4">
         {/* Top utility row: Badges on left, Sharing and Actions on right */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-wrap">
