@@ -2316,7 +2316,7 @@ export default function App() {
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 mb-8 pb-8 border-b border-cyber-cyan/10 items-center">
             {/* Column 1: Brand Card */}
-            <div className="md:col-span-5 lg:col-span-5">
+            <div className="md:col-span-4 lg:col-span-4">
               <div className="relative p-3 sm:p-3.5 rounded-xl bg-gradient-to-br from-cyber-bg-card/90 via-cyber-bg-card/75 to-cyber-bg-primary border border-cyber-cyan/25 backdrop-blur-md space-y-2 shadow-sm overflow-hidden transition-all duration-300 ease-out hover:border-cyber-cyan/45 hover:shadow-[0_8px_25px_rgba(0,229,255,0.12)] group cursor-pointer">
                 {/* Ambient glowing accent orb in background */}
                 <div className="absolute -top-8 -right-8 w-16 h-16 bg-cyber-cyan/10 rounded-full blur-lg pointer-events-none group-hover:bg-cyber-cyan/20 transition-all duration-500" />
@@ -2396,37 +2396,47 @@ export default function App() {
               )}
             </div>
 
-            {/* Column 3: SITE */}
-            <div className="md:col-span-4 lg:col-span-4 md:pl-8 lg:pl-16">
-              <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
-              <ul className="space-y-1.5 text-[9px] sm:text-[10px] text-slate-200 font-medium text-left font-syncopate tracking-normal">
-                <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What's AVF?</button></li>
-                <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
-                <li>
-                  <a 
-                    href="https://github.com/chokri29/Crypto-Review-Lab" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a 
-                    href="https://www.crypto-academy.online/search/label/Reviews?m=1" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
-                  >
-                    Blog
-                  </a>
-                </li>
-                <li><button onClick={() => setActiveModal('contact')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Contact</button></li>
-                <li><button onClick={() => setActiveModal('privacy')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Privacy Policy</button></li>
-                <li><button onClick={() => setActiveModal('disclaimer')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Disclaimer</button></li>
-                <li><button onClick={() => setActiveModal('tos')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Terms of Service</button></li>
-              </ul>
+            {/* Column 3 & 4: SITE and INFO side-by-side */}
+            <div className="md:col-span-5 lg:col-span-5 grid grid-cols-2 gap-4 md:pl-4">
+              {/* SITE Column */}
+              <div>
+                <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
+                <ul className="space-y-1.5 text-[9px] sm:text-[10px] text-slate-200 font-medium text-left font-syncopate tracking-normal">
+                  <li><button onClick={() => setActiveModal('whats-avf')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">What is AVF?</button></li>
+                  <li><button onClick={() => setActiveModal('privacy')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Privacy Policy</button></li>
+                  <li><button onClick={() => setActiveModal('disclaimer')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Disclaimer</button></li>
+                  <li><button onClick={() => setActiveModal('tos')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Terms of Service</button></li>
+                </ul>
+              </div>
+
+              {/* INFO Column */}
+              <div>
+                <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Info</h4>
+                <ul className="space-y-1.5 text-[9px] sm:text-[10px] text-slate-200 font-medium text-left font-syncopate tracking-normal">
+                  <li><button onClick={() => setActiveModal('author')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">About Author</button></li>
+                  <li>
+                    <a 
+                      href="https://github.com/chokri29/Crypto-Review-Lab" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
+                    >
+                      GitHub
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="https://www.crypto-academy.online/search/label/Reviews?m=1" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full block"
+                    >
+                      Blog
+                    </a>
+                  </li>
+                  <li><button onClick={() => setActiveModal('contact')} className="hover:text-cyber-cyan transition-colors cursor-pointer text-left w-full">Contact</button></li>
+                </ul>
+              </div>
             </div>
           </div>
 
