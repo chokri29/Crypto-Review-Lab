@@ -2397,7 +2397,7 @@ export default function App() {
             </div>
 
             {/* Column 3 & 4: SITE and INFO side-by-side */}
-            <div className="md:col-span-5 lg:col-span-5 grid grid-cols-2 gap-4 md:pl-4 mt-3 sm:mt-5">
+            <div className="md:col-span-5 lg:col-span-5 grid grid-cols-2 gap-4 md:pl-4 mt-6 sm:mt-9">
               {/* SITE Column */}
               <div>
                 <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
