@@ -2402,10 +2402,10 @@ export default function App() {
               <div>
                 <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Site</h4>
                 <ul className="space-y-1.5 text-[10px] sm:text-[11px] text-slate-200 font-medium text-left font-mono tracking-wide uppercase">
-                  <li><button onClick={() => setActiveModal('whats-avf')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">What is AVF?</button></li>
-                  <li><button onClick={() => setActiveModal('privacy')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Privacy Policy</button></li>
-                  <li><button onClick={() => setActiveModal('disclaimer')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Disclaimer</button></li>
-                  <li><button onClick={() => setActiveModal('tos')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Terms of Service</button></li>
+                  <li><button onClick={() => setActiveModal('whats-avf')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">WHAT IS AVF?</button></li>
+                  <li><button onClick={() => setActiveModal('privacy')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">PRIVACY POLICY</button></li>
+                  <li><button onClick={() => setActiveModal('disclaimer')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">DISCLAIMER</button></li>
+                  <li><button onClick={() => setActiveModal('tos')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">TERMS OF SERVICE</button></li>
                 </ul>
               </div>
 
@@ -2413,15 +2413,15 @@ export default function App() {
               <div>
                 <h4 className="font-display font-bold text-xs text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase tracking-widest mb-3">Info</h4>
                 <ul className="space-y-1.5 text-[10px] sm:text-[11px] text-slate-200 font-medium text-left font-mono tracking-wide uppercase">
-                  <li><button onClick={() => setActiveModal('author')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">About Author</button></li>
+                  <li><button onClick={() => setActiveModal('author')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">ABOUT AUTHOR</button></li>
                   <li>
                     <a 
                       href="https://github.com/chokri29/Crypto-Review-Lab" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400"
+                      className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase"
                     >
-                      GitHub
+                      GITHUB
                     </a>
                   </li>
                   <li>
@@ -2429,12 +2429,12 @@ export default function App() {
                       href="https://www.crypto-academy.online/search/label/Reviews?m=1" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400"
+                      className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full block text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase"
                     >
-                      Blog
+                      BLOG
                     </a>
                   </li>
-                  <li><button onClick={() => setActiveModal('contact')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400">Contact</button></li>
+                  <li><button onClick={() => setActiveModal('contact')} className="hover:opacity-80 transition-opacity cursor-pointer text-left w-full text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 uppercase">CONTACT</button></li>
                 </ul>
               </div>
             </div>
