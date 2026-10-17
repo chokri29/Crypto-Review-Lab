@@ -1957,7 +1957,7 @@ export default function App() {
                     </div>
 
                     <h2 className="font-orbitron font-black text-base sm:text-lg lg:text-xl xl:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight uppercase">
-                      AVF Security &amp; Risk Assessment
+                      AVF SECURITY &amp; RISK ASSESSMENT
                     </h2>
 
                     <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">

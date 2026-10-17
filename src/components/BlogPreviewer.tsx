@@ -1061,7 +1061,7 @@ export default function BlogPreviewer({
             </div>
 
             <h1 className="font-orbitron font-black text-base sm:text-lg lg:text-xl xl:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight uppercase">
-              Cryptocurrency and Market Report
+              CRYPTOCURRENCY AND MARKET REPORT
             </h1>
 
             <p className="text-xs sm:text-sm text-slate-300 font-syncopate leading-relaxed max-w-2xl">
