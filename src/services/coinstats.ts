@@ -25,8 +25,8 @@ export interface CoinStatsItem {
   dataEngine?: string;
   dataSources?: string[];
 }
-
-export const COINSTATS_GAS_URL = 'https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec';
+import { COINSTATS_GAS_URL } from '../constants/proxies.ts';
+export { COINSTATS_GAS_URL };
 
 // In-memory cache for CoinStats feed (TTL: 90 seconds)
 let coinstatsCache: { data: Record<string, CoinStatsItem>; timestamp: number } | null = null;

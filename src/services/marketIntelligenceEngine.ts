@@ -14,6 +14,7 @@ import { INITIAL_REVIEWS } from '../data.ts';
 import { getAssetKey } from '../utils/assetKey.ts';
 import { isXStockAsset } from '../utils/xstockFilter.ts';
 import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains.ts';
+import { COINGECKO_GAS_URL, COINSTATS_GAS_URL, appendGasToken } from '../constants/proxies.ts';
 
 // Initial canonical networks
 const INITIAL_NETWORKS = [
@@ -208,7 +209,7 @@ export const NATIVE_L1_COIN_MAP: Record<string, string> = {
 };
 
 // Proxy-only: never call api.coingecko.com from this process.
-export const COINGECKO_GAS_URL = 'https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec';
+export { COINGECKO_GAS_URL };
 
 let cachedAssetPlatforms: Map<string, string> = new Map();
 let lastAssetPlatformsFetchTime = 0;
@@ -221,7 +222,7 @@ export async function fetchAssetPlatformsMap(): Promise<Map<string, string>> {
   }
 
   // Proxy-only: never call api.coingecko.com from this process.
-  const url = `${COINGECKO_GAS_URL}?action=asset_platforms`;
+  const url = appendGasToken(`${COINGECKO_GAS_URL}?action=asset_platforms`);
   const headers: Record<string, string> = {
     'Accept': 'application/json',
     'User-Agent': 'CryptoReviewLab/3.2.0'
@@ -344,6 +345,7 @@ async function fetchCoinGeckoMarketsPage(page = 1, perPage = 250, ids?: string[]
   if (ids && ids.length > 0) {
     gasUrl += `&ids=${encodeURIComponent(ids.join(','))}`;
   }
+  gasUrl = appendGasToken(gasUrl);
 
   try {
     const gasRes = await fetch(gasUrl, {
@@ -464,7 +466,7 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
 // Proxy-only: never call api.coingecko.com from this process.
 export async function fetchCoinGeckoCoinsListPlatforms(): Promise<Map<string, Record<string, string>>> {
   const map = new Map<string, Record<string, string>>();
-  const url = `${COINGECKO_GAS_URL}?action=list&include_platform=true`;
+  const url = appendGasToken(`${COINGECKO_GAS_URL}?action=list&include_platform=true`);
   const headers: Record<string, string> = {
     'Accept': 'application/json',
     'User-Agent': 'CryptoReviewLab/3.2.0'
@@ -503,7 +505,7 @@ export async function fetchRwaExcludedCoinIds(): Promise<Set<string>> {
 
   for (const page of [1, 2]) {
     try {
-      const url = `${COINGECKO_GAS_URL}?action=markets&category=real-world-assets-rwa&per_page=250&page=${page}&sparkline=false&vs_currency=usd`;
+      const url = appendGasToken(`${COINGECKO_GAS_URL}?action=markets&category=real-world-assets-rwa&per_page=250&page=${page}&sparkline=false&vs_currency=usd`);
       const res = await fetch(url, { headers });
       if (res.ok) {
         const data = await res.json();
@@ -794,7 +796,7 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
     let csDataMap: Record<string, any> = {};
     try {
       const csRes = await fetch(
-        'https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec?action=markets&limit=500',
+        appendGasToken(`${COINSTATS_GAS_URL}?action=markets&limit=500`),
         { headers: { 'Accept': 'application/json' } }
       );
       if (csRes.ok) {

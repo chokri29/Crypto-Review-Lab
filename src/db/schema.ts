@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { index, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, serial, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 // 1. Users Table (keyed to Firebase Auth UID)
 export const users = pgTable('users', {
@@ -24,12 +24,16 @@ export const cryptoReviews = pgTable('crypto_reviews', {
   overallScore: integer('overall_score'),
   riskLevel: text('risk_level'),
   verdict: text('verdict'),
-  scores: text('scores'), // JSON serialized scores object
+  scores: jsonb('scores'),
   summary: text('summary'),
-  pros: text('pros'), // JSON serialized string array
-  cons: text('cons'), // JSON serialized string array
+  pros: jsonb('pros'),
+  cons: jsonb('cons'),
   contractAddress: text('contract_address'),
-  securityScan: text('security_scan'), // JSON serialized security scan
+  securityScan: jsonb('security_scan'),
+  phaseTwoReControl: jsonb('phase_two_re_control'),
+  auditSignature: jsonb('audit_signature'),
+  f3Verification: jsonb('f3_verification'),
+  isSigned: boolean('is_signed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => [
   index('crypto_reviews_user_uid_idx').on(table.userUid),

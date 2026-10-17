@@ -1284,7 +1284,7 @@ export default function XStockVerificationPanel({
                     <>
                       <div className="flex items-center gap-1.5 font-bold text-emerald-300">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>Fixed Supply Contract</span>
+                        <span>No public mint() detected — not a supply-cap guarantee</span>
                       </div>
                       <div className="text-[10.5px] text-slate-400 font-sans">
                         No active dynamic minting capabilities observed.

@@ -21,8 +21,8 @@ export interface FinnhubQuote {
   basisLabel?: 'Live Equity Basis' | 'Last Close / After-Hours Basis';
   basisTimestampFormatted?: string;
 }
-
-export const FINNHUB_GAS_URL = 'https://script.google.com/macros/s/AKfycbz3gpHcXA-yc7myC5UNJ-pIJyNnE1xXfAO_v3vlfbjJOSH345Cc4DtoGPYzcHq3diUUAg/exec';
+import { FINNHUB_GAS_URL } from '../constants/proxies.ts';
+export { FINNHUB_GAS_URL };
 
 // In-memory cache for Finnhub quotes per ticker symbol (TTL: 60 seconds)
 const finnhubCache: Record<string, { data: FinnhubQuote | null; timestamp: number }> = {};

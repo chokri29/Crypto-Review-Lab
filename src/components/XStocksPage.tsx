@@ -31,6 +31,7 @@ import {
   UsMarketHoursStatus 
 } from '../data/xstocksRegistry';
 import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains';
+import { fetchRobinhoodStockTokens } from '../services/robinhoodStockTokens';
 import XStockPriceChart from './XStockPriceChart';
 import AIXStocksMarketSummary from './AIXStocksMarketSummary';
 import XStockVerificationPanel from './XStockVerificationPanel';
@@ -181,6 +182,49 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
     }
   }, [initialStockSymbol]);
 
+  // Robinhood Stock Tokens (dynamically ingested from /api/robinhood/stock-tokens)
+  const [robinhoodTokens, setRobinhoodTokens] = useState<XStockRegistryItem[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchRobinhoodStockTokens()
+      .then(tokens => {
+        if (!isMounted || !Array.isArray(tokens)) return;
+        const mapped: XStockRegistryItem[] = tokens.map(t => ({
+          symbol: t.symbol,
+          name: t.name,
+          underlyingTicker: t.symbol,
+          underlyingName: t.name.replace(/\s*•\s*Robinhood\s*Token/gi, '').replace(/\s*Token$/gi, ''),
+          exchange: 'NASDAQ',
+          issuer: 'Robinhood',
+          chain: 'Robinhood Chain',
+          source: 'rhj-api',
+          porUrl: null,
+          proofOfReserveUrl: null,
+          contractAddress: t.address,
+          decimals: t.decimals,
+          currentMultiplier: t.currentMultiplier,
+          verifiedAt: t.verifiedAt,
+          category: 'Tech Megacap',
+          description: `Tokenized equity share deployed on Robinhood Chain with deterministic bytecode verification (${t.address}).`,
+          coingeckoRwaId: t.symbol.toLowerCase(),
+          coingeckoId: `${t.symbol.toLowerCase()}-robinhood`
+        }));
+        setRobinhoodTokens(mapped);
+      })
+      .catch(err => console.warn('Failed to load Robinhood stock tokens:', err));
+
+    return () => { isMounted = false; };
+  }, []);
+
+  // Merged registry view (canonical XSTOCKS_REGISTRY + dynamically ingested Robinhood stock tokens)
+  const allStocks = useMemo<XStockRegistryItem[]>(() => {
+    if (!robinhoodTokens.length) return XSTOCKS_REGISTRY;
+    const existing = new Set(XSTOCKS_REGISTRY.map(s => `${s.symbol.toUpperCase()}-${s.chain}`));
+    const novel = robinhoodTokens.filter(t => !existing.has(`${t.symbol.toUpperCase()}-${t.chain}`));
+    return [...XSTOCKS_REGISTRY, ...novel];
+  }, [robinhoodTokens]);
+
   // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
 
@@ -239,14 +283,15 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
       setMarketHours(currentHours);
 
       // 1. Gather all RWA IDs, and Unique Underlying Tickers
-      const rwaIds = XSTOCKS_REGISTRY.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const underlyingTickers = Array.from(new Set(XSTOCKS_REGISTRY.map(s => s.underlyingTicker)));
+      const currentStocks = allStocks.length ? allStocks : XSTOCKS_REGISTRY;
+      const rwaIds = currentStocks.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
+      const underlyingTickers = Array.from(new Set(currentStocks.map(s => s.underlyingTicker).filter(Boolean))) as string[];
 
       // Execute CoinGecko native RWA markets (/rwas/markets), CMC RWA dedicated assets, and Finnhub equity quote fetches in parallel
       const [rwaMarketsMap, cmcRwaMap, finnhubQuoteMap] = await Promise.all([
         fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
         Promise.all(
-          XSTOCKS_REGISTRY.map(stock => 
+          currentStocks.map(stock => 
             fetchLiveCmcRwaForStock(stock).then(q => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q })).catch(() => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q: null }))
           )
         ).then(results => {
@@ -274,7 +319,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
 
       const newQuotes: Record<string, XStockQuoteState> = {};
 
-      for (const item of XSTOCKS_REGISTRY) {
+      for (const item of currentStocks) {
         const sym = item.symbol.toUpperCase();
         const underlying = item.underlyingTicker.toUpperCase();
         const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
@@ -589,20 +634,20 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
   // Filter Categories
   const categories = useMemo(() => {
     const set = new Set<string>();
-    XSTOCKS_REGISTRY.forEach(s => set.add(s.category));
+    allStocks.forEach(s => set.add(s.category));
     return ['All', ...Array.from(set)];
-  }, []);
+  }, [allStocks]);
 
   // Filter Asset Sources & Networks
   const availableChains = useMemo(() => {
     const set = new Set<string>();
-    XSTOCKS_REGISTRY.forEach(s => set.add(s.chain));
+    allStocks.forEach(s => set.add(s.chain));
     set.add(ROBINHOOD_CHAIN.name);
     return ['All', ...Array.from(set)];
-  }, []);
+  }, [allStocks]);
 
   const filteredStocks = useMemo(() => {
-    return XSTOCKS_REGISTRY.filter(item => {
+    return allStocks.filter(item => {
       if (categoryFilter !== 'All' && item.category !== categoryFilter) {
         return false;
       }
@@ -622,7 +667,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
         (item.issuer && item.issuer.toLowerCase().includes(q));
       return matchesSearch;
     });
-  }, [categoryFilter, chainFilter, searchQuery]);
+  }, [allStocks, categoryFilter, chainFilter, searchQuery]);
 
   const activeQuote = stockQuotes[selectedStock.symbol.toUpperCase()];
   const { formatPrice, selectedCurrency } = useCurrency();
@@ -873,7 +918,7 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
 
                   return (
                     <div
-                      key={item.symbol}
+                      key={`${item.symbol}-${item.chain}`}
                       onPointerDown={(e) => {
                         pointerDownRef.current = { x: e.clientX, y: e.clientY };
                       }}

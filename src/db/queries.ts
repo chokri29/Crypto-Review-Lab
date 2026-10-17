@@ -12,6 +12,7 @@ export async function getDbReviews() {
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
+export const getReviews = getDbReviews;
 
 export async function upsertDbReview(review: {
   reviewId: string;
@@ -29,12 +30,24 @@ export async function upsertDbReview(review: {
   cons?: string[];
   contractAddress?: string;
   securityScan?: any;
+  phaseTwoReControl?: any;
+  auditSignature?: any;
+  f3Verification?: any;
+  isSigned?: boolean;
+  phase_two_re_control?: any;
+  audit_signature?: any;
+  f3_verification?: any;
+  is_signed?: boolean;
 }) {
   try {
-    const scoresStr = review.scores ? JSON.stringify(review.scores) : null;
-    const prosStr = review.pros ? JSON.stringify(review.pros) : null;
-    const consStr = review.cons ? JSON.stringify(review.cons) : null;
-    const securityScanStr = review.securityScan ? JSON.stringify(review.securityScan) : null;
+    const scoresJson = review.scores ?? null;
+    const prosJson = review.pros ?? null;
+    const consJson = review.cons ?? null;
+    const securityScanJson = review.securityScan ?? null;
+    const phaseTwoReControlJson = review.phaseTwoReControl ?? review.phase_two_re_control ?? null;
+    const auditSignatureJson = review.auditSignature ?? review.audit_signature ?? null;
+    const f3VerificationJson = review.f3Verification ?? review.f3_verification ?? null;
+    const isSignedVal = review.isSigned ?? review.is_signed ?? false;
 
     const result = await db.insert(cryptoReviews)
       .values({
@@ -47,12 +60,16 @@ export async function upsertDbReview(review: {
         overallScore: review.overallScore ?? null,
         riskLevel: review.riskLevel || null,
         verdict: review.verdict || null,
-        scores: scoresStr,
+        scores: scoresJson,
         summary: review.summary || null,
-        pros: prosStr,
-        cons: consStr,
+        pros: prosJson,
+        cons: consJson,
         contractAddress: review.contractAddress || null,
-        securityScan: securityScanStr,
+        securityScan: securityScanJson,
+        phaseTwoReControl: phaseTwoReControlJson,
+        auditSignature: auditSignatureJson,
+        f3Verification: f3VerificationJson,
+        isSigned: isSignedVal,
       })
       .onConflictDoUpdate({
         target: cryptoReviews.reviewId,
@@ -64,12 +81,16 @@ export async function upsertDbReview(review: {
           overallScore: review.overallScore ?? null,
           riskLevel: review.riskLevel || null,
           verdict: review.verdict || null,
-          scores: scoresStr,
+          scores: scoresJson,
           summary: review.summary || null,
-          pros: prosStr,
-          cons: consStr,
+          pros: prosJson,
+          cons: consJson,
           contractAddress: review.contractAddress || null,
-          securityScan: securityScanStr,
+          securityScan: securityScanJson,
+          phaseTwoReControl: phaseTwoReControlJson,
+          auditSignature: auditSignatureJson,
+          f3Verification: f3VerificationJson,
+          isSigned: isSignedVal,
         },
       })
       .returning();
@@ -80,6 +101,7 @@ export async function upsertDbReview(review: {
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
+export const upsertReview = upsertDbReview;
 
 // Pro Orders Queries
 export async function getDbOrders() {

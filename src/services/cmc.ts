@@ -21,8 +21,8 @@ export interface CMCQuoteItem {
   dataEngine?: string;
   dataSources?: string[];
 }
-
-export const CMC_GAS_URL = 'https://script.google.com/macros/s/AKfycbzjgMcPBg3IKS8HDrDVSax_xH6IuJITWT6OSZtTl_56q7A9S9a0c-LxIb7e6WxRwXM/exec';
+import { CMC_GAS_URL } from '../constants/proxies.ts';
+export { CMC_GAS_URL };
 
 // In-memory cache for CMC quotes per symbol (TTL: 90 seconds)
 const cmcCache: Record<string, { data: CMCQuoteItem | null; timestamp: number }> = {};

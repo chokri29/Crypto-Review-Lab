@@ -4,26 +4,31 @@
  */
 
 export interface XStockRegistryItem {
-  symbol: string;           // On-chain ticker (e.g. AAPLX, TSLAX)
+  symbol: string;           // On-chain ticker (e.g. AAPLX, TSLAX, CRM)
   name: string;             // Display name (e.g. Apple xStock, Tesla xStock)
   underlyingTicker: string; // NYSE / NASDAQ underlying ticker (e.g. AAPL, TSLA)
   underlyingName: string;   // Underlying Company / ETF Name
-  exchange: 'NASDAQ' | 'NYSE' | 'CBOE';
-  coingeckoRwaId: string;   // Canonical CoinGecko RWA ID (e.g. 'apple', 'tesla', 'nvidia')
-  coingeckoId: string;      // CoinGecko API ID
+  exchange?: 'NASDAQ' | 'NYSE' | 'CBOE' | string;
+  coingeckoRwaId?: string;   // Canonical CoinGecko RWA ID (e.g. 'apple', 'tesla', 'nvidia')
+  coingeckoId?: string;      // CoinGecko API ID
   cmcRwaId?: number | string; // Canonical CMC RWA identifier (resolved via CMC RWA Map)
   cmcSymbol?: string;       // Legacy symbol (resolved to canonical rwa_id via RWA Map)
-  issuer: string;           // Issuer e.g. 'Backed Finance'
+  issuer: string;           // Issuer e.g. 'Backed Finance', 'Robinhood'
   issuerId?: string;        // Canonical CoinGecko RWA Issuer ID e.g. 'xstocks-ecosystem'
   custodian?: string;       // Custodian (e.g. 'Regulated Swiss Banking Partners & US Broker Custodians', distinct from issuer)
   jurisdiction?: string;    // Legal jurisdiction (e.g. 'Switzerland (Swiss DLT Act / Art. 973c CO)')
   legalInstrumentType?: string; // Legal classification (e.g. 'Tracker Certificate (1:1 Asset-Backed Tokenized Security)')
-  proofOfReserveUrl?: string;   // Public PoR dashboard/feed link if published
+  proofOfReserveUrl?: string | null;   // Public PoR dashboard/feed link if published
+  porUrl?: string | null;
+  source?: string;
   contractAddress?: string; // Solana / EVM token address
-  chain: 'Solana' | 'Arbitrum' | 'Ethereum' | 'BNB Chain' | 'Robinhood Chain';
+  chain: 'Solana' | 'Arbitrum' | 'Ethereum' | 'BNB Chain' | 'Robinhood Chain' | string;
   description: string;
-  category: 'Tech Megacap' | 'EV & CleanTech' | 'Index ETF' | 'Crypto Infrastructure' | 'Semiconductors' | 'E-Commerce & Cloud';
+  category: 'Tech Megacap' | 'EV & CleanTech' | 'Index ETF' | 'Crypto Infrastructure' | 'Semiconductors' | 'E-Commerce & Cloud' | string;
   logoUrl?: string;
+  decimals?: number;
+  currentMultiplier?: string;
+  verifiedAt?: string;
 }
 
 export const XSTOCKS_REGISTRY: XStockRegistryItem[] = [

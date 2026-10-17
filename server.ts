@@ -54,6 +54,14 @@ import {
   runMarketIntelligenceSync 
 } from "./src/services/marketIntelligenceEngine.ts";
 import { ROBINHOOD_CHAIN, isRobinhoodChain } from "./src/constants/chains.ts";
+import { 
+  COINGECKO_GAS_URL, 
+  COINSTATS_GAS_URL, 
+  CMC_GAS_URL, 
+  FINNHUB_GAS_URL, 
+  appendGasToken 
+} from "./src/constants/proxies.ts";
+import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTokens.ts";
 
 if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
@@ -65,8 +73,7 @@ if (typeof globalThis.fetch === 'function') {
   } as any;
 }
 
-// Proxy-only: never call api.coingecko.com from this process.
-const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec";
+// Proxy-only: never call api.coingecko.com from this process (COINGECKO_GAS_URL imported from proxies.ts)
 
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'crypto_reviews.json');
 
@@ -2519,6 +2526,17 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
   });
 
+  // API endpoint: Robinhood Stock Tokens (bytecode-verified chainId 4663 tokens)
+  app.get("/api/robinhood/stock-tokens", async (req, res) => {
+    try {
+      const forceRefresh = req.query.refresh === "true";
+      const tokens = await getVerifiedRobinhoodStockTokens(forceRefresh);
+      res.json(tokens);
+    } catch (err: any) {
+      console.error("Failed to fetch verified Robinhood stock tokens:", err);
+      res.status(500).json({ error: "Failed to fetch verified Robinhood stock tokens" });
+    }
+  });
 
   // API endpoint: Public Cryptographic Signature Verification
   app.post("/api/audit/sign", (req, res) => {
@@ -2582,7 +2600,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     try {
       const ids = "solana,ethereum,bitcoin,chainlink,render-token,arbitrum,sui,hyperliquid,zama,uniswap,kaspa";
       // Proxy-only: never call api.coingecko.com from this process.
-      const res = await fetch(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=usd`);
+      const res = await fetch(appendGasToken(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=usd`));
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -2604,12 +2622,12 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     if (matchedExtraTicker && !liveMarketsMap[matchedExtraTicker]) {
       try {
         // Proxy-only: never call api.coingecko.com from this process.
-        const sRes = await fetch(`${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(matchedExtraTicker)}`);
+        const sRes = await fetch(appendGasToken(`${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(matchedExtraTicker)}`));
         if (sRes.ok) {
           const sData = await sRes.json();
           if (sData.coins && sData.coins.length > 0) {
             const topCoinId = sData.coins[0].id;
-            const mRes = await fetch(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(topCoinId)}&vs_currency=usd`);
+            const mRes = await fetch(appendGasToken(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(topCoinId)}&vs_currency=usd`));
             if (mRes.ok) {
               const mData = await mRes.json();
               if (Array.isArray(mData) && mData.length > 0) {
@@ -2876,10 +2894,6 @@ ${dualSyncContext}`;
   });
 
   const COINGECKO_KEY = process.env.COINGECKO_API_KEY || "";
-  const COINGECKO_GAS_URL = "https://script.google.com/macros/s/AKfycbx8IhUCbCseu3TX25KSOIoc8LjxcxjBJoRrzjNy-YM7bZXbfFdfCMS1NRfxiQZ_skyA/exec";
-  const COINSTATS_GAS_URL = "https://script.google.com/macros/s/AKfycbxZcbIpURQQbpVgeMS0VnZmmvNWNpUL4gjXPawedaMfTHZErcP_eztewwd5fplJzOqvhA/exec";
-  const CMC_GAS_URL = "https://script.google.com/macros/s/AKfycbzjgMcPBg3IKS8HDrDVSax_xH6IuJITWT6OSZtTl_56q7A9S9a0c-LxIb7e6WxRwXM/exec";
-  const FINNHUB_GAS_URL = "https://script.google.com/macros/s/AKfycbz3gpHcXA-yc7myC5UNJ-pIJyNnE1xXfAO_v3vlfbjJOSH345Cc4DtoGPYzcHq3diUUAg/exec";
 
   // API endpoint: Finnhub Proxy for Underlying Equities Quotes
   app.get("/api/finnhub/quote", async (req, res) => {
@@ -2888,7 +2902,7 @@ ${dualSyncContext}`;
       if (!symbol) {
         return res.status(400).json({ error: "Equity symbol query param is required" });
       }
-      const gasUrl = `${FINNHUB_GAS_URL}?symbol=${encodeURIComponent(symbol)}`;
+      const gasUrl = appendGasToken(`${FINNHUB_GAS_URL}?symbol=${encodeURIComponent(symbol)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -2909,7 +2923,7 @@ ${dualSyncContext}`;
       if (!symbol) {
         return res.status(400).json({ error: "Token symbol query param is required" });
       }
-      const gasUrl = `${CMC_GAS_URL}?symbol=${encodeURIComponent(symbol)}`;
+      const gasUrl = appendGasToken(`${CMC_GAS_URL}?symbol=${encodeURIComponent(symbol)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3041,7 +3055,7 @@ ${dualSyncContext}`;
   app.get("/api/coinstats/markets", async (req, res) => {
     try {
       const limit = parseInt((req.query.limit as string) || "500", 10);
-      const gasUrl = `${COINSTATS_GAS_URL}?limit=${limit}`;
+      const gasUrl = appendGasToken(`${COINSTATS_GAS_URL}?limit=${limit}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3059,7 +3073,7 @@ ${dualSyncContext}`;
   app.get("/api/coinstats/coin/:id", async (req, res) => {
     try {
       const coinId = req.params.id;
-      const gasUrl = `${COINSTATS_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`;
+      const gasUrl = appendGasToken(`${COINSTATS_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3190,7 +3204,7 @@ ${dualSyncContext}`;
   // Reusable server-side helper for CoinGecko Markets (Proxy-only)
   async function fetchCoinGeckoMarketsHelper(ids: string, vsCurrency = "usd"): Promise<any[]> {
     // Proxy-only: never call api.coingecko.com from this process.
-    const gasUrl = `${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
+    const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`);
     const response = await fetch(gasUrl);
 
     if (!response.ok) {
@@ -3222,7 +3236,7 @@ ${dualSyncContext}`;
       const query = (req.query.query as string) || "";
       if (!query) return res.json({ coins: [] });
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(query)}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(query)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3240,7 +3254,7 @@ ${dualSyncContext}`;
   app.get("/api/coingecko/trending", async (req, res) => {
     try {
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=trending`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=trending`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3259,7 +3273,7 @@ ${dualSyncContext}`;
     try {
       const coinId = req.params.id;
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3280,7 +3294,7 @@ ${dualSyncContext}`;
       const vsCurrency = (req.query.vs_currency as string) || "usd";
 
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=chart&id=${encodeURIComponent(coinId)}&days=${encodeURIComponent(days)}&vs_currency=${encodeURIComponent(vsCurrency)}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=chart&id=${encodeURIComponent(coinId)}&days=${encodeURIComponent(days)}&vs_currency=${encodeURIComponent(vsCurrency)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
@@ -3314,6 +3328,7 @@ ${dualSyncContext}`;
       if (assetType) {
         gasUrl += `&asset_type=${encodeURIComponent(assetType)}`;
       }
+      gasUrl = appendGasToken(gasUrl);
 
       const response = await fetch(gasUrl);
       if (!response.ok) {
@@ -3344,7 +3359,7 @@ ${dualSyncContext}`;
       if (page) params.set("page", page);
 
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?${params.toString()}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?${params.toString()}`);
       const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
@@ -3362,7 +3377,7 @@ ${dualSyncContext}`;
   app.get("/api/coingecko/rwas/issuers/list", async (req, res) => {
     try {
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=rwas_issuers_list`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwas_issuers_list`);
       const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
@@ -3385,7 +3400,7 @@ ${dualSyncContext}`;
       }
 
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=rwas_issuer&id=${encodeURIComponent(issuerId)}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwas_issuer&id=${encodeURIComponent(issuerId)}`);
       const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
@@ -3408,7 +3423,7 @@ ${dualSyncContext}`;
       }
 
       // Proxy-only: never call api.coingecko.com from this process.
-      const gasUrl = `${COINGECKO_GAS_URL}?action=rwa_detail&id=${encodeURIComponent(rwaId)}`;
+      const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwa_detail&id=${encodeURIComponent(rwaId)}`);
       const response = await fetch(gasUrl);
       if (!response.ok) {
         return res.status(response.status).json({
@@ -3705,6 +3720,10 @@ ${dualSyncContext}`;
         pros: Array.isArray(safeReview.pros) ? safeReview.pros : undefined,
         cons: Array.isArray(safeReview.cons) ? safeReview.cons : undefined,
         securityScan: safeReview.securityScan || undefined,
+        phaseTwoReControl: safeReview.phaseTwoReControl ?? safeReview.phase_two_re_control ?? undefined,
+        auditSignature: safeReview.auditSignature ?? safeReview.audit_signature ?? undefined,
+        f3Verification: safeReview.f3Verification ?? safeReview.f3_verification ?? undefined,
+        isSigned: typeof safeReview.isSigned === 'boolean' ? safeReview.isSigned : (typeof safeReview.is_signed === 'boolean' ? safeReview.is_signed : undefined),
         userUid,
         // Server-side recomputed scores only (never from client request body)
         overallScore,
