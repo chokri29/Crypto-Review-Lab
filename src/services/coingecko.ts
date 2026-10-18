@@ -95,11 +95,6 @@ export async function fetchVerifiedCoinGeckoMarkets(ids: string[]): Promise<Reco
 
 export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchResult[]> {
   if (!query || query.trim().length < 2) return [];
-
-  const cleanQuery = query.trim().toLowerCase();
-
-export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchResult[]> {
-  if (!query || query.trim().length < 2) return [];
   const cleanQuery = query.trim().toLowerCase();
 
   try {

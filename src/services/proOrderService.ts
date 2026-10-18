@@ -11,7 +11,8 @@ import {
   PRINCIPAL_EMAIL, 
   AdminOverrideLog,
   ProOrderPaymentStatus,
-  NowPaymentsIpnLog
+  NowPaymentsIpnLog,
+  CryptoAuditSignature
 } from '../types';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine';
 import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine';
@@ -604,9 +605,20 @@ export async function approveAndDeliverProOrder(
   const scores = targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 };
   const verdict = targetReview.verdict || '';
   const timestamp = deliveredAtStr;
-  const auditSignature = signAuditReportServerSide({ scores, verdict, timestamp });
+  let auditSignature: CryptoAuditSignature | undefined = undefined;
+  let isSigned = false;
+  try {
+    auditSignature = signAuditReportServerSide({ scores, verdict, timestamp });
+    isSigned = true;
+  } catch (error: any) {
+    console.error(`Failed to sign audit report for order #${order.orderId}: ${error?.message || error}`);
+    auditSignature = undefined;
+    isSigned = false;
+  }
 
   targetReview.auditSignature = auditSignature;
+  targetReview.isSigned = isSigned;
+  targetReview.is_signed = isSigned;
   if (adminOverride) {
     targetReview.adminOverride = adminOverride;
   }
@@ -637,6 +649,8 @@ export async function approveAndDeliverProOrder(
   order.deliveredAt = deliveredAtStr;
   order.finalReview = targetReview;
   order.auditSignature = auditSignature;
+  order.isSigned = isSigned;
+  order.is_signed = isSigned;
   if (adminOverride) {
     order.adminOverride = adminOverride;
   }
@@ -1131,7 +1145,16 @@ async function getSeedOrders(): Promise<ProOrder[]> {
   const scores = draft1.scores;
   const verdict = 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.';
   const timestamp = yesterday.toISOString();
-  const seedSig = signAuditReportServerSide({ scores, verdict, timestamp });
+  let seedSig: CryptoAuditSignature | undefined = undefined;
+  let isSeedSigned = false;
+  try {
+    seedSig = signAuditReportServerSide({ scores, verdict, timestamp });
+    isSeedSigned = true;
+  } catch (error: any) {
+    console.error(`Failed to sign seed audit report: ${error?.message || error}`);
+    seedSig = undefined;
+    isSeedSigned = false;
+  }
 
   const finalSeedReview = {
     ...draft1,
@@ -1141,6 +1164,8 @@ async function getSeedOrders(): Promise<ProOrder[]> {
     createdAt: yesterday.toISOString(),
     author: 'Crypto Review Lab',
     auditSignature: seedSig,
+    isSigned: isSeedSigned,
+    is_signed: isSeedSigned,
     adminOverride: adminOverrideSeed
   };
   finalSeedReview.f3Verification = await runF3Verification(finalSeedReview, {
@@ -1169,6 +1194,8 @@ async function getSeedOrders(): Promise<ProOrder[]> {
     systemDraft: draft1,
     finalReview: finalSeedReview,
     auditSignature: seedSig,
+    isSigned: isSeedSigned,
+    is_signed: isSeedSigned,
     humanNotes: {
       reviewedBy: 'Crypto Review Lab',
       reviewedAt: yesterday.toISOString(),
