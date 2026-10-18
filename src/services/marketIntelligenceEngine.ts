@@ -944,6 +944,12 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
  * The in-process intervals below are retained for local development, testing, and warm container runtimes.
  */
 export function startMarketIntelligenceSyncService(): void {
+  const enableTimers = typeof process !== 'undefined' && process.env.ENABLE_IN_PROCESS_TIMERS === 'true';
+  if (!enableTimers) {
+    console.log('[MarketIntelligence] In-process setInterval timers disabled (ENABLE_IN_PROCESS_TIMERS != "true"). Production Cloud Scheduler is expected to trigger POST /api/market-intelligence/sync.');
+    return;
+  }
+
   if (syncInterval) {
     clearInterval(syncInterval);
   }
@@ -962,7 +968,7 @@ export function startMarketIntelligenceSyncService(): void {
     await discoverAssets();
   }, 24 * 60 * 60 * 1000);
 
-  // Sync cycle every 60 minutes (changed from 5 minutes to conserve CoinGecko API credits)
+  // Sync cycle every 60 minutes
   syncInterval = setInterval(async () => {
     await runMarketIntelligenceSync();
   }, 60 * 60 * 1000);

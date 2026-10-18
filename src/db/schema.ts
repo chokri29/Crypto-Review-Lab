@@ -12,7 +12,12 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// 2. Crypto Reviews Table
+/**
+ * 2. Crypto Reviews Table
+ * OPS NOTE: Take a full backup of Cloud SQL and execute drizzle/0004_*.sql
+ * (converting text scores/pros/cons/security_scan to jsonb and adding F2/F3 state columns)
+ * before running any F2/F3 review writes in production.
+ */
 export const cryptoReviews = pgTable('crypto_reviews', {
   id: serial('id').primaryKey(),
   reviewId: text('review_id').notNull().unique(),

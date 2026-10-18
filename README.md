@@ -145,6 +145,32 @@ npm run build
 
 ---
 
+## ☁️ Production Ops & Deployment Notes
+
+1. **Postgres Database Migrations (Cloud SQL):**
+   - Before executing any F2/F3 review writes or enabling DB persistence in production, take a full database backup of your Cloud SQL instance.
+   - Apply the migration script `drizzle/0004_clumsy_penance.sql` to Cloud SQL:
+     ```sql
+     ALTER TABLE "crypto_reviews" ALTER COLUMN "scores" SET DATA TYPE jsonb USING "scores"::jsonb;
+     ALTER TABLE "crypto_reviews" ALTER COLUMN "pros" SET DATA TYPE jsonb USING "pros"::jsonb;
+     ALTER TABLE "crypto_reviews" ALTER COLUMN "cons" SET DATA TYPE jsonb USING "cons"::jsonb;
+     ALTER TABLE "crypto_reviews" ALTER COLUMN "security_scan" SET DATA TYPE jsonb USING "security_scan"::jsonb;
+     ALTER TABLE "crypto_reviews" ADD COLUMN "phase_two_re_control" jsonb;
+     ALTER TABLE "crypto_reviews" ADD COLUMN "audit_signature" jsonb;
+     ALTER TABLE "crypto_reviews" ADD COLUMN "f3_verification" jsonb;
+     ALTER TABLE "crypto_reviews" ADD COLUMN "is_signed" boolean DEFAULT false;
+     ```
+     *(Note: If any existing rows contain invalid JSON strings, clean or cast them before running the `::jsonb` migration).*
+
+2. **Cloud Scheduler for Market Intelligence Sync:**
+   - On serverless container runtimes (such as Google Cloud Run with scale-to-zero), in-process `setInterval` timers are suspended when instances are idle.
+   - Set `ENABLE_IN_PROCESS_TIMERS="false"` in production `.env`.
+   - Configure an external **Cloud Scheduler** job to trigger `POST https://your-cloud-run-url/api/market-intelligence/sync` with header `x-sync-secret: YOUR_SYNC_SECRET` (every 15–60 minutes).
+
+---
+
+---
+
 ## 📄 License & Disclaimer
 
 Crypto Review Lab provides algorithmic verification, market-data synthesis, and technical diagnostics for research and transparency purposes. Nothing in this application constitutes financial or investment advice.

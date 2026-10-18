@@ -184,12 +184,21 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
 
   // Robinhood Stock Tokens (dynamically ingested from /api/robinhood/stock-tokens)
   const [robinhoodTokens, setRobinhoodTokens] = useState<XStockRegistryItem[]>([]);
+  const [isRhLoading, setIsRhLoading] = useState<boolean>(true);
+  const [rhError, setRhError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadRobinhoodTokens = useCallback(() => {
+    setIsRhLoading(true);
+    setRhError(null);
     let isMounted = true;
     fetchRobinhoodStockTokens()
       .then(tokens => {
-        if (!isMounted || !Array.isArray(tokens)) return;
+        if (!isMounted) return;
+        setIsRhLoading(false);
+        if (!Array.isArray(tokens)) {
+          setRhError("Couldn't load Robinhood Chain tokens");
+          return;
+        }
         const mapped: XStockRegistryItem[] = tokens.map(t => ({
           symbol: t.symbol,
           name: t.name,
@@ -212,10 +221,18 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
         }));
         setRobinhoodTokens(mapped);
       })
-      .catch(err => console.warn('Failed to load Robinhood stock tokens:', err));
+      .catch(err => {
+        if (!isMounted) return;
+        setIsRhLoading(false);
+        setRhError(err?.message || "Couldn't load Robinhood Chain tokens");
+      });
 
     return () => { isMounted = false; };
   }, []);
+
+  useEffect(() => {
+    loadRobinhoodTokens();
+  }, [loadRobinhoodTokens]);
 
   // Merged registry view (canonical XSTOCKS_REGISTRY + dynamically ingested Robinhood stock tokens)
   const allStocks = useMemo<XStockRegistryItem[]>(() => {
@@ -857,59 +874,83 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
 
             {/* Tickers Scrollable List */}
             <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 min-h-[380px] max-h-[560px] lg:max-h-none">
-              {filteredStocks.length === 0 ? (
-                (chainFilter === 'Robinhood Chain' || isRobinhoodChain(chainFilter) || (searchQuery.trim().length > 0 && isRobinhoodChain(searchQuery.trim()))) ? (
-                  <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/60 to-slate-950/90 border border-emerald-500/30 text-center space-y-3 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_15px_rgba(52,211,153,0.1)]">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(52,211,153,0.2)]">
-                      <Building2 className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <p className="text-emerald-300 text-xs font-mono font-bold uppercase tracking-wider">
-                        0 Assets on {ROBINHOOD_CHAIN.name}
-                      </p>
-                      <p className="text-slate-300 text-xs font-sans leading-relaxed max-w-sm mx-auto">
-                        Robinhood Stock Tokens are not listed yet. CRL only adds them after live contract verification on{' '}
-                        <a 
-                          href={ROBINHOOD_CHAIN.explorerUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-emerald-400 underline hover:text-emerald-300 font-mono"
-                        >
-                          {ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')}
-                        </a>{' '}
-                        and a public proof-of-reserves URL.
-                      </p>
-                    </div>
-                    <div className="pt-2 border-t border-slate-800/80">
-                      <p className="text-slate-400 text-[10.5px] font-mono">
-                        Network is live (Arbitrum Orbit L2 · Chain ID {ROBINHOOD_CHAIN.chainId}). Tokenized equities pending verification.
-                      </p>
-                    </div>
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setChainFilter('All');
-                          setCategoryFilter('All');
-                          setSearchQuery('');
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-[0_0_10px_rgba(52,211,153,0.15)]"
+              {isRhLoading ? (
+                <div className="p-8 text-center space-y-3">
+                  <div className="w-6 h-6 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin mx-auto" />
+                  <p className="text-slate-400 font-mono text-xs">Loading verified Robinhood tokens…</p>
+                </div>
+              ) : rhError ? (
+                <div className="p-6 rounded-xl bg-red-950/30 border border-red-500/30 text-center space-y-3">
+                  <p className="text-red-300 font-mono text-xs font-bold">Couldn't load Robinhood Chain tokens</p>
+                  <p className="text-slate-400 text-[11px] font-mono">{rhError}</p>
+                  <button
+                    type="button"
+                    onClick={loadRobinhoodTokens}
+                    className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 font-mono text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Retry</span>
+                  </button>
+                </div>
+              ) : (chainFilter === 'Robinhood Chain' || isRobinhoodChain(chainFilter) || (searchQuery.trim().length > 0 && isRobinhoodChain(searchQuery.trim()))) && robinhoodTokens.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/60 to-slate-950/90 border border-emerald-500/30 text-center space-y-3 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_15px_rgba(52,211,153,0.1)]">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(52,211,153,0.2)]">
+                    <Building2 className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-emerald-300 text-xs font-mono font-bold uppercase tracking-wider">
+                      No verified Robinhood Chain deployments yet.
+                    </p>
+                    <p className="text-slate-300 text-xs font-sans leading-relaxed max-w-sm mx-auto">
+                      CRL only lists Robinhood stock tokens after live contract verification on{' '}
+                      <a 
+                        href={ROBINHOOD_CHAIN.explorerUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-emerald-400 underline hover:text-emerald-300 font-mono"
                       >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Reset All Filters</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
-                    <p className="text-slate-300 text-xs font-mono font-bold">
-                      No matching xStocks found
-                    </p>
-                    <p className="text-slate-500 text-[11px] font-mono">
-                      Try adjusting your search query, network source, or category filter.
+                        {ROBINHOOD_CHAIN.explorerUrl.replace('https://', '')}
+                      </a>{' '}
+                      and confirming active Proof of Reserves.
                     </p>
                   </div>
-                )
+                  <div className="pt-2 border-t border-slate-800/80">
+                    <p className="text-slate-400 text-[10.5px] font-mono">
+                      Network is live (Arbitrum Orbit L2 · Chain ID {ROBINHOOD_CHAIN.chainId}).
+                    </p>
+                  </div>
+                  <div className="pt-1 flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={loadRobinhoodTokens}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-mono text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Refresh Feed</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setChainFilter('All');
+                        setCategoryFilter('All');
+                        setSearchQuery('');
+                      }}
+                      className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-mono text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset Filters</span>
+                    </button>
+                  </div>
+                </div>
+              ) : filteredStocks.length === 0 ? (
+                <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-2">
+                  <p className="text-slate-300 text-xs font-mono font-bold">
+                    No matching xStocks found
+                  </p>
+                  <p className="text-slate-500 text-[11px] font-mono">
+                    Try adjusting your search query, network source, or category filter.
+                  </p>
+                </div>
               ) : (
                 filteredStocks.map((item) => {
                   const quote = stockQuotes[item.symbol.toUpperCase()];

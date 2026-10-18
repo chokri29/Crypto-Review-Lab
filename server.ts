@@ -1117,16 +1117,27 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
     }
   });
 
-  // API endpoint: List all reviews (persisted server-side in crypto_reviews.json)
-  app.get("/api/reviews/list", (req, res) => {
+  // API endpoint: List all reviews (PostgreSQL primary, JSON file fallback)
+  app.get("/api/reviews/list", async (req, res) => {
     try {
-      const reviews = loadReviewsFromFile();
+      let reviews: any[] = [];
+      try {
+        reviews = await getDbReviews();
+      } catch (dbErr) {
+        console.warn("Database getDbReviews failed, falling back to crypto_reviews.json:", dbErr);
+        reviews = loadReviewsFromFile();
+      }
+
+      if (!Array.isArray(reviews)) {
+        reviews = [];
+      }
+
       const isAdmin = isAuthorizedAdmin(req);
       if (isAdmin) {
         return res.json(reviews);
       }
       // Public route: Only return reviews that are approved for public publishing
-      const publicReviews = reviews.filter((r: any) => r.publishApproved === true);
+      const publicReviews = reviews.filter((r: any) => r.publishApproved === true || r.publish_approved === true);
       res.json(publicReviews);
     } catch (error: any) {
       console.error("Failed to load reviews:", error);
@@ -1134,19 +1145,9 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
     }
   });
 
-  // API endpoint: Save reviews (persisted server-side in crypto_reviews.json)
+  // API endpoint: Save reviews (deprecated/disabled in favor of Postgres DB primary /api/db/reviews)
   app.post("/api/reviews/save", (req, res) => {
-    try {
-      const { reviews } = req.body;
-      if (!Array.isArray(reviews)) {
-        return res.status(400).json({ error: "Reviews array is required." });
-      }
-      saveReviewsToFile(reviews);
-      res.json({ success: true, count: reviews.length });
-    } catch (error: any) {
-      console.error("Failed to save reviews:", error);
-      res.status(500).json({ error: "Failed to save reviews." });
-    }
+    return res.json({ success: true, message: "Review file saving is deprecated. PostgreSQL database /api/db/reviews is the primary write path." });
   });
 
   // Allowed Admin Master Keys for server validation (configured purely via process.env.ADMIN_MASTER_KEY or process.env.ADMIN_MASTER_KEYS)
@@ -3867,11 +3868,18 @@ ${dualSyncContext}`;
     try {
       // Accept Cloud Scheduler secret or require admin (isAuthorizedAdmin or users.role === 'admin')
       const syncSecret = process.env.SYNC_SECRET;
-      const isSchedulerAuth = Boolean(
-        syncSecret &&
-        syncSecret.trim() !== '' &&
-        req.headers['x-sync-secret'] === syncSecret
-      );
+      let isSchedulerAuth = false;
+      const headerSecret = req.headers['x-sync-secret'];
+      if (syncSecret && syncSecret.trim() !== '' && typeof headerSecret === 'string') {
+        const expectedBuf = Buffer.from(syncSecret);
+        const actualBuf = Buffer.from(headerSecret);
+        if (expectedBuf.length === actualBuf.length && crypto.timingSafeEqual(expectedBuf, actualBuf)) {
+          isSchedulerAuth = true;
+        } else {
+          const dummy = Buffer.alloc(expectedBuf.length);
+          crypto.timingSafeEqual(dummy, dummy);
+        }
+      }
 
       let isAuthorized = isSchedulerAuth || isAuthorizedAdmin(req);
       if (!isAuthorized) {
