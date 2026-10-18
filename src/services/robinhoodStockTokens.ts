@@ -43,6 +43,9 @@ interface RawRobinhoodAssetsResponse {
 let cachedTokens: RobinhoodStockToken[] | null = null;
 let lastCacheTimestamp = 0;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const FORCED_REFRESH_COOLDOWN_MS = 60 * 1000; // 60s cooldown on forced refreshes
+let lastForcedRefreshTimestamp = 0;
+let inFlightPromise: Promise<RobinhoodStockToken[]> | null = null;
 
 /**
  * Checks bytecode deployment on Robinhood Chain RPC (eth_getCode != 0x).
@@ -100,86 +103,105 @@ async function checkRobinhoodBytecodeWithRetry(address: string, maxAttempts = 3)
  */
 export async function getVerifiedRobinhoodStockTokens(forceRefresh = false): Promise<RobinhoodStockToken[]> {
   const now = Date.now();
-  if (!forceRefresh && cachedTokens && (now - lastCacheTimestamp) < CACHE_TTL_MS) {
+
+  // If forced refresh requested, enforce a 60s cooldown; during cooldown return the cached result, not an error
+  if (forceRefresh) {
+    if (cachedTokens && (now - lastForcedRefreshTimestamp) < FORCED_REFRESH_COOLDOWN_MS) {
+      console.log(`[RobinhoodStockTokens] Forced refresh on 60s cooldown (${Math.round((FORCED_REFRESH_COOLDOWN_MS - (now - lastForcedRefreshTimestamp)) / 1000)}s remaining); returning cached result.`);
+      return cachedTokens;
+    }
+    lastForcedRefreshTimestamp = now;
+  } else if (cachedTokens && (now - lastCacheTimestamp) < CACHE_TTL_MS) {
     return cachedTokens;
   }
 
-  try {
-    const response = await fetch('https://api.robinhood.com/rhj/assets', {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'CryptoReviewLab/3.2.0'
+  // In-flight promise deduplication
+  if (inFlightPromise) {
+    return inFlightPromise;
+  }
+
+  inFlightPromise = (async () => {
+    try {
+      const response = await fetch('https://api.robinhood.com/rhj/assets', {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'CryptoReviewLab/3.2.0'
+        }
+      });
+
+      if (!response.ok) {
+        console.warn(`[RobinhoodStockTokens] Feed returned HTTP ${response.status}`);
+        if (cachedTokens) return cachedTokens;
+        return [];
       }
-    });
 
-    if (!response.ok) {
-      console.warn(`[RobinhoodStockTokens] Feed returned HTTP ${response.status}`);
-      if (cachedTokens) return cachedTokens;
-      return [];
-    }
+      const json: RawRobinhoodAssetsResponse = await response.json();
+      const assets = Array.isArray(json.assets) ? json.assets : [];
 
-    const json: RawRobinhoodAssetsResponse = await response.json();
-    const assets = Array.isArray(json.assets) ? json.assets : [];
+      // Filter deployments on Robinhood Chain (chainId 4663)
+      const candidates: Array<{
+        symbol: string;
+        name: string;
+        address: string;
+        decimals: number;
+        currentMultiplier: string;
+      }> = [];
 
-    // Filter deployments on Robinhood Chain (chainId 4663)
-    const candidates: Array<{
-      symbol: string;
-      name: string;
-      address: string;
-      decimals: number;
-      currentMultiplier: string;
-    }> = [];
-
-    for (const asset of assets) {
-      if (!asset.tokenSymbol || !Array.isArray(asset.deployments)) continue;
-      const rhDep = asset.deployments.find(d => Number(d.chainId) === ROBINHOOD_CHAIN.chainId && d.contractAddress);
-      if (rhDep && rhDep.contractAddress) {
-        candidates.push({
-          symbol: asset.tokenSymbol.trim().toUpperCase(),
-          name: asset.tokenName ? asset.tokenName.trim() : `${asset.tokenSymbol} Token`,
-          address: rhDep.contractAddress.trim(),
-          decimals: typeof asset.tokenDecimals === 'number' ? asset.tokenDecimals : 18,
-          currentMultiplier: asset.currentMultiplier ? String(asset.currentMultiplier) : '1.0'
-        });
-      }
-    }
-
-    // Bytecode verification worker pool (concurrency 10)
-    const verifiedList: RobinhoodStockToken[] = [];
-    let candidateIndex = 0;
-
-    async function worker() {
-      while (candidateIndex < candidates.length) {
-        const item = candidates[candidateIndex++];
-        const hasBytecode = await checkRobinhoodBytecodeWithRetry(item.address);
-        if (hasBytecode) {
-          verifiedList.push({
-            symbol: item.symbol,
-            name: item.name,
-            address: item.address,
-            decimals: item.decimals,
-            currentMultiplier: item.currentMultiplier,
-            verifiedAt: new Date().toISOString()
+      for (const asset of assets) {
+        if (!asset.tokenSymbol || !Array.isArray(asset.deployments)) continue;
+        const rhDep = asset.deployments.find(d => Number(d.chainId) === ROBINHOOD_CHAIN.chainId && d.contractAddress);
+        if (rhDep && rhDep.contractAddress) {
+          candidates.push({
+            symbol: asset.tokenSymbol.trim().toUpperCase(),
+            name: asset.tokenName ? asset.tokenName.trim() : `${asset.tokenSymbol} Token`,
+            address: rhDep.contractAddress.trim(),
+            decimals: typeof asset.tokenDecimals === 'number' ? asset.tokenDecimals : 18,
+            currentMultiplier: asset.currentMultiplier ? String(asset.currentMultiplier) : '1.0'
           });
         }
       }
+
+      // Bytecode verification worker pool (concurrency 10)
+      const verifiedList: RobinhoodStockToken[] = [];
+      let candidateIndex = 0;
+
+      async function worker() {
+        while (candidateIndex < candidates.length) {
+          const item = candidates[candidateIndex++];
+          const hasBytecode = await checkRobinhoodBytecodeWithRetry(item.address);
+          if (hasBytecode) {
+            verifiedList.push({
+              symbol: item.symbol,
+              name: item.name,
+              address: item.address,
+              decimals: item.decimals,
+              currentMultiplier: item.currentMultiplier,
+              verifiedAt: new Date().toISOString()
+            });
+          }
+        }
+      }
+
+      const workerPool = Array.from({ length: 10 }, () => worker());
+      await Promise.all(workerPool);
+
+      // Sort alphabetically by symbol
+      verifiedList.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+      cachedTokens = verifiedList;
+      lastCacheTimestamp = Date.now();
+      console.log(`[RobinhoodStockTokens] Ingested and verified ${verifiedList.length} stock tokens on Robinhood Chain (4663).`);
+      return verifiedList;
+    } catch (err: any) {
+      console.error('[RobinhoodStockTokens] Ingestion failed:', err);
+      if (cachedTokens) return cachedTokens;
+      return [];
+    } finally {
+      inFlightPromise = null;
     }
+  })();
 
-    const workerPool = Array.from({ length: 10 }, () => worker());
-    await Promise.all(workerPool);
-
-    // Sort alphabetically by symbol
-    verifiedList.sort((a, b) => a.symbol.localeCompare(b.symbol));
-
-    cachedTokens = verifiedList;
-    lastCacheTimestamp = Date.now();
-    console.log(`[RobinhoodStockTokens] Ingested and verified ${verifiedList.length} stock tokens on Robinhood Chain (4663).`);
-    return verifiedList;
-  } catch (err: any) {
-    console.error('[RobinhoodStockTokens] Ingestion failed:', err);
-    if (cachedTokens) return cachedTokens;
-    return [];
-  }
+  return inFlightPromise;
 }
 
 /**

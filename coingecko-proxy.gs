@@ -124,15 +124,20 @@ function callCoinGeckoApi(endpoint, queryParams) {
     
     if (responseCode >= 200 && responseCode < 300) {
       var parsedData = JSON.parse(responseText);
-      // Cache only successful (2xx) responses
       if (cache) {
         try {
           var ttl = getEndpointCacheTtl(endpoint);
-          if (responseText.length < 100000) {
-            cache.put(cacheKey, responseText, ttl);
+          if (responseText.length < 95 * 1024) {
+            try {
+              cache.put(cacheKey, responseText, ttl);
+            } catch (putEx) {
+              Logger.log("Cache put failed for " + cacheKey + ": " + putEx.toString());
+            }
+          } else {
+            Logger.log("Skipping CacheService.put: payload size " + responseText.length + " bytes exceeds ~95 KB limit for " + cacheKey);
           }
         } catch (cachePutErr) {
-          // Ignore cache put error
+          Logger.log("Cache put outer exception: " + cachePutErr.toString());
         }
       }
       return parsedData;

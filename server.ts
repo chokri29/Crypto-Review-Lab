@@ -63,11 +63,13 @@ import {
 } from "./src/constants/proxies.ts";
 import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTokens.ts";
 
+const PORT = Number(process.env.PORT) || 3000;
+
 if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = function (input: any, init?: any) {
     if (typeof input === 'string' && input.startsWith('/')) {
-      input = `http://localhost:3000${input}`;
+      input = `http://localhost:${PORT}${input}`;
     }
     return originalFetch(input, init);
   } as any;
@@ -908,7 +910,7 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
       return process.env.APP_URL.replace(/\/$/, "");
     }
     const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
-    const host = (req.headers["x-forwarded-host"] as string) || req.headers.host || "localhost:3000";
+    const host = (req.headers["x-forwarded-host"] as string) || req.headers.host || `localhost:${PORT}`;
     return `${proto}://${host}`;
   }
 
@@ -2530,7 +2532,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   // API endpoint: Robinhood Stock Tokens (bytecode-verified chainId 4663 tokens)
   app.get("/api/robinhood/stock-tokens", async (req, res) => {
     try {
-      const forceRefresh = req.query.refresh === "true";
+      const forceRefresh = req.query.refresh === "true" && isAuthorizedAdmin(req);
       const tokens = await getVerifiedRobinhoodStockTokens(forceRefresh);
       res.json(tokens);
     } catch (err: any) {
@@ -2539,8 +2541,11 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     }
   });
 
-  // API endpoint: Public Cryptographic Signature Verification
+  // API endpoint: Cryptographic Signature Generation (Admin only)
   app.post("/api/audit/sign", (req, res) => {
+    if (!isAuthorizedAdmin(req)) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     try {
       const result = signAuditReportServerSide(req.body);
       res.json(result);
@@ -3924,6 +3929,16 @@ ${dualSyncContext}`;
 
 export const app = createServerApp();
 
+function escapeHtmlAttr(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&(?!amp;|lt;|gt;|quot;|#39;|#x27;)/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
   try {
     const reviews = loadReviewsFromFile();
@@ -3941,10 +3956,15 @@ function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
     }
 
     if (activeReview) {
-      const pageTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Score: ${activeReview.overallScore}/100 | Crypto Review Lab`;
-      const pageDesc = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290);
-      const pageUrl = `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(activeReview.id)}`;
-      const pageImage = activeReview.logoUrl || 'https://www.cryptoreviewlab.com/og-banner.jpg';
+      const rawTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Score: ${activeReview.overallScore}/100 | Crypto Review Lab`;
+      const rawDesc = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290);
+      const rawUrl = `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(activeReview.id)}`;
+      const rawImage = activeReview.logoUrl || 'https://www.cryptoreviewlab.com/og-banner.jpg';
+
+      const pageTitle = escapeHtmlAttr(rawTitle);
+      const pageDesc = escapeHtmlAttr(rawDesc);
+      const pageUrl = escapeHtmlAttr(rawUrl);
+      const pageImage = escapeHtmlAttr(rawImage);
 
       let replaced = rawHtml;
       replaced = replaced.replace(/<title>.*?<\/title>/gi, `<title>${pageTitle}</title>`);
@@ -3970,8 +3990,6 @@ function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
 }
 
 async function startServer() {
-  const PORT = 3000;
-
   // Vite Dev Server middleware integration
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");

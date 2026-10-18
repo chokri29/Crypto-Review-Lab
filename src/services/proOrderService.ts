@@ -16,6 +16,7 @@ import {
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine';
 import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine';
 import { computeMultiSourceConvergence } from './marketConvergence';
+import { signAuditReportServerSide } from './auditSigner';
 import fs from 'fs';
 import path from 'path';
 
@@ -603,7 +604,7 @@ export async function approveAndDeliverProOrder(
   const scores = targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 };
   const verdict = targetReview.verdict || '';
   const timestamp = deliveredAtStr;
-  const auditSignature = await fetch('/api/audit/sign', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({scores, verdict, timestamp}) }).then(r => r.json());
+  const auditSignature = signAuditReportServerSide({ scores, verdict, timestamp });
 
   targetReview.auditSignature = auditSignature;
   if (adminOverride) {
@@ -1130,7 +1131,7 @@ async function getSeedOrders(): Promise<ProOrder[]> {
   const scores = draft1.scores;
   const verdict = 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.';
   const timestamp = yesterday.toISOString();
-  const seedSig = await fetch('/api/audit/sign', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({scores, verdict, timestamp}) }).then(r => r.json());
+  const seedSig = signAuditReportServerSide({ scores, verdict, timestamp });
 
   const finalSeedReview = {
     ...draft1,
