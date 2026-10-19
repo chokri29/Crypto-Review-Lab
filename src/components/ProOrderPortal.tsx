@@ -253,7 +253,7 @@ export const ProOrderPortal: React.FC<{
                   value={searchOrderId}
                   onChange={(e) => setSearchOrderId(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Order ID (e.g. CRL-884291)..."
+                  placeholder="Order ID (e.g. CRL-123456)..."
                   className="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2.5 text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-500 shadow-inner"
                 />
               </div>
@@ -303,7 +303,7 @@ export const ProOrderPortal: React.FC<{
             <Lock className="w-8 h-8 text-slate-600 mx-auto" />
             <p className="text-sm font-semibold text-slate-300">No verified Pro orders displayed.</p>
             <p className="text-xs text-slate-500 font-mono">
-              Please enter both your exact Order ID (e.g. CRL-884291) and registered Email address to view private status.
+              Please enter both your exact Order ID and registered Email address to view private status.
             </p>
           </div>
         ) : (

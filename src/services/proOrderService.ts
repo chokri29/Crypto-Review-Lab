@@ -51,22 +51,6 @@ function loadOrdersFromFile(): ProOrder[] {
         }
       } catch {}
     }
-    if (typeof (getSeedOrders as any) === 'function') {
-      const p = getSeedOrders();
-      if (p && typeof p.then === 'function') {
-        p.then(initialSeed => {
-          try {
-            if (isNodeEnv && fs && typeof fs.writeFileSync === 'function' && ORDERS_FILE_PATH) {
-              fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(initialSeed, null, 2), 'utf-8');
-            } else if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-              localStorage.setItem('crl_pro_orders', JSON.stringify(initialSeed));
-            }
-          } catch (e) {
-            console.error("Failed to initialize pro_orders:", e);
-          }
-        }).catch(() => {});
-      }
-    }
     return [];
   } catch (e) {
     console.error("Failed to load pro orders:", e);
@@ -95,9 +79,6 @@ export function isOrderReferencePattern(id: string): boolean {
 export function matchesStoredProOrder(id: string): boolean {
   if (!id) return false;
   const clean = id.trim().toLowerCase();
-  if (clean === 'crl-884291' || clean === 'crl-914802' || clean === 'hype-seed' || clean === 'hype-seed-final' || clean === 'zama-seed') {
-    return true;
-  }
   const all = getAllOrders();
   return all.some(o => 
     (o.orderId && o.orderId.toLowerCase() === clean) ||
@@ -120,13 +101,13 @@ export function buildConfirmationEmailHtml(orderId: string, clientEmail: string,
           <h2 style="color: #f59e0b; margin: 0; font-size: 20px; letter-spacing: -0.5px;">CRYPTO REVIEW LAB</h2>
           <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;">SECURITY & RISK ADVISORY DESK • SERVICE NOTICE</p>
         </div>
-        <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">PAYMENT VERIFIED</span>
+        <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">AWAITING PAYMENT</span>
       </div>
 
       <div style="background-color: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
-        <h3 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;">Advisory Order Confirmation #${orderId}</h3>
+        <h3 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;">Advisory Order Received #${orderId}</h3>
         <p style="margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;">
-          Payment received. Your Security & Risk Assessment is being processed. Actionable remediation report delivered within 24 hours.
+          Order received. Awaiting payment confirmation. Security & Risk Assessment will be prepared once payment is verified.
         </p>
       </div>
 
@@ -450,9 +431,9 @@ export async function createProOrder(params: {
     type: 'CONFIRMATION',
     from: PRINCIPAL_EMAIL,
     to: cleanEmail,
-    subject: `[Crypto Review Lab] Payment Received - Security & Risk Assessment #${orderId}`,
+    subject: `[Crypto Review Lab] Order Received - Security & Risk Assessment #${orderId}`,
     sentAt: now.toISOString(),
-    bodyPreview: `Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours`,
+    bodyPreview: `Order received. Awaiting payment confirmation. Security & Risk Assessment will be prepared once payment is verified.`,
     fullHtmlContent: confirmationEmailHtml
   };
 
@@ -478,10 +459,10 @@ export async function createProOrder(params: {
     verificationDepth: params.verificationDepth || 'Unified Bytecode & Evidence Verification',
     stressSimulation: params.stressSimulation ?? false,
     amountUsd: 149.00,
-    paymentStatus: 'PAID',
+    paymentStatus: 'PENDING',
     paymentMethod: cleanPaymentRef ? `NOWPayments (${cleanPaymentRef})` : 'NOWPayments (Crypto USD)',
     paymentReference: cleanPaymentRef || undefined,
-    status: 'PENDING_F2', // Initial candidate F1 generated, awaiting explicit admin initiation of F2
+    status: 'AWAITING_PAYMENT',
     createdAt: now.toISOString(),
     estimatedDeliveryAt: deliveryEta.toISOString(),
     systemDraft: draftToSave,
