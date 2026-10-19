@@ -8,7 +8,7 @@
     "symbol": "ZAMA",
     "category": "Privacy / Cryptographic (FHE / ZK / MPC)",
     "overallScore": 91,
-    "verdict": "Zama provides robust cryptographic primitives for confidential computing, though its long-term economic sustainability remains contingent on widespread enterprise adoption of Fully[...],",
+    "verdict": "Zama provides robust cryptographic primitives for confidential computing, though its long-term economic sustainability remains contingent on widespread enterprise adoption of Fully[...]",
     "scores": {
       "utility": 9,
       "tokenomics": 7,
@@ -20,7 +20,7 @@
     "createdAt": "2026-07-30",
     "author": "Crypto Review Lab",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/70921/large/zama.png?1764591992",
-    "summary": "### Core Thesis\nZama focuses on the development of open-source cryptographic tools, specifically Fully Homomorphic Encryption (FHE), to enable privacy-preserving computation on en[...],",
+    "summary": "### Core Thesis\nZama focuses on the development of open-source cryptographic tools, specifically Fully Homomorphic Encryption (FHE), to enable privacy-preserving computation on en[...]",
     "pros": [
       "Leading academic research output in the field of Fully Homomorphic Encryption.",
       "Strong integration compatibility with existing EVM smart contract standards.",
@@ -127,4 +127,174 @@
             "coinmarketcap": 37621511.06319825,
             "coinstats": 11294345
           },
+          "agreeingSources": [
+            "coingecko",
+            "coinstats"
+          ],
+          "outlierSource": "coinmarketcap",
+          "toleranceUsed": "±3.0%",
+          "divergencePct": 233.1,
+          "details": "2 of 3 sources agreed (coingecko & coinstats). Outlier source flagged: coinmarketcap (37621511.06319825)."
+        },
+        "marketCapRank": {
+          "metricName": "marketCapRank",
+          "status": "UNRESOLVED_DIVERGENCE",
+          "consensusValue": null,
+          "validSourcesCount": 3,
+          "sourceValues": {
+            "coingecko": 190,
+            "coinmarketcap": 144,
+            "coinstats": 276
+          },
+          "agreeingSources": [],
+          "outlierSource": "ALL_SOURCES_DIVERGED",
+          "toleranceUsed": "±1 rank",
+          "divergencePct": 86,
+          "details": "All 3 sources diverged beyond tolerance limit (±1 rank). Values attached for auditor inspection."
+        }
+      },
+      "confidenceScore": 60,
+      "confidenceLevel": "DIVERGENT",
+      "summary": "UNRESOLVED_DIVERGENCE across 3 independent sources. Price: FULLY_CROSS_VALIDATED (Δ 0.15%), MCap: FULLY_CROSS_VALIDATED (Δ 0.14%), Vol: PARTIALLY_CROSS_VALIDATED (Δ 233.1%), [...]",
+      "reconciledAt": "01:19 AM (TTL: 3m)",
+      "metricProvenances": {
+        "price": "SOURCE",
+        "marketCap": "SOURCE",
+        "volume24h": "SOURCE",
+        "circulatingSupply": "SOURCE",
+        "totalSupply": "SOURCE",
+        "maxSupply": "UNAVAILABLE",
+        "fdv": "DERIVED"
+      }
+    },
+    "realTvl": 132526428.17417127
+  },
+  {
+    "id": "hyperliquid-decentralized-perp-exchange",
+    "coingeckoId": "hyperliquid",
+    "contractAddress": "0x933100344b5ff4f938da64e6da485121e4a3176d",
+    "chainId": "42161",
+    "network": "Arbitrum",
+    "defiLlamaSlug": "hyperliquid",
+    "name": "Hyperliquid",
+    "symbol": "HYPE",
+    "category": "DeFi Protocol (AMM / Lending)",
+    "overallScore": 99,
+    "verdict": "Hyperliquid is a high-performance Layer 1 appchain specialized in decentralized perpetual exchange, boasting orderbook execution speeds and gas-free transaction mechanisms.",
+    "scores": {
+      "utility": 10,
+      "tokenomics": 9,
+      "security": 9,
+      "team": 9,
+      "community": 10
+    },
+    "riskLevel": "Low",
+    "createdAt": "2026-07-18",
+    "author": "Crypto Review Lab Editor",
+    "logoUrl": "https://coin-images.coingecko.com/coins/images/50882/large/hyperliquid.jpg?1729431300",
+    "summary": "### Core Thesis\nHyperliquid (HYPE) represents a revolutionary paradigm shift in decentralized derivative trading. Built as a custom, high-throughput sovereign Cosmos-SDK-like App[...]",
+    "pros": [
+      "Sub-second order execution matching the experience of CEXs.",
+      "Completely gas-free execution environment for end traders.",
+      "Robust native ecosystem with copy-trading vaults and high TVL."
+    ],
+    "cons": [
+      "Relies on a specialized, custom-built L1 chain infrastructure.",
+      "Relatively young tokenomics model with early distribution rounds.",
+      "Active regulatory pressure surrounding leveraged derivative protocols."
+    ],
+    "proBenchmarks": {
+      "crlAuditStatus": "UNVERIFIED",
+      "crlThreatMatrixStatus": "NOT_PERFORMED",
+      "crlOpenFindings": "NOT_PERFORMED",
+      "crlVerificationScore": 90,
+      "crlRiskModelSummary": "Security profile (9/10) evaluated under CRL Pro Risk Model. Automated security invariant scans not performed.",
+      "symbolicExecutionMatrix": {
+        "reentrancyVector": "NOT_PERFORMED",
+        "flashLoanDrainCascade": "NOT_PERFORMED",
+        "proxyAdminLock": "NOT_PERFORMED",
+        "tvlStressLimit": "Real TVL: $6.89B"
+      }
+    },
+    "publishApproved": true,
+    "livePrice": 80.16,
+    "liveChange24h": -2.31177,
+    "liveMarketCap": 17833008587,
+    "liveVolume24h": 671977216,
+    "liveRank": 11,
+    "cmcRank": 9,
+    "cmcPrice": 80.09918110833394,
+    "cmcVolume24h": 658464398.5386276,
+    "csPrice": 80.18340409233224,
+    "csRank": 11,
+    "csVolume24h": 671977216,
+    "csMarketCap": 17834846870,
+    "csLastSyncedAt": "01:19 AM (TTL: 3m)",
+    "circulatingSupply": 222445714.07414138,
+    "totalSupply": 955307079.4341414,
+    "allTimeHigh": 97.96,
+    "allTimeLow": 3.81,
+    "ath": 97.96,
+    "atl": 3.81,
+    "athChangePct": -18.17,
+    "atlChangePct": 2003.94,
+    "fdvCalculated": 76577415487,
+    "priceDivergencePct": 0.08,
+    "supplyDivergencePct": 2.01,
+    "confidenceScore": 90,
+    "confidenceLevel": "MODERATE",
+    "dataEngine": "CoinGecko + CMC + CoinStats Multi-Source Market Data Convergence (3 Sources Active)",
+    "dataSources": [
+      "CoinGecko (Primary Feed)",
+      "CoinMarketCap Pro API (Liquidity & Depth)",
+      "CoinStats Apps Script Web App Proxy (Multi-Source Market Data Convergence)"
+    ],
+    "lastSyncedAt": "01:19 AM",
+    "cgLastSyncedAt": "01:19 AM (TTL: 3m)",
+    "cmcLastSyncedAt": "01:19 AM (TTL: 3m)",
+    "syncRuleApplied": "2-Source Partial Consensus: Cross-validation confirmed across coingecko, coinmarketcap, coinstats",
+    "multiSourceConvergence": {
+      "overallStatus": "PARTIAL_CONSENSUS",
+      "activeSourcesCount": 3,
+      "activeSources": [
+        "coingecko",
+        "coinmarketcap",
+        "coinstats"
+      ],
+      "metrics": {
+        "price": {
+          "metricName": "price",
+          "status": "FULLY_CROSS_VALIDATED",
+          "consensusValue": 80.16,
+          "validSourcesCount": 3,
+          "sourceValues": {
+            "coingecko": 80.16,
+            "coinmarketcap": 80.09918110833394,
+            "coinstats": 80.18340409233224
+          },
+          "agreeingSources": [
+            "coinmarketcap",
+            "coingecko",
+            "coinstats"
+          ],
+          "outlierSource": null,
+          "toleranceUsed": "±1.0%",
+          "divergencePct": 0.08,
+          "details": "Full 3-source consensus confirmed across CoinGecko, CMC, and CoinStats (Median: 80.16, Max Δ: 0.08%)."
+        },
+        "marketCap": {
+          "metricName": "marketCap",
+          "status": "PARTIALLY_CROSS_VALIDATED",
+          "consensusValue": 17833008587,
+          "validSourcesCount": 3,
+          "sourceValues": {
+            "coingecko": 17831170304,
+            "coinmarketcap": 20344220680.507114,
+            "coinstats": 17834846870
+          },
+          "agreeingSources": [
+            "coingecko",
+            "coinstats"
+          ],
+          "outlierSource": "coinmarketcap",
     ... (truncated for brevity)
