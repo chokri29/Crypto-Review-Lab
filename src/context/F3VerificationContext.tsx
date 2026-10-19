@@ -154,8 +154,8 @@ export const F3VerificationProvider: React.FC<F3VerificationProviderProps> = ({
     
     combinedLiveReviews.forEach((r) => {
       if (!r || !r.name) return;
-      const rId = (r.id || '').toLowerCase();
-      const rSymbol = (r.symbol || '').toLowerCase();
+      const rId = String(r.id || '').toLowerCase();
+      const rSymbol = String(r.symbol || '').toLowerCase();
 
       // Filter out raw initial static reviews unless they represent an active live evaluation
       const isStaticInitial = STATIC_INITIAL_IDS.has(rId) && !r.f3Verification && !r.phaseTwoReControl;

@@ -151,7 +151,7 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export type ProOrderStatus = 'PENDING_F2' | 'PENDING_REGENERATION' | 'PAYMENT_CONFIRMED' | 'IN_HUMAN_REVIEW' | 'DELIVERED';
+export type ProOrderStatus = 'AWAITING_PAYMENT' | 'PENDING_F2' | 'PENDING_REGENERATION' | 'PAYMENT_CONFIRMED' | 'IN_HUMAN_REVIEW' | 'DELIVERED';
 
 export type ProOrderPaymentStatus = 
   | 'PAID' 
