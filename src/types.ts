@@ -81,8 +81,6 @@ export interface CryptoReview {
   comparisonReport?: ComparisonReportData;
   phaseTwoReControl?: PhaseTwoReControlReport;
   auditSignature?: CryptoAuditSignature;
-  isSigned?: boolean;
-  is_signed?: boolean;
   f3Verification?: F3VerificationResult;
   // CoinGecko, CoinMarketCap & CoinStats Multi-Source Market Data fields
   livePrice?: number;
@@ -151,7 +149,7 @@ export interface ChatMessage {
   timestamp: string;
 }
 
-export type ProOrderStatus = 'AWAITING_PAYMENT' | 'PENDING_F2' | 'PENDING_REGENERATION' | 'PAYMENT_CONFIRMED' | 'IN_HUMAN_REVIEW' | 'DELIVERED';
+export type ProOrderStatus = 'PENDING_F2' | 'PENDING_REGENERATION' | 'PAYMENT_CONFIRMED' | 'IN_HUMAN_REVIEW' | 'DELIVERED';
 
 export type ProOrderPaymentStatus = 
   | 'PAID' 
@@ -240,8 +238,6 @@ export interface ProOrder {
   adminOverride?: AdminOverrideLog;
   f3Verification?: any;
   auditSignature?: CryptoAuditSignature;
-  isSigned?: boolean;
-  is_signed?: boolean;
   emailLogs: ProOrderEmailLog[];
   privateDownloadToken: string;
   publishApproved: boolean;
