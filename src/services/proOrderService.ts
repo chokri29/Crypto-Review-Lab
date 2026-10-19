@@ -95,13 +95,13 @@ export function matchesStoredProOrder(id: string): boolean {
  */
 export function buildConfirmationEmailHtml(orderId: string, clientEmail: string, projectName: string, symbol: string): string {
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; mar[...]
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(245, 158, 11, 0.3);">
       <div style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="color: #f59e0b; margin: 0; font-size: 20px; letter-spacing: -0.5px;">CRYPTO REVIEW LAB</h2>
           <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;">SECURITY & RISK ADVISORY DESK • SERVICE NOTICE</p>
         </div>
-        <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">AW[...]
+        <span style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">AWAITING PAYMENT</span>
       </div>
 
       <div style="background-color: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
@@ -157,23 +157,23 @@ export function buildConfirmationEmailHtml(orderId: string, clientEmail: string,
 export function buildDeliveryEmailHtml(order: ProOrder): string {
   const review = order.finalReview || order.systemDraft;
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; ma[...]
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(16, 185, 129, 0.4);">
       <div style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h2 style="color: #34d399; margin: 0; font-size: 20px; letter-spacing: -0.5px;">CRYPTO REVIEW LAB</h2>
           <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;">SECURITY & RISK ADVISORY DESK • DOSSIER DELIVERED</p>
         </div>
-        <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">S[...]
+        <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">SECURITY CHECK COMPLETE</span>
       </div>
 
       <div style="background-color: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
         <h3 style="margin: 0 0 6px 0; color: #34d399; font-size: 16px;">Your Security & Risk Assessment is Ready!</h3>
         <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.5;">
-          Our security assessment has been finalized for <strong>${order.projectName} (${order.projectSymbol})</strong>. Actionable findings, vulnerability scan results, and tokenomics risk metri[...]
+          Our security assessment has been finalized for <strong>${order.projectName} (${order.projectSymbol})</strong>. Actionable findings, vulnerability scan results, and tokenomics risk metrics are available in your private dossier.
         </p>
       </div>
 
-      <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center[...]
+      <div style="background-color: #0f172a; border: 1px solid #1e293b; padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Assessment Status</div>
           <div style="font-size: 18px; font-weight: 800; color: #34d399; margin-top: 2px;">VERIFICATION COMPLETED</div>
@@ -187,7 +187,7 @@ export function buildDeliveryEmailHtml(order: ProOrder): string {
       </div>
 
       <div style="background-color: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 24px; font-size: 11px; color: #94a3b8; line-height: 1.4;">
-        <strong style="color: #cbd5e1;">Assessment Notice:</strong> This deliverable is an independent security risk assessment providing actionable vulnerability discovery and remediation recomm[...]
+        <strong style="color: #cbd5e1;">Assessment Notice:</strong> This deliverable is an independent security risk assessment providing actionable vulnerability discovery and remediation recommendations. Crypto Review Lab does not sell ratings or endorse tokens. This assessment does not guarantee security or replace a formal smart-contract audit.
       </div>
 
       ${order.humanNotes?.auditorComments ? `
@@ -198,7 +198,7 @@ export function buildDeliveryEmailHtml(order: ProOrder): string {
       ` : ''}
 
       <div style="text-align: center; margin-bottom: 24px;">
-        <a href="https://cryptoreviewlab.com/?token=${order.privateDownloadToken}&orderId=${order.orderId}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #10b9[...]
+        <a href="https://cryptoreviewlab.com/?token=${order.privateDownloadToken}&orderId=${order.orderId}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; font-weight: bold; padding: 14px 28px; border-radius: 10px; font-size: 14px; box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
           📥 Access Private Portal & Download Remediation PDF
         </a>
         <p style="font-size: 11px; color: #64748b; margin-top: 8px;">Private Download Token: <span style="font-mono; color: #94a3b8;">${order.privateDownloadToken}</span></p>
@@ -325,7 +325,7 @@ export async function fetchAndAttachLiveMarketData(
         cgRank: cgItem?.market_cap_rank || cmcData?.cmcRank || csItem?.rank || review.liveRank || 100,
         cgChange24h: cgItem?.price_change_percentage_24h ?? cmcData?.percentChange24h ?? csItem?.priceChange1d ?? 0,
         cgCirculatingSupply: cgItem?.circulating_supply || cmcData?.circulatingSupply || csItem?.availableSupply || review.circulatingSupply,
-        cgMaxSupply: cgItem?.max_supply || cmcData?.maxSupply || csItem?.maxSupply || review.maxSupply,
+        cgMaxSupply: cgItem?.max_supply || cmcData?.maxSupply || review.maxSupply,
         cgTotalSupply: cgItem?.total_supply || cmcData?.totalSupply || csItem?.totalSupply || review.totalSupply,
         cgAth: cgItem?.ath || cmcData?.ath || csItem?.ath || review.ath || review.allTimeHigh,
         cgAtl: cgItem?.atl || cmcData?.atl || csItem?.atl || review.atl || review.allTimeLow,
@@ -414,7 +414,7 @@ export async function createProOrder(params: {
   if (cleanPaymentRef) {
     const { used, existingOrder } = isPaymentReferenceAlreadyUsed(cleanPaymentRef);
     if (used && existingOrder) {
-      throw new Error(`Payment reference ${cleanPaymentRef} has already been consumed for Order #${existingOrder.orderId} (${existingOrder.projectName}). Each payment permits exactly one Security[...]`);
+      throw new Error(`Payment reference ${cleanPaymentRef} has already been consumed for Order #${existingOrder.orderId} (${existingOrder.projectName}). Each payment permits exactly one Security & Risk Assessment report.`);
     }
   }
 
@@ -1079,4 +1079,190 @@ export function lookupOrder(query: string): ProOrder[] {
   );
 }
 
+/**
+ * Provides demo seed orders so the Auditor Review Console and Order Lookup work immediately upon visiting
+ */
+async function getSeedOrders(): Promise<ProOrder[]> {
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 18 * 60 * 60 * 1000);
+  const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
+  const seed1Id = 'CRL-884291';
+  const seed1Email = 'capital.ventures@fundcapital.io';
+  const draft1: CryptoReview = {
+    id: 'hype-seed',
+    coingeckoId: 'hyperliquid',
+    coingeckoCategories: ['Decentralized Finance (DeFi)', 'Perpetuals', 'Layer 1 (L1)'],
+    name: 'Hyperliquid',
+    symbol: 'HYPE',
+    category: 'Layer 1 / Perpetual DEX',
+    overallScore: 93,
+    verdict: 'Top-tier high throughput perp L1 with sub-second finality and audited vault safety.',
+    scores: { utility: 10, tokenomics: 9, security: 9, team: 9, community: 9 },
+    summary: 'Hyperliquid represents a major milestone in high-performance decentralized derivatives. Built on a custom Tendermint-based L1 consensus, it achieves over 20,000 orders per second without relying on third-party sequencers.',
+    pros: ['Sub-second latency on-chain matching', 'Non-custodial margin vaults', 'Zero gas fees for order placement'],
+    cons: ['Validator set concentration in early phase', 'Regulatory risk on perpetual futures', 'Bridging dependency from Arbitrum'],
+    riskLevel: 'Low',
+    createdAt: twoDaysAgo.toISOString(),
+    author: 'Crypto Review Lab'
+  };
+  const adminOverrideSeed: AdminOverrideLog = {
+    overriddenBy: 'Principal Chief Auditor',
+    overriddenAt: yesterday.toISOString(),
+    reason: 'Pre-verified reference seed audit delivery.',
+    previousF3Status: 'VERIFIED',
+    discrepanciesOverridden: [],
+    acknowledged: true
+  };
+  draft1.adminOverride = adminOverrideSeed;
+  draft1.phaseTwoReControl = runPhaseTwoReControl(draft1);
+  draft1.f3Verification = await runF3Verification(draft1, {
+    securityScan: draft1.securityScan,
+    citations: draft1.citations,
+    activeOverride: adminOverrideSeed
+  });
+  regenerateNarrativeAfterVerification(draft1);
+
+  const scores = draft1.scores;
+  const verdict = 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.';
+  const timestamp = yesterday.toISOString();
+  let seedSig: CryptoAuditSignature | undefined = undefined;
+  let isSeedSigned = false;
+  try {
+    seedSig = signAuditReportServerSide({ scores, verdict, timestamp });
+    isSeedSigned = true;
+  } catch (error: any) {
+    console.error(`Failed to sign seed audit report: ${error?.message || error}`);
+    seedSig = undefined;
+    isSeedSigned = false;
+  }
+
+  const finalSeedReview = {
+    ...draft1,
+    id: 'hype-seed-final',
+    verdict: 'Manual Audit Verified: Exceptional orderbook matching invariants and verified vault safety.',
+    summary: 'Verified Security & Risk Assessment: All bytecode invariants confirm strict margin isolation and multi-sig vault controls.',
+    createdAt: yesterday.toISOString(),
+    author: 'Crypto Review Lab',
+    auditSignature: seedSig,
+    isSigned: isSeedSigned,
+    is_signed: isSeedSigned,
+    adminOverride: adminOverrideSeed
+  };
+  finalSeedReview.f3Verification = await runF3Verification(finalSeedReview, {
+    securityScan: finalSeedReview.securityScan,
+    citations: finalSeedReview.citations,
+    activeOverride: adminOverrideSeed
+  });
+  regenerateNarrativeAfterVerification(finalSeedReview);
+
+  const order1: ProOrder = {
+    orderId: seed1Id,
+    clientEmail: seed1Email,
+    projectName: 'Hyperliquid',
+    projectSymbol: 'HYPE',
+    contractAddress: '0x9923...fe49 (Arbitrum / L1 Bridge)',
+    focusArea: 'L1 Perp DEX Architecture, Orderbook Matching Security, and Liquidation Cascade Resistance',
+    verificationDepth: 'Unified Bytecode & Evidence Verification',
+    stressSimulation: true,
+    amountUsd: 149.00,
+    paymentStatus: 'PAID',
+    paymentMethod: 'NOWPayments (USDT ERC-20)',
+    status: 'DELIVERED',
+    createdAt: twoDaysAgo.toISOString(),
+    estimatedDeliveryAt: new Date(twoDaysAgo.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+    deliveredAt: yesterday.toISOString(),
+    systemDraft: draft1,
+    finalReview: finalSeedReview,
+    auditSignature: seedSig,
+    isSigned: isSeedSigned,
+    is_signed: isSeedSigned,
+    humanNotes: {
+      reviewedBy: 'Crypto Review Lab',
+      reviewedAt: yesterday.toISOString(),
+      auditorComments: 'Conducted bytecode inspection of Tendermint bridge & vault contracts. No reentrancy or flash-loan vector detected. Findings compiled into remediation dossier.',
+      verificationStamp: 'VERIFIED_AUDIT',
+      auditSignature: seedSig
+    },
+    emailLogs: [
+      {
+        id: 'msg_seed_1',
+        type: 'CONFIRMATION',
+        from: PRINCIPAL_EMAIL,
+        to: seed1Email,
+        subject: `[Crypto Review Lab] Payment Received - Security & Risk Assessment #${seed1Id}`,
+        sentAt: twoDaysAgo.toISOString(),
+        bodyPreview: 'Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours',
+        fullHtmlContent: buildConfirmationEmailHtml(seed1Id, seed1Email, 'Hyperliquid', 'HYPE')
+      }
+    ],
+    privateDownloadToken: 'crl_token_hype_99824',
+    publishApproved: false
+  };
+  order1.emailLogs.push({
+    id: 'msg_seed_2',
+    type: 'DELIVERY',
+    from: PRINCIPAL_EMAIL,
+    to: seed1Email,
+    subject: `[Crypto Review Lab] Security & Risk Assessment Ready for Download - #${seed1Id}`,
+    sentAt: yesterday.toISOString(),
+    bodyPreview: 'Your Security & Risk Assessment for Hyperliquid (HYPE) has been verified and delivered. Download your PDF now.',
+    fullHtmlContent: buildDeliveryEmailHtml(order1)
+  });
+
+  const seed2Id = 'CRL-914802';
+  const seed2Email = 'investor@defifund.eth';
+  const draft2: CryptoReview = {
+    id: 'zama-seed',
+    coingeckoId: 'zama',
+    coingeckoCategories: ['Privacy Coins', 'Zero Knowledge (ZK)', 'Cryptographic', 'FHE'],
+    name: 'Zama',
+    symbol: 'ZAMA',
+    category: 'Privacy / FHE Cryptography',
+    overallScore: 90,
+    verdict: 'State-of-the-art confidential smart contract layer leveraging fully homomorphic encryption.',
+    scores: { utility: 9, tokenomics: 9, security: 9, team: 10, community: 8 },
+    summary: 'Zama enables privacy-preserving smart contract computation using Fully Homomorphic Encryption (FHE). First system draft highlights strong ecosystem backing.',
+    pros: ['End-to-end encrypted state', 'Strong academic cryptography team', 'Compatible with EVM toolchains'],
+    cons: ['Higher compute overhead', 'Hardware acceleration required', 'Nascent developer ecosystem'],
+    riskLevel: 'Low',
+    createdAt: now.toISOString(),
+    author: 'Crypto Review Lab Blueprint'
+  };
+  draft2.phaseTwoReControl = undefined;
+  draft2.f3Verification = undefined;
+
+  const order2: ProOrder = {
+    orderId: seed2Id,
+    clientEmail: seed2Email,
+    projectName: 'Zama',
+    projectSymbol: 'ZAMA',
+    contractAddress: '0x37a1...8892 (fhEVM Cryptographic Protocol)',
+    focusArea: 'Fully Homomorphic Encryption (FHE) latency, zero-knowledge proof verification, and token lockups',
+    verificationDepth: 'Unified Bytecode & Evidence Verification',
+    stressSimulation: true,
+    amountUsd: 149.00,
+    paymentStatus: 'PAID',
+    paymentMethod: 'NOWPayments (USDT Solana)',
+    status: 'PENDING_F2', // Initial F1 candidate generated; awaiting explicit admin initiation of F2
+    createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
+    estimatedDeliveryAt: new Date(now.getTime() + 22 * 60 * 60 * 1000).toISOString(),
+    systemDraft: draft2,
+    emailLogs: [
+      {
+        id: 'msg_seed_3',
+        type: 'CONFIRMATION',
+        from: PRINCIPAL_EMAIL,
+        to: seed2Email,
+        subject: `[Crypto Review Lab] Payment Received - Security & Risk Assessment #${seed2Id}`,
+        sentAt: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
+        bodyPreview: 'Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours',
+        fullHtmlContent: buildConfirmationEmailHtml(seed2Id, seed2Email, 'Zama', 'ZAMA')
+      }
+    ],
+    privateDownloadToken: 'crl_token_zama_11204',
+    publishApproved: false
+  };
+
+  return [order2, order1];
+}
