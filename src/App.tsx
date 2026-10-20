@@ -1983,13 +1983,10 @@ export default function App() {
                   <div className="absolute -top-20 -right-20 w-48 h-48 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none" />
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between border-b border-cyber-cyan/20 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-                        <span className="font-orbitron font-bold text-[9px] sm:text-[10px] text-cyan-300 uppercase tracking-[2px]">
-                          CRYPTO REVIEW LAB — SECURITY VERIFICATION TERMINAL
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30">
+                        SECURITY VERIFICATION TERMINAL
+                      </span>
                     </div>
 
                     <h2 className="font-orbitron font-black text-base sm:text-lg lg:text-xl xl:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyber-cyan to-purple-400 tracking-wide leading-tight uppercase">
@@ -2006,10 +2003,6 @@ export default function App() {
                     <span className="px-3 py-1.5 rounded-xl bg-cyber-cyan/10 text-cyan-300 border border-cyber-cyan/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-cyber-cyan" />
                       AVF Security Assessment
-                    </span>
-                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                      Real-Time Intelligence
                     </span>
                     <span className="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-300 border border-purple-500/30 font-bold shadow-sm backdrop-blur-sm flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-purple-400" />
@@ -2380,8 +2373,8 @@ export default function App() {
                   <span className="px-2 py-0.5 rounded-md bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 font-bold shrink-0">
                     AVF Security Assessment
                   </span>
-                  <span className="px-2 py-0.5 rounded-md bg-cyber-green/10 text-cyber-green border border-cyber-green/20 font-bold shrink-0">
-                    Real-Time Intelligence
+                  <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20 font-bold shrink-0">
+                    Multi-Source Sync
                   </span>
                 </div>
               </div>
