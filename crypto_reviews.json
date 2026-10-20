@@ -1052,7 +1052,7 @@
     "defiLlamaSlug": "chainlink",
     "name": "Chainlink",
     "symbol": "LINK",
-    "category": "DePIN (Compute / Storage / Wireless)",
+    "category": "Infrastructure / Oracle",
     "overallScore": 100,
     "verdict": "Chainlink is the industry-standard decentralized oracle network, securing tens of billions in smart contracts across all major blockchain ecosystems.",
     "scores": {
