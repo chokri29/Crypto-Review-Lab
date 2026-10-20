@@ -432,10 +432,10 @@ export function getCategoryDimensionPriors(category: string): CategoryPriors {
 }
 
 /**
- * Bayesian Shrinkage: Shrinks raw critic score toward historical category prior when confidence is low.
+ * Empirical Prior Shrinkage: Shrinks raw critic score toward historical category prior when confidence is low.
  * When confidence is high (c ~ 1.0), raw critic score is trusted with minimal adjustment.
  */
-export function applyBayesianShrinkage(score: number, confidence: number, categoryPrior: number): number {
+export function applyCategoryPriorShrinkage(score: number, confidence: number, categoryPrior: number): number {
   const c = Math.max(0.1, Math.min(1.0, confidence));
   const shrunk = Math.round((score * c) + (categoryPrior * (1.0 - c)));
   return Math.max(10, Math.min(100, shrunk));
@@ -573,13 +573,13 @@ export function evaluateCategoryOutlierAndRecord(
 
 /**
  * Combines independent per-dimension critics using confidence-weighted averaging
- * and Bayesian shrinkage for each dimension based on project evidence and protocol category.
+ * and prior shrinkage for each dimension based on project evidence and protocol category.
  */
 export function getF2MixtureReviewerScores(review: CryptoReview): MixtureReviewerScores {
   const category = normalizeProtocolCategory(review.category || 'Specialized / Experimental');
   const priors = getCategoryDimensionPriors(category);
 
-  // 1. Run all 5 independent critics & apply Bayesian Shrinkage towards category priors
+  // 1. Run all 5 independent critics & apply prior shrinkage towards category priors
   const rawSec = critiqueSecurity(review);
   const rawTok = critiqueTokenomics(review);
   const rawComm = critiqueCommunity(review);
@@ -588,23 +588,23 @@ export function getF2MixtureReviewerScores(review: CryptoReview): MixtureReviewe
 
   const secCritic: CriticResult = {
     ...rawSec,
-    score: applyBayesianShrinkage(rawSec.score, rawSec.confidence, priors.security)
+    score: applyCategoryPriorShrinkage(rawSec.score, rawSec.confidence, priors.security)
   };
   const tokCritic: CriticResult = {
     ...rawTok,
-    score: applyBayesianShrinkage(rawTok.score, rawTok.confidence, priors.tokenomics)
+    score: applyCategoryPriorShrinkage(rawTok.score, rawTok.confidence, priors.tokenomics)
   };
   const commCritic: CriticResult = {
     ...rawComm,
-    score: applyBayesianShrinkage(rawComm.score, rawComm.confidence, priors.community)
+    score: applyCategoryPriorShrinkage(rawComm.score, rawComm.confidence, priors.community)
   };
   const teamCritic: CriticResult = {
     ...rawTeam,
-    score: applyBayesianShrinkage(rawTeam.score, rawTeam.confidence, priors.team)
+    score: applyCategoryPriorShrinkage(rawTeam.score, rawTeam.confidence, priors.team)
   };
   const utilCritic: CriticResult = {
     ...rawUtil,
-    score: applyBayesianShrinkage(rawUtil.score, rawUtil.confidence, priors.utility)
+    score: applyCategoryPriorShrinkage(rawUtil.score, rawUtil.confidence, priors.utility)
   };
 
   // Helper for confidence-weighted combination of critics for a dimension
@@ -735,7 +735,7 @@ export function executeAVFLoop(initialReview: CryptoReview, maxRounds: number = 
     const f1Comm = (currentReview.scores?.community || 8.0) * 10;
     const f1Composite = currentReview.overallScore;
 
-    // 2. Framework 2 (Reviewer) Independent Derivation via Mixture-Critic Ensemble + Bayesian Shrinkage
+    // 2. Framework 2 (Reviewer) Independent Derivation via Mixture-Critic Ensemble + Prior Shrinkage
     const mixture = getF2MixtureReviewerScores(currentReview);
     const f2Sec = mixture.f2Sec.score;
     const f2Tok = mixture.f2Tok.score;

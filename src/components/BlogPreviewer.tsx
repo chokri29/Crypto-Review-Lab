@@ -388,6 +388,10 @@ export default function BlogPreviewer({
         cons: enrichment?.cons ?? undefined,
         author: enrichment?.author ?? undefined,
         createdAt: asset.createdAt || enrichment?.createdAt || new Date().toISOString(),
+        status: enrichment?.status || 'EDITORIAL_NOTE',
+        isSigned: enrichment?.isSigned,
+        is_signed: enrichment?.is_signed,
+        auditSignature: enrichment?.auditSignature,
         proBenchmarks: enrichment?.proBenchmarks,
         comparisonReport: enrichment?.comparisonReport,
       };
@@ -1294,13 +1298,13 @@ export default function BlogPreviewer({
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {review.overallScore != null ? (
+                        {review.status === 'VERIFIED' && (review.isSigned || review.is_signed) && review.overallScore != null ? (
                           <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md">
                             {review.overallScore}/100
                           </span>
                         ) : (
-                          <span className="font-mono text-[10px] font-semibold text-slate-400 bg-slate-800/60 border border-slate-700/60 px-2 py-0.5 rounded-md">
-                            Not reviewed
+                          <span className="font-mono text-[9px] font-semibold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                            Editorial Note
                           </span>
                         )}
                       </div>
@@ -2050,26 +2054,25 @@ export default function BlogPreviewer({
 
               {/* MORE ARTICLES & UTILITIES SECTION (Full-Width Top Rated Audits + Archives & AI Sandbox) */}
               <div className="space-y-6">
-                {/* 1. Full-Width Top Rated Security Audits */}
+                {/* 1. Full-Width Featured Research Notes */}
                 <div className="bg-slate-900/60 backdrop-blur-md border border-cyber-cyan/20 rounded-2xl p-4 sm:p-5 text-left relative overflow-hidden shadow-lg group">
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/50 to-transparent"></div>
                   <div className="flex items-center justify-between border-b border-cyber-cyan/15 pb-2.5 mb-3.5">
                     <h4 className="font-mono text-xs font-bold text-cyber-text-primary uppercase tracking-widest flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-cyber-cyan" />
-                      Top Ranked Assets
+                      <BookOpen className="w-4 h-4 text-cyber-cyan" />
+                      Featured Research Notes
                     </h4>
                     <span className="text-[9px] font-mono font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/25 px-2.5 py-0.5 rounded-full">
-                      HIGH SCORE
+                      EDITORIAL RESEARCH
                     </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                     {reviews
-                      .filter((item): item is CryptoReview & { overallScore: number } => typeof item.overallScore === 'number')
-                      .sort((a, b) => b.overallScore - a.overallScore)
                       .slice(0, 4)
                       .map((item) => {
-                        const scoreStyles = getScoreBadgeStyles(item.overallScore);
                         const isPinned = watchlist.includes(item.id);
+                        const isItemVerified = item.status === 'VERIFIED' && Boolean(item.isSigned || item.is_signed) && typeof item.overallScore === 'number';
+                        const scoreStyles = isItemVerified && item.overallScore != null ? getScoreBadgeStyles(item.overallScore) : null;
                         return (
                           <motion.div
                             key={item.id}
@@ -2111,9 +2114,15 @@ export default function BlogPreviewer({
                                 </div>
                               </div>
                               <div className="text-right shrink-0 pl-1 flex flex-col items-end gap-1">
-                                <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
-                                  {item.overallScore}%
-                                </span>
+                                {isItemVerified && scoreStyles ? (
+                                  <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-md border ${scoreStyles.bg} ${scoreStyles.text} ${scoreStyles.border}`}>
+                                    {item.overallScore}%
+                                  </span>
+                                ) : (
+                                  <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded-md border border-cyber-cyan/30 bg-cyber-cyan/10 text-cyber-cyan uppercase tracking-wider">
+                                    Editorial Note
+                                  </span>
+                                )}
                                 <span className="text-[8.5px] font-mono text-cyber-text-muted flex items-center gap-1">
                                   <Clock className="w-2.5 h-2.5 text-cyber-cyan/70" />
                                   {formatCardSyncTime(item.lastSyncedAt, liveDate)}
@@ -2277,7 +2286,11 @@ export default function BlogPreviewer({
 
               <div className="flex items-center gap-2 text-[10px] md:text-xs font-mono text-cyber-text-muted uppercase tracking-widest">
                 <Flame className="w-3.5 h-3.5 text-cyber-orange" />
-                <span>Evaluation & Verification Report</span>
+                <span>
+                  {activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed)
+                    ? 'Verified Security Audit'
+                    : 'Editorial Research Note & Telemetry'}
+                </span>
               </div>
             </div>
           </div>
@@ -2343,7 +2356,11 @@ export default function BlogPreviewer({
                   Updated: {formatCardSyncTime(activeReview.lastSyncedAt, liveDate)}
                 </span>
                 <span className="text-cyber-text-muted select-none">•</span>
-                <span className="text-cyber-green font-bold">Framework Verified</span>
+                <span className="text-cyber-cyan font-bold">
+                  {activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed)
+                    ? 'Cryptographically Verified'
+                    : 'Editorial Note'}
+                </span>
                 <span className="text-cyber-text-muted select-none">•</span>
                 <button
                   type="button"
@@ -2448,9 +2465,9 @@ export default function BlogPreviewer({
 
               return (
                 <div className="space-y-6">
-                  {/* Evaluation Score & Dimension Bars OR Not Reviewed State */}
+                  {/* Evaluation Score & Dimension Bars OR Editorial Note State */}
                   <div className="bg-cyber-bg-primary/60 border border-cyber-cyan/20 rounded-xl p-4 md:p-5">
-                    {scoreVal != null && effectiveScores ? (
+                    {activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed) && scoreVal != null && effectiveScores ? (
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                         <div className="md:col-span-4 flex flex-col items-center justify-center p-4 text-center border-b md:border-b-0 md:border-r border-cyber-cyan/15 space-y-2">
                           <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-text-muted leading-none">Evaluation Score</span>
@@ -2492,13 +2509,13 @@ export default function BlogPreviewer({
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 text-left">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-md">
-                              Not Reviewed
+                            <span className="font-mono text-xs font-bold text-cyber-cyan bg-cyber-cyan/10 border border-cyber-cyan/30 px-2.5 py-0.5 rounded-md">
+                              Editorial Research Note
                             </span>
-                            <span className="text-xs font-mono text-cyber-text-muted">Telemetry-Only Feed Asset</span>
+                            <span className="text-xs font-mono text-cyber-text-muted">Market Telemetry & Technical Overview</span>
                           </div>
                           <p className="text-xs text-cyber-text-secondary font-mono leading-relaxed">
-                            No editorial Evaluation Blueprint review has been conducted for {activeReview.name}. Showing live market depth and consensus telemetry without fabricated scores.
+                            This catalog entry is an editorial research note and live market telemetry dossier, not a verified smart contract audit or numerical rating certification.
                           </p>
                         </div>
                         <div className="shrink-0">

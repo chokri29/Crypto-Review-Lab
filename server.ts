@@ -3980,8 +3980,13 @@ function renderHtmlWithMeta(rawHtml: string, req: express.Request): string {
     }
 
     if (activeReview) {
-      const rawTitle = `${activeReview.name} (${activeReview.symbol}) Security & Risk Audit — Score: ${activeReview.overallScore}/100 | Crypto Review Lab`;
-      const rawDesc = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290);
+      const isVerifiedAudit = activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed) && typeof activeReview.overallScore === 'number';
+      const rawTitle = isVerifiedAudit
+        ? `${activeReview.name} (${activeReview.symbol}) Verified Security Audit — Score: ${activeReview.overallScore}/100 | Crypto Review Lab`
+        : `${activeReview.name} (${activeReview.symbol}) Editorial Research Note & Telemetry | Crypto Review Lab`;
+      const rawDesc = isVerifiedAudit
+        ? `Verified cryptographic security audit for ${activeReview.name} (${activeReview.symbol}). Overall Score: ${activeReview.overallScore}/100, Risk Level: ${activeReview.riskLevel}. ${activeReview.verdict || ''}`.slice(0, 290)
+        : `Editorial research note and real-time market telemetry for ${activeReview.name} (${activeReview.symbol}). Category: ${activeReview.category}. ${activeReview.verdict || ''}`.slice(0, 290);
       const rawUrl = `https://www.cryptoreviewlab.com/?tab=blog&review=${encodeURIComponent(activeReview.id)}`;
       const rawImage = activeReview.logoUrl || 'https://www.cryptoreviewlab.com/og-banner.jpg';
 

@@ -167,7 +167,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 132526428.17417127
+    "realTvl": 132526428.17417127,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "hyperliquid-decentralized-perp-exchange",
@@ -355,7 +356,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 6893820783.58455
+    "realTvl": 6893820783.58455,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "arbitrum-scaling-ethereum-layer2",
@@ -527,7 +529,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 3487456136.7768154
+    "realTvl": 3487456136.7768154,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "uniswap-defi-amm-gold-standard",
@@ -700,7 +703,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 3917463495.1319737
+    "realTvl": 3917463495.1319737,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "render-network-depin-ai-compute",
@@ -871,7 +875,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": null
+    "realTvl": null,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "solana-high-performance-monolith",
@@ -1041,7 +1046,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": null
+    "realTvl": null,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "chainlink-decentralized-oracle-network",
@@ -1212,7 +1218,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 1929325007.5818129
+    "realTvl": 1929325007.5818129,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "sui-network-object-centric-l1",
@@ -1384,7 +1391,8 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 27342945.32490042
+    "realTvl": 27342945.32490042,
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "kaspa-proof-of-work-blockdag",
@@ -1555,7 +1563,8 @@
       }
     },
     "realTvl": 85026.86155507206,
-    "defiLlamaSlug": "kaspacom-dex"
+    "defiLlamaSlug": "kaspacom-dex",
+    "status": "EDITORIAL_NOTE"
   },
   {
     "id": "jupiter-solana-liquidity-aggregator",
@@ -1724,6 +1733,7 @@
         "fdv": "DERIVED"
       }
     },
-    "realTvl": 1856144992.06811
+    "realTvl": 1856144992.06811,
+    "status": "EDITORIAL_NOTE"
   }
 ]

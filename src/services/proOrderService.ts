@@ -78,9 +78,6 @@ export function isOrderReferencePattern(id: string): boolean {
 export function matchesStoredProOrder(id: string): boolean {
   if (!id) return false;
   const clean = id.trim().toLowerCase();
-  if (clean === 'crl-884291' || clean === 'crl-914802' || clean === 'hype-seed' || clean === 'hype-seed-final' || clean === 'zama-seed') {
-    return true;
-  }
   const all = getAllOrders();
   return all.some(o => 
     (o.orderId && o.orderId.toLowerCase() === clean) ||
@@ -95,7 +92,21 @@ export function matchesStoredProOrder(id: string): boolean {
 /**
  * Creates formatted confirmation HTML email content
  */
-export function buildConfirmationEmailHtml(orderId: string, clientEmail: string, projectName: string, symbol: string): string {
+export function buildConfirmationEmailHtml(orderId: string, clientEmail: string, projectName: string, symbol: string, isPaid: boolean = false): string {
+  const badgeHtml = isPaid
+    ? `<span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">PAYMENT VERIFIED</span>`
+    : `<span style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">AWAITING PAYMENT</span>`;
+
+  const notificationHtml = isPaid
+    ? `<h3 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;">Advisory Order Confirmation #${orderId}</h3>
+        <p style="margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;">
+          Payment received. Your Security & Risk Assessment is being processed. Actionable remediation report delivered within 24 hours.
+        </p>`
+    : `<h3 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;">Advisory Order Received #${orderId}</h3>
+        <p style="margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;">
+          Order received and awaiting payment confirmation. Security & Risk Assessment will be prepared once payment is verified.
+        </p>`;
+
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f19; color: #e2e8f0; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(245, 158, 11, 0.3);">
       <div style="border-bottom: 1px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -103,14 +114,11 @@ export function buildConfirmationEmailHtml(orderId: string, clientEmail: string,
           <h2 style="color: #f59e0b; margin: 0; font-size: 20px; letter-spacing: -0.5px;">CRYPTO REVIEW LAB</h2>
           <p style="color: #64748b; font-size: 11px; margin: 4px 0 0 0; font-mono;">SECURITY & RISK ADVISORY DESK • SERVICE NOTICE</p>
         </div>
-        <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: bold;">PAYMENT VERIFIED</span>
+        ${badgeHtml}
       </div>
 
       <div style="background-color: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
-        <h3 style="margin: 0 0 6px 0; color: #fbbf24; font-size: 15px;">Advisory Order Confirmation #${orderId}</h3>
-        <p style="margin: 0; font-size: 14px; color: #f3f4f6; font-weight: 600; line-height: 1.5;">
-          Payment received. Your Security & Risk Assessment is being processed. Actionable remediation report delivered within 24 hours.
-        </p>
+        ${notificationHtml}
       </div>
 
       <table style="width: 100%; font-size: 13px; color: #cbd5e1; border-collapse: collapse; margin-bottom: 24px;">
@@ -426,16 +434,16 @@ export async function createProOrder(params: {
   const deliveryEta = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const token = `crl_token_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
 
-  const confirmationEmailHtml = buildConfirmationEmailHtml(orderId, cleanEmail, params.projectName, params.projectSymbol);
+  const confirmationEmailHtml = buildConfirmationEmailHtml(orderId, cleanEmail, params.projectName, params.projectSymbol, false);
 
   const confirmationLog: ProOrderEmailLog = {
     id: `msg_${Date.now()}_1`,
     type: 'CONFIRMATION',
     from: PRINCIPAL_EMAIL,
     to: cleanEmail,
-    subject: `[Crypto Review Lab] Payment Received - Security & Risk Assessment #${orderId}`,
+    subject: `[Crypto Review Lab] Order Received - Security & Risk Assessment #${orderId}`,
     sentAt: now.toISOString(),
-    bodyPreview: `Payment received. Your Security & Risk Assessment is being prepared. Delivery within 24 hours`,
+    bodyPreview: `Order received and awaiting payment confirmation. Security & Risk Assessment will be prepared once payment is verified.`,
     fullHtmlContent: confirmationEmailHtml
   };
 
@@ -461,10 +469,10 @@ export async function createProOrder(params: {
     verificationDepth: params.verificationDepth || 'Unified Bytecode & Evidence Verification',
     stressSimulation: params.stressSimulation ?? false,
     amountUsd: 149.00,
-    paymentStatus: 'PAID',
+    paymentStatus: 'PENDING',
     paymentMethod: cleanPaymentRef ? `NOWPayments (${cleanPaymentRef})` : 'NOWPayments (Crypto USD)',
     paymentReference: cleanPaymentRef || undefined,
-    status: 'PENDING_F2', // Initial candidate F1 generated, awaiting explicit admin initiation of F2
+    status: 'AWAITING_PAYMENT',
     createdAt: now.toISOString(),
     estimatedDeliveryAt: deliveryEta.toISOString(),
     systemDraft: draftToSave,
@@ -1001,11 +1009,14 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     order.paymentMethod = `NOWPayments (${String(payload.pay_currency).toUpperCase()})`;
   }
 
-  // When payment is confirmed/finished, ensure confirmation email is logged if not yet present
+  // When payment is confirmed/finished, advance status and ensure Payment Received confirmation email is logged
   if (mappedPaymentStatus === 'PAID') {
-    const hasConfirmationEmail = order.emailLogs.some(e => e.type === 'CONFIRMATION');
-    if (!hasConfirmationEmail) {
-      const confirmationEmailHtml = buildConfirmationEmailHtml(order.orderId, order.clientEmail, order.projectName, order.projectSymbol);
+    if (order.status === 'AWAITING_PAYMENT') {
+      order.status = 'PENDING_F2';
+    }
+    const hasPaidConfirmationEmail = order.emailLogs.some(e => e.type === 'CONFIRMATION' && e.subject.includes('Payment Received'));
+    if (!hasPaidConfirmationEmail) {
+      const confirmationEmailHtml = buildConfirmationEmailHtml(order.orderId, order.clientEmail, order.projectName, order.projectSymbol, true);
       const confirmationLog: ProOrderEmailLog = {
         id: `msg_${Date.now()}_ipn`,
         type: 'CONFIRMATION',

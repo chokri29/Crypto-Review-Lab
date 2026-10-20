@@ -84,6 +84,7 @@ export interface CryptoReview {
   isSigned?: boolean;
   is_signed?: boolean;
   f3Verification?: F3VerificationResult;
+  status?: 'EDITORIAL_NOTE' | 'VERIFIED' | string;
   // CoinGecko, CoinMarketCap & CoinStats Multi-Source Market Data fields
   livePrice?: number;
   liveChange24h?: number;

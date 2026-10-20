@@ -470,6 +470,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     category: bp.categoryType,
     overallScore: bp.overallScore,
     riskLevel: bp.riskLevel,
-    publishApproved: true
+    publishApproved: true,
+    status: 'EDITORIAL_NOTE'
   };
 });

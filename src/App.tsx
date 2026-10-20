@@ -1474,44 +1474,80 @@ export default function App() {
       if (logo) imageUrl = logo;
       ogType = "article";
 
-      title = `${matchedReview.name} (${matchedReview.symbol}) Security Review & Risk Assessment | Crypto Review Lab`;
-      descriptionText = `Independent algorithmic pre-launch security assessment and bytecode risk review for ${matchedReview.name} (${matchedReview.symbol}). Overall Score: ${matchedReview.overallScore}/100 | Risk Level: ${matchedReview.riskLevel} | Category: ${matchedReview.category}. Verdict: ${matchedReview.verdict}`;
-      keywords = `${matchedReview.name}, ${matchedReview.symbol}, ${matchedReview.symbol} audit, ${matchedReview.symbol} security review, ${matchedReview.symbol} rating, ${matchedReview.category}, ${matchedReview.riskLevel} risk, AVF evaluation, crypto code audit, smart contract security`;
+      const isVerifiedAudit = matchedReview.status === 'VERIFIED' && Boolean(matchedReview.isSigned || matchedReview.is_signed) && typeof matchedReview.overallScore === 'number';
 
-      // Rich Schema.org Review & FinancialProduct JSON-LD
-      jsonLdData = {
-        "@context": "https://schema.org",
-        "@type": "Review",
-        "name": `${matchedReview.name} (${matchedReview.symbol}) Security Review & Rating`,
-        "itemReviewed": {
-          "@type": "FinancialProduct",
-          "name": matchedReview.name,
-          "alternateName": matchedReview.symbol,
-          "category": matchedReview.category,
-          "description": matchedReview.verdict
-        },
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": matchedReview.overallScore,
-          "bestRating": "100",
-          "worstRating": "0"
-        },
-        "author": {
-          "@type": "Organization",
-          "name": "Crypto Review Lab (AVF Engine)",
-          "url": "https://www.cryptoreviewlab.com"
-        },
-        "publisher": {
-          "@type": "Organization",
-          "name": "Crypto Review Lab",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://www.cryptoreviewlab.com/logo.png"
+      if (isVerifiedAudit) {
+        title = `${matchedReview.name} (${matchedReview.symbol}) Verified Security Audit | Crypto Review Lab`;
+        descriptionText = `Verified cryptographic security audit for ${matchedReview.name} (${matchedReview.symbol}). Overall Score: ${matchedReview.overallScore}/100 | Risk Level: ${matchedReview.riskLevel} | Category: ${matchedReview.category}. Verdict: ${matchedReview.verdict || ''}`;
+        keywords = `${matchedReview.name}, ${matchedReview.symbol}, ${matchedReview.symbol} verified audit, ${matchedReview.symbol} security audit, ${matchedReview.category}, ${matchedReview.riskLevel} risk, AVF evaluation, cryptographic audit`;
+
+        // Rich Schema.org Review for verified audits only
+        jsonLdData = {
+          "@context": "https://schema.org",
+          "@type": "Review",
+          "name": `${matchedReview.name} (${matchedReview.symbol}) Verified Security Audit`,
+          "itemReviewed": {
+            "@type": "FinancialProduct",
+            "name": matchedReview.name,
+            "alternateName": matchedReview.symbol,
+            "category": matchedReview.category,
+            "description": matchedReview.verdict
+          },
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": matchedReview.overallScore,
+            "bestRating": "100",
+            "worstRating": "0"
+          },
+          "author": {
+            "@type": "Organization",
+            "name": "Crypto Review Lab (AVF Engine)",
+            "url": "https://www.cryptoreviewlab.com"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Crypto Review Lab",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.cryptoreviewlab.com/logo.png"
+            }
+          },
+          "datePublished": matchedReview.createdAt || "2026-01-01",
+          "reviewBody": matchedReview.summary ? matchedReview.summary.slice(0, 300) : matchedReview.verdict
+        };
+      } else {
+        // Editorial Research Note — NO numeric ratingValue or Review rating
+        title = `${matchedReview.name} (${matchedReview.symbol}) Editorial Research Note & Telemetry | Crypto Review Lab`;
+        descriptionText = `Editorial research note and real-time market telemetry for ${matchedReview.name} (${matchedReview.symbol}) | Category: ${matchedReview.category}. ${matchedReview.verdict || ''}`;
+        keywords = `${matchedReview.name}, ${matchedReview.symbol}, ${matchedReview.symbol} research note, ${matchedReview.symbol} market telemetry, ${matchedReview.category}, crypto analysis, tokenomics review`;
+
+        jsonLdData = {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": `${matchedReview.name} (${matchedReview.symbol}) Editorial Research Note & Market Telemetry`,
+          "description": matchedReview.verdict || `Editorial research note and market telemetry for ${matchedReview.name} (${matchedReview.symbol}).`,
+          "author": {
+            "@type": "Organization",
+            "name": "Crypto Review Lab",
+            "url": "https://www.cryptoreviewlab.com"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Crypto Review Lab",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.cryptoreviewlab.com/logo.png"
+            }
+          },
+          "datePublished": matchedReview.createdAt || "2026-01-01",
+          "about": {
+            "@type": "FinancialProduct",
+            "name": matchedReview.name,
+            "alternateName": matchedReview.symbol,
+            "category": matchedReview.category
           }
-        },
-        "datePublished": matchedReview.createdAt || "2026-01-01",
-        "reviewBody": matchedReview.summary ? matchedReview.summary.slice(0, 300) : matchedReview.verdict
-      };
+        };
+      }
     } else {
       if (activeTab === 'lab') {
         title = "AVF Review Lab — Algorithmic Crypto Risk & Code Evaluation Terminal | Crypto Review Lab";
