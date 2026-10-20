@@ -832,6 +832,7 @@ export default function BlogPreviewer({
   // Track 24h view for activeReview in Most Tracked registry
   useEffect(() => {
     if (activeReview) {
+      const isItemVerified = activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed) && typeof activeReview.overallScore === 'number';
       recordAssetView({
         id: activeReview.id,
         type: 'crypto',
@@ -840,7 +841,7 @@ export default function BlogPreviewer({
         category: activeReview.category,
         logoUrl: activeReview.logoUrl,
         coingeckoId: activeReview.coingeckoId,
-        score: activeReview.overallScore || 95,
+        score: isItemVerified ? activeReview.overallScore : undefined,
         riskLevel: (activeReview.riskLevel as any) || 'Low',
         stabilityStatus: 'Consensus & State Verified'
       });
