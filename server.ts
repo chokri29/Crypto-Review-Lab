@@ -1079,14 +1079,14 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
   });
 
   // API endpoint: Check Verified Payment Status for Order
-  app.get("/api/pro-order/payment-status", (req, res) => {
+  app.get("/api/pro-order/payment-status", async (req, res) => {
     try {
       const orderId = String(req.query.orderId || '').trim();
       const email = String(req.query.email || '').trim();
       if (!orderId || !email) {
         return res.json({ paid: false, paymentStatus: 'PENDING' });
       }
-      const matched = lookupOrderStrict(orderId, email);
+      const matched = await lookupOrderStrictAsync(orderId, email);
       if (matched.length === 0) {
         return res.json({ paid: false, paymentStatus: 'PENDING' });
       }

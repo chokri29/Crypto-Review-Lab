@@ -1101,7 +1101,7 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
   if (order.nowpaymentsIpnLogs.length > 50) order.nowpaymentsIpnLogs.pop();
 
   orders[index] = order;
-  saveOrdersToFile(orders);
+  saveOrderToStorage(order);
 
   return {
     success: true,
@@ -1122,6 +1122,20 @@ export function lookupOrderStrict(orderId: string, email: string): ProOrder[] {
   const mail = email.trim().toLowerCase();
   if (!id || !mail) return [];
   const all = getAllOrders();
+  return all.filter(o => 
+    o.orderId.toLowerCase() === id && 
+    o.clientEmail.toLowerCase() === mail
+  );
+}
+
+/**
+ * Async version of lookupOrderStrict resolving from Postgres DB primary
+ */
+export async function lookupOrderStrictAsync(orderId: string, email: string): Promise<ProOrder[]> {
+  const id = orderId.trim().toLowerCase();
+  const mail = email.trim().toLowerCase();
+  if (!id || !mail) return [];
+  const all = await getAllOrdersAsync();
   return all.filter(o => 
     o.orderId.toLowerCase() === id && 
     o.clientEmail.toLowerCase() === mail
