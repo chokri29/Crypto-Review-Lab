@@ -1065,15 +1065,15 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
   });
 
   // API endpoint: List all Pro Orders for Auditor Review Console Queue (Admin only)
-  app.get("/api/pro-order/list", (req, res) => {
+  app.get("/api/pro-order/list", async (req, res) => {
     if (!isAuthorizedAdmin(req)) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     try {
-      const orders = getAllOrders();
+      const orders = await getAllOrdersAsync();
       res.json(orders);
     } catch (error: any) {
-      console.error("Failed to list Pro orders:", error);
+      console.error("Failed to list Pro orders from database:", error);
       res.status(500).json({ error: "Failed to load order queue." });
     }
   });

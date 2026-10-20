@@ -838,18 +838,83 @@ export function getAllOrders(): ProOrder[] {
 }
 
 /**
- * Clears all orders from file storage
+ * Async version of getAllOrders for full Postgres retrieval
+ */
+export async function getAllOrdersAsync(): Promise<ProOrder[]> {
+  try {
+    if (isNodeEnv) {
+      const { getDbOrders } = await import('../db/queries');
+      const dbOrders = await getDbOrders();
+      if (dbOrders && dbOrders.length > 0) {
+        return dbOrders.map((o: any) => {
+          let parsedReport = {};
+          try {
+            parsedReport = o.reportData ? JSON.parse(o.reportData) : {};
+          } catch {}
+          return {
+            orderId: o.orderId,
+            clientEmail: o.clientEmail,
+            projectName: o.projectName,
+            projectSymbol: o.projectSymbol,
+            contractAddress: o.contractAddress || undefined,
+            chainId: o.chainId || undefined,
+            status: o.status as any,
+            paymentStatus: o.paymentStatus as any,
+            paymentReference: o.paymentReference || undefined,
+            focusArea: o.focusArea || undefined,
+            verificationDepth: o.verificationDepth || undefined,
+            stressSimulation: o.stressSimulation ? o.stressSimulation === 'true' : undefined,
+            amountUsd: 149.00,
+            ...parsedReport
+          };
+        });
+      }
+    }
+  } catch (dbErr) {
+    console.warn("Postgres primary getAllOrders failed, falling back to file storage:", dbErr);
+  }
+  return loadOrdersFromFile();
+}
+
+/**
+ * Clears all orders from storage
  */
 export function clearAllOrders(): void {
   saveOrdersToFile([]);
 }
 
 /**
- * Saves a single order to storage
+ * Saves a single order to storage (Postgres primary with file fallback)
  */
 export function saveOrderToStorage(order: ProOrder): void {
   try {
-    const current = getAllOrders();
+    // Save to DB asynchronously if in Node environment
+    if (isNodeEnv) {
+      import('../db/queries').then(({ upsertDbOrder }) => {
+        upsertDbOrder({
+          orderId: order.orderId,
+          clientEmail: order.clientEmail,
+          projectName: order.projectName,
+          projectSymbol: order.projectSymbol,
+          contractAddress: order.contractAddress,
+          chainId: order.chainId,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          paymentReference: order.paymentReference,
+          focusArea: order.focusArea,
+          verificationDepth: order.verificationDepth,
+          stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
+          reportData: order
+        }).catch(err => {
+          console.error("Postgres primary saveOrderToStorage failed, falling back to file storage:", err);
+        });
+      }).catch(err => {
+        console.error("Failed to load db queries for saveOrderToStorage:", err);
+      });
+    }
+
+    // Also update file/localStorage fallback
+    const current = loadOrdersFromFile();
     const existingIndex = current.findIndex(o => o.orderId === order.orderId);
     if (existingIndex >= 0) {
       current[existingIndex] = order;
