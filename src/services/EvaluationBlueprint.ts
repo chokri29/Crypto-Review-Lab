@@ -36,6 +36,10 @@ export function normalizeProtocolCategory(catInput?: string): ProtocolCategoryTy
   if (cat.includes('rwa') || cat.includes('tokeniz') || cat.includes('tradfi') || cat.includes('real world asset') || cat.includes('real-world')) {
     return 'RWA (Tokenization / TradFi Bridge)';
   }
+  // Oracle/Bridge before DePIN so labels like "DePIN / Oracles" normalize to Infrastructure.
+  if (cat.includes('infra') || cat.includes('oracle') || cat.includes('bridge') || cat.includes('indexing')) {
+    return 'Infrastructure (Oracle / Bridge)';
+  }
   if (cat.includes('depin') || cat.includes('compute') || cat.includes('storage') || cat.includes('wireless') || cat.includes('hardware')) {
     return 'DePIN (Compute / Storage / Wireless)';
   }
@@ -50,9 +54,6 @@ export function normalizeProtocolCategory(catInput?: string): ProtocolCategoryTy
   }
   if (cat.includes('privacy') || cat.includes('fhe') || cat.includes('zk') || cat.includes('mpc') || cat.includes('cryptographic') || cat.includes('confidential')) {
     return 'Privacy / Cryptographic (FHE / ZK / MPC)';
-  }
-  if (cat.includes('infra') || cat.includes('oracle') || cat.includes('bridge') || cat.includes('indexing')) {
-    return 'Infrastructure (Oracle / Bridge)';
   }
   if (cat.includes('defi') || cat.includes('amm') || cat.includes('lending') || cat.includes('exchange') || cat.includes('vault') || cat.includes('perp') || cat.includes('protocol')) {
     return 'DeFi Protocol (AMM / Lending)';
@@ -938,15 +939,9 @@ export function calculateBlueprintScore(
   const modifier = computeProtocolTypeMultiFactorModifier(categoryType, { utility, tokenomics, security, team, community });
   const adjustedScore = baseSum + modifier.riskAdjustment;
 
-  // Anti-Compression Spread Transformation: Prevent artificial score clustering in 80-86
-  let expandedScore = adjustedScore;
-  if (adjustedScore > 76) {
-    expandedScore = 76 + (adjustedScore - 76) * 1.18;
-  } else if (adjustedScore < 76) {
-    expandedScore = 76 - (76 - adjustedScore) * 1.22;
-  }
-
-  const rawScore = Math.min(100, Math.max(1, Math.round(expandedScore)));
+  // Published score = round(baseSum + architectural modifier), clamped 1–100. No stretch multipliers.
+  const expandedScore = adjustedScore;
+  const rawScore = Math.min(100, Math.max(1, Math.round(adjustedScore)));
   const overallScore = rawScore;
   const isMemeCoinPenaltyTriggered = false;
   const isCapped = false;
