@@ -1,6 +1,6 @@
 {
   "name": "CryptoReviewLab",
-  "description": "Crypto Review Lab — Algorithmic Security Intelligence for Digital Assets. Powered by AVF Tripartite Core Engine (Algorithmic Verification Framework)",
+  "description": "Crypto Review Lab — Algorithmic Security Intelligence and Editorial Research Notes for Digital Assets. Powered by AVF Tripartite Core Engine (Algorithmic Verification Framework)",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

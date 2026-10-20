@@ -1552,23 +1552,23 @@ export default function App() {
       if (activeTab === 'lab') {
         title = "AVF Review Lab — Algorithmic Crypto Risk & Code Evaluation Terminal | Crypto Review Lab";
         descriptionText = "Execute algorithmic evaluations, multi-source market data convergence, on-chain security telemetry, and quantitative risk appraisals using AVF Engine.";
-        keywords = "AVF review lab, crypto security audit, smart contract vulnerability scanner, crypto risk assessment, DeFi protocol security";
+        keywords = "AVF review lab, crypto risk evaluation, smart contract vulnerability scanner, crypto risk assessment, DeFi protocol security";
       } else if (activeTab === 'blog') {
-        title = "Cryptocurrency | Crypto Review Lab";
-        descriptionText = "Explore comprehensive independent security audits, project risk ratings, market confidence metrics, and deep-dive technical evaluations.";
-        keywords = "crypto project reviews, cryptocurrency ratings, crypto audit reports, blockchain project evaluation, DeFi ratings";
+        title = "Cryptocurrency Editorial Research Notes & Market Telemetry | Crypto Review Lab";
+        descriptionText = "Explore comprehensive independent editorial research notes, project risk ratings, market confidence metrics, and deep-dive technical telemetry.";
+        keywords = "crypto project reviews, cryptocurrency ratings, crypto research notes, blockchain project evaluation, DeFi ratings";
       } else if (activeTab === 'chat') {
-        title = "AI Smart Contract Auditor & Crypto Security Desk | Crypto Review Lab";
-        descriptionText = "Consult our AI Contract Auditor for instant smart contract vulnerability checks, exchange rating breakdowns, and custom blockchain security advice.";
-        keywords = "AI contract auditor, crypto security chat, smart contract checker, crypto AI assistant, vulnerability audit";
+        title = "AI Smart Contract Assistant & Crypto Risk Desk | Crypto Review Lab";
+        descriptionText = "Consult our AI assistant for instant smart contract vulnerability checks, exchange rating breakdowns, and custom blockchain security advice.";
+        keywords = "AI contract auditor, crypto security chat, smart contract checker, crypto AI assistant, vulnerability check";
       } else if (activeTab === 'xstocks' || activeTab === 'academy') {
         title = "Tokenized Stocks (xStocks) & Real-time Cryptocurrency | Crypto Review Lab";
         descriptionText = "24/7 on-chain secondary market quoting, multi-source market data convergence, and technical indicator analytics for tokenized US equities (AAPLX, TSLAX, NVDAX, QQQX).";
         keywords = "tokenized stocks, xstocks, backed finance, AAPLX, TSLAX, NVDAX, crypto equities, tokenized US stocks";
       } else if (activeTab === 'orders') {
-        title = "Verify Order & Audit Dispatch Portal | Crypto Review Lab";
+        title = "Verify Order & Risk Assessment Dispatch Portal | Crypto Review Lab";
         descriptionText = "Track, verify, and download independent crypto risk assessment reports, security order dispatches, and cryptographically signed report certificates.";
-        keywords = "verify crypto audit, order dispatch, cryptographically signed audit, security & risk assessment report";
+        keywords = "verify crypto risk assessment, order dispatch, cryptographically signed audit, security & risk assessment report";
       }
 
       jsonLdData = {
