@@ -57,47 +57,48 @@ export const SignedAuditBadge: React.FC<SignedAuditBadgeProps> = ({
     setVerificationResult(null);
 
     try {
-      if (scores && verdict) {
-        const res = await fetch('/api/audit/verify-signature', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            auditSignature: signature,
-            scores,
-            verdict,
-            timestamp: signature.signedAt || timestamp || new Date().toISOString()
-          })
+      if (!scores || !verdict) {
+        setVerificationResult({
+          isValid: false,
+          message: 'Incomplete input — cannot verify signature.'
         });
+        return;
+      }
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.isValid) {
-            setVerificationResult({
-              isValid: true,
-              message: 'SHA-256 Digest & Ed25519 Signature Verified Clean ✓'
-            });
-          } else {
-            setVerificationResult({
-              isValid: false,
-              message: data.reason || 'Cryptographic mismatch detected.'
-            });
-          }
-        } else {
+      const res = await fetch('/api/audit/verify-signature', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auditSignature: signature,
+          scores,
+          verdict,
+          timestamp: signature.signedAt || timestamp || new Date().toISOString()
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.isValid === true) {
           setVerificationResult({
             isValid: true,
-            message: 'Signature Structure & Public Key Validated ✓'
+            message: 'SHA-256 Digest & Ed25519 Signature Verified Clean ✓'
+          });
+        } else {
+          setVerificationResult({
+            isValid: false,
+            message: data?.reason || 'Cryptographic signature mismatch detected.'
           });
         }
       } else {
         setVerificationResult({
-          isValid: true,
-          message: 'Ed25519 Cryptographic Signature & Hash Integrity Verified ✓'
+          isValid: false,
+          message: 'Verification request failed (Server error).'
         });
       }
     } catch (e) {
       setVerificationResult({
-        isValid: true,
-        message: 'Ed25519 Cryptographic Signature Format Verified ✓'
+        isValid: false,
+        message: 'Verification network error or parse failure.'
       });
     } finally {
       setVerifying(false);
