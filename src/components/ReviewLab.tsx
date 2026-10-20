@@ -508,11 +508,11 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     return () => clearInterval(timer);
   }, [unlockTimeRemaining, isAdminMaster]);
 
-  const handleInitiateProOrder = (paymentRef?: string): boolean => {
+  const handleInitiateProOrder = async (orderIdInput?: string): Promise<boolean> => {
     const cleanName = name.trim();
     const cleanSymbol = symbol.trim();
     const cleanEmail = clientEmailInput.trim();
-    const cleanPaymentRef = (paymentRef !== undefined ? paymentRef : paymentTxHash).trim();
+    const cleanOrderId = (orderIdInput !== undefined ? orderIdInput : paymentTxHash).trim();
 
     if (!cleanName || !cleanSymbol || !cleanEmail || !cleanEmail.includes('@')) {
       setEmailValidationError('Project name, ticker, and delivery email are required.');
@@ -520,43 +520,37 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     }
     setEmailValidationError(null);
 
-    // Enforce required Payment Reference / Transaction Hash before unlocking
-    if (!cleanPaymentRef) {
-      setPaymentTxHashError('Payment Reference / Transaction Hash is required. Please paste your NOWPayments Order ID, payment token, or on-chain tx hash to verify payment.');
+    if (!cleanOrderId) {
+      setPaymentTxHashError('Order ID is required to check payment confirmation status.');
       return false;
     }
 
-    if (cleanPaymentRef.length < 5) {
-      setPaymentTxHashError('Please enter a valid Transaction Hash or NOWPayments Order ID (minimum 5 characters).');
-      return false;
-    }
-
-    // Check if this payment reference has already been consumed for a completed report
     try {
-      if (localStorage.getItem('crl_consumed_payment_' + cleanPaymentRef.toLowerCase()) === 'true') {
-        setPaymentTxHashError('This Payment Reference / Transaction Hash has already been consumed for a previous assessment report. Each payment entitles exactly one Security & Risk Assessment.');
+      const res = await fetch(`/api/pro-order/payment-status?orderId=${encodeURIComponent(cleanOrderId)}&email=${encodeURIComponent(cleanEmail)}`);
+      const data = await res.json();
+      if (data && data.paid) {
+        setIsProUnlocked(true);
+        setAuditMode('pro');
+        setUnlockTimeRemaining(180);
+        setShowProModal(false);
+        setNowPaymentsOpened(false);
+        setPaymentTxHash('');
+        setPaymentTxHashError(null);
+        setPaymentBanner(
+          `⚡ Payment Confirmed via IPN for Order #${data.orderId}! Security & Risk Assessment is UNLOCKED for 1 report on ${cleanName} (${cleanSymbol.toUpperCase()}). Click 'Execute Security & Risk Assessment' below.`
+        );
+        return true;
+      } else {
+        setPaymentTxHashError(`Order #${cleanOrderId} payment status is ${data.paymentStatus || 'PENDING'}. Awaiting verified NOWPayments IPN confirmation.`);
         return false;
       }
-    } catch {}
-
-    setPaymentTxHashError(null);
-    setVerifiedPaymentRef(cleanPaymentRef);
-
-    // Unlock Pro generation for single report execution
-    setIsProUnlocked(true);
-    setAuditMode('pro');
-    setUnlockTimeRemaining(180); // 3-minute active execution window
-    setShowProModal(false);
-    setNowPaymentsOpened(false);
-    setPaymentTxHash('');
-    setPaymentBanner(
-      `⚡ Payment Reference Verified (${cleanPaymentRef.slice(0, 16)}${cleanPaymentRef.length > 16 ? '...' : ''})! Security & Risk Assessment is UNLOCKED for 1 report on ${cleanName} (${cleanSymbol.toUpperCase()}). Click 'Execute Security & Risk Assessment' below to initiate your live terminal scan.`
-    );
-
-    return true;
+    } catch (err: any) {
+      setPaymentTxHashError('Failed to verify payment status: ' + (err?.message || 'Network error'));
+      return false;
+    }
   };
 
-  const handleOpenNowPayments = (e?: React.SyntheticEvent) => {
+  const handleOpenNowPayments = async (e?: React.SyntheticEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -573,48 +567,73 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
     setEmailValidationError(null);
     setNowPaymentsOpened(true);
 
-    const paymentUrl = 'https://nowpayments.io/payment/?iid=6085575151';
-
     try {
-      const popup = window.open(paymentUrl, '_blank', 'noopener,noreferrer');
-      if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-        window.location.href = paymentUrl;
+      const createRes = await fetch('/api/pro-order/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientEmail: cleanEmail,
+          projectName: cleanName,
+          projectSymbol: cleanSymbol,
+          contractAddress: contractAddress || undefined,
+          focusArea: focusArea || 'Smart Contract Security Audit & TVL Resilience',
+          verificationDepth: verificationDepth,
+          systemDraft: {
+            name: cleanName,
+            symbol: cleanSymbol,
+            category: category || 'DeFi / Web3',
+            network: selectedChain || 'Ethereum'
+          }
+        })
+      });
+
+      if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}));
+        setEmailValidationError(err.error || 'Failed to create assessment order.');
+        setNowPaymentsOpened(false);
+        return;
       }
-    } catch (err) {
-      window.location.href = paymentUrl;
+      const orderData = await createRes.json();
+      const orderId = orderData.orderId;
+      setPaymentTxHash(orderId);
+
+      const invoiceRes = await fetch('/api/payments/nowpayments-create-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          amountUsd: 149,
+          projectName: cleanName,
+          projectSymbol: cleanSymbol
+        })
+      });
+
+      if (!invoiceRes.ok) {
+        setEmailValidationError('Payment gateway unavailable (503). NOWPayments API key is not configured or invoice generation failed.');
+        setNowPaymentsOpened(false);
+        return;
+      }
+
+      const invoiceData = await invoiceRes.json();
+      if (invoiceData && invoiceData.invoiceUrl) {
+        const popup = window.open(invoiceData.invoiceUrl, '_blank', 'noopener,noreferrer');
+        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+          window.location.href = invoiceData.invoiceUrl;
+        }
+      } else {
+        setEmailValidationError('Failed to obtain payment invoice URL.');
+        setNowPaymentsOpened(false);
+      }
+    } catch (err: any) {
+      setEmailValidationError('Failed to initiate payment: ' + (err?.message || 'Network error'));
+      setNowPaymentsOpened(false);
     }
   };
 
-  // Clean URL parameters and process returning payment safely without re-triggering duplicates
+  // Clean URL parameters
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const urlPayment = params.get('payment') || params.get('paid');
-      const urlPaymentRef = params.get('tx') || params.get('paymentRef') || params.get('payment_id');
-
-      // Only unlock if explicit payment confirmation parameter is present and not previously consumed
-      if (urlPayment === 'true' || urlPayment === 'success' || urlPayment === '1') {
-        const detectedRef = (urlPaymentRef || `NOWPAYMENTS_${Date.now()}`).trim();
-        const isConsumed = (() => {
-          try {
-            return localStorage.getItem('crl_consumed_payment_' + detectedRef.toLowerCase()) === 'true';
-          } catch {
-            return false;
-          }
-        })();
-
-        if (!isConsumed) {
-          setVerifiedPaymentRef(detectedRef);
-          setIsProUnlocked(true);
-          setAuditMode('pro');
-          setUnlockTimeRemaining(180);
-          setPaymentBanner(
-            `⚡ Payment Verified via NOWPayments! Security & Risk Assessment is UNLOCKED for 1 report. Click 'Execute Security & Risk Assessment' below to initiate your scan.`
-          );
-        }
-      }
-
-      // Immediately clean URL parameters so refreshes and navigation do not re-trigger
       if (params.has('payment') || params.has('mode') || params.has('unlocked') || params.has('paid') || params.has('tx') || params.has('paymentRef')) {
         const newUrl = window.location.pathname;
         window.history.replaceState({}, document.title, newUrl);
@@ -2786,7 +2805,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                   setPromoCode(e.target.value);
                                   setPromoError(null);
                                 }}
-                                placeholder="Admin Master Key or Voucher Code (e.g. PRO2026)"
+                                placeholder="Admin Master Key"
                                 className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-200 text-xs font-mono flex-1 focus:outline-none focus:border-amber-500/50"
                               />
                             </div>
@@ -2807,29 +2826,6 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                   const rawCode = promoCode.trim();
                                   const codeUpper = rawCode.toUpperCase();
                                   const rawPass = adminPassphrase.trim();
-
-                                  // Check for Pro promo voucher codes first
-                                  if ((codeUpper === 'PRO2026' || codeUpper === 'PRO49' || codeUpper === 'TESTPRO' || codeUpper === 'AVF2026' || codeUpper === 'DEMOPRO') && !rawPass) {
-                                    const emailToUse = clientEmailInput.trim() || 'auditor@cryptoreviewlab.internal';
-                                    if (!clientEmailInput.trim()) {
-                                      setClientEmailInput(emailToUse);
-                                    }
-                                    const voucherKey = `VOUCHER-${codeUpper}-${emailToUse.toLowerCase()}`;
-                                    try {
-                                      if (localStorage.getItem('crl_consumed_payment_' + voucherKey.toLowerCase()) === 'true') {
-                                        setPromoError('This voucher code has already been redeemed for this email address.');
-                                        return;
-                                      }
-                                    } catch {}
-
-                                    setVerifiedPaymentRef(voucherKey);
-                                    setIsProUnlocked(true);
-                                    setAuditMode('pro');
-                                    setUnlockTimeRemaining(180);
-                                    setShowProModal(false);
-                                    setPaymentBanner(`⚡ Voucher Code ${codeUpper} Verified! Security & Risk Assessment session UNLOCKED for 1 report. Click 'Execute Security & Risk Assessment' below to run your scan.`);
-                                    return;
-                                  }
 
                                   if (!rawCode || !rawPass) {
                                     setPromoError('Both Admin Master Key and Passphrase are required for Master Auditor verification.');
