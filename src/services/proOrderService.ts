@@ -992,10 +992,9 @@ export function mapNowPaymentsStatusToPaymentStatus(rawStatus?: string): ProOrde
 }
 
 /**
- * Processes a verified NOWPayments IPN payload to update order payment state idempotently.
- * Never bypasses admin review or alters AVF/F1/F2/F3 assessment scores.
+ * Processes a verified NOWPayments IPN payload to update order payment state idempotently using Postgres DB primary.
  */
-export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymentsIpnProcessResult {
+export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload): Promise<NowPaymentsIpnProcessResult> {
   const targetOrderId = payload.order_id ? String(payload.order_id).trim() : '';
   if (!targetOrderId) {
     return {
@@ -1004,8 +1003,8 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     };
   }
 
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId.toLowerCase() === targetOrderId.toLowerCase());
+  const allOrders = await getAllOrdersAsync();
+  const index = allOrders.findIndex(o => o.orderId.toLowerCase() === targetOrderId.toLowerCase());
   if (index === -1) {
     return {
       success: false,
@@ -1014,13 +1013,12 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     };
   }
 
-  const order = orders[index];
+  const order = allOrders[index];
   const rawStatus = payload.payment_status ? String(payload.payment_status).trim() : 'pending';
   const mappedPaymentStatus = mapNowPaymentsStatusToPaymentStatus(rawStatus);
   const paymentId = payload.payment_id !== undefined ? payload.payment_id : payload.invoice_id;
   const nowStr = new Date().toISOString();
 
-  // Create audit log entry for this IPN callback
   const ipnLogEntry: NowPaymentsIpnLog = {
     receivedAt: nowStr,
     paymentId: paymentId || 'N/A',
@@ -1038,8 +1036,6 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     order.nowpaymentsIpnLogs = [];
   }
 
-  // Idempotency check:
-  // If order already has this payment status AND last IPN log recorded the exact same payment_id and status:
   const isDuplicate = (
     order.paymentStatus === mappedPaymentStatus &&
     order.nowpaymentsPaymentId &&
@@ -1048,11 +1044,32 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
   );
 
   if (isDuplicate) {
-    // Append log without redundant state transitions or duplicate emails
     order.nowpaymentsIpnLogs.unshift(ipnLogEntry);
     if (order.nowpaymentsIpnLogs.length > 50) order.nowpaymentsIpnLogs.pop();
-    orders[index] = order;
-    saveOrdersToFile(orders);
+    
+    if (isNodeEnv) {
+      try {
+        const { upsertDbOrder } = await import('../db/queries');
+        await upsertDbOrder({
+          orderId: order.orderId,
+          clientEmail: order.clientEmail,
+          projectName: order.projectName,
+          projectSymbol: order.projectSymbol,
+          contractAddress: order.contractAddress,
+          chainId: order.chainId,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          paymentReference: order.paymentReference,
+          focusArea: order.focusArea,
+          verificationDepth: order.verificationDepth,
+          stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
+          reportData: order
+        });
+      } catch (dbErr) {
+        console.error("Postgres primary duplicate IPN log persist failed:", dbErr);
+      }
+    }
+    saveOrdersToFile(allOrders);
 
     return {
       success: true,
@@ -1065,7 +1082,6 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     };
   }
 
-  // Update order with new payment status
   order.paymentStatus = mappedPaymentStatus;
   if (paymentId) {
     order.nowpaymentsPaymentId = paymentId;
@@ -1074,7 +1090,6 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     order.paymentMethod = `NOWPayments (${String(payload.pay_currency).toUpperCase()})`;
   }
 
-  // When payment is confirmed/finished, advance status and ensure Payment Received confirmation email is logged
   if (mappedPaymentStatus === 'PAID') {
     if (order.status === 'AWAITING_PAYMENT') {
       order.status = 'PENDING_F2';
@@ -1096,12 +1111,35 @@ export function processNowPaymentsIpn(payload: NowPaymentsIpnPayload): NowPaymen
     }
   }
 
-  // Record IPN log entry
   order.nowpaymentsIpnLogs.unshift(ipnLogEntry);
   if (order.nowpaymentsIpnLogs.length > 50) order.nowpaymentsIpnLogs.pop();
 
-  orders[index] = order;
-  saveOrderToStorage(order);
+  allOrders[index] = order;
+
+  // Save to DB primary with await
+  if (isNodeEnv) {
+    try {
+      const { upsertDbOrder } = await import('../db/queries');
+      await upsertDbOrder({
+        orderId: order.orderId,
+        clientEmail: order.clientEmail,
+        projectName: order.projectName,
+        projectSymbol: order.projectSymbol,
+        contractAddress: order.contractAddress,
+        chainId: order.chainId,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        paymentReference: order.paymentReference,
+        focusArea: order.focusArea,
+        verificationDepth: order.verificationDepth,
+        stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
+        reportData: order
+      });
+    } catch (dbErr) {
+      console.error("Postgres primary IPN persist failed, falling back to file storage:", dbErr);
+    }
+  }
+  saveOrdersToFile(allOrders);
 
   return {
     success: true,

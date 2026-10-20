@@ -959,7 +959,7 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
 
   // API endpoint: NOWPayments Instant Payment Notification (IPN) Webhook
   // Validates HMAC-SHA512 signature using NOWPAYMENTS_IPN_SECRET and updates order payment state idempotently
-  app.post("/api/payments/nowpayments-ipn", (req, res) => {
+  app.post("/api/payments/nowpayments-ipn", async (req, res) => {
     try {
       const sigHeader = (req.headers["x-nowpayments-sig"] || req.headers["x-nowpayments-signature"]) as string | undefined;
       const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET;
@@ -987,7 +987,7 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
 
       console.log(`[NOWPayments IPN] Authenticated callback received: Payment ID: ${paymentId}, Order ID: ${orderId}, Status: ${rawStatus}`);
 
-      const result = processNowPaymentsIpn(req.body);
+      const result = await processNowPaymentsIpnAsync(req.body);
       if (!result.success) {
         console.warn(`[NOWPayments IPN] IPN processing issue: ${result.message}`);
         if (result.message?.includes("not found")) {
