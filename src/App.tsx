@@ -1681,7 +1681,7 @@ export default function App() {
       <FaqJsonLd activeTab={activeTab} />
       
       {/* 1. Cyber Header */}
-      <header className="sticky top-0 z-50 w-full bg-cyber-bg-primary/95 border-b border-cyber-cyan/20 backdrop-blur-md px-4 sm:px-6 lg:px-8 py-2.5 shrink-0 shadow-sm flex justify-center">
+      <header className="sticky top-0 z-50 w-full bg-cyber-bg-primary/90 border-b border-slate-800/60 backdrop-blur-xl px-4 sm:px-6 lg:px-8 py-2.5 shrink-0 shadow-sm flex justify-center">
         <div className="max-w-7xl w-full mx-auto flex flex-col gap-2.5">
           
           {/* Top Row: Brand Logo + Header Controls (Currency & Search) */}
@@ -1748,7 +1748,7 @@ export default function App() {
                       }
                     }}
                     placeholder="Quick search project..."
-                    className="w-full bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-8 pr-8 py-1.5 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_12px_rgba(0,229,255,0.3)] transition-all font-mono"
+                    className="w-full bg-slate-900/60 border border-slate-800/80 focus:border-cyber-cyan rounded-full pl-8 pr-8 py-1.5 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:ring-1 focus:ring-cyber-cyan/30 transition-all font-mono"
                     aria-label="Quick search projects in header"
                   />
                   <button
@@ -1859,32 +1859,32 @@ export default function App() {
 
           {/* Navigation Bar: Core Tab Navigators (Full Width / Centered Row) */}
           <div className="w-full flex items-center justify-start lg:justify-center overflow-x-auto no-scrollbar py-0.5">
-            <nav className="flex items-center bg-cyber-bg-card/90 p-1.5 border border-cyber-cyan/30 rounded-xl max-w-full overflow-x-auto no-scrollbar flex-nowrap gap-1.5 shadow-[0_0_15px_rgba(0,229,255,0.08)] touch-pan-x select-none shrink-0">
+            <nav className="flex items-center bg-slate-950/70 p-1.5 border border-slate-800/80 rounded-2xl max-w-full overflow-x-auto no-scrollbar flex-nowrap gap-1 touch-pan-x select-none shrink-0 backdrop-blur-md">
               <button
                 type="button"
                 onClick={() => handleTabChange('lab')}
-                className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-orbitron font-black flex items-center gap-2 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border relative ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                   activeTab === 'lab'
-                    ? 'bg-gradient-to-r from-purple-600 via-cyber-cyan to-purple-600 text-slate-950 border-purple-300 shadow-[0_0_24px_rgba(168,85,247,0.7)] scale-[1.02]'
-                    : 'bg-gradient-to-r from-purple-950/80 to-slate-900 text-purple-200 border-purple-500/40 hover:border-purple-400 hover:text-white hover:bg-purple-900/60 shadow-[0_0_12px_rgba(168,85,247,0.25)] font-bold'
+                    ? 'bg-cyber-cyan text-slate-950 font-bold border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                 }`}
               >
-                <Cpu className={`w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0 ${activeTab === 'lab' ? 'text-slate-950 animate-spin' : 'text-purple-400 animate-pulse'}`} />
-                <span className="tracking-widest whitespace-nowrap">AVF REVIEW LAB</span>
-                <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-extrabold uppercase shrink-0 ${
-                  activeTab === 'lab' ? 'bg-slate-950 text-purple-300' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                <Cpu className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'lab' ? 'text-slate-950 animate-spin' : 'text-cyber-cyan animate-pulse'}`} />
+                <span>Review Lab</span>
+                <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold uppercase shrink-0 ${
+                  activeTab === 'lab' ? 'bg-slate-950/20 text-slate-950' : 'bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30'
                 }`}>
-                  ENGINE
+                  AVF
                 </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleTabChange('blog')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                   activeTab === 'blog'
-                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                    ? 'bg-cyber-cyan text-slate-950 font-bold border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5 shrink-0" />
@@ -1894,10 +1894,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => handleTabChange('xstocks')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                   activeTab === 'xstocks' || activeTab === 'academy'
-                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                    ? 'bg-cyber-cyan text-slate-950 font-bold border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                 }`}
               >
                 <TrendingUp className="w-3.5 h-3.5 shrink-0" />
@@ -1907,10 +1907,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => handleTabChange('chat')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                   activeTab === 'chat'
-                    ? 'bg-cyber-cyan text-cyber-bg-primary border-cyber-cyan shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                    : 'bg-cyber-bg-secondary/70 text-cyber-text-primary border-cyber-cyan/15 hover:border-cyber-cyan/50 hover:text-cyber-cyan hover:bg-cyber-cyan/10'
+                    ? 'bg-cyber-cyan text-slate-950 font-bold border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                 }`}
               >
                 <Terminal className="w-3.5 h-3.5 shrink-0" />
@@ -1921,10 +1921,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => handleTabChange('orders')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                   activeTab === 'orders'
-                    ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.5)] scale-[1.02]'
-                    : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:border-amber-400 hover:text-amber-200 hover:bg-amber-500/20'
+                    ? 'bg-amber-400 text-slate-950 font-bold border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -1937,10 +1937,10 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => handleTabChange('auditor')}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-display font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                       activeTab === 'auditor'
-                        ? 'bg-emerald-400 text-slate-950 border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.5)] scale-[1.02]'
-                        : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:border-emerald-400 hover:text-emerald-200 hover:bg-emerald-500/20 font-bold'
+                        ? 'bg-emerald-400 text-slate-950 font-bold border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.25)]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                     }`}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -1950,10 +1950,10 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => handleTabChange('f3')}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-black flex items-center gap-1.5 transition-all duration-300 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-orbitron font-bold flex items-center gap-1.5 transition-all duration-200 uppercase tracking-wider cursor-pointer shrink-0 border whitespace-nowrap ${
                       activeTab === 'f3'
-                        ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 border-cyan-300 shadow-[0_0_16px_rgba(0,229,255,0.5)] scale-[1.02]'
-                        : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30 hover:border-cyan-400 hover:text-cyan-200 hover:bg-cyan-500/20 font-bold'
+                        ? 'bg-cyber-cyan text-slate-950 font-bold border-cyber-cyan shadow-[0_0_10px_rgba(0,229,255,0.25)]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border-transparent'
                     }`}
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />

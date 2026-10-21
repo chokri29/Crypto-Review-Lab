@@ -464,12 +464,10 @@ Jupiter is a highly functional DeFi powerhouse with unmatched ecosystem integrat
 ];
 
 export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
-  const bp = calculateBlueprintScore(review.scores, review.category);
   return {
     ...review,
-    category: bp.categoryType,
-    overallScore: bp.overallScore,
-    riskLevel: bp.riskLevel,
+    overallScore: undefined,
+    riskLevel: undefined,
     publishApproved: true,
     status: 'EDITORIAL_NOTE'
   };

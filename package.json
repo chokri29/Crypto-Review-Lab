@@ -12,7 +12,8 @@
     "check": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "tsx src/tests/moneyPath.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

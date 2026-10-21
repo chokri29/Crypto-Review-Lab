@@ -404,25 +404,10 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     return await enrichReviewWithDefiLlamaTvl(merged);
   }
 
-  // 2. For new tokens, calculate scores using locked Evaluation Blueprint formula
-  const rank = dualMetrics.liveRank;
-
-  const isMemeToken = (category || '').toLowerCase().includes('meme') || 
-                      ['pepe', 'wif', 'bonk', 'floki', 'shib', 'doge', 'bome', 'turbo', 'neiro', 'popcat', 'mog', 'brett', 'slerf'].includes(cleanId.toLowerCase()) ||
-                      ['pepe', 'wif', 'bonk', 'floki', 'shib', 'doge', 'bome', 'turbo', 'neiro', 'popcat', 'mog', 'brett', 'slerf'].includes(symbol.toLowerCase());
-
-  const utility = isMemeToken ? 2 : Math.min(10, Math.max(5, Math.round(10 - Math.log10(Math.max(1, rank)) * 2)));
-  const team = isMemeToken ? 3 : Math.min(10, Math.max(6, Math.round(9)));
-  const tokenomics = isMemeToken ? 6 : Math.min(10, Math.max(5, Math.round(9.5 - Math.log10(Math.max(1, rank)) * 1.8)));
-  const security = isMemeToken ? 6 : Math.min(10, Math.max(5, Math.round(9 - Math.log10(Math.max(1, rank)) * 1.5)));
-  const community = isMemeToken ? 9 : Math.min(10, Math.max(5, Math.round(10 - Math.log10(Math.max(1, rank)) * 2.2)));
-
-  const computedScores = { utility, tokenomics, security, team, community };
-  const { overallScore, riskLevel } = calculateBlueprintScore(computedScores, category);
-
+  // 2. For unreviewed/new tokens, do not fabricate scores (Editorial Note state)
   const dateStr = new Date().toISOString().split('T')[0];
 
-  const verdictText = `${name} (${symbol}) evaluated under the locked Evaluation Blueprint rubric with real-time Multi-Source Market Data Convergence.`;
+  const verdictText = `Editorial Note: Real-time market convergence data fetched for ${name} (${symbol}). Awaiting independent verified audit assessment.`;
 
   const created: CryptoReview = {
     id: `cg-${cleanId}`,
@@ -431,24 +416,24 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
     defiLlamaSlug: cleanId,
     name,
     symbol,
-    category: isMemeToken ? 'Meme Token / Speculative' : category,
-    overallScore,
+    category: (category || '').toLowerCase().includes('meme') ? 'Meme Token / Speculative' : category,
+    overallScore: undefined,
     verdict: verdictText,
-    scores: computedScores,
-    riskLevel,
+    scores: undefined,
+    riskLevel: undefined,
+    status: 'EDITORIAL_NOTE',
     createdAt: dateStr,
     author: 'Multi-Source Convergence Engine (CoinGecko + CMC + CoinStats)',
     logoUrl: finalLogo,
     ...dualMetrics,
-    summary: `**${name} (${symbol})** is evaluated under the locked 5-dimension Evaluation Blueprint rubric with multi-source market cross-validation.`,
+    summary: `**${name} (${symbol})** is tracked via multi-source market cross-validation. Editorial monitoring active; awaiting verified audit assessment.`,
     pros: [
       `Cross-verified across CoinGecko, CoinMarketCap & CoinStats (CG Rank #${dualMetrics.liveRank} | CMC Rank #${dualMetrics.cmcRank}).`,
-      `Verified under locked Evaluation Blueprint rubric (Score ${overallScore}/100, Confidence ${dualMetrics.confidenceScore}%).`,
       `Active global liquidity with ${(dualMetrics.liveVolume24h / 1e6).toFixed(1)}M 24h trading volume.`
     ],
     cons: [
       `Market volatility reflected in real-time (${dualMetrics.liveChange24h >= 0 ? '+' : ''}${dualMetrics.liveChange24h.toFixed(2)}% 24h).`,
-      `Dynamic floating metrics subject to regular Multi-Source Convergence data refreshes.`
+      `Awaiting formal verified security audit assessment.`
     ]
   };
 
