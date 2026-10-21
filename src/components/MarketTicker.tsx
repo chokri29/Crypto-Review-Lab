@@ -334,12 +334,12 @@ export default function MarketTicker({
         </div>
       </div>
 
-      {/* 5-Column Grid */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 transition-opacity duration-150 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+      {/* Horizontal Swiping Fields Container */}
+      <div className={`flex overflow-x-auto snap-x snap-mandatory gap-2.5 pb-1.5 no-scrollbar touch-pan-x scroll-smooth transition-opacity duration-150 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
         {/* Metric 1: Tracked Asset Identity */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-inner transition-colors cursor-pointer group/tile`}
+          className={`w-[220px] sm:w-[240px] shrink-0 snap-start p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-inner transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} ${isXStock ? 'in Tokenized Stocks' : 'Market Report'}`}
         >
           <div className="flex items-center justify-between gap-1">
@@ -387,7 +387,7 @@ export default function MarketTicker({
         {/* Metric 2: Audit Index / Peg Convergence */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`w-[220px] sm:w-[240px] shrink-0 snap-start p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} verification details`}
         >
           <div className="flex items-center justify-between gap-1">
@@ -413,7 +413,7 @@ export default function MarketTicker({
         {/* Metric 3: Risk Profile / Regulatory Backing */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`w-[220px] sm:w-[240px] shrink-0 snap-start p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} risk profile`}
         >
           <div className="flex items-center justify-between gap-1">
@@ -437,7 +437,7 @@ export default function MarketTicker({
         {/* Metric 4: System Stability / Underlying Tracking */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
+          className={`w-[220px] sm:w-[240px] shrink-0 snap-start p-3 rounded-xl bg-slate-950/80 border ${isXStock ? 'border-purple-500/30 hover:border-purple-500/65' : 'border-cyber-cyan/30 hover:border-cyber-cyan/65'} flex flex-col justify-between shadow-sm transition-colors cursor-pointer group/tile`}
           title={`Click to view ${activeAsset.name} tracking details`}
         >
           <div className="flex items-center justify-between gap-1">
@@ -457,7 +457,7 @@ export default function MarketTicker({
         {/* Metric 5: Action Link (Market Intelligence vs Tokenized Stocks) */}
         <div 
           onClick={handleAssetClick}
-          className={`p-3 rounded-xl bg-slate-950/80 border ${
+          className={`w-[220px] sm:w-[240px] shrink-0 snap-start p-3 rounded-xl bg-slate-950/80 border ${
             isXStock 
               ? 'border-purple-500/35 hover:border-purple-400 hover:bg-purple-500/10' 
               : 'border-cyber-cyan/30 hover:border-cyber-cyan/65 hover:bg-cyber-cyan/5'
