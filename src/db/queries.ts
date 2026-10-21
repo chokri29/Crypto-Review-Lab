@@ -113,6 +113,26 @@ export async function getDbOrders() {
   }
 }
 
+export async function getDbOrderById(orderId: string) {
+  try {
+    const cleanId = orderId.trim().toLowerCase();
+    const results = await db.select().from(proOrders).where(sql`LOWER(${proOrders.orderId}) = ${cleanId}`).limit(1);
+    return results[0] || null;
+  } catch (error) {
+    console.error(`Database getDbOrderById failed for ${orderId}:`, error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
+export async function clearAllDbOrders() {
+  try {
+    await db.delete(proOrders);
+  } catch (error) {
+    console.error("Database clearAllDbOrders failed:", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
+  }
+}
+
 export async function upsertDbOrder(order: {
   orderId: string;
   clientEmail: string;
@@ -153,6 +173,11 @@ export async function upsertDbOrder(order: {
           status: order.status,
           paymentStatus: order.paymentStatus,
           paymentReference: order.paymentReference || null,
+          contractAddress: order.contractAddress || null,
+          chainId: order.chainId || null,
+          focusArea: order.focusArea || null,
+          verificationDepth: order.verificationDepth || null,
+          stressSimulation: order.stressSimulation || null,
           reportData: reportDataStr,
           updatedAt: new Date(),
         },

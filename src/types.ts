@@ -222,6 +222,7 @@ export interface ProOrder {
   projectName: string;
   projectSymbol: string;
   contractAddress?: string;
+  chainId?: string;
   focusArea?: string;
   verificationDepth?: string;
   stressSimulation?: boolean;

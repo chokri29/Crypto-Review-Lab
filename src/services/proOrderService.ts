@@ -246,6 +246,27 @@ export function isPaymentReferenceAlreadyUsed(paymentReference?: string): { used
   return { used: false };
 }
 
+export async function isPaymentReferenceAlreadyUsedAsync(paymentReference?: string): Promise<{ used: boolean; existingOrder?: ProOrder }> {
+  if (!paymentReference || !paymentReference.trim()) return { used: false };
+  const cleanRef = paymentReference.trim().toLowerCase();
+  
+  // Allow admin bypass keys
+  if (cleanRef.startsWith('admin_master') || cleanRef.startsWith('master_passphrase')) {
+    return { used: false };
+  }
+
+  const orders = await getAllOrdersAsync();
+  const existing = orders.find(o => 
+    o.paymentReference && 
+    o.paymentReference.trim().toLowerCase() === cleanRef
+  );
+
+  if (existing) {
+    return { used: true, existingOrder: existing };
+  }
+  return { used: false };
+}
+
 /**
  * Fetches and attaches live security scan (GoPlus / RugCheck) directly to the target review draft.
  */
@@ -422,7 +443,7 @@ export async function createProOrder(params: {
 
   // Enforce single report per payment restriction
   if (cleanPaymentRef) {
-    const { used, existingOrder } = isPaymentReferenceAlreadyUsed(cleanPaymentRef);
+    const { used, existingOrder } = await isPaymentReferenceAlreadyUsedAsync(cleanPaymentRef);
     if (used && existingOrder) {
       throw new Error(`Payment reference ${cleanPaymentRef} has already been consumed for Order #${existingOrder.orderId} (${existingOrder.projectName}). Each payment permits exactly one Security & Risk Assessment report.`);
     }
@@ -465,6 +486,7 @@ export async function createProOrder(params: {
     projectName: params.projectName,
     projectSymbol: params.projectSymbol,
     contractAddress: params.contractAddress,
+    chainId: draftToSave.chainId || (params as any).chainId,
     focusArea: params.focusArea,
     verificationDepth: params.verificationDepth || 'Unified Bytecode & Evidence Verification',
     stressSimulation: params.stressSimulation ?? false,
@@ -481,19 +503,20 @@ export async function createProOrder(params: {
     publishApproved: false
   };
 
-  saveOrderToStorage(newOrder);
+  await saveOrderToStorage(newOrder);
   return newOrder;
 }
 
 /**
  * Records a client's request for public publishing approval with a timestamp.
  */
-export function requestPublishApproval(
+export async function requestPublishApproval(
   orderId: string,
   clientNotes?: string
-): ProOrder | null {
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId === orderId);
+): Promise<ProOrder | null> {
+  const cleanId = orderId.trim().toLowerCase();
+  const orders = await getAllOrdersAsync();
+  const index = orders.findIndex(o => o.orderId.toLowerCase() === cleanId);
   if (index === -1) return null;
 
   const order = orders[index];
@@ -511,24 +534,25 @@ export function requestPublishApproval(
   }
 
   orders[index] = order;
-  saveOrdersToFile(orders);
+  await saveOrderToStorage(order);
   return order;
 }
 
 /**
  * Admin-only confirmation that sets publishApproved to true only after explicit written confirmation is logged.
  */
-export function confirmPublishProOrder(
+export async function confirmPublishProOrder(
   orderId: string,
   writtenConfirmation: string,
   publishedBy: string = 'Admin'
-): ProOrder | null {
+): Promise<ProOrder | null> {
   if (!writtenConfirmation || !writtenConfirmation.trim()) {
     throw new Error('Explicit written confirmation is required to approve publishing.');
   }
 
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId === orderId);
+  const cleanId = orderId.trim().toLowerCase();
+  const orders = await getAllOrdersAsync();
+  const index = orders.findIndex(o => o.orderId.toLowerCase() === cleanId);
   if (index === -1) return null;
 
   const order = orders[index];
@@ -555,7 +579,7 @@ export function confirmPublishProOrder(
   }
 
   orders[index] = order;
-  saveOrdersToFile(orders);
+  await saveOrderToStorage(order);
   return order;
 }
 
@@ -573,8 +597,9 @@ export async function approveAndDeliverProOrder(
   },
   updatedReview?: CryptoReview
 ): Promise<ProOrder | null> {
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId === orderId);
+  const cleanId = orderId.trim().toLowerCase();
+  const orders = await getAllOrdersAsync();
+  const index = orders.findIndex(o => o.orderId.toLowerCase() === cleanId);
   if (index === -1) return null;
 
   const order = orders[index];
@@ -659,19 +684,20 @@ export async function approveAndDeliverProOrder(
   order.emailLogs.push(deliveryLog);
   orders[index] = order;
 
-  saveOrdersToFile(orders);
+  await saveOrderToStorage(order);
   return order;
 }
 
 /**
  * Attaches or clears an admin override for an order's F3 verification status
  */
-export function applyAdminOverrideToOrder(
+export async function applyAdminOverrideToOrder(
   orderId: string,
   override: AdminOverrideLog | null
-): ProOrder | null {
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId === orderId);
+): Promise<ProOrder | null> {
+  const cleanId = orderId.trim().toLowerCase();
+  const orders = await getAllOrdersAsync();
+  const index = orders.findIndex(o => o.orderId.toLowerCase() === cleanId);
   if (index === -1) return null;
 
   const order = orders[index];
@@ -712,7 +738,7 @@ export function applyAdminOverrideToOrder(
   }
 
   orders[index] = order;
-  saveOrdersToFile(orders);
+  await saveOrderToStorage(order);
   return order;
 }
 
@@ -721,8 +747,9 @@ export function applyAdminOverrideToOrder(
  * auto-calibrating and re-generating the report draft if quality score is below 95%.
  */
 export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise<ProOrder | null> {
-  const orders = getAllOrders();
-  const index = orders.findIndex(o => o.orderId === orderId);
+  const cleanId = orderId.trim().toLowerCase();
+  const orders = await getAllOrdersAsync();
+  const index = orders.findIndex(o => o.orderId.toLowerCase() === cleanId);
   if (index === -1) return null;
 
   const order = orders[index];
@@ -819,7 +846,7 @@ export async function triggerPhaseTwoReControlForOrder(orderId: string): Promise
   }
 
   orders[index] = order;
-  saveOrdersToFile(orders);
+  await saveOrderToStorage(order);
   return order;
 }
 
@@ -831,7 +858,54 @@ export async function regenerateReportForOrder(orderId: string): Promise<ProOrde
 }
 
 /**
- * Get all stored orders
+ * Converts a database pro_orders row into a full ProOrder domain object
+ */
+export function parseDbOrderToProOrder(o: any): ProOrder {
+  let parsedReport: any = {};
+  try {
+    parsedReport = o.reportData ? (typeof o.reportData === 'string' ? JSON.parse(o.reportData) : o.reportData) : {};
+  } catch {}
+  return {
+    orderId: o.orderId,
+    clientEmail: o.clientEmail,
+    projectName: o.projectName,
+    projectSymbol: o.projectSymbol,
+    contractAddress: o.contractAddress || undefined,
+    chainId: o.chainId || undefined,
+    status: o.status as any,
+    paymentStatus: o.paymentStatus as any,
+    paymentReference: o.paymentReference || undefined,
+    focusArea: o.focusArea || undefined,
+    verificationDepth: o.verificationDepth || undefined,
+    stressSimulation: o.stressSimulation ? o.stressSimulation === 'true' : undefined,
+    amountUsd: 149.00,
+    ...parsedReport
+  };
+}
+
+/**
+ * Retrieves a single order by ID from Postgres primary (with file fallback)
+ */
+export async function getOrderByIdAsync(orderId: string): Promise<ProOrder | null> {
+  const cleanId = orderId.trim().toLowerCase();
+  if (!cleanId) return null;
+  try {
+    if (isNodeEnv) {
+      const { getDbOrderById } = await import('../db/queries');
+      const row = await getDbOrderById(cleanId);
+      if (row) {
+        return parseDbOrderToProOrder(row);
+      }
+    }
+  } catch (err) {
+    console.warn(`Postgres primary getOrderById failed for ${orderId}, falling back to file storage:`, err);
+  }
+  const fileOrders = loadOrdersFromFile();
+  return fileOrders.find(o => o.orderId.toLowerCase() === cleanId) || null;
+}
+
+/**
+ * Get all stored orders (synchronous file/local storage fallback)
  */
 export function getAllOrders(): ProOrder[] {
   return loadOrdersFromFile();
@@ -846,28 +920,7 @@ export async function getAllOrdersAsync(): Promise<ProOrder[]> {
       const { getDbOrders } = await import('../db/queries');
       const dbOrders = await getDbOrders();
       if (dbOrders && dbOrders.length > 0) {
-        return dbOrders.map((o: any) => {
-          let parsedReport = {};
-          try {
-            parsedReport = o.reportData ? JSON.parse(o.reportData) : {};
-          } catch {}
-          return {
-            orderId: o.orderId,
-            clientEmail: o.clientEmail,
-            projectName: o.projectName,
-            projectSymbol: o.projectSymbol,
-            contractAddress: o.contractAddress || undefined,
-            chainId: o.chainId || undefined,
-            status: o.status as any,
-            paymentStatus: o.paymentStatus as any,
-            paymentReference: o.paymentReference || undefined,
-            focusArea: o.focusArea || undefined,
-            verificationDepth: o.verificationDepth || undefined,
-            stressSimulation: o.stressSimulation ? o.stressSimulation === 'true' : undefined,
-            amountUsd: 149.00,
-            ...parsedReport
-          };
-        });
+        return dbOrders.map((o: any) => parseDbOrderToProOrder(o));
       }
     }
   } catch (dbErr) {
@@ -877,21 +930,30 @@ export async function getAllOrdersAsync(): Promise<ProOrder[]> {
 }
 
 /**
- * Clears all orders from storage
+ * Clears all orders from storage (Postgres primary and file fallback)
  */
-export function clearAllOrders(): void {
+export async function clearAllOrders(): Promise<void> {
+  if (isNodeEnv) {
+    try {
+      const { clearAllDbOrders } = await import('../db/queries');
+      await clearAllDbOrders();
+    } catch (err) {
+      console.error("Postgres primary clearAllOrders failed:", err);
+    }
+  }
   saveOrdersToFile([]);
 }
 
 /**
  * Saves a single order to storage (Postgres primary with file fallback)
  */
-export function saveOrderToStorage(order: ProOrder): void {
+export async function saveOrderToStorage(order: ProOrder): Promise<void> {
+  let dbSuccess = false;
   try {
-    // Save to DB asynchronously if in Node environment
     if (isNodeEnv) {
-      import('../db/queries').then(({ upsertDbOrder }) => {
-        upsertDbOrder({
+      try {
+        const { upsertDbOrder } = await import('../db/queries');
+        await upsertDbOrder({
           orderId: order.orderId,
           clientEmail: order.clientEmail,
           projectName: order.projectName,
@@ -905,17 +967,16 @@ export function saveOrderToStorage(order: ProOrder): void {
           verificationDepth: order.verificationDepth,
           stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
           reportData: order
-        }).catch(err => {
-          console.error("Postgres primary saveOrderToStorage failed, falling back to file storage:", err);
         });
-      }).catch(err => {
-        console.error("Failed to load db queries for saveOrderToStorage:", err);
-      });
+        dbSuccess = true;
+      } catch (dbErr) {
+        console.error("Postgres primary saveOrderToStorage failed, falling back to file storage:", dbErr);
+      }
     }
 
     // Also update file/localStorage fallback
     const current = loadOrdersFromFile();
-    const existingIndex = current.findIndex(o => o.orderId === order.orderId);
+    const existingIndex = current.findIndex(o => o.orderId.toLowerCase() === order.orderId.toLowerCase());
     if (existingIndex >= 0) {
       current[existingIndex] = order;
     } else {
@@ -923,7 +984,9 @@ export function saveOrderToStorage(order: ProOrder): void {
     }
     saveOrdersToFile(current);
   } catch (e) {
-    console.error("Failed to save order:", e);
+    if (!dbSuccess) {
+      console.error("Failed to save order to fallback storage:", e);
+    }
   }
 }
 
@@ -1003,9 +1066,12 @@ export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload)
     };
   }
 
-  const allOrders = await getAllOrdersAsync();
-  const index = allOrders.findIndex(o => o.orderId.toLowerCase() === targetOrderId.toLowerCase());
-  if (index === -1) {
+  let order = await getOrderByIdAsync(targetOrderId);
+  if (!order) {
+    const allOrders = await getAllOrdersAsync();
+    order = allOrders.find(o => o.orderId.toLowerCase() === targetOrderId.toLowerCase()) || null;
+  }
+  if (!order) {
     return {
       success: false,
       orderId: targetOrderId,
@@ -1013,7 +1079,6 @@ export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload)
     };
   }
 
-  const order = allOrders[index];
   const rawStatus = payload.payment_status ? String(payload.payment_status).trim() : 'pending';
   const mappedPaymentStatus = mapNowPaymentsStatusToPaymentStatus(rawStatus);
   const paymentId = payload.payment_id !== undefined ? payload.payment_id : payload.invoice_id;
@@ -1047,29 +1112,7 @@ export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload)
     order.nowpaymentsIpnLogs.unshift(ipnLogEntry);
     if (order.nowpaymentsIpnLogs.length > 50) order.nowpaymentsIpnLogs.pop();
     
-    if (isNodeEnv) {
-      try {
-        const { upsertDbOrder } = await import('../db/queries');
-        await upsertDbOrder({
-          orderId: order.orderId,
-          clientEmail: order.clientEmail,
-          projectName: order.projectName,
-          projectSymbol: order.projectSymbol,
-          contractAddress: order.contractAddress,
-          chainId: order.chainId,
-          status: order.status,
-          paymentStatus: order.paymentStatus,
-          paymentReference: order.paymentReference,
-          focusArea: order.focusArea,
-          verificationDepth: order.verificationDepth,
-          stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
-          reportData: order
-        });
-      } catch (dbErr) {
-        console.error("Postgres primary duplicate IPN log persist failed:", dbErr);
-      }
-    }
-    saveOrdersToFile(allOrders);
+    await saveOrderToStorage(order);
 
     return {
       success: true,
@@ -1114,32 +1157,7 @@ export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload)
   order.nowpaymentsIpnLogs.unshift(ipnLogEntry);
   if (order.nowpaymentsIpnLogs.length > 50) order.nowpaymentsIpnLogs.pop();
 
-  allOrders[index] = order;
-
-  // Save to DB primary with await
-  if (isNodeEnv) {
-    try {
-      const { upsertDbOrder } = await import('../db/queries');
-      await upsertDbOrder({
-        orderId: order.orderId,
-        clientEmail: order.clientEmail,
-        projectName: order.projectName,
-        projectSymbol: order.projectSymbol,
-        contractAddress: order.contractAddress,
-        chainId: order.chainId,
-        status: order.status,
-        paymentStatus: order.paymentStatus,
-        paymentReference: order.paymentReference,
-        focusArea: order.focusArea,
-        verificationDepth: order.verificationDepth,
-        stressSimulation: order.stressSimulation !== undefined ? String(order.stressSimulation) : undefined,
-        reportData: order
-      });
-    } catch (dbErr) {
-      console.error("Postgres primary IPN persist failed, falling back to file storage:", dbErr);
-    }
-  }
-  saveOrdersToFile(allOrders);
+  await saveOrderToStorage(order);
 
   return {
     success: true,
@@ -1151,6 +1169,8 @@ export async function processNowPaymentsIpnAsync(payload: NowPaymentsIpnPayload)
     message: `NOWPayments IPN processed: Order #${order.orderId} paymentStatus updated to ${mappedPaymentStatus} (NOWPayments status: ${rawStatus})`
   };
 }
+
+export const processNowPaymentsIpn = processNowPaymentsIpnAsync;
 
 /**
  * Lookup order strictly requiring BOTH Order ID and Email address (Security Check)
@@ -1173,6 +1193,10 @@ export async function lookupOrderStrictAsync(orderId: string, email: string): Pr
   const id = orderId.trim().toLowerCase();
   const mail = email.trim().toLowerCase();
   if (!id || !mail) return [];
+  const single = await getOrderByIdAsync(id);
+  if (single && single.clientEmail.toLowerCase() === mail) {
+    return [single];
+  }
   const all = await getAllOrdersAsync();
   return all.filter(o => 
     o.orderId.toLowerCase() === id && 
@@ -1187,6 +1211,22 @@ export function lookupOrder(query: string): ProOrder[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   const all = getAllOrders();
+  return all.filter(o => 
+    o.orderId.toLowerCase().includes(q) ||
+    o.clientEmail.toLowerCase().includes(q) ||
+    o.projectName.toLowerCase().includes(q) ||
+    o.projectSymbol.toLowerCase().includes(q) ||
+    o.privateDownloadToken.toLowerCase() === q
+  );
+}
+
+/**
+ * Async version of lookupOrder for Postgres primary search
+ */
+export async function lookupOrderAsync(query: string): Promise<ProOrder[]> {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const all = await getAllOrdersAsync();
   return all.filter(o => 
     o.orderId.toLowerCase().includes(q) ||
     o.clientEmail.toLowerCase().includes(q) ||

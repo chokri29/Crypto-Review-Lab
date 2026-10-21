@@ -19,11 +19,14 @@ import {
   applyAdminOverrideToOrder,
   requestPublishApproval,
   confirmPublishProOrder,
-  getAllOrders, 
+  getAllOrders,
+  getAllOrdersAsync,
   lookupOrder, 
   lookupOrderStrict,
+  lookupOrderStrictAsync,
   triggerPhaseTwoReControlForOrder,
   processNowPaymentsIpn,
+  processNowPaymentsIpnAsync,
   mapNowPaymentsStatusToPaymentStatus,
   PRINCIPAL_EMAIL 
 } from "./src/services/proOrderService.js";
@@ -1104,7 +1107,7 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
   });
 
   // API endpoint: Lookup Pro Order Status by Order ID and Email (Strict Dual Verification)
-  app.get("/api/pro-order/lookup", (req, res) => {
+  app.get("/api/pro-order/lookup", async (req, res) => {
     try {
       const orderId = String(req.query.orderId || '').trim();
       const email = String(req.query.email || '').trim();
@@ -1113,8 +1116,8 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
         return res.json({ orders: [], idMatch: false, mailMatch: false });
       }
 
-      const results = lookupOrderStrict(orderId, email);
-      const all = getAllOrders();
+      const results = await lookupOrderStrictAsync(orderId, email);
+      const all = await getAllOrdersAsync();
       const idMatch = all.some(o => o.orderId.toLowerCase() === orderId.toLowerCase());
       const mailMatch = all.some(o => o.clientEmail.toLowerCase() === email.toLowerCase());
 
@@ -1508,7 +1511,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   });
 
   // API endpoint: Admin Override for F3 Discrepancies / Verification Status
-  app.post("/api/pro-order/admin-override", (req, res) => {
+  app.post("/api/pro-order/admin-override", async (req, res) => {
     try {
       if (!isAuthorizedAdmin(req)) {
         return res.status(401).json({ error: "Unauthorized: Admin authorization required to apply overrides." });
@@ -1519,7 +1522,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return res.status(400).json({ error: "Order ID is required." });
       }
 
-      const updatedOrder = applyAdminOverrideToOrder(orderId, override || null);
+      const updatedOrder = await applyAdminOverrideToOrder(orderId, override || null);
       if (!updatedOrder) {
         return res.status(404).json({ error: `Order #${orderId} not found.` });
       }
@@ -1533,14 +1536,14 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   });
 
   // API endpoint: Client Request for Public Publishing Approval
-  app.post("/api/pro-order/request-publish-approval", (req, res) => {
+  app.post("/api/pro-order/request-publish-approval", async (req, res) => {
     try {
       const { orderId, clientNotes } = req.body;
       if (!orderId) {
         return res.status(400).json({ error: "Order ID is required." });
       }
 
-      const updatedOrder = requestPublishApproval(orderId, clientNotes);
+      const updatedOrder = await requestPublishApproval(orderId, clientNotes);
       if (!updatedOrder) {
         return res.status(404).json({ error: `Order #${orderId} not found.` });
       }
@@ -1560,7 +1563,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
   });
 
   // API endpoint: Admin-Only Confirm Public Publishing (requires explicit written confirmation log)
-  app.post("/api/pro-order/confirm-publish", (req, res) => {
+  app.post("/api/pro-order/confirm-publish", async (req, res) => {
     try {
       if (!isAuthorizedAdmin(req)) {
         return res.status(401).json({ error: "Unauthorized: Admin authorization required to confirm public publishing." });
@@ -1574,7 +1577,7 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return res.status(400).json({ error: "Explicit written confirmation is required to approve publishing." });
       }
 
-      const updatedOrder = confirmPublishProOrder(orderId, writtenConfirmation.trim(), publishedBy || "Admin");
+      const updatedOrder = await confirmPublishProOrder(orderId, writtenConfirmation.trim(), publishedBy || "Admin");
       if (!updatedOrder) {
         return res.status(404).json({ error: `Order #${orderId} not found.` });
       }
