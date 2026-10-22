@@ -476,9 +476,17 @@ export async function createProOrder(params: {
   };
 
   if (draftToSave.contractAddress) {
-    await fetchAndAttachSecurityScan(draftToSave);
+    try {
+      await fetchAndAttachSecurityScan(draftToSave);
+    } catch (scanErr) {
+      console.warn('Security scan fetch skipped/failed during createProOrder:', scanErr);
+    }
   }
-  await fetchAndAttachLiveMarketData(draftToSave, params.projectSymbol, params.projectName);
+  try {
+    await fetchAndAttachLiveMarketData(draftToSave, params.projectSymbol, params.projectName);
+  } catch (marketErr) {
+    console.warn('Market data fetch skipped/failed during createProOrder:', marketErr);
+  }
 
   const newOrder: ProOrder = {
     orderId,
