@@ -7,7 +7,7 @@
     "name": "Zama",
     "symbol": "ZAMA",
     "category": "Privacy / Cryptographic (FHE / ZK / MPC)",
-    "overallScore": 91,
+    "overallScore": null,
     "verdict": "Zama provides robust cryptographic primitives for confidential computing, though its long-term economic sustainability remains contingent on widespread enterprise adoption of Fully Homomorphic Encryption (FHE).",
     "scores": {
       "utility": 9,
@@ -16,7 +16,7 @@
       "team": 9,
       "community": 7
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-30",
     "author": "Crypto Review Lab",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/70921/large/zama.png?1764591992",
@@ -180,7 +180,7 @@
     "name": "Hyperliquid",
     "symbol": "HYPE",
     "category": "DeFi Protocol (AMM / Lending)",
-    "overallScore": 99,
+    "overallScore": null,
     "verdict": "Hyperliquid is a high-performance Layer 1 appchain specialized in decentralized perpetual exchange, boasting orderbook execution speeds and gas-free transaction mechanisms.",
     "scores": {
       "utility": 10,
@@ -189,7 +189,7 @@
       "team": 9,
       "community": 10
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-18",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/50882/large/hyperliquid.jpg?1729431300",
@@ -369,7 +369,7 @@
     "name": "Arbitrum",
     "symbol": "ARB",
     "category": "Layer 2 / Scaling",
-    "overallScore": 93,
+    "overallScore": null,
     "verdict": "Arbitrum is the leading Optimistic Rollup suite for Ethereum, offering ultra-cheap transactions and high throughput while inheriting Ethereum's robust security model.",
     "scores": {
       "utility": 9,
@@ -378,7 +378,7 @@
       "team": 9,
       "community": 9
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-15",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/16547/large/arb.jpg?1721358242",
@@ -542,7 +542,7 @@
     "name": "Uniswap",
     "symbol": "UNI",
     "category": "DeFi Protocol (AMM / Lending)",
-    "overallScore": 100,
+    "overallScore": null,
     "verdict": "Uniswap is the premier decentralized exchange protocol in Web3, facilitating automated liquidity and trustless token swaps via highly audited smart contracts.",
     "scores": {
       "utility": 10,
@@ -551,7 +551,7 @@
       "team": 9,
       "community": 10
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-10",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/12504/large/uniswap-logo.png?1720676669",
@@ -715,7 +715,7 @@
     "name": "Render Network",
     "symbol": "RENDER",
     "category": "DePIN (Compute / Storage / Wireless)",
-    "overallScore": 86,
+    "overallScore": null,
     "verdict": "Render Network is a decentralized GPU rendering platform linking idle compute nodes with artists, developers, and AI spatial computing teams.",
     "scores": {
       "utility": 9,
@@ -724,7 +724,7 @@
       "team": 9,
       "community": 8
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-01",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/11636/large/rndr.png?1696511529",
@@ -885,7 +885,7 @@
     "name": "Solana",
     "symbol": "SOL",
     "category": "Layer 1 Blockchain",
-    "overallScore": 94,
+    "overallScore": null,
     "verdict": "Solana is a high-speed monolithic Layer 1 blockchain achieving sub-second finality and high throughput via its Proof-of-History consensus mechanism.",
     "scores": {
       "utility": 10,
@@ -894,7 +894,7 @@
       "team": 9,
       "community": 10
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-06-25",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/4128/large/solana.png?1718769756",
@@ -1059,7 +1059,7 @@
     "name": "Chainlink",
     "symbol": "LINK",
     "category": "Infrastructure / Oracle",
-    "overallScore": 100,
+    "overallScore": null,
     "verdict": "Chainlink is the industry-standard decentralized oracle network, securing tens of billions in smart contracts across all major blockchain ecosystems.",
     "scores": {
       "utility": 10,
@@ -1068,7 +1068,7 @@
       "team": 10,
       "community": 9
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-06-18",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/877/large/Chainlink_Logo_500.png?1760023405",
@@ -1231,7 +1231,7 @@
     "name": "Sui Network",
     "symbol": "SUI",
     "category": "Layer 1 Blockchain",
-    "overallScore": 97,
+    "overallScore": null,
     "verdict": "Sui is an object-centric Layer 1 blockchain powered by the Move programming language, delivering parallel execution and instant sub-second finality.",
     "scores": {
       "utility": 10,
@@ -1240,7 +1240,7 @@
       "team": 10,
       "community": 9
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-20",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/26375/large/sui-ocean-square.png?1727791290",
@@ -1401,7 +1401,7 @@
     "name": "Kaspa",
     "symbol": "KAS",
     "category": "Layer 1 Blockchain",
-    "overallScore": 99,
+    "overallScore": null,
     "verdict": "Kaspa is a revolutionary open-source Proof-of-Work BlockDAG protocol enabling instant block confirmation and high-frequency parallel transaction mining.",
     "scores": {
       "utility": 9,
@@ -1410,7 +1410,7 @@
       "team": 9,
       "community": 9
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-07-19",
     "author": "Crypto Review Lab Editor",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/25751/large/kaspa-icon-exchanges.png?1696524837",
@@ -1576,7 +1576,7 @@
     "name": "Jupiter",
     "symbol": "JUP",
     "category": "DeFi Protocol (AMM / Lending)",
-    "overallScore": 81,
+    "overallScore": null,
     "verdict": "Jupiter stands as the undisputed liquidity engine of the Solana ecosystem, demonstrating exceptional routing utility and volume capture, though its long-term valuation remains constrained by governance-only token utility and substantial fully diluted supply overhang.",
     "scores": {
       "utility": 9,
@@ -1585,7 +1585,7 @@
       "team": 9,
       "community": 9
     },
-    "riskLevel": "Low",
+    "riskLevel": null,
     "createdAt": "2026-08-06",
     "author": "Crypto Review Lab Assistant",
     "logoUrl": "https://coin-images.coingecko.com/coins/images/34188/large/jup.png?1704266489",

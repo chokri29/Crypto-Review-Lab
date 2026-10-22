@@ -485,7 +485,7 @@ export default function App() {
               contractAddress: asset.contractAddress || undefined,
               logoUrl,
               coingeckoId: asset.coingeckoId || undefined,
-              overallScore: s?.confidenceScore ? Math.min(Math.max(s.confidenceScore, 65), 98) : 85,
+              overallScore: null,
               scores: {
                 utility: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round(s.confidenceScore / 10))) : 8,
                 tokenomics: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.95))) : 8,
@@ -493,7 +493,7 @@ export default function App() {
                 team: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
                 community: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
               },
-              riskLevel: 'Declared Risk',
+              riskLevel: null,
               verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
               summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
               pros: [
@@ -640,7 +640,7 @@ export default function App() {
                 contractAddress: asset.contractAddress || undefined,
                 logoUrl: asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId),
                 coingeckoId: asset.coingeckoId || undefined,
-                overallScore: s?.confidenceScore ? Math.min(Math.max(s.confidenceScore, 65), 98) : 85,
+                overallScore: null,
                 scores: {
                   utility: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round(s.confidenceScore / 10))) : 8,
                   tokenomics: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.95))) : 8,
@@ -648,7 +648,7 @@ export default function App() {
                   team: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
                   community: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
                 },
-                riskLevel: 'Declared Risk',
+                riskLevel: null,
                 verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
                 summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
                 pros: [
