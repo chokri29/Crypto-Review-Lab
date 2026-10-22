@@ -1061,16 +1061,6 @@ export function runPhaseTwoReControl(review: CryptoReview): PhaseTwoReControlRep
   // GATE 1: SOURCE TRIANGULATION
   // Derive real data confidence without soft defaults
   let confidenceScore = review.confidenceScore;
-  if (confidenceScore === undefined || confidenceScore === null) {
-    let derivedConf = 70;
-    if (review.livePrice && review.livePrice > 0) derivedConf += 8;
-    if (review.cmcPrice && review.cmcPrice > 0) derivedConf += 8;
-    if (review.csPrice && review.csPrice > 0) derivedConf += 3;
-    if (review.realTvl !== undefined && review.realTvl !== null && review.realTvl > 0) derivedConf += 4;
-    if (review.circulatingSupply && review.circulatingSupply > 0) derivedConf += 3;
-    if (review.liveVolume24h && review.liveVolume24h > 0) derivedConf += 2;
-    confidenceScore = Math.min(98, Math.max(60, derivedConf));
-  }
 
   // Derive real price & supply divergence without soft defaults
   let divPct = review.priceDivergencePct;
