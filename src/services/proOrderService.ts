@@ -994,6 +994,7 @@ export async function saveOrderToStorage(order: ProOrder): Promise<void> {
   } catch (e) {
     if (!dbSuccess) {
       console.error("Failed to save order to fallback storage:", e);
+      throw e;
     }
   }
 }
