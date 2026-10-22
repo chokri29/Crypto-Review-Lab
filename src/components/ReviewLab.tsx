@@ -964,7 +964,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
 
       const secScore = reviewData.scores?.security || 8;
       const utilScore = reviewData.scores?.utility || 8;
-      const crlVerificationScore = Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2)));
+      const crlVerificationScore = (reviewData.scores?.security && reviewData.scores?.utility) ? Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2))) : null;
 
       const hasRealSecurityScan = Boolean(reviewData.securityScan);
       const existingMatrix = reviewData.proBenchmarks?.symbolicExecutionMatrix;
@@ -2135,7 +2135,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                   const isUnlocked = isProUnlocked;
                   const secScore = generatedReview.scores?.security || 8;
                   const utilScore = generatedReview.scores?.utility || 8;
-                  const crlVerifScore = Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2)));
+                  const crlVerifScore = (generatedReview.scores?.security && generatedReview.scores?.utility) ? Math.min(98, Math.max(58, Math.round(secScore * 7.0 + utilScore * 2.5 + 2))) : null;
 
                   const hasRealSecurityScan = Boolean(generatedReview.securityScan);
                   const existingMatrix = generatedReview.proBenchmarks?.symbolicExecutionMatrix;
@@ -2252,7 +2252,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                   <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                                   Security Index
                                 </span>
-                                <span className="text-emerald-400 font-bold">{verifScoreDisplay}/100</span>
+                                <span className="text-emerald-400 font-bold">{verifScoreDisplay != null ? `${verifScoreDisplay}/100` : 'N/A'}</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
                                 Verification Status: {benchmarks.crlAuditStatus || 'UNVERIFIED'}. Deterministic verification evaluated.
@@ -2284,7 +2284,7 @@ export default function ReviewLab({ onSaveReview, savedReviews, setActiveTab, in
                                   <Building2 className="w-3.5 h-3.5 text-purple-400" />
                                   Architectural Invariants
                                 </span>
-                                <span className="text-purple-300 font-bold">{verifScoreDisplay}/100</span>
+                                <span className="text-purple-300 font-bold">{verifScoreDisplay != null ? `${verifScoreDisplay}/100` : 'N/A'}</span>
                               </div>
                               <p className="text-[10px] text-slate-400 font-sans leading-tight">
                                 Rubric invariant boundaries evaluated against category criteria.
