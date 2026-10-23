@@ -36,7 +36,7 @@ async function seed() {
         category: r.category || 'DeFi / Web3',
         network: r.network || r.chain || 'Ethereum',
         overallScore: typeof r.overallScore === 'number' ? r.overallScore : undefined,
-        riskLevel: r.riskLevel || r.risk_level || 'Medium',
+        riskLevel: r.riskLevel ?? r.risk_level ?? null,
         verdict: r.verdict || '',
         scores: r.scores || {},
         summary: r.summary || '',

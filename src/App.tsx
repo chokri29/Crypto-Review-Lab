@@ -1839,9 +1839,15 @@ export default function App() {
                             </div>
                           </div>
                           <div className="flex flex-col items-end shrink-0 pl-1">
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                              {review.overallScore}/100
-                            </span>
+                            {review.status === 'VERIFIED' && typeof review.overallScore === 'number' ? (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                {review.overallScore}/100
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-300 border border-slate-500/30">
+                                Editorial
+                              </span>
+                            )}
                             {review.livePrice !== undefined && (
                               <span className="text-[9px] text-slate-300 font-mono mt-0.5">
                                 ${review.livePrice < 1 ? review.livePrice.toFixed(4) : review.livePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

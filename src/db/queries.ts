@@ -22,7 +22,7 @@ export async function upsertDbReview(review: {
   category?: string;
   network?: string;
   overallScore?: number;
-  riskLevel?: string;
+  riskLevel?: string | null;
   verdict?: string;
   scores?: any;
   summary?: string;

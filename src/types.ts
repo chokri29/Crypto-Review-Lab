@@ -73,7 +73,7 @@ export interface CryptoReview {
   summary?: string;      // Markdown review detail
   pros?: string[];
   cons?: string[];
-  riskLevel?: RiskLevel;
+  riskLevel?: RiskLevel | null;
   createdAt: string;
   author?: string;
   logoUrl?: string;
@@ -419,7 +419,7 @@ export interface PublicCryptoReviewReport {
   auditSignature?: CryptoAuditSignature;
   overallScore?: number | null;
   scores?: CryptoReviewScores;
-  riskLevel?: RiskLevel;
+  riskLevel?: RiskLevel | null;
   phaseTwoReControl?: PhaseTwoReControlReport;
 }
 
