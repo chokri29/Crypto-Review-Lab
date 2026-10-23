@@ -17,6 +17,7 @@ import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reContr
 import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine';
 import { computeMultiSourceConvergence } from './marketConvergence';
 import { signAuditReportServerSide } from './auditSigner';
+import { calculateBlueprintScore } from './EvaluationBlueprint.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -627,6 +628,13 @@ export async function approveAndDeliverProOrder(
   const adminOverride = auditorNotes.adminOverride || order.adminOverride || targetReview.adminOverride;
 
   const scores = targetReview.scores || { utility: 8, tokenomics: 8, security: 8, team: 8, community: 8 };
+  // VERIFIED / paid assessment scores stay server-owned; do not accept client-supplied overall scores
+  const bpResult = calculateBlueprintScore(scores, targetReview.category);
+  targetReview.scores = scores;
+  targetReview.overallScore = bpResult.overallScore;
+  targetReview.riskLevel = bpResult.riskLevel;
+  targetReview.category = bpResult.categoryType;
+
   const verdict = targetReview.verdict || '';
   const timestamp = deliveredAtStr;
   const auditSignature = signAuditReportServerSide({ scores, verdict, timestamp });

@@ -173,7 +173,7 @@ export default function MarketTicker({
     }, 120);
   }, [activeIdx, displayedItems.length]);
 
-  const getRiskStyles = (risk: string) => {
+  const getRiskStyles = (risk: string | null | undefined) => {
     switch (risk) {
       case 'Low': return 'text-cyber-green bg-cyber-green/5 border-cyber-green/20';
       case 'Medium': return 'text-amber-400 bg-amber-500/5 border-amber-500/20';
@@ -397,16 +397,16 @@ export default function MarketTicker({
             <span className={`font-mono text-[9px] font-black px-1.5 py-0.2 rounded shrink-0 border ${
               isXStock
                 ? 'text-purple-300 bg-purple-500/15 border-purple-500/40'
-                : 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/30'
+                : (activeAsset.score != null ? 'text-cyber-cyan bg-cyber-cyan/15 border-cyber-cyan/30' : 'text-slate-400 bg-slate-800/40 border-slate-700/50')
             }`}>
-              {isXStock ? '1:1 BACKED' : 'VERIFIED'}
+              {isXStock ? '1:1 BACKED' : (activeAsset.score != null ? 'VERIFIED' : 'EDITORIAL')}
             </span>
           </div>
-          <div className={`font-display font-black text-lg sm:text-xl ${isXStock ? 'text-purple-300 drop-shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'text-cyber-cyan drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]'} tracking-tight py-0.5`}>
-            {activeAsset.score}%
+          <div className={`font-display font-black text-lg sm:text-xl ${isXStock ? 'text-purple-300 drop-shadow-[0_0_12px_rgba(168,85,247,0.25)]' : (activeAsset.score != null ? 'text-cyber-cyan drop-shadow-[0_0_12px_rgba(0,229,255,0.2)]' : 'text-slate-400')} tracking-tight py-0.5`}>
+            {activeAsset.score != null ? `${activeAsset.score}%` : 'EDITORIAL'}
           </div>
           <div className="font-mono text-[9px] text-slate-400 truncate">
-            {isXStock ? 'multi-source price peg' : 'algorithmic security score'}
+            {isXStock ? 'multi-source price peg' : (activeAsset.score != null ? 'algorithmic security score' : 'editorial monitoring note')}
           </div>
         </div>
 
@@ -421,16 +421,16 @@ export default function MarketTicker({
               {isXStock ? 'CUSTODY & RISK' : 'RISK PROFILE'}
             </div>
             <span className={`font-mono text-[9px] font-extrabold px-1.5 py-0.2 rounded border uppercase shrink-0 ${getRiskStyles(activeAsset.riskLevel)}`}>
-              {isXStock ? 'SWISS DLT' : 'STATUS'}
+              {isXStock ? 'SWISS DLT' : (activeAsset.riskLevel ? 'STATUS' : 'EDITORIAL')}
             </span>
           </div>
           <div className="flex items-baseline gap-2 py-0.5">
-            <span className={`font-display font-black text-lg sm:text-xl tracking-tight ${activeAsset.riskLevel === 'Low' ? 'text-cyber-green' : activeAsset.riskLevel === 'Medium' ? 'text-amber-400' : 'text-cyber-orange'}`}>
-              {activeAsset.riskLevel} Risk
+            <span className={`font-display font-black text-lg sm:text-xl tracking-tight ${activeAsset.riskLevel === 'Low' ? 'text-cyber-green' : activeAsset.riskLevel === 'Medium' ? 'text-amber-400' : activeAsset.riskLevel ? 'text-cyber-orange' : 'text-slate-400'}`}>
+              {activeAsset.riskLevel ? `${activeAsset.riskLevel} Risk` : 'Unrated Note'}
             </span>
           </div>
           <div className="font-mono text-[9px] text-slate-400 truncate">
-            {isXStock ? `${activeAsset.issuer || 'Backed Finance'} Custody` : 'assessed risk classification'}
+            {isXStock ? `${activeAsset.issuer || 'Backed Finance'} Custody` : (activeAsset.riskLevel ? 'assessed risk classification' : 'editorial tracking note')}
           </div>
         </div>
 

@@ -21,8 +21,8 @@ export interface TrackedAssetItem {
   coingeckoId?: string;
   chain?: string;
   issuer?: string;
-  score: number; // Verification score (0-100)
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  score: number | null; // Verification score (0-100) or null for unreviewed/editorial
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus: string;
   lastViewedAt: number; // Timestamp ms
   viewCount24h: number; // Total views in last 24h window
@@ -39,8 +39,8 @@ interface StoredViewRecord {
   coingeckoId?: string;
   chain?: string;
   issuer?: string;
-  score?: number;
-  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+  score?: number | null;
+  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus?: string;
   viewTimestamps: number[];
 }
@@ -79,8 +79,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       coingeckoId: 'bitcoin',
       chain: 'Bitcoin Network',
       issuer: 'Decentralized Protocol',
-      score: 98,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       viewTimestamps: [h(0.2), h(1.1), h(2.5), h(3.9), h(5.8), h(8.0), h(11.2), h(14.5), h(18.0), h(21.4)]
     },
@@ -109,8 +109,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       coingeckoId: 'ethereum',
       chain: 'Ethereum',
       issuer: 'Decentralized Protocol',
-      score: 96,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       viewTimestamps: [h(1.0), h(2.4), h(4.2), h(6.8), h(9.5), h(13.1), h(16.5), h(20.3)]
     },
@@ -139,8 +139,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       coingeckoId: 'solana',
       chain: 'Solana',
       issuer: 'Decentralized Protocol',
-      score: 94,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       viewTimestamps: [h(1.8), h(3.7), h(6.3), h(9.1), h(13.4), h(17.2), h(22.5)]
     },
@@ -169,8 +169,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       coingeckoId: 'chainlink',
       chain: 'Ethereum',
       issuer: 'Chainlink Network',
-      score: 95,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       viewTimestamps: [h(2.6), h(5.2), h(8.4), h(12.0), h(16.9), h(21.7)]
     },
@@ -281,8 +281,8 @@ export function recordAssetView(item: {
         ...item,
         category: item.category || rec.category,
         logoUrl: item.logoUrl || rec.logoUrl,
-        score: item.score ?? rec.score ?? 95,
-        riskLevel: item.riskLevel || rec.riskLevel || 'Low',
+        score: item.score !== undefined ? item.score : (rec.score ?? null),
+        riskLevel: item.riskLevel !== undefined ? item.riskLevel : (rec.riskLevel ?? null),
         stabilityStatus: item.stabilityStatus || rec.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
         viewTimestamps: validTimestamps
       };
@@ -299,8 +299,8 @@ export function recordAssetView(item: {
       ...item,
       category: item.category || rec.category,
       logoUrl: item.logoUrl || rec.logoUrl,
-      score: item.score ?? rec.score ?? 95,
-      riskLevel: item.riskLevel || rec.riskLevel || 'Low',
+      score: item.score !== undefined ? item.score : (rec.score ?? null),
+      riskLevel: item.riskLevel !== undefined ? item.riskLevel : (rec.riskLevel ?? null),
       stabilityStatus: item.stabilityStatus || rec.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
       viewTimestamps: validTimestamps
     };
@@ -316,8 +316,8 @@ export function recordAssetView(item: {
       coingeckoId: item.coingeckoId,
       chain: item.chain || (item.type === 'xstock' ? 'Solana' : 'Ethereum'),
       issuer: item.issuer || (item.type === 'xstock' ? 'Backed Finance' : 'Decentralized Protocol'),
-      score: item.score ?? 95,
-      riskLevel: item.riskLevel || 'Low',
+      score: item.score ?? null,
+      riskLevel: item.riskLevel ?? null,
       stabilityStatus: item.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
       viewTimestamps: [now]
     });
@@ -342,15 +342,15 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
     if (validTimestamps.length === 0) continue;
 
     // Resolve latest metadata if review is available
-    let resolvedScore = rec.score ?? 95;
-    let resolvedRisk: 'Low' | 'Medium' | 'High' | 'Critical' = rec.riskLevel || 'Low';
+    let resolvedScore = rec.score ?? null;
+    let resolvedRisk: 'Low' | 'Medium' | 'High' | 'Critical' | null = rec.riskLevel ?? null;
     let resolvedLogo = rec.logoUrl;
 
     if (rec.type === 'crypto' && reviews && reviews.length > 0) {
       const match = reviews.find(r => r.id === rec.id || r.symbol.toUpperCase() === rec.symbol.toUpperCase() || (r.coingeckoId && rec.coingeckoId && r.coingeckoId === rec.coingeckoId));
       if (match) {
-        resolvedScore = match.overallScore ?? resolvedScore;
-        resolvedRisk = (match.riskLevel as any) || resolvedRisk;
+        resolvedScore = (match.status === 'VERIFIED' && Boolean(match.isSigned || match.is_signed)) ? (match.overallScore ?? null) : null;
+        resolvedRisk = (match.status === 'VERIFIED' && Boolean(match.isSigned || match.is_signed)) ? ((match.riskLevel as any) || null) : null;
         resolvedLogo = match.logoUrl || resolvedLogo;
       }
     } else if (rec.type === 'xstock') {
@@ -402,8 +402,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
       symbol: 'BTC',
       name: 'Bitcoin',
       category: 'Cryptocurrency',
-      score: 95,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       lastViewedAt: now,
       viewCount24h: 10
@@ -414,8 +414,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
       symbol: 'ETH',
       name: 'Ethereum',
       category: 'Smart Contract Platform',
-      score: 96,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Consensus & State Verified',
       lastViewedAt: now,
       viewCount24h: 9

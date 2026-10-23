@@ -2412,9 +2412,10 @@ export default function BlogPreviewer({
             />
 
             {(() => {
-              const effectiveScores = activeReview.scores;
-              const activeBlueprint = effectiveScores ? calculateBlueprintScore(effectiveScores, activeReview.category) : null;
-              const scoreVal = activeReview.overallScore ?? activeBlueprint?.overallScore;
+              const isItemVerified = activeReview.status === 'VERIFIED' && Boolean(activeReview.isSigned || activeReview.is_signed) && typeof activeReview.overallScore === 'number';
+              const effectiveScores = isItemVerified ? activeReview.scores : null;
+              const activeBlueprint = (isItemVerified && effectiveScores) ? calculateBlueprintScore(effectiveScores, activeReview.category) : null;
+              const scoreVal = isItemVerified ? (activeReview.overallScore ?? activeBlueprint?.overallScore ?? null) : null;
               const overallColor = scoreVal != null && scoreVal >= 75 ? 'text-emerald-400' : scoreVal != null && scoreVal >= 50 ? 'text-amber-400' : 'text-rose-400';
 
               // Tokenomics metrics

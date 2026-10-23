@@ -1374,22 +1374,25 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
         return res.status(400).json({ error: "Invalid review object. Name and symbol are required." });
       }
 
+      const dimScores = {
+        utility: Math.min(10, Math.max(1, Number(review.scores?.utility) || 8)),
+        tokenomics: Math.min(10, Math.max(1, Number(review.scores?.tokenomics) || 8)),
+        security: Math.min(10, Math.max(1, Number(review.scores?.security) || 8)),
+        team: Math.min(10, Math.max(1, Number(review.scores?.team) || 8)),
+        community: Math.min(10, Math.max(1, Number(review.scores?.community) || 8)),
+      };
+      const bpCalc = calculateBlueprintScore(dimScores, String(review.category || 'DeFi / Web3'));
+
       const cleanReview = {
         id: review.id || `${String(review.symbol).toLowerCase()}-audit-review`,
         coingeckoId: review.coingeckoId || review.id || String(review.symbol).toLowerCase(),
         name: String(review.name),
         symbol: String(review.symbol).toUpperCase(),
-        category: String(review.category || 'DeFi / Web3'),
-        overallScore: Number(review.overallScore) || 80,
+        category: bpCalc.categoryType,
+        overallScore: bpCalc.overallScore,
         verdict: String(review.verdict || ''),
-        scores: {
-          utility: Number(review.scores?.utility) || 8,
-          tokenomics: Number(review.scores?.tokenomics) || 8,
-          security: Number(review.scores?.security) || 8,
-          team: Number(review.scores?.team) || 8,
-          community: Number(review.scores?.community) || 8,
-        },
-        riskLevel: (review.riskLevel || 'Medium') as any,
+        scores: dimScores,
+        riskLevel: bpCalc.riskLevel,
         createdAt: String(review.createdAt || new Date().toISOString().split('T')[0]),
         author: String(review.author || 'Crypto Review Lab'),
         logoUrl: String(review.logoUrl || `https://assets.coingecko.com/coins/images/34188/large/${String(review.symbol).toLowerCase()}.png`),
