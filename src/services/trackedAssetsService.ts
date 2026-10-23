@@ -64,8 +64,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://coin-images.coingecko.com/coins/images/38911/large/bNVDA_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 99,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(0.4), h(1.2), h(2.8), h(4.5), h(6.1), h(8.9), h(12.3), h(15.7), h(19.2), h(22.1)]
     },
@@ -94,8 +94,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://coin-images.coingecko.com/coins/images/38916/large/bTSLA_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 98,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(0.8), h(2.1), h(3.5), h(5.4), h(7.9), h(11.0), h(14.2), h(18.1), h(23.0)]
     },
@@ -124,8 +124,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://assets.coingecko.com/coins/images/31871/large/bAAPL_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 99,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(1.5), h(3.0), h(5.1), h(7.6), h(10.8), h(15.2), h(19.8)]
     },
@@ -154,8 +154,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://coin-images.coingecko.com/coins/images/38914/large/bMETA_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 97,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(2.2), h(4.6), h(7.2), h(10.5), h(14.8), h(20.1)]
     },
@@ -184,8 +184,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://coin-images.coingecko.com/coins/images/38912/large/bGOOGL_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 98,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(3.1), h(6.0), h(9.8), h(14.0), h(18.5)]
     },
@@ -199,8 +199,8 @@ function generateDefault24hSeeds(): StoredViewRecord[] {
       logoUrl: 'https://coin-images.coingecko.com/coins/images/38915/large/bCOIN_200p.png',
       chain: 'Solana',
       issuer: 'Backed Finance',
-      score: 96,
-      riskLevel: 'Low',
+      score: null,
+      riskLevel: null,
       stabilityStatus: 'Peg Synchronized (1:1)',
       viewTimestamps: [h(3.5), h(6.9), h(11.2), h(15.9), h(20.4)]
     }
@@ -259,8 +259,8 @@ export function recordAssetView(item: {
   coingeckoId?: string;
   chain?: string;
   issuer?: string;
-  score?: number;
-  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical';
+  score?: number | null;
+  riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus?: string;
 }): void {
   if (!item.id || !item.symbol) return;
@@ -435,8 +435,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
         logoUrl: defaultStock.logoUrl,
         chain: defaultStock.chain,
         issuer: defaultStock.issuer,
-        score: 98,
-        riskLevel: 'Low',
+        score: null,
+        riskLevel: null,
         stabilityStatus: 'Peg Synchronized (1:1)',
         lastViewedAt: now,
         viewCount24h: 10
