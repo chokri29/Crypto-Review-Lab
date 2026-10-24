@@ -25,19 +25,25 @@ export type { ProOrder, ProOrderEmailLog, HumanReviewNotes, ProOrderPaymentStatu
 export { PRINCIPAL_EMAIL };
 
 const isNodeEnv = typeof process !== 'undefined' && typeof process.cwd === 'function' && typeof window === 'undefined';
-const ORDERS_FILE_PATH = isNodeEnv && path && typeof path.join === 'function' ? path.join(process.cwd(), 'pro_orders.json') : '';
+export const getOrdersFilePath = (): string => {
+  if (isNodeEnv && process.env.CRL_ORDERS_FILE_PATH) {
+    return process.env.CRL_ORDERS_FILE_PATH;
+  }
+  return isNodeEnv && path && typeof path.join === 'function' ? path.join(process.cwd(), 'pro_orders.json') : '';
+};
 
 function loadOrdersFromFile(): ProOrder[] {
   try {
-    if (isNodeEnv && fs && typeof fs.existsSync === 'function' && ORDERS_FILE_PATH && fs.existsSync(ORDERS_FILE_PATH)) {
+    const ordersFilePath = getOrdersFilePath();
+    if (isNodeEnv && fs && typeof fs.existsSync === 'function' && ordersFilePath && fs.existsSync(ordersFilePath)) {
       try {
-        const raw = fs.readFileSync(ORDERS_FILE_PATH, 'utf-8');
+        const raw = fs.readFileSync(ordersFilePath, 'utf-8');
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           return parsed;
         }
       } catch (err) {
-        console.error("Failed to parse orders from pro_orders.json:", err);
+        console.error("Failed to parse orders from orders file:", err);
       }
     }
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
@@ -60,8 +66,9 @@ function loadOrdersFromFile(): ProOrder[] {
 
 function saveOrdersToFile(orders: ProOrder[]): void {
   try {
-    if (isNodeEnv && fs && typeof fs.writeFileSync === 'function' && ORDERS_FILE_PATH) {
-      fs.writeFileSync(ORDERS_FILE_PATH, JSON.stringify(orders, null, 2), 'utf-8');
+    const ordersFilePath = getOrdersFilePath();
+    if (isNodeEnv && fs && typeof fs.writeFileSync === 'function' && ordersFilePath) {
+      fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2), 'utf-8');
     } else if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       localStorage.setItem('crl_pro_orders', JSON.stringify(orders));
     }

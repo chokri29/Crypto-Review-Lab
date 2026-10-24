@@ -445,10 +445,10 @@ export const F3Dashboard: React.FC<F3DashboardProps> = ({
       scorePct: currentF3Result ? (avf06?.status === 'CONSISTENT' ? 100 : avf06?.status === 'REQUIRES_REVIEW' ? 65 : 20) : 0,
       status: currentF3Result ? (avf06?.status || 'NOT RUN') : 'STANDBY',
       icon: <FileCheck className="w-4 h-4 text-teal-400" />,
-      metricPrimary: `Declared Risk: ${avf06?.declaredRisk || selectedProject?.riskLevel || 'Low'}`,
+      metricPrimary: `Declared Risk: ${avf06?.declaredRisk || selectedProject?.riskLevel || 'Unrated'}`,
       metricSecondary: avf06?.status === 'CONSISTENT' && avf06?.declaredRisk && avf06?.verifiedRiskLevel && avf06.declaredRisk !== avf06.verifiedRiskLevel
         ? `Conservative Stance: Declared [${avf06.declaredRisk}] vs Evaluated [${avf06.verifiedRiskLevel}]`
-        : `Evaluated Level: ${avf06?.verifiedRiskLevel || selectedProject?.riskLevel || 'Low'} (${avf06?.contradictions?.length ? `${avf06.contradictions.length} Contradictions` : 'Consistent'})`,
+        : `Evaluated Level: ${avf06?.verifiedRiskLevel || selectedProject?.riskLevel || 'Unrated'} (${avf06?.contradictions?.length ? `${avf06.contradictions.length} Contradictions` : 'Consistent'})`,
       details: avf06?.details || 'Verdict, security telemetry, and declared risk level consistency verified.',
       checks: [
         { name: 'Risk Assessment Alignment', status: currentF3Result ? (avf06?.status === 'CONSISTENT' ? 'VERIFIED' : 'ATTENTION') : 'NOT_PERFORMED', detail: 'Security telemetry and on-chain findings align with assessed risk level' },

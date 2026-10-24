@@ -4,7 +4,6 @@
  */
 
 import { CryptoReview } from './types';
-import { calculateBlueprintScore } from './services/EvaluationBlueprint';
 
 const RAW_REVIEWS: CryptoReview[] = [
   {

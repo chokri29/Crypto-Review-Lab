@@ -263,14 +263,25 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
   const dynamicVerdicts: PastVerdict[] = useMemo(() => {
     if (reviews && reviews.length > 0) {
       return reviews.map((rev, idx) => {
-        let type: 'PASS' | 'WARNING' | 'ALERT' = 'PASS';
-        if (rev.riskLevel === 'High' || rev.riskLevel === 'Critical' || rev.overallScore < 60) {
-          type = 'ALERT';
-        } else if (rev.riskLevel === 'Medium' || rev.overallScore < 80) {
-          type = 'WARNING';
+        const isRated = typeof rev.overallScore === 'number' && rev.riskLevel != null;
+        let type: 'PASS' | 'WARNING' | 'ALERT' = 'WARNING';
+        if (isRated) {
+          if (rev.riskLevel === 'High' || rev.riskLevel === 'Critical' || (rev.overallScore as number) < 60) {
+            type = 'ALERT';
+          } else if (rev.riskLevel === 'Medium' || (rev.overallScore as number) < 80) {
+            type = 'WARNING';
+          } else {
+            type = 'PASS';
+          }
         }
 
         const timestamp = rev.createdAt ? rev.createdAt : `${16 - (idx % 12)}:${(idx * 7) % 60 < 10 ? '0' : ''}${(idx * 7) % 60} UTC`;
+        const scoreDisplay = typeof rev.overallScore === 'number' ? `${rev.overallScore}/100` : 'Pending';
+        const riskDisplay = rev.riskLevel ? `${rev.riskLevel} Risk` : 'Unrated';
+
+        const fallbackMsg = isRated
+          ? `AVF ${type} rating with evaluation score of ${scoreDisplay}.`
+          : `Editorial monitoring active; assessment ${scoreDisplay}.`;
 
         return {
           id: `verdict-${rev.id}`,
@@ -278,8 +289,8 @@ export default function AuditorChat({ reviews, onLaunchProEvaluation, onLaunchRe
           symbol: rev.symbol,
           timestamp,
           type,
-          message: rev.verdict || `AVF ${type} rating with evaluation score of ${rev.overallScore}/100.`,
-          details: `${rev.category} | Evaluation Score: ${rev.overallScore}/100 (${rev.riskLevel} Risk). ${rev.pros?.[0] || 'Verification benchmark verified.'}`
+          message: rev.verdict || fallbackMsg,
+          details: `${rev.category} | Evaluation Score: ${scoreDisplay} (${riskDisplay}). ${rev.pros?.[0] || 'Verification benchmark verified.'}`
         };
       });
     }

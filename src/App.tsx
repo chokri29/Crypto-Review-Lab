@@ -486,13 +486,7 @@ export default function App() {
               logoUrl,
               coingeckoId: asset.coingeckoId || undefined,
               overallScore: null,
-              scores: {
-                utility: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round(s.confidenceScore / 10))) : 8,
-                tokenomics: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.95))) : 8,
-                security: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.92))) : 8,
-                team: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
-                community: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
-              },
+              scores: undefined,
               riskLevel: null,
               verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
               summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
@@ -519,8 +513,8 @@ export default function App() {
               ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
               atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
               priceDivergencePct: s?.priceDivergencePct ? parseFloat(s.priceDivergencePct) : 0,
-              confidenceScore: s?.confidenceScore ?? 90,
-              confidenceLevel: (s?.confidenceLevel as any) || 'HIGH',
+              confidenceScore: s?.confidenceScore !== undefined ? parseFloat(String(s.confidenceScore)) : undefined,
+              confidenceLevel: (s?.confidenceLevel as any) || undefined,
               dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
               lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
             };
@@ -641,13 +635,7 @@ export default function App() {
                 logoUrl: asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId),
                 coingeckoId: asset.coingeckoId || undefined,
                 overallScore: null,
-                scores: {
-                  utility: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round(s.confidenceScore / 10))) : 8,
-                  tokenomics: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.95))) : 8,
-                  security: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.92))) : 8,
-                  team: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
-                  community: s?.confidenceScore ? Math.min(10, Math.max(1, Math.round((s.confidenceScore / 10) * 0.9))) : 8,
-                },
+                scores: undefined,
                 riskLevel: null,
                 verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
                 summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
@@ -673,8 +661,8 @@ export default function App() {
                 allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
                 ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
                 atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
-                confidenceScore: s?.confidenceScore ?? 90,
-                confidenceLevel: (s?.confidenceLevel as any) || 'HIGH',
+                confidenceScore: s?.confidenceScore !== undefined ? parseFloat(String(s.confidenceScore)) : undefined,
+                confidenceLevel: (s?.confidenceLevel as any) || undefined,
                 dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
                 lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
               };

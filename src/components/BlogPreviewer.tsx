@@ -842,7 +842,7 @@ export default function BlogPreviewer({
         logoUrl: activeReview.logoUrl,
         coingeckoId: activeReview.coingeckoId,
         score: isItemVerified ? activeReview.overallScore : undefined,
-        riskLevel: (activeReview.riskLevel as any) || 'Low',
+        riskLevel: isItemVerified ? ((activeReview.riskLevel as any) || null) : null,
         stabilityStatus: 'Consensus & State Verified'
       });
     }
@@ -2307,8 +2307,8 @@ export default function BlogPreviewer({
                 <button
                   type="button"
                   onClick={() => {
-                    const oldRisk = activeReview.riskLevel || 'Low';
-                    const newRisk = oldRisk === 'Low' ? 'High' : 'Low';
+                    const oldRisk = activeReview.riskLevel || 'Unrated';
+                    const newRisk = oldRisk === 'Unrated' ? 'Assessed' : 'Unrated';
                     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                       new Notification('🚨 CRL Market Telemetry Alert', {
                         body: `${activeReview.name} risk level indicator updated from ${oldRisk} to ${newRisk} during automated sync!`
