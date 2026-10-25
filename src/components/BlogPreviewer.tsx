@@ -843,7 +843,9 @@ export default function BlogPreviewer({
         coingeckoId: activeReview.coingeckoId,
         score: isItemVerified ? activeReview.overallScore : undefined,
         riskLevel: isItemVerified ? ((activeReview.riskLevel as any) || null) : null,
-        stabilityStatus: 'Consensus & State Verified'
+        stabilityStatus: 'Consensus & State Verified',
+        liveChange24h: activeReview.liveChange24h,
+        livePrice: activeReview.livePrice
       });
     }
   }, [activeReview?.id, activeReview?.symbol, activeReview?.name]);

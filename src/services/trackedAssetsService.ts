@@ -24,6 +24,8 @@ export interface TrackedAssetItem {
   score: number | null; // Verification score (0-100) or null for unreviewed/editorial
   riskLevel: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus: string;
+  liveChange24h?: number;
+  livePrice?: number;
   lastViewedAt: number; // Timestamp ms
   viewCount24h: number; // Total views in last 24h window
 }
@@ -42,6 +44,8 @@ interface StoredViewRecord {
   score?: number | null;
   riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus?: string;
+  liveChange24h?: number;
+  livePrice?: number;
   viewTimestamps: number[];
 }
 
@@ -262,6 +266,8 @@ export function recordAssetView(item: {
   score?: number | null;
   riskLevel?: 'Low' | 'Medium' | 'High' | 'Critical' | null;
   stabilityStatus?: string;
+  liveChange24h?: number;
+  livePrice?: number;
 }): void {
   if (!item.id || !item.symbol) return;
   const now = Date.now();
@@ -284,6 +290,8 @@ export function recordAssetView(item: {
         score: item.score !== undefined ? item.score : (rec.score ?? null),
         riskLevel: item.riskLevel !== undefined ? item.riskLevel : (rec.riskLevel ?? null),
         stabilityStatus: item.stabilityStatus || rec.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
+        liveChange24h: item.liveChange24h !== undefined ? item.liveChange24h : rec.liveChange24h,
+        livePrice: item.livePrice !== undefined ? item.livePrice : rec.livePrice,
         viewTimestamps: validTimestamps
       };
       try {
@@ -302,6 +310,8 @@ export function recordAssetView(item: {
       score: item.score !== undefined ? item.score : (rec.score ?? null),
       riskLevel: item.riskLevel !== undefined ? item.riskLevel : (rec.riskLevel ?? null),
       stabilityStatus: item.stabilityStatus || rec.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
+      liveChange24h: item.liveChange24h !== undefined ? item.liveChange24h : rec.liveChange24h,
+      livePrice: item.livePrice !== undefined ? item.livePrice : rec.livePrice,
       viewTimestamps: validTimestamps
     };
   } else {
@@ -319,6 +329,8 @@ export function recordAssetView(item: {
       score: item.score ?? null,
       riskLevel: item.riskLevel ?? null,
       stabilityStatus: item.stabilityStatus || (item.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
+      liveChange24h: item.liveChange24h,
+      livePrice: item.livePrice,
       viewTimestamps: [now]
     });
   }
@@ -345,6 +357,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
     let resolvedScore = rec.score ?? null;
     let resolvedRisk: 'Low' | 'Medium' | 'High' | 'Critical' | null = rec.riskLevel ?? null;
     let resolvedLogo = rec.logoUrl;
+    let resolvedChange24h: number | undefined = rec.liveChange24h;
+    let resolvedPrice: number | undefined = rec.livePrice;
 
     if (rec.type === 'crypto' && reviews && reviews.length > 0) {
       const match = reviews.find(r => r.id === rec.id || r.symbol.toUpperCase() === rec.symbol.toUpperCase() || (r.coingeckoId && rec.coingeckoId && r.coingeckoId === rec.coingeckoId));
@@ -352,6 +366,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
         resolvedScore = (match.status === 'VERIFIED' && Boolean(match.isSigned || match.is_signed)) ? (match.overallScore ?? null) : null;
         resolvedRisk = (match.status === 'VERIFIED' && Boolean(match.isSigned || match.is_signed)) ? ((match.riskLevel as any) || null) : null;
         resolvedLogo = match.logoUrl || resolvedLogo;
+        if (typeof match.liveChange24h === 'number') resolvedChange24h = match.liveChange24h;
+        if (typeof match.livePrice === 'number') resolvedPrice = match.livePrice;
       }
     } else if (rec.type === 'xstock') {
       const stockMatch = XSTOCKS_REGISTRY.find(s => s.symbol.toUpperCase() === rec.symbol.toUpperCase());
@@ -376,6 +392,8 @@ export function getMostTrackedAssets24h(reviews?: CryptoReview[]): TrackedAssetI
       score: resolvedScore,
       riskLevel: resolvedRisk,
       stabilityStatus: rec.stabilityStatus || (rec.type === 'xstock' ? 'Peg Synchronized (1:1)' : 'Consensus & State Verified'),
+      liveChange24h: resolvedChange24h,
+      livePrice: resolvedPrice,
       lastViewedAt: latestView,
       viewCount24h: validTimestamps.length
     });

@@ -2931,44 +2931,113 @@ ${dualSyncContext}`;
 
   const COINGECKO_KEY = process.env.COINGECKO_API_KEY || "";
 
+  async function fetchJsonSafely(response: Response): Promise<{ ok: boolean; data: any; error?: string }> {
+    try {
+      const rawText = await response.text();
+      const trimmed = rawText.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        const data = JSON.parse(trimmed);
+        return { ok: true, data };
+      }
+      return { ok: false, data: null, error: `Upstream returned non-JSON (${trimmed.slice(0, 40)}...)` };
+    } catch (err: any) {
+      return { ok: false, data: null, error: err.message || "Failed to parse JSON" };
+    }
+  }
+
+  const finnhubServerCache: Record<string, { data: any; timestamp: number }> = {};
+  const FINNHUB_SERVER_CACHE_TTL = 30 * 1000;
+
   // API endpoint: Finnhub Proxy for Underlying Equities Quotes
   app.get("/api/finnhub/quote", async (req, res) => {
+    const symbol = ((req.query.symbol as string) || "").trim().toUpperCase();
+    if (!symbol) {
+      return res.status(400).json({ error: "Equity symbol query param is required" });
+    }
+
+    const cached = finnhubServerCache[symbol];
+    if (cached && (Date.now() - cached.timestamp) < FINNHUB_SERVER_CACHE_TTL) {
+      return res.json(cached.data);
+    }
+
     try {
-      const symbol = ((req.query.symbol as string) || "").trim().toUpperCase();
-      if (!symbol) {
-        return res.status(400).json({ error: "Equity symbol query param is required" });
-      }
       const gasUrl = appendGasToken(`${FINNHUB_GAS_URL}?symbol=${encodeURIComponent(symbol)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
+        if (cached?.data) {
+          return res.json(cached.data);
+        }
         return res.status(response.status).json({ error: `Finnhub proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        if (cached?.data) {
+          return res.json(cached.data);
+        }
+        console.warn(`Finnhub quote proxy non-JSON response for ${symbol}:`, jsonResult.error);
+        return res.status(502).json({ 
+          error: "Finnhub upstream proxy returned non-JSON response", 
+          symbol, 
+          c: 0, 
+          pc: 0 
+        });
+      }
+
+      finnhubServerCache[symbol] = { data: jsonResult.data, timestamp: Date.now() };
+      res.json(jsonResult.data);
     } catch (error: any) {
-      console.error("Finnhub quote proxy error:", error);
+      if (cached?.data) {
+        return res.json(cached.data);
+      }
+      console.warn("Finnhub quote proxy error:", error.message || error);
       res.status(500).json({ error: error.message || "Failed to fetch quote from Finnhub proxy" });
     }
   });
 
+  const cmcServerCache: Record<string, { data: any; timestamp: number }> = {};
+  const CMC_SERVER_CACHE_TTL = 30 * 1000;
+
   // API endpoint: CoinMarketCap Proxy for Quotes
   app.get("/api/cmc/quote", async (req, res) => {
+    const symbol = ((req.query.symbol as string) || "").trim().toUpperCase();
+    if (!symbol) {
+      return res.status(400).json({ error: "Token symbol query param is required" });
+    }
+
+    const cached = cmcServerCache[symbol];
+    if (cached && (Date.now() - cached.timestamp) < CMC_SERVER_CACHE_TTL) {
+      return res.json(cached.data);
+    }
+
     try {
-      const symbol = ((req.query.symbol as string) || "").trim().toUpperCase();
-      if (!symbol) {
-        return res.status(400).json({ error: "Token symbol query param is required" });
-      }
       const gasUrl = appendGasToken(`${CMC_GAS_URL}?symbol=${encodeURIComponent(symbol)}`);
       const response = await fetch(gasUrl);
 
       if (!response.ok) {
+        if (cached?.data) {
+          return res.json(cached.data);
+        }
         return res.status(response.status).json({ error: `CMC proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        if (cached?.data) {
+          return res.json(cached.data);
+        }
+        console.warn(`CMC quote proxy non-JSON response for ${symbol}:`, jsonResult.error);
+        return res.status(502).json({ error: "CMC upstream proxy returned non-JSON response", symbol });
+      }
+
+      cmcServerCache[symbol] = { data: jsonResult.data, timestamp: Date.now() };
+      res.json(jsonResult.data);
     } catch (error: any) {
-      console.error("CMC quote proxy error:", error);
+      if (cached?.data) {
+        return res.json(cached.data);
+      }
+      console.warn("CMC quote proxy error:", error.message || error);
       res.status(500).json({ error: error.message || "Failed to fetch quote from CMC proxy" });
     }
   });
@@ -3001,8 +3070,15 @@ ${dualSyncContext}`;
           data: []
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        console.warn("CMC RWA Map proxy non-JSON response:", jsonResult.error);
+        return res.status(502).json({
+          status: { error_code: 502, error_message: "CMC RWA Map upstream returned non-JSON response" },
+          data: []
+        });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CMC RWA Map proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch CMC RWA Map" });
@@ -3037,8 +3113,15 @@ ${dualSyncContext}`;
           data: null
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        console.warn("CMC RWA Info proxy non-JSON response:", jsonResult.error);
+        return res.status(200).json({
+          status: { error_code: 502, error_message: "CMC RWA Info upstream returned non-JSON response" },
+          data: null
+        });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CMC RWA Info proxy error:", error);
       res.status(200).json({
@@ -3076,8 +3159,15 @@ ${dualSyncContext}`;
           data: []
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        console.warn("CMC RWA Assets proxy non-JSON response:", jsonResult.error);
+        return res.status(200).json({
+          status: { error_code: 502, error_message: "CMC RWA Assets upstream returned non-JSON response" },
+          data: []
+        });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CMC RWA Assets proxy error:", error);
       res.status(200).json({
@@ -3097,8 +3187,12 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinStats proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        console.warn("CoinStats markets proxy non-JSON response:", jsonResult.error);
+        return res.status(502).json({ error: "CoinStats upstream proxy returned non-JSON response" });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinStats markets proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch markets from CoinStats proxy" });
@@ -3115,8 +3209,12 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinStats proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        console.warn(`CoinStats coin detail proxy non-JSON response for ${coinId}:`, jsonResult.error);
+        return res.status(502).json({ error: "CoinStats upstream proxy returned non-JSON response" });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinStats coin detail proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch coin details from CoinStats proxy" });
@@ -3246,7 +3344,12 @@ ${dualSyncContext}`;
     if (!response.ok) {
       throw new Error(`CoinGecko proxy error HTTP ${response.status}`);
     }
-    const data = await response.json();
+    const jsonResult = await fetchJsonSafely(response);
+    if (!jsonResult.ok || !jsonResult.data) {
+      console.warn("CoinGecko markets proxy non-JSON response:", jsonResult.error);
+      return [];
+    }
+    const data = jsonResult.data;
     if (data && data.error) {
       throw new Error(data.message || "CoinGecko proxy error");
     }
@@ -3278,8 +3381,11 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko search proxy non-JSON response", coins: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko search proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to search CoinGecko" });
@@ -3296,8 +3402,11 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko trending proxy non-JSON response", coins: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko trending proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch trending from CoinGecko" });
@@ -3315,8 +3424,11 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko coin details proxy non-JSON response" });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko coin detail proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch coin details from CoinGecko" });
@@ -3336,8 +3448,11 @@ ${dualSyncContext}`;
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko market chart proxy error HTTP ${response.status}` });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko market chart proxy non-JSON response", prices: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko market chart proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch market chart from CoinGecko" });
@@ -3372,8 +3487,11 @@ ${dualSyncContext}`;
           error: `CoinGecko RWA list proxy error HTTP ${response.status}`
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko RWA list proxy non-JSON response", data: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA list proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch RWA list from CoinGecko" });
@@ -3402,8 +3520,11 @@ ${dualSyncContext}`;
           error: `CoinGecko RWA markets proxy error HTTP ${response.status}`
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko RWA markets proxy non-JSON response", data: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA markets proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch RWA markets from CoinGecko" });
@@ -3420,8 +3541,11 @@ ${dualSyncContext}`;
           error: `CoinGecko RWA issuers list proxy error HTTP ${response.status}`
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko RWA issuers list proxy non-JSON response", data: [] });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA issuers list proxy error:", error);
       res.status(500).json({ error: error.message || "Failed to fetch RWA issuers list from CoinGecko" });
@@ -3443,8 +3567,11 @@ ${dualSyncContext}`;
           error: `CoinGecko RWA issuer proxy error HTTP ${response.status}`
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko RWA issuer proxy non-JSON response", data: null });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error(`CoinGecko RWA issuer proxy error for ${req.params.id}:`, error);
       res.status(500).json({ error: error.message || "Failed to fetch RWA issuer details" });
@@ -3466,8 +3593,11 @@ ${dualSyncContext}`;
           error: `CoinGecko RWA detail proxy error HTTP ${response.status}`
         });
       }
-      const data = await response.json();
-      res.json(data);
+      const jsonResult = await fetchJsonSafely(response);
+      if (!jsonResult.ok || !jsonResult.data) {
+        return res.status(502).json({ error: "CoinGecko RWA detail proxy non-JSON response", data: null });
+      }
+      res.json(jsonResult.data);
     } catch (error: any) {
       console.error(`CoinGecko RWA detail proxy error for ${req.params.id}:`, error);
       res.status(500).json({ error: error.message || "Failed to fetch RWA details from CoinGecko" });
