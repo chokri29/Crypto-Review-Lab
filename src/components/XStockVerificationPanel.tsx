@@ -377,15 +377,15 @@ export default function XStockVerificationPanel({
         <div className="p-3.5 sm:p-5 space-y-3.5 sm:space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-800/80 pb-3">
             <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <div className="p-1.5 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan shrink-0">
                   <Building2 className="w-4 h-4" />
                 </div>
-                <h3 className="font-orbitron font-bold text-xs sm:text-sm text-white uppercase tracking-wider truncate">
+                <h3 className="font-orbitron font-bold text-[11px] sm:text-sm text-white uppercase tracking-normal sm:tracking-wider leading-snug">
                   Issuer &amp; Custody Overview
                 </h3>
               </div>
-              <span className="sm:hidden text-[9px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 shrink-0">
+              <span className="sm:hidden text-[8.5px] font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
                 Self-Reported
               </span>
             </div>
