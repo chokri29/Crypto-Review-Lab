@@ -1,7 +1,20 @@
-<p align="center">
-  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg"</p>
 
 # Crypto Review Lab (CRL)
+
+<p align="center">
+  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg" width="100%"></p>
+
+<p align="center">
+  <a href="https://cryptoreviewlabcom">
+    <img src="https://img.shields.io/badge/try%20it%20live-open-9FE870?style=for-the-badge&logo=render&logoColor=black" alt="Try it live">
+  </a>
+  <a href="https://www.youtube.com/watch?app=desktp&v=9igiqI_s" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/demo%20video-64748b?style=for-the-badge&logo=youtube&logoColor=white" alt="Demo video">
+</a>
+  <a href="https://github.com/chokri29/CryptoReviewLab/actions/workflows/tests.yml">
+    <img src="https://img.shields.io/badge/CI-passing-28a745?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI workflow">
+  </a>
+</p>
 
 > **Algorithmic Security Intelligence for Digital Assets & Tokenized Equities**  
 > Powered by the Algorithmic Verification Framework (AVF) Tripartite Core Engine & Blueprint v2.4.
