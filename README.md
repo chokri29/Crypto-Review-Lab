@@ -2,10 +2,10 @@
 # Crypto Review Lab (CRL)
 
 <p align="center">
-  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg" width="100%"></p>
+  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/public/og-image.png" width="100%"></p>
 
 <p align="center">
-  <a href="https://cryptoreviewlabcom">
+  <a href="https://cryptoreviewlab.com">
     <img src="https://img.shields.io/badge/try%20it%20live-open-9FE870?style=for-the-badge&logo=render&logoColor=black" alt="Try it live">
   </a>
   <a href="https://www.youtube.com/watch?app=desktp&v=9igiqI_s" target="_blank" rel="noopener noreferrer">
