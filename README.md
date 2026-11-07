@@ -8,7 +8,9 @@
   <a href="https://cryptoreviewlab.com">
     <img src="https://img.shields.io/badge/try%20it%20live-open-9FE870?style=for-the-badge&logo=ultahost&logoColor=purple" alt="Try it live">
   </a>
+  
   [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
+  
   <a href="https://github.com/chokri29/Crypto-Review-Lab/actions">
     <img src="https://img.shields.io/badge/CI-passing-28a745?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI workflow">
   </a>
