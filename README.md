@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg" alt="rNEAR logo" width="96" />
+</p>
+
 # Crypto Review Lab (CRL)
 
 > **Algorithmic Security Intelligence for Digital Assets & Tokenized Equities**  
