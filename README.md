@@ -2,16 +2,19 @@
 # Crypto Review Lab (CRL)
 
 <p align="center">
-  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/public/og-image.png" width="100%"></p>
+  <img src="https://raw.githubusercontent.com/chokri29/Crypto-Review-Lab/main/public/og-image.png" width="100%">
+</p>
 
 <p align="center">
   <a href="https://cryptoreviewlab.com">
     <img src="https://img.shields.io/badge/try%20it%20live-open-9FE870?style=for-the-badge&logo=ultahost&logoColor=purple" alt="Try it live">
   </a>
-<p align="center">  
-  [![license](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)</p>
-  
-  <p align="center"><a href="https://github.com/chokri29/Crypto-Review-Lab/actions">
+  &nbsp;&nbsp; <!-- Optional spacing between badges -->
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=for-the-badge" alt="License">
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/chokri29/Crypto-Review-Lab/actions">
     <img src="https://img.shields.io/badge/CI-passing-28a745?style=for-the-badge&logo=githubactions&logoColor=white" alt="CI workflow">
   </a>
 </p>
