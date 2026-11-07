@@ -1,6 +1,5 @@
 <p align="center">
-  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg" alt="rNEAR logo" width="96" />
-</p>
+  <img src="https://github.com/chokri29/Crypto-Review-Lab/blob/main/crl.jpg"</p>
 
 # Crypto Review Lab (CRL)
 
