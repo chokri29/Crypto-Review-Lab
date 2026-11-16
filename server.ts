@@ -7,7 +7,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { createMetaChatCompletion } from "./src/services/metaModelApi.ts";
+import { createMetaChatCompletion } from "./src/services/metaModelApi.js";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { INITIAL_REVIEWS } from "./src/data.js";
