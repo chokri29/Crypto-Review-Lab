@@ -7,7 +7,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { GoogleGenAI, Type } from "@google/genai";
+import { createMetaChatCompletion } from "./src/services/metaModelApi.js";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import { INITIAL_REVIEWS } from "./src/data.js";
@@ -107,132 +107,52 @@ function saveReviewsToFile(reviews: any[]): void {
 
 dotenv.config();
 
-// Response JSON schema for structured review generation
+// Response JSON schema for structured review generation (Meta Model API JSON Schema)
 const reviewResponseSchema = {
-  type: Type.OBJECT,
+  type: "object",
+  additionalProperties: false,
   properties: {
-    name: { type: Type.STRING },
-    symbol: { type: Type.STRING },
-    category: { type: Type.STRING },
-    overallScore: { type: Type.INTEGER, description: "Overall rating score out of 100 calculated via weighted dimension sum" },
-    verdict: { type: Type.STRING, description: "A high-impact, professional 1-2 sentence final rating verdict." },
+    name: { type: "string" },
+    symbol: { type: "string" },
+    category: { type: "string" },
+    overallScore: { type: "integer", description: "Overall rating score out of 100 calculated via weighted dimension sum" },
+    verdict: { type: "string", description: "A high-impact, professional 1-2 sentence final rating verdict." },
     scores: {
-      type: Type.OBJECT,
+      type: "object",
+      additionalProperties: false,
       properties: {
-        utility: { type: Type.INTEGER, description: "Utility score from 1 to 10 (25% Weight)" },
-        tokenomics: { type: Type.INTEGER, description: "Tokenomics score from 1 to 10 (25% Weight)" },
-        security: { type: Type.INTEGER, description: "Security/Audit score from 1 to 10 (25% Weight)" },
-        team: { type: Type.INTEGER, description: "Team & backer track record score from 1 to 10 (15% Weight)" },
-        community: { type: Type.INTEGER, description: "Social engagement & community strength score from 1 to 10 (10% Weight)" }
+        utility: { type: "integer", description: "Utility score from 1 to 10 (25% Weight)" },
+        tokenomics: { type: "integer", description: "Tokenomics score from 1 to 10 (25% Weight)" },
+        security: { type: "integer", description: "Security/Audit score from 1 to 10 (25% Weight)" },
+        team: { type: "integer", description: "Team & backer track record score from 1 to 10 (15% Weight)" },
+        community: { type: "integer", description: "Social engagement & community strength score from 1 to 10 (10% Weight)" }
       },
       required: ["utility", "tokenomics", "security", "team", "community"]
     },
-    summary: { 
-      type: Type.STRING, 
-      description: "A comprehensive, objective markdown report analyzing the project's technology, ecosystem, and future risks. Always divide with markdown subheadings: ### Core Thesis, ### Market & Utility Analysis, ### Tokenomics & Security, ### Conclusion. Do not wrap inside extra ``` markdown backticks." 
-    },
-    pros: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "Exactly 3 distinct real-world strengths or positive technical points."
-    },
-    cons: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "Exactly 3 distinct vulnerabilities, centralizations, inflation risks, or regulatory concerns."
-    },
-    riskLevel: { 
-      type: Type.STRING, 
-      description: "Calculated risk level derived from overallScore: Low (>=85), Medium (70-84), High (50-69), Critical (<50)" 
-    }
+    summary: { type: "string", description: "A comprehensive, objective markdown report with the required Core Thesis, Market & Utility Analysis, Tokenomics & Security, and Conclusion headings. Do not wrap in Markdown code fences." },
+    pros: { type: "array", items: { type: "string" }, description: "Exactly 3 distinct real-world strengths or positive technical points." },
+    cons: { type: "array", items: { type: "string" }, description: "Exactly 3 distinct vulnerabilities, centralizations, inflation risks, or regulatory concerns." },
+    riskLevel: { type: "string", description: "Calculated risk level derived from overallScore: Low (>=85), Medium (70-84), High (50-69), Critical (<50)" }
   },
   required: ["name", "symbol", "category", "overallScore", "verdict", "scores", "summary", "pros", "cons", "riskLevel"]
 };
 
-function isQuotaOrDemandError(error: any): boolean {
-  const errMsg = String(error?.message || error?.status || error || "").toLowerCase();
-  return (
-    errMsg.includes("quota") ||
-    errMsg.includes("429") ||
-    errMsg.includes("resource_exhausted") ||
-    errMsg.includes("503") ||
-    errMsg.includes("unavailable") ||
-    errMsg.includes("high demand") ||
-    errMsg.includes("prepayment") ||
-    errMsg.includes("credits are depleted") ||
-    errMsg.includes("rate-limits") ||
-    errMsg.includes("rate limit") ||
-    errMsg.includes("tokens_per_model_per_user") ||
-    errMsg.includes("dunning") ||
-    errMsg.includes("billing")
-  );
-}
-
 function getFriendlyErrorMessage(error: any): string {
-  let errMsg = "";
-  if (typeof error === "string") {
-    errMsg = error;
-  } else if (error && error.message) {
-    errMsg = error.message;
-  } else {
-    errMsg = JSON.stringify(error);
-  }
+  const message = typeof error === "string"
+    ? error
+    : typeof error?.message === "string"
+      ? error.message
+      : "Unexpected server error.";
 
-  // If already a processed friendly message, return as is
-  if (
-    errMsg.startsWith("Your Gemini API") ||
-    errMsg.startsWith("The Gemini API key") ||
-    errMsg.startsWith("Google's Gemini")
-  ) {
-    return errMsg;
-  }
-
-  // Attempt to parse structured JSON error payloads from Google GenAI
   try {
-    const parsed = JSON.parse(errMsg);
-    if (parsed.error) {
-      const code = parsed.error.code;
-      const status = parsed.error.status;
-      const innerMsg = String(parsed.error.message || "");
-      const lowerInner = innerMsg.toLowerCase();
-
-      if (lowerInner.includes("dunning") || lowerInner.includes("billing") || lowerInner.includes("prepayment") || lowerInner.includes("credits are depleted")) {
-        return "Your Google Cloud / Gemini API project billing is currently suspended or unpaid (Lightning dunning decision). Please visit Google Cloud Console / Google AI Studio (https://ai.studio/projects) to update payment information or clear outstanding invoices. CRL Deterministic Fallback Engine remains fully active in the meantime.";
-      }
-
-      if (code === 429 || status === "RESOURCE_EXHAUSTED" || lowerInner.includes("quota") || lowerInner.includes("rate limit")) {
-        return "Your Gemini API Key has exceeded its request quota or rate limit. Google AI Studio allows a limited number of requests per minute on free tier. Please wait 1-2 minutes before retrying, or verify your billing tier in Google AI Studio.";
-      }
-
-      if (innerMsg) {
-        return getFriendlyErrorMessage(innerMsg);
-      }
-    }
-  } catch (e) {
-    // ignore JSON parse error
+    const parsed = JSON.parse(message);
+    if (typeof parsed?.error?.message === "string") return parsed.error.message;
+  } catch {
+    // The provider returned a plain-text error.
   }
 
-  const lowerMsg = errMsg.toLowerCase();
-
-  if (lowerMsg.includes("dunning") || lowerMsg.includes("billing") || lowerMsg.includes("prepayment") || lowerMsg.includes("credits are depleted")) {
-    return "Your Google Cloud / Gemini API project billing is currently suspended or unpaid (Lightning dunning decision). Please visit Google Cloud Console / Google AI Studio (https://ai.studio/projects) to update payment information or clear outstanding invoices. CRL Deterministic Fallback Engine remains fully active in the meantime.";
-  }
-  
-  if (lowerMsg.includes("quota") || lowerMsg.includes("429") || lowerMsg.includes("resource_exhausted") || lowerMsg.includes("rate limit")) {
-    return "Your Gemini API Key has exceeded its free tier rate limits. Google AI Studio allows a limited number of requests per minute on free tier. Please wait 1-2 minutes before retrying, or enable billing on your key to increase limits.";
-  }
-  
-  if (lowerMsg.includes("503") || lowerMsg.includes("unavailable") || lowerMsg.includes("high demand")) {
-    return "Google's Gemini model servers are currently experiencing extremely high traffic. Please retry in a few seconds, as these spikes are usually transient.";
-  }
-
-  if (lowerMsg.includes("invalid key") || lowerMsg.includes("api key not found") || (lowerMsg.includes("403") && lowerMsg.includes("key"))) {
-    return "The Gemini API key is missing, invalid, or restricts access to this model. Please check your API key settings in Google AI Studio.";
-  }
-
-  return errMsg;
+  return message;
 }
-
 export function createServerApp() {
   const app = express();
 
@@ -581,9 +501,9 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
         return res.json(masterMatch);
       }
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
-        console.warn("[ReviewLab] No Gemini API key configured. Generating evaluation via CRL Deterministic Fallback Engine...");
+      const apiKey = process.env.MODEL_API_KEY;
+      if (!apiKey || apiKey === "MY_MODEL_API_KEY" || apiKey.trim() === "") {
+        console.warn("[ReviewLab] No Meta Model API key configured. Generating evaluation via CRL Deterministic Fallback Engine...");
         const fallbackReview = generateDeterministicFallbackReview({
           name,
           symbol,
@@ -597,14 +517,6 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
         return res.json(fallbackReview);
       }
 
-      const ai = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          }
-        }
-      });
 
       const isProRun = Boolean(focusArea && String(focusArea).includes('PRO INSTITUTIONAL DEEP SCAN'));
       const evidenceBlock = formatExteriorEvidence(securityScan, marketSnapshot, contractAddress);
@@ -641,63 +553,26 @@ EVIDENCE-GROUNDING INSTRUCTIONS:
 
 Your entire response must match the specified JSON schema exactly.`;
 
-      let response;
+      let textResult = "";
       try {
-        response = await ai.models.generateContent({
-          model: "gemini-3.8-flash",
-          contents: prompt,
-          config: {
-            systemInstruction: "You are the chief research analyst at Crypto Review Lab. You provide cold, hard, fact-based cryptographic and economic reviews following the locked Evaluation Blueprint rubric. You write with supreme clarity, using professional terminology, avoiding all market-hype words like 'to the moon', 'revolutionary', 'game changer', or 'groundbreaking'. Highlight real potential failure points.",
-            responseMimeType: "application/json",
-            responseSchema: reviewResponseSchema,
-            temperature: 0
-          }
+        textResult = await createMetaChatCompletion({
+          apiKey,
+          model: process.env.META_MODEL_ID || "muse-spark-1.3",
+          messages: [
+            { role: "system", content: "You are the chief research analyst at Crypto Review Lab. You provide cold, hard, fact-based cryptographic and economic reviews following the locked Evaluation Blueprint rubric. You write with supreme clarity, using professional terminology, avoiding market-hype language. Highlight real potential failure points." },
+            { role: "user", content: prompt }
+          ],
+          responseFormat: {
+            type: "json_schema",
+            json_schema: { name: "crl_crypto_review", strict: true, schema: reviewResponseSchema }
+          },
+          temperature: 0
         });
-      } catch (firstError: any) {
-        if (isQuotaOrDemandError(firstError)) {
-          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable. Retrying with 'gemini-3.1-flash-lite' fallback...");
-          try {
-            response = await ai.models.generateContent({
-              model: "gemini-3.1-flash-lite",
-              contents: prompt,
-              config: {
-                systemInstruction: "You are the chief research analyst at Crypto Review Lab. You provide cold, hard, fact-based cryptographic and economic reviews. You write with supreme clarity, using professional terminology, avoiding all market-hype words like 'to the moon', 'revolutionary', 'game changer', or 'groundbreaking'. Highlight real potential failure points.",
-                responseMimeType: "application/json",
-                responseSchema: reviewResponseSchema,
-                temperature: 0
-              }
-            });
-          } catch (secondError: any) {
-            console.warn(`[ReviewLab] Gemini API secondary model error (${secondError.message || secondError}). Activating CRL Deterministic Fallback Engine...`);
-            const fallbackReview = generateDeterministicFallbackReview({
-              name,
-              symbol,
-              category,
-              protocolType: resolvedProtocolType,
-              contractAddress,
-              securityScan,
-              marketSnapshot,
-              focusArea
-            });
-            return res.json(fallbackReview);
-          }
-        } else {
-          console.warn(`[ReviewLab] Gemini API primary model error (${firstError.message || firstError}). Activating CRL Deterministic Fallback Engine...`);
-          const fallbackReview = generateDeterministicFallbackReview({
-            name,
-            symbol,
-            category,
-            protocolType: resolvedProtocolType,
-            contractAddress,
-            securityScan,
-            marketSnapshot,
-            focusArea
-          });
-          return res.json(fallbackReview);
-        }
+      } catch (metaError: any) {
+        console.warn(`[ReviewLab] Meta Model API request failed (${metaError?.message || metaError}). Activating CRL Deterministic Fallback Engine...`);
+        const fallbackReview = generateDeterministicFallbackReview({ name, symbol, category, protocolType: resolvedProtocolType, contractAddress, securityScan, marketSnapshot, focusArea });
+        return res.json(fallbackReview);
       }
-
-      const textResult = response?.text;
       if (!textResult) {
         const fallbackReview = generateDeterministicFallbackReview({
           name,
@@ -2766,21 +2641,13 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return res.status(400).json({ error: "Message content is required." });
       }
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
-        return res.status(400).json({ 
-          error: "Gemini API key is missing. Please configure your GEMINI_API_KEY in the Secrets panel in AI Studio's settings." 
+      const apiKey = process.env.MODEL_API_KEY;
+      if (!apiKey || apiKey === "MY_MODEL_API_KEY" || apiKey.trim() === "") {
+        return res.status(503).json({ 
+          error: "Meta Model API key is missing. Configure MODEL_API_KEY in the server environment." 
         });
       }
 
-      const ai = new GoogleGenAI({
-        apiKey: apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          }
-        }
-      });
 
       // Construct cumulative context to simulate history in chats
       let formattedPrompt = "";
@@ -2822,37 +2689,23 @@ CRITICAL OPERATIONAL RULES:
 
 ${dualSyncContext}`;
 
-      let response;
+      let chatText = "";
       try {
-        const chat = ai.chats.create({
-          model: "gemini-3.8-flash",
-          config: {
-            systemInstruction: auditorSystemInstruction,
-          }
+        chatText = await createMetaChatCompletion({
+          apiKey,
+          model: process.env.META_MODEL_ID || "muse-spark-1.3",
+          messages: [
+            { role: "system", content: auditorSystemInstruction },
+            { role: "user", content: formattedPrompt }
+          ],
+          temperature: 0.2
         });
-        response = await chat.sendMessage({ message: formattedPrompt });
-      } catch (firstError: any) {
-        if (isQuotaOrDemandError(firstError)) {
-          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable for chat. Retrying with 'gemini-3.1-flash-lite' fallback...");
-          try {
-            const chatFallback = ai.chats.create({
-              model: "gemini-3.1-flash-lite",
-              config: {
-                systemInstruction: auditorSystemInstruction,
-              }
-            });
-            response = await chatFallback.sendMessage({ message: formattedPrompt });
-          } catch (secondError: any) {
-            console.warn("Auditor chat fallback model also failed:", secondError);
-            return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
-          }
-        } else {
-          console.warn("Auditor chat model error:", firstError);
-          return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
-        }
+      } catch (metaError) {
+        console.warn("Auditor chat Meta Model API request failed:", metaError);
+        return res.json({ content: "The Crypto Review Lab automated advisory desk is temporarily unavailable. For real-time protocol risk parameters, refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
       }
 
-      res.json({ content: response?.text || "" });
+      res.json({ content: chatText });
     } catch (error: any) {
       console.error("Lab Auditor Chat error:", error);
       res.status(500).json({ error: getFriendlyErrorMessage(error) });
