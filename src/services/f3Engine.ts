@@ -7,15 +7,15 @@ import { CryptoReview, CryptoReviewScores, CryptoAuditSignature, AdminOverrideLo
 import {
   computeReportHash,
   getSigningPublicKey,
-} from './auditSigner';
+} from './auditSigner.js';
 import {
   calculateBlueprintScore,
   getCategoryDimensionWeights,
   normalizeProtocolCategory,
   CategoryWeights,
   BlueprintScoreResult
-} from './EvaluationBlueprint';
-import { CRL_VERSION_MANIFEST } from '../versionManifest';
+} from './EvaluationBlueprint.js';
+import { CRL_VERSION_MANIFEST } from '../versionManifest.js';
 
 /**
  * Evaluation Blueprint Dimension Weights baseline

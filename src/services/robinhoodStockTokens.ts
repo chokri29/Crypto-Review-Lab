@@ -8,7 +8,7 @@
  * and caches results for 24 hours.
  */
 
-import { ROBINHOOD_CHAIN } from '../constants/chains.ts';
+import { ROBINHOOD_CHAIN } from '../constants/chains.js';
 
 export interface RobinhoodStockToken {
   symbol: string;

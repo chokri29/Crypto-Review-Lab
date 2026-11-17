@@ -9,13 +9,13 @@ import {
   getTelemetrySyncLogs,
   getLatestMarketSnapshots,
   pruneOldSnapshots 
-} from '../db/queries.ts';
-import { isDbUnavailableError } from '../db/index.ts';
-import { INITIAL_REVIEWS } from '../data.ts';
-import { getAssetKey } from '../utils/assetKey.ts';
-import { isXStockAsset } from '../utils/xstockFilter.ts';
-import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains.ts';
-import { COINGECKO_GAS_URL, COINSTATS_GAS_URL, appendGasToken } from '../constants/proxies.ts';
+} from '../db/queries.js';
+import { isDbUnavailableError } from '../db/index.js';
+import { INITIAL_REVIEWS } from '../data.js';
+import { getAssetKey } from '../utils/assetKey.js';
+import { isXStockAsset } from '../utils/xstockFilter.js';
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from '../constants/chains.js';
+import { COINGECKO_GAS_URL, COINSTATS_GAS_URL, appendGasToken } from '../constants/proxies.js';
 
 // Initial canonical networks
 const INITIAL_NETWORKS = [

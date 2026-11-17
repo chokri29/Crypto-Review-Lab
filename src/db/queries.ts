@@ -1,7 +1,7 @@
-import { db, logDbError } from './index.ts';
-import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.ts';
+import { db, logDbError } from './index.js';
+import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.js';
 import { eq, desc, and, or, sql, count, inArray, ilike, like } from 'drizzle-orm';
-import { getAssetKey } from '../utils/assetKey.ts';
+import { getAssetKey } from '../utils/assetKey.js';
 
 // Reviews Queries
 export async function getDbReviews() {

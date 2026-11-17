@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { 
-  ProOrder, 
-  ProOrderEmailLog, 
-  HumanReviewNotes, 
-  CryptoReview, 
-  PRINCIPAL_EMAIL, 
+import { PRINCIPAL_EMAIL } from '../types.js';
+import type {
+  ProOrder,
+  ProOrderEmailLog,
+  HumanReviewNotes,
+  CryptoReview,
   AdminOverrideLog,
   ProOrderPaymentStatus,
   NowPaymentsIpnLog
-} from '../types';
-import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine';
-import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine';
-import { computeMultiSourceConvergence } from './marketConvergence';
-import { signAuditReportServerSide } from './auditSigner';
-import { calculateBlueprintScore } from './EvaluationBlueprint.ts';
+} from '../types.js';
+import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from './reControlEngine.js';
+import { runF3Verification, isF2GatePassed, regenerateNarrativeAfterVerification } from './f3Engine.js';
+import { computeMultiSourceConvergence } from './marketConvergence.js';
+import { signAuditReportServerSide } from './auditSigner.js';
+import { calculateBlueprintScore } from './EvaluationBlueprint.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -927,7 +927,7 @@ export async function getOrderByIdAsync(orderId: string): Promise<ProOrder | nul
   if (!cleanId) return null;
   try {
     if (isNodeEnv) {
-      const { getDbOrderById } = await import('../db/queries');
+      const { getDbOrderById } = await import('../db/queries.js');
       const row = await getDbOrderById(cleanId);
       if (row) {
         return parseDbOrderToProOrder(row);
@@ -953,7 +953,7 @@ export function getAllOrders(): ProOrder[] {
 export async function getAllOrdersAsync(): Promise<ProOrder[]> {
   try {
     if (isNodeEnv) {
-      const { getDbOrders } = await import('../db/queries');
+      const { getDbOrders } = await import('../db/queries.js');
       const dbOrders = await getDbOrders();
       if (dbOrders && dbOrders.length > 0) {
         return dbOrders.map((o: any) => parseDbOrderToProOrder(o));
@@ -971,7 +971,7 @@ export async function getAllOrdersAsync(): Promise<ProOrder[]> {
 export async function clearAllOrders(): Promise<void> {
   if (isNodeEnv) {
     try {
-      const { clearAllDbOrders } = await import('../db/queries');
+      const { clearAllDbOrders } = await import('../db/queries.js');
       await clearAllDbOrders();
     } catch (err) {
       console.warn("Postgres primary clearAllOrders unavailable, continuing with file storage:", err instanceof Error ? err.message : err);
@@ -988,7 +988,7 @@ export async function saveOrderToStorage(order: ProOrder): Promise<void> {
   try {
     if (isNodeEnv) {
       try {
-        const { upsertDbOrder } = await import('../db/queries');
+        const { upsertDbOrder } = await import('../db/queries.js');
         await upsertDbOrder({
           orderId: order.orderId,
           clientEmail: order.clientEmail,

@@ -16,9 +16,9 @@ import {
   AVFRoundResult,
   AVFSessionResult
 } from '../types';
-import { normalizeProtocolCategory, getCategoryDimensionWeights, calculateBlueprintScore, ProtocolCategoryType } from './EvaluationBlueprint';
-import { formatDefiLlamaTvl } from './defillama';
-import { getConfidenceLevel, formatRiskAndConfidencePair } from './f3Engine';
+import { normalizeProtocolCategory, getCategoryDimensionWeights, calculateBlueprintScore, ProtocolCategoryType } from './EvaluationBlueprint.js';
+import { formatDefiLlamaTvl } from './defillama.js';
+import { getConfidenceLevel, formatRiskAndConfidencePair } from './f3Engine.js';
 
 function getFsAndPath() {
   if (typeof window === 'undefined') {

@@ -32,9 +32,9 @@ import {
   PRINCIPAL_EMAIL 
 } from "./src/services/proOrderService.js";
 import { signAuditReportServerSide, verifyAuditSignatureServerSide } from "./src/services/auditSigner.js";
-import { adminAuth } from "./src/lib/firebase-admin.ts";
-import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
-import { getOrCreateUser, getUserByUid } from "./src/db/users.ts";
+import { adminAuth } from "./src/lib/firebase-admin.js";
+import { requireAuth, AuthRequest } from "./src/middleware/auth.js";
+import { getOrCreateUser, getUserByUid } from "./src/db/users.js";
 import { 
   getDbReviews, 
   upsertDbReview, 
@@ -52,23 +52,23 @@ import {
   getMarketSnapshotBySymbol,
   getHistoricalSnapshots,
   upsertMarketSnapshot
-} from "./src/db/queries.ts";
+} from "./src/db/queries.js";
 import { 
   startMarketIntelligenceSyncService, 
   runMarketIntelligenceSync 
-} from "./src/services/marketIntelligenceEngine.ts";
-import { ROBINHOOD_CHAIN, isRobinhoodChain } from "./src/constants/chains.ts";
+} from "./src/services/marketIntelligenceEngine.js";
+import { ROBINHOOD_CHAIN, isRobinhoodChain } from "./src/constants/chains.js";
 import { 
   COINGECKO_GAS_URL, 
   COINSTATS_GAS_URL, 
   CMC_GAS_URL, 
   FINNHUB_GAS_URL, 
   appendGasToken 
-} from "./src/constants/proxies.ts";
-import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTokens.ts";
-import { isDbUnavailableError } from "./src/db/index.ts";
-import { getAssetKey } from "./src/utils/assetKey.ts";
-import { isXStockAsset } from "./src/utils/xstockFilter.ts";
+} from "./src/constants/proxies.js";
+import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTokens.js";
+import { isDbUnavailableError } from "./src/db/index.js";
+import { getAssetKey } from "./src/utils/assetKey.js";
+import { isXStockAsset } from "./src/utils/xstockFilter.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 

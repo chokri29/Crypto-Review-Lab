@@ -1,5 +1,5 @@
-import { db, logDbError } from './index.ts';
-import { users } from './schema.ts';
+import { db, logDbError } from './index.js';
+import { users } from './schema.js';
 import { eq } from 'drizzle-orm';
 
 export async function getOrCreateUser(uid: string, email: string, displayName?: string | null, photoUrl?: string | null) {

@@ -372,7 +372,7 @@ export interface PhaseTwoReControlReport {
 }
 
 export type { F3VerificationResult, F3ModulesResult, PublicF3VerificationResult, PublicF3ModulesResult } from './services/f3Engine';
-export { projectToPublicCryptoReviewReport, projectToPublicF3Verification } from './services/f3Engine';
+export { projectToPublicCryptoReviewReport, projectToPublicF3Verification } from './services/f3Engine.js';
 
 /**
  * Public Audit / Diagnostic Report Shape
