@@ -1,4 +1,4 @@
-import { CryptoReview } from '../types';
+import { CryptoReview } from '../types.js';
 
 const DEFILLAMA_TVL_API = 'https://api.llama.fi/tvl';
 
