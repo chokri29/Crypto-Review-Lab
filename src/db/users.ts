@@ -1,4 +1,4 @@
-import { db } from './index.ts';
+import { db, logDbError } from './index.ts';
 import { users } from './schema.ts';
 import { eq } from 'drizzle-orm';
 
@@ -23,16 +23,8 @@ export async function getOrCreateUser(uid: string, email: string, displayName?: 
 
     return result[0];
   } catch (error) {
-    console.error("Database user query failed, returning fallback user:", error);
-    return {
-      id: 1,
-      uid,
-      email,
-      displayName: displayName || null,
-      photoUrl: photoUrl || null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    logDbError("getOrCreateUser", error);
+    throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
 
@@ -40,7 +32,7 @@ export async function getUsers() {
   try {
     return await db.select().from(users);
   } catch (error) {
-    console.error("Database getUsers query failed:", error);
+    logDbError("getUsers", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -50,7 +42,7 @@ export async function getUserByUid(uid: string) {
     const result = await db.select().from(users).where(eq(users.uid, uid)).limit(1);
     return result[0] || null;
   } catch (error) {
-    console.error("Database getUserByUid query failed:", error);
+    logDbError("getUserByUid", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }

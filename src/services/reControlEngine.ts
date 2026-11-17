@@ -509,8 +509,12 @@ function saveCategoryMemory(memory: Record<string, CategoryMemoryStats>): void {
     } else if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem(MEMORY_STORAGE_KEY, JSON.stringify(memory));
     }
-  } catch (e) {
-    console.error('Failed to save AVF category memory:', e);
+  } catch (e: any) {
+    if (e?.code === 'EROFS' || e?.code === 'EACCES') {
+      console.warn('AVF category memory write skipped on read-only serverless filesystem.');
+    } else {
+      console.error('Failed to save AVF category memory:', e);
+    }
   }
 }
 

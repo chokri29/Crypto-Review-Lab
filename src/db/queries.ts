@@ -1,4 +1,4 @@
-import { db } from './index.ts';
+import { db, logDbError } from './index.ts';
 import { cryptoReviews, proOrders, userWatchlists, marketAssets, marketSnapshots, networkMetrics, telemetrySyncLogs } from './schema.ts';
 import { eq, desc, and, or, sql, count, inArray, ilike, like } from 'drizzle-orm';
 import { getAssetKey } from '../utils/assetKey.ts';
@@ -8,7 +8,7 @@ export async function getDbReviews() {
   try {
     return await db.select().from(cryptoReviews).orderBy(desc(cryptoReviews.createdAt));
   } catch (error) {
-    console.error("Database getDbReviews failed:", error);
+    logDbError("getDbReviews", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -97,7 +97,7 @@ export async function upsertDbReview(review: {
 
     return result[0];
   } catch (error) {
-    console.error("Database upsertDbReview failed:", error);
+    logDbError("upsertDbReview", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -108,7 +108,7 @@ export async function getDbOrders() {
   try {
     return await db.select().from(proOrders).orderBy(desc(proOrders.createdAt));
   } catch (error) {
-    console.error("Database getDbOrders failed:", error);
+    logDbError("getDbOrders", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -119,7 +119,7 @@ export async function getDbOrderById(orderId: string) {
     const results = await db.select().from(proOrders).where(sql`LOWER(${proOrders.orderId}) = ${cleanId}`).limit(1);
     return results[0] || null;
   } catch (error) {
-    console.error(`Database getDbOrderById failed for ${orderId}:`, error);
+    logDbError(`getDbOrderById(${orderId})`, error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -128,7 +128,7 @@ export async function clearAllDbOrders() {
   try {
     await db.delete(proOrders);
   } catch (error) {
-    console.error("Database clearAllDbOrders failed:", error);
+    logDbError("clearAllDbOrders", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -186,7 +186,7 @@ export async function upsertDbOrder(order: {
 
     return result[0];
   } catch (error) {
-    console.error("Database upsertDbOrder failed:", error);
+    logDbError("upsertDbOrder", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -196,7 +196,7 @@ export async function getUserWatchlist(userUid: string) {
   try {
     return await db.select().from(userWatchlists).where(eq(userWatchlists.userUid, userUid));
   } catch (error) {
-    console.error("Database getUserWatchlist failed:", error);
+    logDbError("getUserWatchlist", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -228,7 +228,7 @@ export async function addToWatchlist(item: {
     );
     return existing[0];
   } catch (error) {
-    console.error("Database addToWatchlist failed:", error);
+    logDbError("addToWatchlist", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -238,7 +238,7 @@ export async function removeFromWatchlist(userUid: string, symbol: string) {
     return await db.delete(userWatchlists)
       .where(and(eq(userWatchlists.userUid, userUid), eq(userWatchlists.symbol, symbol)));
   } catch (error) {
-    console.error("Database removeFromWatchlist failed:", error);
+    logDbError("removeFromWatchlist", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -248,7 +248,7 @@ export async function getMarketAssets() {
   try {
     return await db.select().from(marketAssets);
   } catch (error) {
-    console.error("Database getMarketAssets failed:", error);
+    logDbError("getMarketAssets", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -302,7 +302,7 @@ export async function upsertMarketAsset(asset: {
       .returning();
     return result[0];
   } catch (error) {
-    console.error("Database upsertMarketAsset failed:", error);
+    logDbError("upsertMarketAsset", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -317,7 +317,7 @@ export async function deleteMarketAssetsByCoingeckoIds(ids: string[]) {
       )
     );
   } catch (error) {
-    console.error("Database deleteMarketAssetsByCoingeckoIds failed:", error);
+    logDbError("deleteMarketAssetsByCoingeckoIds", error);
   }
 }
 
@@ -368,7 +368,7 @@ export async function getMarketAssetsPaged(params: {
     const total = Number(totalRes[0]?.count ?? 0);
     return { items, total };
   } catch (error) {
-    console.error("Database getMarketAssetsPaged failed:", error);
+    logDbError("getMarketAssetsPaged", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -379,7 +379,7 @@ export async function getMarketSnapshotsCount(): Promise<number> {
     const res = await db.select({ count: count() }).from(marketSnapshots);
     return Number(res[0]?.count ?? 0);
   } catch (error) {
-    console.error("Database getMarketSnapshotsCount failed:", error);
+    logDbError("getMarketSnapshotsCount", error);
     return 0;
   }
 }
@@ -396,7 +396,7 @@ export async function getLatestMarketSnapshots(assetKeys?: string[]) {
       .from(marketSnapshots)
       .orderBy(marketSnapshots.assetKey, desc(marketSnapshots.syncedAt));
   } catch (error) {
-    console.error("Database getLatestMarketSnapshots failed:", error);
+    logDbError("getLatestMarketSnapshots", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -449,7 +449,7 @@ export async function upsertMarketSnapshot(snapshot: {
       .returning();
     return result[0];
   } catch (error) {
-    console.error("Database upsertMarketSnapshot failed:", error);
+    logDbError("upsertMarketSnapshot", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -469,7 +469,7 @@ export async function pruneOldSnapshots(days = 7): Promise<number> {
     const prunedCount = (result as any)?.rowCount ?? 0;
     return prunedCount;
   } catch (error) {
-    console.error("Database pruneOldSnapshots failed:", error);
+    logDbError("pruneOldSnapshots", error);
     return 0;
   }
 }
@@ -479,7 +479,7 @@ export async function getNetworkMetrics() {
   try {
     return await db.select().from(networkMetrics);
   } catch (error) {
-    console.error("Database getNetworkMetrics failed:", error);
+    logDbError("getNetworkMetrics", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -525,7 +525,7 @@ export async function upsertNetworkMetric(metric: {
       .returning();
     return result[0];
   } catch (error) {
-    console.error("Database upsertNetworkMetric failed:", error);
+    logDbError("upsertNetworkMetric", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -551,7 +551,7 @@ export async function recordTelemetrySyncLog(log: {
       .returning();
     return result[0];
   } catch (error) {
-    console.error("Database recordTelemetrySyncLog failed:", error);
+    logDbError("recordTelemetrySyncLog", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -560,7 +560,7 @@ export async function getTelemetrySyncLogs(limit: number = 20) {
   try {
     return await db.select().from(telemetrySyncLogs).orderBy(desc(telemetrySyncLogs.executedAt)).limit(limit);
   } catch (error) {
-    console.error("Database getTelemetrySyncLogs failed:", error);
+    logDbError("getTelemetrySyncLogs", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -573,7 +573,7 @@ export async function getMarketSnapshotBySymbol(symbol: string) {
       .limit(1);
     return snapshots[0] || null;
   } catch (error) {
-    console.error(`Database getMarketSnapshotBySymbol failed for ${symbol}:`, error);
+    logDbError(`getMarketSnapshotBySymbol(${symbol})`, error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }
@@ -590,7 +590,7 @@ export async function getHistoricalSnapshots(symbol?: string, limit: number = 30
       .orderBy(desc(marketSnapshots.syncedAt))
       .limit(limit);
   } catch (error) {
-    console.error("Database getHistoricalSnapshots failed:", error);
+    logDbError("getHistoricalSnapshots", error);
     throw new Error("Database query failed. Please try again later.", { cause: error });
   }
 }

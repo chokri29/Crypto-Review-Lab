@@ -10,6 +10,7 @@ import {
   getLatestMarketSnapshots,
   pruneOldSnapshots 
 } from '../db/queries.ts';
+import { isDbUnavailableError } from '../db/index.ts';
 import { INITIAL_REVIEWS } from '../data.ts';
 import { getAssetKey } from '../utils/assetKey.ts';
 import { isXStockAsset } from '../utils/xstockFilter.ts';
@@ -413,12 +414,16 @@ export async function recomputeNetworkActiveAssets(): Promise<void> {
       });
     }
   } catch (err) {
-    console.warn('[MarketIntelligence] Recomputing active assets count per network failed:', err);
+    if (isDbUnavailableError(err)) {
+      console.warn('[MarketIntelligence] Recomputing active assets skipped: PostgreSQL unavailable.');
+    } else {
+      console.warn('[MarketIntelligence] Recomputing active assets count per network failed:', err);
+    }
   }
 }
 
 // Seed initial network metadata and tracked assets into Cloud SQL
-export async function seedInitialMarketIntelligenceData(): Promise<void> {
+export async function seedInitialMarketIntelligenceData(): Promise<boolean> {
   try {
     // 1. Seed Networks
     for (const net of INITIAL_NETWORKS) {
@@ -457,8 +462,14 @@ export async function seedInitialMarketIntelligenceData(): Promise<void> {
     await recomputeNetworkActiveAssets();
 
     console.log('[MarketIntelligence] Initial networks and assets seeded into Cloud SQL successfully.');
+    return true;
   } catch (error) {
-    console.warn('[MarketIntelligence] Seed skipped or failed (will retry on next cycle):', error);
+    if (isDbUnavailableError(error)) {
+      console.warn('[MarketIntelligence] Seed skipped: PostgreSQL database is currently unavailable.');
+    } else {
+      console.warn('[MarketIntelligence] Seed skipped or failed (will retry on next cycle):', error);
+    }
+    return false;
   }
 }
 
@@ -544,6 +555,10 @@ export async function discoverAssets(force = false): Promise<{ discovered: numbe
         return { discovered: 0 };
       }
     } catch (checkErr) {
+      if (isDbUnavailableError(checkErr)) {
+        console.warn('[MarketIntelligence] Asset discovery skipped: PostgreSQL database is currently unavailable.');
+        return { discovered: 0 };
+      }
       console.warn('[MarketIntelligence] Could not check previous discovery logs:', checkErr);
     }
   }
@@ -688,7 +703,11 @@ export async function discoverAssets(force = false): Promise<{ discovered: numbe
     }).catch(() => {});
     return { discovered };
   } catch (error) {
-    console.error('[MarketIntelligence] Asset discovery error:', error);
+    if (isDbUnavailableError(error)) {
+      console.warn('[MarketIntelligence] Asset discovery aborted: PostgreSQL database is currently unavailable.');
+    } else {
+      console.error('[MarketIntelligence] Asset discovery error:', error);
+    }
     return { discovered: 0 };
   } finally {
     isDiscoveryRunning = false;
@@ -707,7 +726,10 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
   let networksSynced = 0;
 
   try {
-    // 1. Sync DefiLlama Network TVLs for registered chains
+    // 1. Fetch Assets from Cloud SQL first so if PostgreSQL is offline we fail fast without cascading calls
+    const assets = await getMarketAssets();
+
+    // 2. Sync DefiLlama Network TVLs for registered chains
     try {
       const llamaRes = await fetch('https://api.llama.fi/v2/chains', {
         headers: { 'Accept': 'application/json', 'User-Agent': 'CryptoReviewLab/3.2.0' }
@@ -748,13 +770,13 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
         }
       }
     } catch (llamaErr) {
+      if (isDbUnavailableError(llamaErr)) {
+        throw llamaErr;
+      }
       console.warn('[MarketIntelligence] DefiLlama chain TVL fetch non-critical failure:', llamaErr);
     }
 
-    // 2. Fetch Assets to sync from Cloud SQL
-    const assets = await getMarketAssets();
     if (!assets || assets.length === 0) {
-      isSyncRunning = false;
       return { success: true, itemsSynced: 0, networksSynced };
     }
 
@@ -918,6 +940,10 @@ export async function runMarketIntelligenceSync(): Promise<{ success: boolean; i
     return { success: true, itemsSynced, networksSynced };
   } catch (error: any) {
     const latencyMs = Date.now() - startTime;
+    if (isDbUnavailableError(error)) {
+      console.warn('[MarketIntelligence] Sync cycle skipped: PostgreSQL database is currently unavailable.');
+      return { success: false, itemsSynced, networksSynced };
+    }
     console.error('[MarketIntelligence] Sync cycle error:', error);
     try {
       await recordTelemetrySyncLog({
@@ -959,8 +985,10 @@ export function startMarketIntelligenceSyncService(): void {
 
   // Initial seeding and sync after 3 seconds (discoverAssets is not run on startup; only on 24h interval)
   setTimeout(async () => {
-    await seedInitialMarketIntelligenceData();
-    await runMarketIntelligenceSync();
+    const seeded = await seedInitialMarketIntelligenceData();
+    if (seeded) {
+      await runMarketIntelligenceSync();
+    }
   }, 3000);
 
   // Discovery every 24 hours (skips if already ran in last 24h)

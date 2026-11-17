@@ -66,6 +66,9 @@ import {
   appendGasToken 
 } from "./src/constants/proxies.ts";
 import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTokens.ts";
+import { isDbUnavailableError } from "./src/db/index.ts";
+import { getAssetKey } from "./src/utils/assetKey.ts";
+import { isXStockAsset } from "./src/utils/xstockFilter.ts";
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -73,7 +76,15 @@ if (typeof globalThis.fetch === 'function') {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = function (input: any, init?: any) {
     if (typeof input === 'string' && input.startsWith('/')) {
-      input = `http://localhost:${PORT}${input}`;
+      const vercelBase =
+        process.env.VERCEL
+          ? (process.env.APP_URL && !process.env.APP_URL.includes('MY_APP_URL')
+              ? process.env.APP_URL.replace(/\/$/, '')
+              : process.env.VERCEL_URL
+                ? `https://${process.env.VERCEL_URL}`
+                : `http://localhost:${PORT}`)
+          : `http://localhost:${PORT}`;
+      input = `${vercelBase}${input}`;
     }
     return originalFetch(input, init);
   } as any;
@@ -139,21 +150,55 @@ const reviewResponseSchema = {
 };
 
 function isQuotaOrDemandError(error: any): boolean {
-  const errMsg = String(error?.message || error?.status || error || "").toLowerCase();
+  const status = Number(error?.status ?? error?.code ?? error?.error?.code ?? error?.response?.status);
+  if (status === 400 || status === 401 || status === 403 || status === 404 || status === 422) {
+    return false;
+  }
+
+  const rawParts = [
+    error?.message,
+    error?.statusText,
+    error?.error?.message,
+    error?.error?.status,
+    typeof error?.status === "string" ? error.status : ""
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  // Never retry authentication, permission, malformed, or invalid-argument errors
+  if (
+    rawParts.includes("api key") ||
+    rawParts.includes("api_key") ||
+    rawParts.includes("unauthenticated") ||
+    rawParts.includes("unauthorized") ||
+    rawParts.includes("permission denied") ||
+    rawParts.includes("invalid argument") ||
+    rawParts.includes("invalid_argument") ||
+    rawParts.includes("bad request") ||
+    rawParts.includes("malformed")
+  ) {
+    return false;
+  }
+
+  if (status === 429 || status === 503 || status === 502 || status === 504) {
+    return true;
+  }
+
   return (
-    errMsg.includes("quota") ||
-    errMsg.includes("429") ||
-    errMsg.includes("resource_exhausted") ||
-    errMsg.includes("503") ||
-    errMsg.includes("unavailable") ||
-    errMsg.includes("high demand") ||
-    errMsg.includes("prepayment") ||
-    errMsg.includes("credits are depleted") ||
-    errMsg.includes("rate-limits") ||
-    errMsg.includes("rate limit") ||
-    errMsg.includes("tokens_per_model_per_user") ||
-    errMsg.includes("dunning") ||
-    errMsg.includes("billing")
+    rawParts.includes("quota") ||
+    rawParts.includes("429") ||
+    rawParts.includes("resource_exhausted") ||
+    rawParts.includes("503") ||
+    rawParts.includes("service unavailable") ||
+    rawParts.includes("temporarily unavailable") ||
+    rawParts.includes("high demand") ||
+    rawParts.includes("overloaded") ||
+    rawParts.includes("capacity") ||
+    rawParts.includes("rate-limits") ||
+    rawParts.includes("rate limit") ||
+    rawParts.includes("too many requests") ||
+    rawParts.includes("tokens_per_model_per_user")
   );
 }
 
@@ -521,7 +566,7 @@ ${cleanName} receives an overall Evaluation Blueprint Score of ${bp.overallScore
         return res.json(masterMatch);
       }
 
-      const apiKey = process.env.MODEL_API_KEY;
+      const apiKey = process.env.MODEL_API_KEY || process.env.META_API_KEY || process.env.META_LLM_API_KEY;
       if (!apiKey || apiKey === "MY_MODEL_API_KEY" || apiKey.trim() === "") {
         console.warn("[ReviewLab] No Meta Model API key configured. Generating evaluation via CRL Deterministic Fallback Engine...");
         const fallbackReview = generateDeterministicFallbackReview({
@@ -607,7 +652,13 @@ Your entire response must match the specified JSON schema exactly.`;
         return res.json(fallbackReview);
       }
 
-      const parsedReview = JSON.parse(textResult.trim());
+      const cleanedJson = textResult
+        .replace(/<think>[\s\S]*?<\/think>/gi, '')
+        .trim()
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/i, '')
+        .trim();
+      const parsedReview = JSON.parse(cleanedJson);
 
       // Mathematical Alignment Enforcement: Recalculate overallScore and riskLevel directly from the 5 dimension scores with category routing
       if (parsedReview && parsedReview.scores) {
@@ -1048,7 +1099,11 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
       try {
         reviews = await getDbReviews();
       } catch (dbErr) {
-        console.warn("Database getDbReviews failed, falling back to crypto_reviews.json:", dbErr);
+        if (isDbUnavailableError(dbErr)) {
+          console.warn("Reviews list falling back to crypto_reviews.json (PostgreSQL unavailable).");
+        } else {
+          console.warn("Database getDbReviews failed, falling back to crypto_reviews.json:", dbErr instanceof Error ? dbErr.message : dbErr);
+        }
         reviews = loadReviewsFromFile();
       }
 
@@ -1106,7 +1161,10 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
       }
     }
   }
-  setInterval(cleanExpiredSessions, 10 * 60 * 1000);
+  const sessionCleanupTimer = setInterval(cleanExpiredSessions, 10 * 60 * 1000);
+  if (typeof sessionCleanupTimer.unref === 'function') {
+    sessionCleanupTimer.unref();
+  }
 
   function isAuthorizedAdmin(req: express.Request): boolean {
     const authHeader = req.headers["authorization"];
@@ -1355,7 +1413,15 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
 });
 `;
 
-      fs.writeFileSync(dataFilePath, newFileContent, "utf-8");
+      try {
+        fs.writeFileSync(dataFilePath, newFileContent, "utf-8");
+      } catch (fsErr: any) {
+        if (fsErr?.code === 'EROFS' || fsErr?.code === 'EACCES') {
+          console.warn('[Admin Promote] Read-only filesystem (serverless); skipping src/data.ts write.');
+        } else {
+          throw fsErr;
+        }
+      }
 
       // Update in-memory INITIAL_REVIEWS array in server.ts
       const updatedMapped = rawList.map(r => {
@@ -2716,29 +2782,36 @@ CRITICAL OPERATIONAL RULES:
 
 ${dualSyncContext}`;
 
+      const primaryChatModel = (process.env.GEMINI_CHAT_MODEL || "gemini-4-hydrogen").trim();
+      const fallbackChatModel = "gemini-3.1-flash-lite";
+
       let response;
       try {
         const chat = ai.chats.create({
-          model: "gemini-3.8-flash",
+          model: primaryChatModel,
           config: { systemInstruction: auditorSystemInstruction }
         });
         response = await chat.sendMessage({ message: formattedPrompt });
       } catch (firstError: any) {
         if (isQuotaOrDemandError(firstError)) {
-          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable for chat. Retrying with 'gemini-3.1-flash-lite' fallback...");
+          console.warn(`Primary model '${primaryChatModel}' rate limited or temporarily unavailable for chat. Retrying with '${fallbackChatModel}' fallback...`);
           try {
             const chatFallback = ai.chats.create({
-              model: "gemini-3.1-flash-lite",
+              model: fallbackChatModel,
               config: { systemInstruction: auditorSystemInstruction }
             });
             response = await chatFallback.sendMessage({ message: formattedPrompt });
           } catch (secondError: any) {
-            console.warn("Auditor chat Gemini fallback model also failed:", secondError);
-            return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
+            console.warn("Auditor chat Gemini fallback model also failed:", secondError?.message || secondError);
+            const fallbackStatus = Number(secondError?.status ?? secondError?.code);
+            const statusCode = fallbackStatus >= 400 && fallbackStatus < 600 ? fallbackStatus : 503;
+            return res.status(statusCode).json({ error: getFriendlyErrorMessage(secondError) });
           }
         } else {
-          console.warn("Auditor chat Gemini model error:", firstError);
-          return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
+          console.warn("Auditor chat Gemini non-retryable error:", firstError?.message || firstError);
+          const firstStatus = Number(firstError?.status ?? firstError?.code);
+          const statusCode = firstStatus >= 400 && firstStatus < 600 ? firstStatus : 502;
+          return res.status(statusCode).json({ error: getFriendlyErrorMessage(firstError) });
         }
       }
 
@@ -3634,6 +3707,9 @@ ${dualSyncContext}`;
       );
       res.json(user);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        return res.status(503).json({ error: "Database service temporarily unavailable." });
+      }
       console.error("Failed to sync/retrieve authenticated user:", error);
       res.status(500).json({ error: "Failed to sync user profile" });
     }
@@ -3647,6 +3723,10 @@ ${dualSyncContext}`;
       const watchlist = await getUserWatchlist(uid);
       res.json(watchlist);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        console.warn("Watchlist fetch fallback (PostgreSQL unavailable).");
+        return res.json([]);
+      }
       console.error("Failed to fetch user watchlist:", error);
       res.status(500).json({ error: "Failed to fetch watchlist" });
     }
@@ -3669,6 +3749,10 @@ ${dualSyncContext}`;
       });
       res.json(item);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        console.warn("Watchlist update skipped (PostgreSQL unavailable).");
+        return res.status(503).json({ error: "Database service temporarily unavailable." });
+      }
       console.error("Failed to add to watchlist:", error);
       res.status(500).json({ error: "Failed to update watchlist" });
     }
@@ -3682,6 +3766,10 @@ ${dualSyncContext}`;
       await removeFromWatchlist(uid, symbol);
       res.json({ success: true });
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        console.warn("Watchlist delete skipped (PostgreSQL unavailable).");
+        return res.status(503).json({ error: "Database service temporarily unavailable." });
+      }
       console.error("Failed to remove from watchlist:", error);
       res.status(500).json({ error: "Failed to update watchlist" });
     }
@@ -3693,6 +3781,10 @@ ${dualSyncContext}`;
       const dbReviews = await getDbReviews();
       res.json(dbReviews);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        console.warn("Reviews fetch falling back to local store (PostgreSQL unavailable).");
+        return res.json(loadReviewsFromFile());
+      }
       console.error("Failed to fetch database reviews:", error);
       res.status(500).json({ error: "Failed to fetch reviews" });
     }
@@ -3712,9 +3804,13 @@ ${dualSyncContext}`;
           if (decoded?.uid) {
             userUid = decoded.uid;
             if (!isAdmin) {
-              const dbUser = await getUserByUid(decoded.uid);
-              if (dbUser && dbUser.role === 'admin') {
-                isAdmin = true;
+              try {
+                const dbUser = await getUserByUid(decoded.uid);
+                if (dbUser && dbUser.role === 'admin') {
+                  isAdmin = true;
+                }
+              } catch {
+                // DB unavailable during role check
               }
             }
           }
@@ -3790,6 +3886,10 @@ ${dualSyncContext}`;
 
       res.json(saved);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        console.warn("Database review save skipped (PostgreSQL unavailable).");
+        return res.status(503).json({ error: "Database service temporarily unavailable." });
+      }
       console.error("Failed to save database review:", error);
       res.status(500).json({ error: "Failed to save review" });
     }
@@ -3800,12 +3900,12 @@ ${dualSyncContext}`;
   const SYNC_DEBOUNCE_MS = 20000; // 20-second throttle for manual triggers
 
   app.get("/api/market-intelligence/feed", async (req, res) => {
-    try {
-      const network = req.query.network as string | undefined;
-      const q = req.query.q as string | undefined;
-      const limit = req.query.limit !== undefined ? parseInt(req.query.limit as string, 10) : 250;
-      const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string, 10) : 0;
+    const network = req.query.network as string | undefined;
+    const q = req.query.q as string | undefined;
+    const limit = req.query.limit !== undefined ? parseInt(req.query.limit as string, 10) : 250;
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string, 10) : 0;
 
+    try {
       const { items: assets, total } = await getMarketAssetsPaged({
         network,
         q,
@@ -3832,6 +3932,57 @@ ${dualSyncContext}`;
         timestamp: new Date().toISOString()
       });
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        const netFilter = network && network.trim().toLowerCase() !== 'all' ? network.trim().toLowerCase() : null;
+        const qFilter = q && q.trim() ? q.trim().toLowerCase() : null;
+        const fallbackAll = INITIAL_REVIEWS
+          .filter((rev) => !isXStockAsset(rev))
+          .map((rev, idx) => {
+            const net = rev.network || 'Ethereum';
+            return {
+              id: idx + 1,
+              assetKey: getAssetKey({
+                coingeckoId: rev.coingeckoId,
+                network: net,
+                contractAddress: rev.contractAddress,
+                symbol: rev.symbol,
+              }),
+              symbol: rev.symbol,
+              name: rev.name,
+              coingeckoId: rev.coingeckoId || null,
+              category: rev.category || 'Cryptocurrency',
+              network: net,
+              contractAddress: rev.contractAddress || null,
+              logoUrl: rev.logoUrl || null,
+              isVerified: 1,
+              createdAt: rev.createdAt || new Date().toISOString(),
+            };
+          })
+          .filter((item) => {
+            if (netFilter && item.network.toLowerCase() !== netFilter) return false;
+            if (qFilter) {
+              return (
+                item.symbol.toLowerCase().includes(qFilter) ||
+                item.name.toLowerCase().includes(qFilter) ||
+                (item.category && item.category.toLowerCase().includes(qFilter)) ||
+                item.network.toLowerCase().includes(qFilter)
+              );
+            }
+            return true;
+          });
+        const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 1000) : 250;
+        const safeOffset = Number.isFinite(offset) ? Math.max(offset, 0) : 0;
+        const paged = fallbackAll.slice(safeOffset, safeOffset + safeLimit);
+        return res.json({
+          assets: paged,
+          total: fallbackAll.length,
+          snapshots: [],
+          totalSnapshots: 0,
+          networks: [],
+          telemetryLogs: [],
+          timestamp: new Date().toISOString()
+        });
+      }
       console.error("Failed to fetch market intelligence feed:", error);
       res.status(500).json({ error: "Failed to fetch market intelligence feed" });
     }
@@ -3842,6 +3993,9 @@ ${dualSyncContext}`;
       const networks = await getNetworkMetrics();
       res.json(networks);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        return res.json([]);
+      }
       console.error("Failed to fetch network metrics:", error);
       res.status(500).json({ error: "Failed to fetch network metrics" });
     }
@@ -3893,7 +4047,9 @@ ${dualSyncContext}`;
             }
           }
         } catch (onDemandErr) {
-          console.error(`[MarketIntelligence] On-demand snapshot hydration error for ${symbol}:`, onDemandErr);
+          if (!isDbUnavailableError(onDemandErr)) {
+            console.error(`[MarketIntelligence] On-demand snapshot hydration error for ${symbol}:`, onDemandErr);
+          }
         }
       }
 
@@ -3903,6 +4059,13 @@ ${dualSyncContext}`;
         history
       });
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        return res.json({
+          symbol: (req.params.symbol || '').toUpperCase(),
+          latest: null,
+          history: []
+        });
+      }
       console.error(`Failed to fetch snapshots for ${req.params.symbol}:`, error);
       res.status(500).json({ error: "Failed to fetch symbol snapshots" });
     }
@@ -3914,15 +4077,19 @@ ${dualSyncContext}`;
       const logs = await getTelemetrySyncLogs(limit);
       res.json(logs);
     } catch (error: any) {
+      if (isDbUnavailableError(error)) {
+        return res.json([]);
+      }
       console.error("Failed to fetch telemetry sync logs:", error);
       res.status(500).json({ error: "Failed to fetch telemetry logs" });
     }
   });
 
-  app.post("/api/market-intelligence/sync", async (req, res) => {
+  app.all("/api/market-intelligence/sync", async (req, res) => {
     try {
-      // Accept Cloud Scheduler secret or require admin (isAuthorizedAdmin or users.role === 'admin')
+      // Accept Cloud Scheduler secret, Vercel CRON_SECRET Bearer, or require admin
       const syncSecret = process.env.SYNC_SECRET;
+      const cronSecret = process.env.CRON_SECRET;
       let isSchedulerAuth = false;
       const headerSecret = req.headers['x-sync-secret'];
       if (syncSecret && syncSecret.trim() !== '' && typeof headerSecret === 'string') {
@@ -3936,9 +4103,17 @@ ${dualSyncContext}`;
         }
       }
 
+      const authHeader = req.headers["authorization"];
+      if (!isSchedulerAuth && cronSecret && cronSecret.trim() !== '' && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+        const expectedCron = Buffer.from(cronSecret.trim());
+        const actualCron = Buffer.from(authHeader.slice(7).trim());
+        if (expectedCron.length === actualCron.length && crypto.timingSafeEqual(expectedCron, actualCron)) {
+          isSchedulerAuth = true;
+        }
+      }
+
       let isAuthorized = isSchedulerAuth || isAuthorizedAdmin(req);
       if (!isAuthorized) {
-        const authHeader = req.headers["authorization"];
         if (authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
           const token = authHeader.slice(7).trim();
           try {

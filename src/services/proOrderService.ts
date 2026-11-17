@@ -275,6 +275,19 @@ export async function isPaymentReferenceAlreadyUsedAsync(paymentReference?: stri
   return { used: false };
 }
 
+function getInternalApiBaseUrl(): string {
+  if (typeof window !== 'undefined') return '';
+  if (process.env.VERCEL) {
+    if (process.env.APP_URL && !process.env.APP_URL.includes('MY_APP_URL')) {
+      return process.env.APP_URL.replace(/\/$/, '');
+    }
+    if (process.env.VERCEL_URL) {
+      return `https://${process.env.VERCEL_URL}`;
+    }
+  }
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
+
 /**
  * Fetches and attaches live security scan (GoPlus / RugCheck) directly to the target review draft.
  */
@@ -282,7 +295,7 @@ export async function fetchAndAttachSecurityScan(review: CryptoReview): Promise<
   if (!review || !review.contractAddress) return;
   if (review.securityScan && typeof review.securityScan === 'object' && Object.keys(review.securityScan).length > 0) return;
   try {
-    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:3000';
+    const baseUrl = getInternalApiBaseUrl();
     const queryChain = review.chainId || '1';
     const scanRes = await fetch(`${baseUrl}/api/security/scan?chain=${encodeURIComponent(queryChain)}&address=${encodeURIComponent(review.contractAddress)}`);
     if (scanRes.ok) {
@@ -311,7 +324,7 @@ export async function fetchAndAttachLiveMarketData(
   const searchCgId = (review.coingeckoId || targetSymbol).toLowerCase().trim();
 
   try {
-    const baseUrl = typeof window !== 'undefined' ? '' : 'http://localhost:3000';
+    const baseUrl = getInternalApiBaseUrl();
 
     const [cgRes, cmcRes, csRes] = await Promise.all([
       fetch(`${baseUrl}/api/coingecko/markets?ids=${encodeURIComponent(searchCgId)},${encodeURIComponent(targetSymbol.toLowerCase())}`)
@@ -921,7 +934,7 @@ export async function getOrderByIdAsync(orderId: string): Promise<ProOrder | nul
       }
     }
   } catch (err) {
-    console.warn(`Postgres primary getOrderById failed for ${orderId}, falling back to file storage:`, err);
+    console.warn(`Postgres primary getOrderById unavailable for ${orderId}, falling back to file storage:`, err instanceof Error ? err.message : err);
   }
   const fileOrders = loadOrdersFromFile();
   return fileOrders.find(o => o.orderId.toLowerCase() === cleanId) || null;
@@ -947,7 +960,7 @@ export async function getAllOrdersAsync(): Promise<ProOrder[]> {
       }
     }
   } catch (dbErr) {
-    console.warn("Postgres primary getAllOrders failed, falling back to file storage:", dbErr);
+    console.warn("Postgres primary getAllOrders unavailable, falling back to file storage:", dbErr instanceof Error ? dbErr.message : dbErr);
   }
   return loadOrdersFromFile();
 }
@@ -961,7 +974,7 @@ export async function clearAllOrders(): Promise<void> {
       const { clearAllDbOrders } = await import('../db/queries');
       await clearAllDbOrders();
     } catch (err) {
-      console.error("Postgres primary clearAllOrders failed:", err);
+      console.warn("Postgres primary clearAllOrders unavailable, continuing with file storage:", err instanceof Error ? err.message : err);
     }
   }
   saveOrdersToFile([]);
@@ -993,7 +1006,7 @@ export async function saveOrderToStorage(order: ProOrder): Promise<void> {
         });
         dbSuccess = true;
       } catch (dbErr) {
-        console.error("Postgres primary saveOrderToStorage failed, falling back to file storage:", dbErr);
+        console.warn("Postgres primary saveOrderToStorage unavailable, falling back to file storage:", dbErr instanceof Error ? dbErr.message : dbErr);
       }
     }
 
