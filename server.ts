@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { GoogleGenAI } from "@google/genai";
 import { createMetaChatCompletion } from "./src/services/metaModelApi.js";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
@@ -136,6 +137,25 @@ const reviewResponseSchema = {
   },
   required: ["name", "symbol", "category", "overallScore", "verdict", "scores", "summary", "pros", "cons", "riskLevel"]
 };
+
+function isQuotaOrDemandError(error: any): boolean {
+  const errMsg = String(error?.message || error?.status || error || "").toLowerCase();
+  return (
+    errMsg.includes("quota") ||
+    errMsg.includes("429") ||
+    errMsg.includes("resource_exhausted") ||
+    errMsg.includes("503") ||
+    errMsg.includes("unavailable") ||
+    errMsg.includes("high demand") ||
+    errMsg.includes("prepayment") ||
+    errMsg.includes("credits are depleted") ||
+    errMsg.includes("rate-limits") ||
+    errMsg.includes("rate limit") ||
+    errMsg.includes("tokens_per_model_per_user") ||
+    errMsg.includes("dunning") ||
+    errMsg.includes("billing")
+  );
+}
 
 function getFriendlyErrorMessage(error: any): string {
   const message = typeof error === "string"
@@ -2641,12 +2661,19 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
         return res.status(400).json({ error: "Message content is required." });
       }
 
-      const apiKey = process.env.MODEL_API_KEY;
-      if (!apiKey || apiKey === "MY_MODEL_API_KEY" || apiKey.trim() === "") {
-        return res.status(503).json({ 
-          error: "Meta Model API key is missing. Configure MODEL_API_KEY in the server environment." 
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
+        return res.status(503).json({
+          error: "Gemini API key is missing. Configure GEMINI_API_KEY in the server environment."
         });
       }
+
+      const ai = new GoogleGenAI({
+        apiKey,
+        httpOptions: {
+          headers: { "User-Agent": "aistudio-build" }
+        }
+      });
 
 
       // Construct cumulative context to simulate history in chats
@@ -2689,23 +2716,33 @@ CRITICAL OPERATIONAL RULES:
 
 ${dualSyncContext}`;
 
-      let chatText = "";
+      let response;
       try {
-        chatText = await createMetaChatCompletion({
-          apiKey,
-          model: process.env.META_MODEL_ID || "muse-spark-1.3",
-          messages: [
-            { role: "system", content: auditorSystemInstruction },
-            { role: "user", content: formattedPrompt }
-          ],
-          temperature: 0.2
+        const chat = ai.chats.create({
+          model: "gemini-3.8-flash",
+          config: { systemInstruction: auditorSystemInstruction }
         });
-      } catch (metaError) {
-        console.warn("Auditor chat Meta Model API request failed:", metaError);
-        return res.json({ content: "The Crypto Review Lab automated advisory desk is temporarily unavailable. For real-time protocol risk parameters, refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
+        response = await chat.sendMessage({ message: formattedPrompt });
+      } catch (firstError: any) {
+        if (isQuotaOrDemandError(firstError)) {
+          console.warn("Primary model 'gemini-3.8-flash' rate limited or unavailable for chat. Retrying with 'gemini-3.1-flash-lite' fallback...");
+          try {
+            const chatFallback = ai.chats.create({
+              model: "gemini-3.1-flash-lite",
+              config: { systemInstruction: auditorSystemInstruction }
+            });
+            response = await chatFallback.sendMessage({ message: formattedPrompt });
+          } catch (secondError: any) {
+            console.warn("Auditor chat Gemini fallback model also failed:", secondError);
+            return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
+          }
+        } else {
+          console.warn("Auditor chat Gemini model error:", firstError);
+          return res.json({ content: "The Crypto Review Lab automated advisory desk is currently experiencing peak analysis traffic. For real-time protocol risk parameters, please refer to the live 5-dimension Blueprint rubric, exterior contract security scans, or submit an official Security & Risk Assessment for full human auditor sign-off." });
+        }
       }
 
-      res.json({ content: chatText });
+      res.json({ content: response?.text || "" });
     } catch (error: any) {
       console.error("Lab Auditor Chat error:", error);
       res.status(500).json({ error: getFriendlyErrorMessage(error) });
