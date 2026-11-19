@@ -19,5 +19,11 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/market-intelligence/sync",
+      "schedule": "17 3 * * *"
+    }
   ]
 }
