@@ -3,6 +3,9 @@
   "private": true,
   "version": "3.2.0",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
@@ -26,6 +29,7 @@
     "express": "^4.21.2",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.5.0",
+    "jose": "4.15.9",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
@@ -45,5 +49,8 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
+  },
+  "overrides": {
+    "jose": "4.15.9"
   }
 }
