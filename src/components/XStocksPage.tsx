@@ -39,10 +39,13 @@ import { useCurrency } from '../context/CurrencyContext';
 import { fetchVerifiedCoinGeckoMarkets } from '../services/coingecko';
 import { 
   fetchCoinGeckoRwaMarkets, 
+  fetchTopCoinGeckoRwaMarkets,
+  fetchDynamicCoinGeckoXStocks,
   fetchCoinGeckoRwaDetail, 
   fetchCoinGeckoRwaIssuer, 
   CoinGeckoRwaDetail, 
-  CoinGeckoRwaIssuerDetail 
+  CoinGeckoRwaIssuerDetail,
+  CoinGeckoRwaMarketItem
 } from '../services/coingeckoRwa';
 import { fetchLiveCmcRwaForStock, CmcRwaAssetItem } from '../services/cmcRwa';
 import { fetchLiveFinnhubQuote, FinnhubQuote } from '../services/finnhub';
@@ -154,33 +157,10 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
     }
   }, [selectedStock.symbol, onStockSelected]);
 
-  // Handle external prop changes for initialStockSymbol (external intent only, depends on initialStockSymbol only)
-  useEffect(() => {
-    if (initialStockSymbol) {
-      const clean = initialStockSymbol.trim().toLowerCase();
-      const match = XSTOCKS_REGISTRY.find(
-        s => s.symbol.toLowerCase() === clean || 
-             s.underlyingTicker.toLowerCase() === clean || 
-             s.coingeckoId.toLowerCase() === clean ||
-             s.name.toLowerCase().includes(clean)
-      );
-      if (match && match.symbol !== selectedStock.symbol) {
-        setSelectedStock(match);
-        if (typeof window !== 'undefined') {
-          try {
-            const url = new URL(window.location.href);
-            if (url.searchParams.get('stock') !== match.symbol) {
-              url.searchParams.set('tab', 'xstocks');
-              url.searchParams.set('stock', match.symbol);
-              window.history.replaceState({ tab: 'xstocks', stock: match.symbol }, '', url.toString());
-            }
-          } catch (e) {
-            console.warn('Failed to sync stock to URL:', e);
-          }
-        }
-      }
-    }
-  }, [initialStockSymbol]);
+  // CoinGecko RWA Directory (dynamically ingested tokenized stocks & ETFs beyond the 11 static items)
+  const [dynamicRwaStocks, setDynamicRwaStocks] = useState<XStockRegistryItem[]>([]);
+  const [isRwaDiscoveryLoading, setIsRwaDiscoveryLoading] = useState<boolean>(true);
+  const [initialMarketsSeed, setInitialMarketsSeed] = useState<Record<string, CoinGeckoRwaMarketItem>>({});
 
   // Robinhood Stock Tokens (dynamically ingested from /api/robinhood/stock-tokens)
   const [robinhoodTokens, setRobinhoodTokens] = useState<XStockRegistryItem[]>([]);
@@ -234,13 +214,89 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
     loadRobinhoodTokens();
   }, [loadRobinhoodTokens]);
 
-  // Merged registry view (canonical XSTOCKS_REGISTRY + dynamically ingested Robinhood stock tokens)
+  useEffect(() => {
+    let isCancelled = false;
+    setIsRwaDiscoveryLoading(true);
+    fetchDynamicCoinGeckoXStocks()
+      .then(({ items, marketsMap }) => {
+        if (isCancelled) return;
+        if (Array.isArray(items) && items.length > 0) {
+          setDynamicRwaStocks(items);
+        }
+        if (marketsMap && Object.keys(marketsMap).length > 0) {
+          setInitialMarketsSeed(marketsMap);
+        }
+      })
+      .catch(err => console.warn('Dynamic RWA discovery failed:', err))
+      .finally(() => {
+        if (!isCancelled) setIsRwaDiscoveryLoading(false);
+      });
+    return () => { isCancelled = true; };
+  }, []);
+
+  // Merged registry view (canonical XSTOCKS_REGISTRY + CoinGecko RWA directory + Robinhood stock tokens)
   const allStocks = useMemo<XStockRegistryItem[]>(() => {
-    if (!robinhoodTokens.length) return XSTOCKS_REGISTRY;
-    const existing = new Set(XSTOCKS_REGISTRY.map(s => `${s.symbol.toUpperCase()}-${s.chain}`));
-    const novel = robinhoodTokens.filter(t => !existing.has(`${t.symbol.toUpperCase()}-${t.chain}`));
-    return [...XSTOCKS_REGISTRY, ...novel];
-  }, [robinhoodTokens]);
+    const merged = [...XSTOCKS_REGISTRY];
+    const seen = new Set(merged.map(s => `${s.symbol.toUpperCase()}-${s.chain}`));
+    const seenRwaIds = new Set(merged.map(s => s.coingeckoRwaId?.toLowerCase()).filter(Boolean) as string[]);
+
+    for (const rwa of dynamicRwaStocks) {
+      const rwaKey = `${rwa.symbol.toUpperCase()}-${rwa.chain}`;
+      const rwaIdLower = rwa.coingeckoRwaId?.toLowerCase();
+      if (!seen.has(rwaKey) && (!rwaIdLower || !seenRwaIds.has(rwaIdLower))) {
+        seen.add(rwaKey);
+        if (rwaIdLower) seenRwaIds.add(rwaIdLower);
+        merged.push(rwa);
+      }
+    }
+
+    for (const rh of robinhoodTokens) {
+      const rhKey = `${rh.symbol.toUpperCase()}-${rh.chain}`;
+      if (!seen.has(rhKey)) {
+        seen.add(rhKey);
+        merged.push(rh);
+      }
+    }
+
+    return merged;
+  }, [dynamicRwaStocks, robinhoodTokens]);
+
+  // Handle external prop changes or URL param matching across full allStocks (including dynamic RWA stocks)
+  useEffect(() => {
+    let targetParam = initialStockSymbol;
+    if (!targetParam && typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        targetParam = params.get('stock') || params.get('xstock') || params.get('symbol') || undefined;
+      } catch {
+        targetParam = undefined;
+      }
+    }
+    if (!targetParam) return;
+    const clean = targetParam.trim().toLowerCase();
+    const match = allStocks.find(
+      s => s.symbol.toLowerCase() === clean ||
+           s.underlyingTicker.toLowerCase() === clean ||
+           (s.coingeckoRwaId && s.coingeckoRwaId.toLowerCase() === clean) ||
+           (s.coingeckoId && s.coingeckoId.toLowerCase() === clean)
+    ) || allStocks.find(s => s.name.toLowerCase().includes(clean));
+
+    if (match && match.symbol !== selectedStock.symbol) {
+      setSelectedStock(match);
+      if (typeof window !== 'undefined') {
+        try {
+          const url = new URL(window.location.href);
+          if (url.searchParams.get('stock') !== match.symbol) {
+            url.searchParams.set('tab', 'xstocks');
+            url.searchParams.set('stock', match.symbol);
+            window.history.replaceState({ tab: 'xstocks', stock: match.symbol }, '', url.toString());
+          }
+        } catch (e) {
+          console.warn('Failed to sync stock to URL:', e);
+        }
+      }
+    }
+  }, [initialStockSymbol, allStocks]);
 
   // Multi-source Market Data Maps
   const [stockQuotes, setStockQuotes] = useState<Record<string, XStockQuoteState>>({});
@@ -292,56 +348,13 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch Secondary Market Feeds (CoinGecko RWA + CMC) and Finnhub Underlying Equity Quote
-  const syncXStocksData = async () => {
-    setIsRefreshing(true);
-    try {
-      const currentHours = getUsMarketHoursStatus();
-      setMarketHours(currentHours);
-
-      // 1. Gather all RWA IDs, and Unique Underlying Tickers
-      const currentStocks = allStocks.length ? allStocks : XSTOCKS_REGISTRY;
-      const rwaIds = currentStocks.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
-      const underlyingTickers = Array.from(new Set(currentStocks.map(s => s.underlyingTicker).filter(Boolean))) as string[];
-
-      // Execute CoinGecko native RWA markets (/rwas/markets), CMC RWA dedicated assets, and Finnhub equity quote fetches in parallel
-      const [rwaMarketsMap, cmcRwaMap, finnhubQuoteMap] = await Promise.all([
-        fetchCoinGeckoRwaMarkets(rwaIds).catch(() => ({})),
-        Promise.all(
-          currentStocks.map(stock => 
-            fetchLiveCmcRwaForStock(stock).then(q => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q })).catch(() => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q: null }))
-          )
-        ).then(results => {
-          const map: Record<string, CmcRwaAssetItem | null> = {};
-          results.forEach(r => {
-            if (r.q) {
-              map[r.sym.toUpperCase()] = r.q;
-              map[r.ticker.toUpperCase()] = r.q;
-            }
-          });
-          return map;
-        }),
-        Promise.all(
-          underlyingTickers.map(ticker =>
-            fetchLiveFinnhubQuote(ticker, currentHours.isOpen).then(q => ({ ticker, q })).catch(() => ({ ticker, q: null }))
-          )
-        ).then(results => {
-          const map: Record<string, FinnhubQuote | null> = {};
-          results.forEach(r => {
-            if (r.q) map[r.ticker.toUpperCase()] = r.q;
-          });
-          return map;
-        })
-      ]);
-
-      const newQuotes: Record<string, XStockQuoteState> = {};
-
-      for (const item of currentStocks) {
-        const sym = item.symbol.toUpperCase();
-        const underlying = item.underlyingTicker.toUpperCase();
-        const rwaMarketEntry = item.coingeckoRwaId ? rwaMarketsMap[item.coingeckoRwaId.toLowerCase()] : undefined;
-        const cmcRwaData = cmcRwaMap[sym] || cmcRwaMap[underlying] || null;
-        const finnhubData = finnhubQuoteMap[underlying] || null;
+  const buildXStockQuoteState = (
+    item: XStockRegistryItem,
+    rwaMarketEntry: CoinGeckoRwaMarketItem | undefined,
+    cmcRwaData: CmcRwaAssetItem | null,
+    finnhubData: FinnhubQuote | null,
+    currentHours: UsMarketHoursStatus
+  ): XStockQuoteState => {
 
         // Native CoinGecko RWA Tokenized-Market Data (strictly authoritative for xStocks)
         const rwaMkt = rwaMarketEntry?.tokenized_market_data;
@@ -602,47 +615,163 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
           direct_dex_telemetry: dexTelemetryEvidence
         };
 
-        newQuotes[sym] = {
-          livePrice,
-          change24h,
-          volume24h,
-          marketCap,
-          status,
-          provenance,
-          cgPrice,
-          rwaPrice,
-          rwaVolume24h,
-          cmcPrice,
-          cmcLastUpdated,
-          cmcRwaData,
-          cmcRwaId: cmcRwaData?.rwa_id ?? item.cmcRwaId,
-          equityQuote: finnhubData,
-          equityPrice,
-          pegDeviation,
-          pegDeviationPct,
-          pegStatus,
-          circulatingSupply: convergenceResult.circulatingSupply,
-          circulatingSupplyProvenance: convergenceResult.circulatingSupplyProvenance,
-          maxSupply: convergenceResult.maxSupply,
-          maxSupplyProvenance: convergenceResult.maxSupplyProvenance,
-          totalSupply: convergenceResult.totalSupply,
-          totalSupplyProvenance: convergenceResult.totalSupplyProvenance,
-          fdv: convergenceResult.fdvCalculated,
-          fdvProvenance: convergenceResult.fdvProvenance,
-          marketCapProvenance: convergenceResult.marketCapProvenance,
-          priceProvenance: convergenceResult.priceProvenance,
-          report: convergenceResult.report,
-          evidence: itemEvidence
-        };
+    return {
+      livePrice,
+      change24h,
+      volume24h,
+      marketCap,
+      status,
+      provenance,
+      cgPrice,
+      rwaPrice,
+      rwaVolume24h,
+      cmcPrice,
+      cmcLastUpdated,
+      cmcRwaData,
+      cmcRwaId: cmcRwaData?.rwa_id ?? item.cmcRwaId,
+      equityQuote: finnhubData,
+      equityPrice,
+      pegDeviation,
+      pegDeviationPct,
+      pegStatus,
+      circulatingSupply: convergenceResult.circulatingSupply,
+      circulatingSupplyProvenance: convergenceResult.circulatingSupplyProvenance,
+      maxSupply: convergenceResult.maxSupply,
+      maxSupplyProvenance: convergenceResult.maxSupplyProvenance,
+      totalSupply: convergenceResult.totalSupply,
+      totalSupplyProvenance: convergenceResult.totalSupplyProvenance,
+      fdv: convergenceResult.fdvCalculated,
+      fdvProvenance: convergenceResult.fdvProvenance,
+      marketCapProvenance: convergenceResult.marketCapProvenance,
+      priceProvenance: convergenceResult.priceProvenance,
+      report: convergenceResult.report,
+      evidence: itemEvidence
+    };
+  };
+
+  // Fetch Secondary Market Feeds (CoinGecko RWA + CMC) and Finnhub Underlying Equity Quote
+  const syncXStocksData = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const currentHours = getUsMarketHoursStatus();
+      setMarketHours(currentHours);
+
+      const currentStocks = allStocks.length ? allStocks : XSTOCKS_REGISTRY;
+      // Prioritize canonical XSTOCKS_REGISTRY + currently selected stock for CMC & Finnhub
+      // while getting CoinGecko RWA markets in bulk via /rwas/markets?per_page=100
+      const priorityStocksMap = new Map<string, XStockRegistryItem>();
+      XSTOCKS_REGISTRY.forEach(s => priorityStocksMap.set(s.symbol.toUpperCase(), s));
+      priorityStocksMap.set(selectedStock.symbol.toUpperCase(), selectedStock);
+      const priorityStocks = Array.from(priorityStocksMap.values());
+
+      const priorityRwaIds = priorityStocks.map(s => s.coingeckoRwaId).filter(Boolean) as string[];
+      const priorityTickers = Array.from(new Set(priorityStocks.map(s => s.underlyingTicker).filter(Boolean))) as string[];
+
+      const [topRwaMarkets, targetedRwaMarkets, cmcRwaMap, finnhubQuoteMap] = await Promise.all([
+        fetchTopCoinGeckoRwaMarkets(100, 1).then(res => res.map).catch(() => ({} as Record<string, CoinGeckoRwaMarketItem>)),
+        fetchCoinGeckoRwaMarkets(priorityRwaIds).catch(() => ({} as Record<string, CoinGeckoRwaMarketItem>)),
+        Promise.all(
+          priorityStocks.map(stock =>
+            fetchLiveCmcRwaForStock(stock)
+              .then(q => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q }))
+              .catch(() => ({ sym: stock.symbol, ticker: stock.underlyingTicker, q: null }))
+          )
+        ).then(results => {
+          const map: Record<string, CmcRwaAssetItem | null> = {};
+          results.forEach(r => {
+            if (r.q) {
+              map[r.sym.toUpperCase()] = r.q;
+              map[r.ticker.toUpperCase()] = r.q;
+            }
+          });
+          return map;
+        }),
+        Promise.all(
+          priorityTickers.map(ticker =>
+            fetchLiveFinnhubQuote(ticker, currentHours.isOpen)
+              .then(q => ({ ticker, q }))
+              .catch(() => ({ ticker, q: null }))
+          )
+        ).then(results => {
+          const map: Record<string, FinnhubQuote | null> = {};
+          results.forEach(r => {
+            if (r.q) map[r.ticker.toUpperCase()] = r.q;
+          });
+          return map;
+        })
+      ]);
+
+      const mergedRwaMarkets: Record<string, CoinGeckoRwaMarketItem> = {
+        ...initialMarketsSeed,
+        ...topRwaMarkets,
+        ...targetedRwaMarkets
+      };
+
+      const newQuotes: Record<string, XStockQuoteState> = {};
+      for (const item of currentStocks) {
+        const sym = item.symbol.toUpperCase();
+        const underlying = item.underlyingTicker.toUpperCase();
+        const rwaMarketEntry = item.coingeckoRwaId ? mergedRwaMarkets[item.coingeckoRwaId.toLowerCase()] : undefined;
+        const cmcRwaData = cmcRwaMap[sym] || cmcRwaMap[underlying] || null;
+        const finnhubData = finnhubQuoteMap[underlying] || null;
+        newQuotes[sym] = buildXStockQuoteState(item, rwaMarketEntry, cmcRwaData, finnhubData, currentHours);
       }
 
-      setStockQuotes(newQuotes);
+      setStockQuotes(prev => ({ ...prev, ...newQuotes }));
     } catch (err) {
       console.warn('Error loading xStocks data:', err);
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [allStocks, selectedStock, initialMarketsSeed]);
+
+  // Seed dynamic stocks immediately once top RWA markets load
+  useEffect(() => {
+    if (Object.keys(initialMarketsSeed).length === 0 && dynamicRwaStocks.length === 0) return;
+    const currentHours = getUsMarketHoursStatus();
+    setStockQuotes(prev => {
+      const next = { ...prev };
+      for (const item of dynamicRwaStocks) {
+        const sym = item.symbol.toUpperCase();
+        if (next[sym]?.livePrice) continue;
+        const rwaEntry = item.coingeckoRwaId ? initialMarketsSeed[item.coingeckoRwaId.toLowerCase()] : undefined;
+        if (rwaEntry) {
+          next[sym] = buildXStockQuoteState(item, rwaEntry, next[sym]?.cmcRwaData || null, next[sym]?.equityQuote || null, currentHours);
+        }
+      }
+      return next;
+    });
+  }, [dynamicRwaStocks, initialMarketsSeed]);
+
+  // On-demand hydration when user selects any dynamic or unquoted xStock
+  useEffect(() => {
+    const sym = selectedStock.symbol.toUpperCase();
+    const existing = stockQuotes[sym];
+    if (existing && (existing.equityQuote !== undefined || existing.cmcRwaData !== undefined) && existing.livePrice !== null) {
+      return;
+    }
+
+    let isCancelled = false;
+    async function hydrateSelectedStock() {
+      const currentHours = getUsMarketHoursStatus();
+      const [rwaMarkets, cmcData, finnhubData] = await Promise.all([
+        selectedStock.coingeckoRwaId
+          ? fetchCoinGeckoRwaMarkets([selectedStock.coingeckoRwaId]).catch(() => ({} as Record<string, CoinGeckoRwaMarketItem>))
+          : Promise.resolve({} as Record<string, CoinGeckoRwaMarketItem>),
+        fetchLiveCmcRwaForStock(selectedStock).catch(() => null),
+        fetchLiveFinnhubQuote(selectedStock.underlyingTicker, currentHours.isOpen).catch(() => null)
+      ]);
+      if (isCancelled) return;
+      const rwaEntry = selectedStock.coingeckoRwaId
+        ? (rwaMarkets[selectedStock.coingeckoRwaId.toLowerCase()] || initialMarketsSeed[selectedStock.coingeckoRwaId.toLowerCase()])
+        : undefined;
+      const computed = buildXStockQuoteState(selectedStock, rwaEntry, cmcData, finnhubData, currentHours);
+      setStockQuotes(prev => ({ ...prev, [sym]: computed }));
+    }
+
+    hydrateSelectedStock();
+    return () => { isCancelled = true; };
+  }, [selectedStock]);
 
   useEffect(() => {
     syncXStocksData();
@@ -872,27 +1001,32 @@ export default function XStocksPage({ initialStockSymbol, onStockSelected }: XSt
               </div>
             </div>
 
-            {/* Tickers Scrollable List */}
-            <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 min-h-[380px] max-h-[560px] lg:max-h-none">
-              {isRhLoading ? (
-                <div className="p-8 text-center space-y-3">
-                  <div className="w-6 h-6 rounded-full border-2 border-cyber-cyan border-t-transparent animate-spin mx-auto" />
-                  <p className="text-slate-400 font-mono text-xs">Loading verified Robinhood tokens…</p>
-                </div>
-              ) : rhError ? (
-                <div className="p-6 rounded-xl bg-red-950/30 border border-red-500/30 text-center space-y-3">
-                  <p className="text-red-300 font-mono text-xs font-bold">Couldn't load Robinhood Chain tokens</p>
-                  <p className="text-slate-400 text-[11px] font-mono">{rhError}</p>
+            {/* Non-blocking status strip + Tickers Scrollable List */}
+            {(isRwaDiscoveryLoading || isRhLoading || rhError) && (
+              <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-slate-950/70 border border-slate-800/80 text-[10px] font-mono">
+                <span className="text-slate-400 truncate">
+                  {rhError
+                    ? 'Robinhood Chain feed unavailable'
+                    : isRwaDiscoveryLoading
+                      ? 'Syncing CoinGecko RWA directory…'
+                      : 'Checking Robinhood Chain tokens…'}
+                </span>
+                {rhError ? (
                   <button
                     type="button"
                     onClick={loadRobinhoodTokens}
-                    className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-200 font-mono text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5"
+                    className="text-rose-300 hover:text-rose-200 underline shrink-0 cursor-pointer"
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Retry</span>
+                    Retry RH
                   </button>
-                </div>
-              ) : (chainFilter === 'Robinhood Chain' || isRobinhoodChain(chainFilter) || (searchQuery.trim().length > 0 && isRobinhoodChain(searchQuery.trim()))) && robinhoodTokens.length === 0 ? (
+                ) : (
+                  <RefreshCw className="w-3 h-3 text-cyber-cyan animate-spin shrink-0" />
+                )}
+              </div>
+            )}
+
+            <div className="space-y-1.5 overflow-y-auto pr-1 flex-1 min-h-[380px] max-h-[560px] lg:max-h-none">
+              {(chainFilter === 'Robinhood Chain' || isRobinhoodChain(chainFilter) || (searchQuery.trim().length > 0 && isRobinhoodChain(searchQuery.trim()))) && robinhoodTokens.length === 0 ? (
                 <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/60 to-slate-950/90 border border-emerald-500/30 text-center space-y-3 shadow-[0_4px_24px_rgba(0,0,0,0.5),0_0_15px_rgba(52,211,153,0.1)]">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_12px_rgba(52,211,153,0.2)]">
                     <Building2 className="w-5 h-5" />

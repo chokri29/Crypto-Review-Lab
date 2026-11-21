@@ -166,6 +166,11 @@ import CryptoPriceChart from './CryptoPriceChart';
 import { useCurrency } from '../context/CurrencyContext';
 import { PromoteCanonicalModal } from './PromoteCanonicalModal';
 import { getPublicReviewShareUrl, copyTextToClipboard } from '../utils/shareUtils';
+import {
+  CoinGeckoSearchResult,
+  searchCoinGecko,
+  createReviewFromCoinGecko
+} from '../services/coingecko';
 
 interface BlogPreviewerProps {
   reviews: CryptoReview[];
@@ -175,6 +180,7 @@ interface BlogPreviewerProps {
   headerSearchQuery?: string;
   setHeaderSearchQuery?: (query: string) => void;
   onOpenCoinGeckoModal?: () => void;
+  onSelectCoinGeckoCoin?: (coin: CoinGeckoSearchResult) => Promise<void> | void;
   onSyncCoinGecko?: () => void;
   isSyncingCoinGecko?: boolean;
   onLaunchProEvaluation?: (prefill?: { name?: string; symbol?: string; category?: string; focusArea?: string }) => void;
@@ -189,6 +195,7 @@ export default function BlogPreviewer({
   headerSearchQuery, 
   setHeaderSearchQuery,
   onOpenCoinGeckoModal,
+  onSelectCoinGeckoCoin,
   onSyncCoinGecko,
   isSyncingCoinGecko,
   onLaunchProEvaluation,
@@ -241,6 +248,10 @@ export default function BlogPreviewer({
   const [liveSnapshotsMap, setLiveSnapshotsMap] = useState<Record<string, any>>({});
   const [databaseAssetsCount, setDatabaseAssetsCount] = useState<number | null>(null);
   const [databaseSnapshotsCount, setDatabaseSnapshotsCount] = useState<number | null>(null);
+  const [cgSearchResults, setCgSearchResults] = useState<CoinGeckoSearchResult[]>([]);
+  const [isSearchingCg, setIsSearchingCg] = useState<boolean>(false);
+  const [openingCgId, setOpeningCgId] = useState<string | null>(null);
+  const [localImportedReviews, setLocalImportedReviews] = useState<CryptoReview[]>([]);
 
   const loadMarketIntelligenceFeed = useCallback((network?: string, q?: string) => {
     const params = new URLSearchParams();
@@ -339,27 +350,27 @@ export default function BlogPreviewer({
 
   // Critical Source-of-Truth Rule:
   // Market Intelligence list MUST be constructed from feed.assets joined with feed.snapshots using assetKey.
-  // INITIAL_REVIEWS (and reviews prop) is used ONLY for optional enrichment (1. coingeckoId, 2. symbol).
+  // INITIAL_REVIEWS (and reviews prop) is used ONLY for optional enrichment (1. coingeckoId, 2. symbol),
+  // plus explicitly opened/imported non-seeded CoinGecko coins (cg-* / live-hydrated reviews).
   const enrichedReviews = React.useMemo(() => {
-    // If feed.assets has not loaded yet, return empty list
-    if (!feedAssets || feedAssets.length === 0) {
-      return [];
-    }
+    const combinedExternalReviews = [
+      ...localImportedReviews,
+      ...reviews.filter(r => !localImportedReviews.some(lr => lr.id === r.id))
+    ];
 
-    // Filter out tokenized stocks (xStocks) so Market Intelligence contains strictly cryptocurrencies
-    const cryptoAssets = feedAssets.filter((asset) => !isXStockAsset(asset));
+    const cryptoAssets = (feedAssets || []).filter((asset) => !isXStockAsset(asset));
 
-    return cryptoAssets.map((asset) => {
+    const mappedFeed = cryptoAssets.map((asset) => {
       const assetKey = asset.assetKey || getAssetKey(asset);
       const snap = liveSnapshotsMap[assetKey];
 
       // Optional enrichment matching order: 1. coingeckoId, 2. symbol
-      const enrichment = reviews.find((r) => {
+      const enrichment = combinedExternalReviews.find((r) => {
         if (asset.coingeckoId && r.coingeckoId && asset.coingeckoId.toLowerCase() === r.coingeckoId.toLowerCase()) {
           return true;
         }
         return false;
-      }) || reviews.find((r) => {
+      }) || combinedExternalReviews.find((r) => {
         if (asset.symbol && r.symbol && asset.symbol.toLowerCase() === r.symbol.toLowerCase()) {
           return true;
         }
@@ -414,11 +425,27 @@ export default function BlogPreviewer({
         priceDivergencePct: snap.priceDivergencePct ? parseFloat(snap.priceDivergencePct) : baseReview.priceDivergencePct,
         confidenceScore: snap.confidenceScore ?? baseReview.confidenceScore,
         confidenceLevel: (snap.confidenceLevel as any) || baseReview.confidenceLevel,
-        dataEngine: snap.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
+        dataEngine: snap.sourceConsensus || 'PostgreSQL Consensus',
         lastSyncedAt: snap.syncedAt ? new Date(snap.syncedAt).toLocaleTimeString() : baseReview.lastSyncedAt,
       };
     });
-  }, [feedAssets, reviews, liveSnapshotsMap]);
+
+    // Append user-imported or live-opened CoinGecko coins (cg-*) that are not yet in feedAssets
+    // without fabricating an empty-table fallback from INITIAL_REVIEWS when feedAssets is empty.
+    const existingIds = new Set(mappedFeed.map(r => r.id.toLowerCase()));
+    const existingCgIds = new Set(mappedFeed.map(r => (r.coingeckoId || '').toLowerCase()).filter(Boolean));
+
+    const extraImported = combinedExternalReviews.filter(r => {
+      if (isXStockAsset(r)) return false;
+      const isUserOrLive = r.id.startsWith('cg-') || r.author?.includes('Multi-Source Convergence Engine');
+      if (!isUserOrLive) return false;
+      if (existingIds.has(r.id.toLowerCase())) return false;
+      if (r.coingeckoId && existingCgIds.has(r.coingeckoId.toLowerCase())) return false;
+      return true;
+    });
+
+    return [...mappedFeed, ...extraImported];
+  }, [feedAssets, reviews, localImportedReviews, liveSnapshotsMap]);
 
   // Dynamic Network Options built from feed.networks (Cloud SQL)
   const networkOptions: NetworkOption[] = useMemo(() => {
@@ -700,9 +727,41 @@ export default function BlogPreviewer({
     setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 400);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory]);
+
+  // Debounced live CoinGecko search when typing in Cryptocurrency search bar
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      setCgSearchResults([]);
+      setIsSearchingCg(false);
+      return;
+    }
+
+    let isCancelled = false;
+    setIsSearchingCg(true);
+    const timer = setTimeout(() => {
+      searchCoinGecko(q)
+        .then((res) => {
+          if (!isCancelled) {
+            setCgSearchResults(res);
+          }
+        })
+        .catch(() => {
+          if (!isCancelled) setCgSearchResults([]);
+        })
+        .finally(() => {
+          if (!isCancelled) setIsSearchingCg(false);
+        });
+    }, 260);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
 
   const activeReviewId = selectedReviewId !== undefined ? selectedReviewId : localActiveReviewId;
   const setActiveReviewId = (id: string | null) => {
@@ -757,16 +816,26 @@ export default function BlogPreviewer({
   const [copied, setCopied] = useState(false);
   const [activeReviewLivePatch, setActiveReviewLivePatch] = useState<Partial<CryptoReview> | null>(null);
 
-  const baseActiveReview = enrichedReviews.find((r) => 
-    r.id === activeReviewId || 
-    r.assetKey === activeReviewId ||
-    r.coingeckoId === activeReviewId || 
-    r.id === `cg-${activeReviewId}` ||
-    `cg-${r.coingeckoId}` === activeReviewId ||
-    (activeReviewId && r.id.toLowerCase() === activeReviewId.toLowerCase()) ||
-    (activeReviewId && r.symbol.toLowerCase() === activeReviewId.toLowerCase()) ||
-    (activeReviewId && r.coingeckoId && r.coingeckoId.toLowerCase() === activeReviewId.replace(/^cg-/, '').toLowerCase())
-  );
+  const matchesReviewId = (r: CryptoReview, target: string | null | undefined) => {
+    if (!target) return false;
+    const lowerTarget = target.toLowerCase();
+    const cleanTarget = lowerTarget.replace(/^cg-/, '');
+    return (
+      r.id === target ||
+      r.assetKey === target ||
+      r.coingeckoId === target ||
+      r.id === `cg-${target}` ||
+      `cg-${r.coingeckoId}` === target ||
+      r.id.toLowerCase() === lowerTarget ||
+      r.symbol.toLowerCase() === lowerTarget ||
+      (r.coingeckoId ? r.coingeckoId.toLowerCase() === cleanTarget : false)
+    );
+  };
+
+  const baseActiveReview =
+    enrichedReviews.find((r) => matchesReviewId(r, activeReviewId)) ||
+    localImportedReviews.find((r) => matchesReviewId(r, activeReviewId)) ||
+    reviews.filter((r) => !isXStockAsset(r)).find((r) => matchesReviewId(r, activeReviewId));
 
   useEffect(() => {
     if (!baseActiveReview) {
@@ -891,7 +960,7 @@ export default function BlogPreviewer({
     ? categories.filter((c) => c !== 'All' && c.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
-  // Live search result candidates for dropdown
+  // Live search result candidates for dropdown (local + Neon pipeline)
   const liveSearchResults = searchQuery.trim()
     ? enrichedReviews.filter((r) => 
         r.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -901,6 +970,43 @@ export default function BlogPreviewer({
         (r.riskLevel && r.riskLevel.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     : [];
+
+  // Deduplicated live CoinGecko results not already in liveSearchResults
+  const filteredCgSearchResults = useMemo(() => {
+    if (!cgSearchResults.length) return [];
+    return cgSearchResults.filter((c) => {
+      const cId = c.id.toLowerCase();
+      const cSym = c.symbol.toLowerCase();
+      return !liveSearchResults.some(
+        (lr) =>
+          (lr.coingeckoId && lr.coingeckoId.toLowerCase() === cId) ||
+          lr.id.toLowerCase() === `cg-${cId}` ||
+          (lr.symbol.toLowerCase() === cSym && lr.name.toLowerCase() === c.name.toLowerCase())
+      );
+    });
+  }, [cgSearchResults, liveSearchResults]);
+
+  const handleOpenLiveCoin = async (coin: CoinGeckoSearchResult) => {
+    setOpeningCgId(coin.id);
+    setIsSearchFocused(false);
+    try {
+      if (onSelectCoinGeckoCoin) {
+        await onSelectCoinGeckoCoin(coin);
+      } else {
+        const created = await createReviewFromCoinGecko(coin.id, coin);
+        setLocalImportedReviews((prev) => [
+          created,
+          ...prev.filter((r) => r.id !== created.id)
+        ]);
+        setActiveReviewId(created.id);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.warn('Failed to open live CoinGecko coin:', coin.id, err);
+    } finally {
+      setOpeningCgId(null);
+    }
+  };
 
   const filteredReviews = enrichedReviews.filter((r) => {
     const q = searchQuery.toLowerCase();
@@ -1226,9 +1332,9 @@ export default function BlogPreviewer({
           )}
         </nav>
 
-        {/* Top Controls: Search Input Bar */}
-        <div ref={searchContainerRef} className="relative w-full sm:w-72 md:w-96 shrink-0">
-          <div className="relative w-full">
+        {/* Top Controls: Search Input Bar + CoinGecko Explorer Trigger */}
+        <div ref={searchContainerRef} className="relative w-full sm:w-80 md:w-[430px] shrink-0 flex items-center gap-2">
+          <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 text-cyber-cyan absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-transform group-focus-within:scale-110" />
             <input
               type="text"
@@ -1241,7 +1347,21 @@ export default function BlogPreviewer({
                   setActiveReviewId(null);
                 }
               }}
-              placeholder="Search cryptocurrency name, symbol, or category..."
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setIsSearchFocused(false);
+                } else if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (liveSearchResults.length > 0) {
+                    setActiveReviewId(liveSearchResults[0].id);
+                    setIsSearchFocused(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  } else if (filteredCgSearchResults.length > 0) {
+                    handleOpenLiveCoin(filteredCgSearchResults[0]);
+                  }
+                }
+              }}
+              placeholder="Search any crypto or ticker (BTC, SOL, NEAR, PEPE...)"
               className="w-full bg-cyber-bg-primary/95 hover:bg-cyber-bg-primary border border-cyber-cyan/35 focus:border-cyber-cyan rounded-xl pl-9 pr-8 py-2 text-xs text-cyber-text-primary placeholder:text-cyber-text-muted focus:outline-none focus:shadow-[0_0_18px_rgba(0,229,255,0.35)] transition-all font-mono"
               aria-label="Search cryptocurrencies by name, symbol, or category"
             />
@@ -1264,20 +1384,38 @@ export default function BlogPreviewer({
             )}
           </div>
 
-          {/* Clean Minimal Live Search Results Dropdown Overlay */}
+          {onOpenCoinGeckoModal && (
+            <button
+              type="button"
+              onClick={onOpenCoinGeckoModal}
+              className="px-2.5 py-2 rounded-xl bg-cyber-cyan/10 hover:bg-cyber-cyan/20 border border-cyber-cyan/35 text-cyber-cyan text-[10px] font-mono font-bold uppercase tracking-wider shrink-0 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Open Full CoinGecko + CMC Tri-Sync Market Explorer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Explorer</span>
+            </button>
+          )}
+
+          {/* Live Search Results Dropdown Overlay (Tracked Pipeline + Live CoinGecko Discovery) */}
           {isSearchFocused && searchQuery.trim().length > 0 && (
-            <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-[360px] md:w-[400px] mt-2 bg-cyber-bg-card border border-cyber-cyan/30 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden max-h-[380px] overflow-y-auto animate-fade-in">
-              {/* Simple Search Header */}
+            <div className="absolute top-full right-0 left-0 sm:left-auto sm:w-[400px] md:w-[430px] mt-2 bg-cyber-bg-card border border-cyber-cyan/30 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden max-h-[420px] overflow-y-auto animate-fade-in">
+              {/* Tracked Pipeline Results Header */}
               <div className="px-3 py-2 bg-cyber-bg-primary/90 flex items-center justify-between text-[10px] font-mono text-cyber-text-muted uppercase border-b border-cyber-cyan/15">
-                <span className="font-bold text-cyber-cyan">RESULTS ({liveSearchResults.length})</span>
-                <span className="text-[9px]">ESC TO CLOSE</span>
+                <span className="font-bold text-cyber-cyan">
+                  TRACKED ASSETS ({liveSearchResults.length})
+                </span>
+                <span className="text-[9px] flex items-center gap-1.5">
+                  {isSearchingCg && <RefreshCw className="w-2.5 h-2.5 animate-spin text-cyber-cyan" />}
+                  <span>ESC TO CLOSE</span>
+                </span>
               </div>
 
-              {liveSearchResults.length > 0 ? (
+              {liveSearchResults.length > 0 && (
                 <div className="divide-y divide-cyber-cyan/10">
                   {liveSearchResults.map((review) => (
                     <button
                       key={review.id}
+                      type="button"
                       onClick={() => {
                         setActiveReviewId(review.id);
                         setIsSearchFocused(false);
@@ -1285,7 +1423,6 @@ export default function BlogPreviewer({
                       }}
                       className="w-full text-left px-3.5 py-2.5 hover:bg-cyber-cyan/10 flex items-center justify-between gap-3 transition-colors cursor-pointer group"
                     >
-                      {/* Name, Symbol & Category */}
                       <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="font-display font-bold text-xs text-cyber-text-primary group-hover:text-cyber-cyan transition-colors truncate">
@@ -1314,11 +1451,71 @@ export default function BlogPreviewer({
                     </button>
                   ))}
                 </div>
-              ) : (
+              )}
+
+              {/* Live CoinGecko Discovery Section */}
+              {searchQuery.trim().length >= 2 && (filteredCgSearchResults.length > 0 || isSearchingCg) && (
+                <>
+                  <div className="px-3 py-1.5 bg-slate-950/90 flex items-center justify-between text-[10px] font-mono text-emerald-300 uppercase border-y border-emerald-500/20">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <Globe className="w-3 h-3 text-emerald-400" />
+                      CoinGecko Live Directory ({filteredCgSearchResults.length})
+                    </span>
+                    {isSearchingCg && <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />}
+                  </div>
+                  <div className="divide-y divide-cyber-cyan/10">
+                    {filteredCgSearchResults.slice(0, 8).map((coin) => {
+                      const isOpening = openingCgId === coin.id;
+                      return (
+                        <button
+                          key={`cg-live-${coin.id}`}
+                          type="button"
+                          onClick={() => handleOpenLiveCoin(coin)}
+                          disabled={Boolean(openingCgId)}
+                          className="w-full text-left px-3.5 py-2.5 hover:bg-emerald-500/10 flex items-center justify-between gap-3 transition-colors cursor-pointer group disabled:opacity-60"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {coin.thumb ? (
+                              <img
+                                src={coin.thumb}
+                                alt={coin.symbol}
+                                className="w-5 h-5 rounded-full bg-slate-900 border border-emerald-500/30 object-contain shrink-0"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <span className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-300 text-[9px] font-mono font-bold flex items-center justify-center shrink-0">
+                                {coin.symbol.slice(0, 2)}
+                              </span>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="font-display font-bold text-xs text-slate-100 group-hover:text-emerald-300 transition-colors truncate">
+                                  {highlightMatch(coin.name, searchQuery)}
+                                </span>
+                                <span className="font-mono text-[10px] text-emerald-400 font-bold shrink-0">
+                                  ({highlightMatch(coin.symbol, searchQuery)})
+                                </span>
+                              </div>
+                              <span className="font-mono text-[9px] text-slate-400 truncate">
+                                {coin.market_cap_rank ? `Rank #${coin.market_cap_rank} · Live CoinGecko` : 'Live CoinGecko Asset'}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider shrink-0">
+                            {isOpening ? 'Opening...' : 'Open Live →'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {liveSearchResults.length === 0 && filteredCgSearchResults.length === 0 && !isSearchingCg && (
                 <div className="p-4 text-center font-mono text-xs text-cyber-text-muted space-y-2">
                   <p>No projects found matching <span className="text-cyber-cyan font-bold">"{searchQuery}"</span></p>
                   <p className="text-[10px] text-cyber-text-muted/70">
-                    Try searching ticker symbol (e.g. BTC, ETH, SOL, HYPE) or category (DeFi, L1)
+                    Try searching ticker symbol (e.g. BTC, ETH, SOL, NEAR, DOGE) or category (DeFi, L1)
                   </p>
                 </div>
               )}
@@ -1684,62 +1881,82 @@ export default function BlogPreviewer({
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 px-6 bg-cyber-bg-card/40 border border-dashed border-cyber-cyan/25 rounded-2xl max-w-xl mx-auto my-6 space-y-4 shadow-xl">
+              <div className="text-center py-10 px-6 bg-cyber-bg-card/40 border border-dashed border-cyber-cyan/25 rounded-2xl max-w-2xl mx-auto my-6 space-y-4 shadow-xl">
                 <div className="w-12 h-12 rounded-2xl bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan mx-auto flex items-center justify-center shadow-[0_0_15px_rgba(0,229,255,0.2)]">
                   <Search className="w-6 h-6" />
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="font-display font-bold text-base text-cyber-text-primary uppercase tracking-wider">
-                    No Matching Cryptocurrencies Found
+                    {filteredCgSearchResults.length > 0
+                      ? `Live CoinGecko Matches for "${searchQuery}"`
+                      : isSearchingCg
+                        ? `Searching CoinGecko for "${searchQuery}"...`
+                        : 'No Matching Local Cryptocurrencies'}
                   </h3>
                   <p className="text-xs font-mono text-cyber-text-secondary leading-relaxed">
-                    No cryptocurrency matches your search parameters <span className="text-cyber-cyan font-bold">"{searchQuery || selectedCategory}"</span>.
+                    {filteredCgSearchResults.length > 0
+                      ? 'Select any live asset below to inspect full market convergence, tokenomics, and technical charts.'
+                      : (
+                        <>No local pipeline asset matches <span className="text-cyber-cyan font-bold">"{searchQuery || selectedCategory}"</span>.</>
+                      )}
                   </p>
                 </div>
-                <div className="pt-3 border-t border-cyber-cyan/15 text-left space-y-2 text-xs font-mono">
-                  <span className="text-cyber-text-muted uppercase text-[10px] tracking-wider block font-bold">
-                    💡 HELPFUL SUGGESTIONS:
-                  </span>
-                  <ul className="text-cyber-text-secondary space-y-1.5 pl-1">
-                    <li className="flex items-center gap-1.5">
-                      <span className="text-cyber-cyan font-bold">•</span>
-                      <span>Search by ticker symbol (e.g. BTC, ETH, SOL, HYPE, LINK)</span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="text-cyber-cyan font-bold">•</span>
-                      <span>Browse popular categories: Layer 1, DeFi, Layer 2, RWA, DePIN, AI, Prop Trading</span>
-                    </li>
-                  </ul>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {['All', 'Layer 1', 'DeFi', 'Layer 2', 'RWA', 'DePIN', 'AI', 'Prop Trading'].map((cat) => (
+
+                {filteredCgSearchResults.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left pt-2">
+                    {filteredCgSearchResults.slice(0, 6).map((coin) => (
                       <button
-                        key={cat}
+                        key={`empty-cg-${coin.id}`}
                         type="button"
-                        onClick={() => {
-                          setSelectedCategory(cat);
-                          setSearchQuery('');
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-cyber-cyan/10 hover:bg-cyber-cyan/25 border border-cyber-cyan/30 text-[10px] font-mono text-cyber-cyan transition-colors cursor-pointer font-bold"
+                        onClick={() => handleOpenLiveCoin(coin)}
+                        disabled={Boolean(openingCgId)}
+                        className="p-3 rounded-xl bg-slate-950/80 hover:bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-400 flex items-center justify-between gap-2.5 transition-all cursor-pointer"
                       >
-                        {cat}
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {coin.thumb && (
+                            <img src={coin.thumb} alt={coin.symbol} className="w-6 h-6 rounded-full object-contain shrink-0" referrerPolicy="no-referrer" />
+                          )}
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-white truncate">{coin.name}</div>
+                            <div className="text-[10px] font-mono text-emerald-400">
+                              {coin.symbol}{coin.market_cap_rank ? ` · #${coin.market_cap_rank}` : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-emerald-300 shrink-0">
+                          {openingCgId === coin.id ? 'Opening...' : 'Open →'}
+                        </span>
                       </button>
                     ))}
                   </div>
-                </div>
-                {(searchQuery || selectedCategory !== 'All' || selectedNetwork !== 'All') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('All');
-                      setSelectedNetwork('All');
-                    }}
-                    className="px-4 py-2 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan font-mono text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.15)]"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    <span>Reset All Filters</span>
-                  </button>
                 )}
+
+                <div className="pt-3 border-t border-cyber-cyan/15 flex flex-wrap items-center justify-center gap-2">
+                  {onOpenCoinGeckoModal && (
+                    <button
+                      type="button"
+                      onClick={onOpenCoinGeckoModal}
+                      className="px-4 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Search Full CoinGecko Explorer</span>
+                    </button>
+                  )}
+                  {(searchQuery || selectedCategory !== 'All' || selectedNetwork !== 'All') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory('All');
+                        setSelectedNetwork('All');
+                      }}
+                      className="px-4 py-2 rounded-xl bg-cyber-cyan/15 hover:bg-cyber-cyan/25 border border-cyber-cyan/40 text-cyber-cyan font-mono text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,229,255,0.15)]"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Reset All Filters</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )
           ) : (

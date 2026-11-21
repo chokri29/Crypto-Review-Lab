@@ -140,7 +140,8 @@ export default function XStockPriceChart({
           name,
           propCurrentPrice,
           propChange24h ?? 0,
-          timeframe
+          timeframe,
+          { isStock: true }
         );
         if (!isCancelled) {
           setChartData(result);
@@ -184,7 +185,8 @@ export default function XStockPriceChart({
             name,
             propCurrentPrice,
             propChange24h || 0,
-            tf
+            tf,
+            { isStock: true }
           );
           if (isMounted && res && res.prices && res.prices.length > 0) {
             setTimeframePricesMap(prev => ({ ...prev, [tf]: res.prices }));

@@ -46,14 +46,13 @@ import {
 import { CryptoReview } from './types';
 import { INITIAL_REVIEWS } from './data';
 import { getCoinLogoUrl } from './utils/coinLogos';
-import { createReviewFromCoinGecko } from './services/coingecko';
+import { createReviewFromCoinGecko, searchCoinGecko, CoinGeckoSearchResult, fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
 import ReviewLab from './components/ReviewLab';
 import MarketTicker from './components/MarketTicker';
 import CookieBanner from './components/CookieBanner';
 import FaqJsonLd from './components/FaqJsonLd';
 import CurrencyDropdown from './components/CurrencyDropdown';
 import UserAuthButton from './components/UserAuthButton';
-import { fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
 import { F3VerificationProvider } from './context/F3VerificationContext';
@@ -61,6 +60,9 @@ import { isOrderReferencePattern, matchesStoredProOrder } from './services/proOr
 import { getAssetKey } from './utils/assetKey';
 import { isXStockAsset } from './utils/xstockFilter';
 import { ROBINHOOD_CHAIN, isRobinhoodChain } from './constants/chains';
+import { XSTOCKS_REGISTRY, XStockRegistryItem } from './data/xstocksRegistry';
+import { fetchDynamicCoinGeckoXStocks } from './services/coingeckoRwa';
+import { fetchRobinhoodStockTokens } from './services/robinhoodStockTokens';
 
 import BlogPreviewer from './components/BlogPreviewer';
 
@@ -451,6 +453,11 @@ export default function App() {
   const [pipelineReviews, setPipelineReviews] = useState<CryptoReview[]>([]);
   const [dynamicSearchResults, setDynamicSearchResults] = useState<CryptoReview[]>([]);
   const [isSearchingDb, setIsSearchingDb] = useState<boolean>(false);
+  const [headerCgResults, setHeaderCgResults] = useState<CoinGeckoSearchResult[]>([]);
+  const [isSearchingCg, setIsSearchingCg] = useState<boolean>(false);
+  const [allKnownXStocks, setAllKnownXStocks] = useState<XStockRegistryItem[]>(XSTOCKS_REGISTRY);
+  const xStocksLoadedRef = useRef<boolean>(false);
+  const fetchingCoinIdsRef = useRef<Set<string>>(new Set());
   const [hasSubscribed, setHasSubscribed] = useState<boolean>(false);
   const [isExchangesOpen, setIsExchangesOpen] = useState<boolean>(false);
 
@@ -598,19 +605,80 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Real-time server-side query to Cloud SQL crypto pipeline database
+  // Lazy-load dynamic CoinGecko RWA + Robinhood tokenized stocks once header search is engaged
+  const ensureXStocksCatalogLoaded = useCallback(() => {
+    if (xStocksLoadedRef.current) return;
+    xStocksLoadedRef.current = true;
+    Promise.all([
+      fetchDynamicCoinGeckoXStocks().then(r => r.items).catch(() => [] as XStockRegistryItem[]),
+      fetchRobinhoodStockTokens().catch(() => [])
+    ]).then(([rwaItems, rhTokens]) => {
+      const merged = [...XSTOCKS_REGISTRY];
+      const seen = new Set(merged.map(s => `${s.symbol.toUpperCase()}-${s.chain}`));
+      const seenRwa = new Set(merged.map(s => s.coingeckoRwaId?.toLowerCase()).filter(Boolean) as string[]);
+
+      for (const rwa of rwaItems) {
+        const key = `${rwa.symbol.toUpperCase()}-${rwa.chain}`;
+        const rwaId = rwa.coingeckoRwaId?.toLowerCase();
+        if (!seen.has(key) && (!rwaId || !seenRwa.has(rwaId))) {
+          seen.add(key);
+          if (rwaId) seenRwa.add(rwaId);
+          merged.push(rwa);
+        }
+      }
+
+      if (Array.isArray(rhTokens)) {
+        for (const t of rhTokens) {
+          const rhKey = `${t.symbol.toUpperCase()}-Robinhood Chain`;
+          if (!seen.has(rhKey)) {
+            seen.add(rhKey);
+            merged.push({
+              symbol: t.symbol,
+              name: t.name,
+              underlyingTicker: t.symbol,
+              underlyingName: t.name.replace(/\s*Token$/gi, ''),
+              exchange: 'NASDAQ',
+              issuer: 'Robinhood',
+              chain: 'Robinhood Chain',
+              source: 'rhj-api',
+              category: 'Tech Megacap',
+              description: `Tokenized equity share deployed on Robinhood Chain (${t.address}).`,
+              coingeckoRwaId: t.symbol.toLowerCase(),
+              coingeckoId: `${t.symbol.toLowerCase()}-robinhood`,
+              contractAddress: t.address
+            });
+          }
+        }
+      }
+      setAllKnownXStocks(merged);
+    });
+  }, []);
+
+  // Real-time server-side query to Neon crypto pipeline + live CoinGecko search
   useEffect(() => {
     const q = headerSearchQuery.trim();
     if (!q) {
       setDynamicSearchResults([]);
+      setHeaderCgResults([]);
       setIsSearchingDb(false);
+      setIsSearchingCg(false);
       return;
     }
+    ensureXStocksCatalogLoaded();
+    let isCancelled = false;
     setIsSearchingDb(true);
+    if (q.length >= 2) {
+      setIsSearchingCg(true);
+    } else {
+      setHeaderCgResults([]);
+      setIsSearchingCg(false);
+    }
+
     const timer = setTimeout(() => {
       fetch(`/api/market-intelligence/feed?q=${encodeURIComponent(q)}&limit=25`)
         .then(res => res.ok ? res.json() : null)
         .then(feed => {
+          if (isCancelled) return;
           if (feed && Array.isArray(feed.assets)) {
             const snapMap = new Map<string, any>();
             if (Array.isArray(feed.snapshots)) {
@@ -621,61 +689,79 @@ export default function App() {
             const dbList: CryptoReview[] = feed.assets
               .filter((asset: any) => !isXStockAsset(asset))
               .map((asset: any) => {
-              const assetKey = asset.assetKey || getAssetKey(asset);
-              const s = snapMap.get(assetKey);
-              const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
-              return {
-                id,
-                assetKey,
-                name: asset.name,
-                symbol: asset.symbol.toUpperCase(),
-                category: asset.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
-                network: asset.network,
-                contractAddress: asset.contractAddress || undefined,
-                logoUrl: asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId),
-                coingeckoId: asset.coingeckoId || undefined,
-                overallScore: null,
-                scores: undefined,
-                riskLevel: null,
-                verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
-                summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
-                pros: [
-                  'Continuous multi-source oracle consensus telemetry',
-                  `Verified asset registry entry on ${asset.network}`,
-                  'Real-time supply and market capitalization tracking'
-                ],
-                cons: [
-                  'Comprehensive smart contract bytecode review pending evaluation',
-                  'Third-party external dependency risk model active'
-                ],
-                author: 'AVF Automated Data Pipeline',
-                createdAt: asset.createdAt || new Date().toISOString(),
-                livePrice: s?.priceUsd ? parseFloat(s.priceUsd) : undefined,
-                liveChange24h: s?.change24h ? parseFloat(s.change24h) : undefined,
-                liveMarketCap: s?.marketCapUsd ? parseFloat(s.marketCapUsd) : undefined,
-                liveVolume24h: s?.volume24hUsd ? parseFloat(s.volume24hUsd) : undefined,
-                circulatingSupply: s?.circulatingSupply ? parseFloat(s.circulatingSupply) : undefined,
-                totalSupply: s?.totalSupply ? parseFloat(s.totalSupply) : undefined,
-                maxSupply: s?.maxSupply ? parseFloat(s.maxSupply) : undefined,
-                allTimeHigh: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
-                allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
-                ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
-                atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
-                confidenceScore: s?.confidenceScore !== undefined ? parseFloat(String(s.confidenceScore)) : undefined,
-                confidenceLevel: (s?.confidenceLevel as any) || undefined,
-                dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus (Cloud SQL)',
-                lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
-              };
-            });
+                const assetKey = asset.assetKey || getAssetKey(asset);
+                const s = snapMap.get(assetKey);
+                const id = asset.coingeckoId ? `cg-${asset.coingeckoId}` : (asset.assetKey || asset.symbol.toLowerCase());
+                return {
+                  id,
+                  assetKey,
+                  name: asset.name,
+                  symbol: asset.symbol.toUpperCase(),
+                  category: asset.category || (asset.network === 'Robinhood Chain' ? 'Orbit L2' : 'Cryptocurrency'),
+                  network: asset.network,
+                  contractAddress: asset.contractAddress || undefined,
+                  logoUrl: asset.logoUrl || getCoinLogoUrl(asset.symbol, null, asset.coingeckoId),
+                  coingeckoId: asset.coingeckoId || undefined,
+                  overallScore: null,
+                  scores: undefined,
+                  riskLevel: null,
+                  verdict: `Database-tracked asset on ${asset.network}. Algorithmic market risk assessment pending in-depth audit.`,
+                  summary: `Database-registered asset on ${asset.network}. Proactive telemetry synchronization maintains continuous price, liquidity, and supply divergence consensus.`,
+                  pros: [
+                    'Continuous multi-source oracle consensus telemetry',
+                    `Verified asset registry entry on ${asset.network}`,
+                    'Real-time supply and market capitalization tracking'
+                  ],
+                  cons: [
+                    'Comprehensive smart contract bytecode review pending evaluation',
+                    'Third-party external dependency risk model active'
+                  ],
+                  author: 'AVF Automated Data Pipeline',
+                  createdAt: asset.createdAt || new Date().toISOString(),
+                  livePrice: s?.priceUsd ? parseFloat(s.priceUsd) : undefined,
+                  liveChange24h: s?.change24h ? parseFloat(s.change24h) : undefined,
+                  liveMarketCap: s?.marketCapUsd ? parseFloat(s.marketCapUsd) : undefined,
+                  liveVolume24h: s?.volume24hUsd ? parseFloat(s.volume24hUsd) : undefined,
+                  circulatingSupply: s?.circulatingSupply ? parseFloat(s.circulatingSupply) : undefined,
+                  totalSupply: s?.totalSupply ? parseFloat(s.totalSupply) : undefined,
+                  maxSupply: s?.maxSupply ? parseFloat(s.maxSupply) : undefined,
+                  allTimeHigh: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+                  allTimeLow: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+                  ath: s?.allTimeHighUsd ? parseFloat(s.allTimeHighUsd) : undefined,
+                  atl: s?.allTimeLowUsd ? parseFloat(s.allTimeLowUsd) : undefined,
+                  confidenceScore: s?.confidenceScore !== undefined ? parseFloat(String(s.confidenceScore)) : undefined,
+                  confidenceLevel: (s?.confidenceLevel as any) || undefined,
+                  dataEngine: s?.sourceConsensus || 'PostgreSQL Consensus',
+                  lastSyncedAt: s?.syncedAt ? new Date(s.syncedAt).toLocaleTimeString() : undefined
+                };
+              });
             setDynamicSearchResults(dbList);
           }
         })
         .catch(err => console.warn('Header DB search failed:', err))
-        .finally(() => setIsSearchingDb(false));
-    }, 150);
+        .finally(() => {
+          if (!isCancelled) setIsSearchingDb(false);
+        });
 
-    return () => clearTimeout(timer);
-  }, [headerSearchQuery]);
+      if (q.length >= 2) {
+        searchCoinGecko(q)
+          .then(coins => {
+            if (!isCancelled) setHeaderCgResults(coins);
+          })
+          .catch(() => {
+            if (!isCancelled) setHeaderCgResults([]);
+          })
+          .finally(() => {
+            if (!isCancelled) setIsSearchingCg(false);
+          });
+      }
+    }, 200);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [headerSearchQuery, ensureXStocksCatalogLoaded]);
 
   const allReviewsList = useMemo(() => {
     const base = savedReviews.length > 0
@@ -751,9 +837,76 @@ export default function App() {
     return combined;
   }, [headerSearchQuery, localSearchResults, dynamicSearchResults]);
 
+  const headerXStockResults = useMemo(() => {
+    const q = headerSearchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return allKnownXStocks.filter(
+      (s) =>
+        s.symbol.toLowerCase().includes(q) ||
+        s.underlyingTicker.toLowerCase().includes(q) ||
+        s.name.toLowerCase().includes(q) ||
+        s.underlyingName.toLowerCase().includes(q) ||
+        (s.chain && s.chain.toLowerCase().includes(q)) ||
+        (s.issuer && s.issuer.toLowerCase().includes(q))
+    );
+  }, [allKnownXStocks, headerSearchQuery]);
+
+  const headerLiveCgResults = useMemo(() => {
+    if (!headerCgResults.length) return [];
+    return headerCgResults.filter((coin) => {
+      const cId = coin.id.toLowerCase();
+      const cSym = coin.symbol.toLowerCase();
+      return !searchResults.some(
+        (sr) =>
+          (sr.coingeckoId && sr.coingeckoId.toLowerCase() === cId) ||
+          sr.id.toLowerCase() === `cg-${cId}` ||
+          (sr.symbol.toLowerCase() === cSym && sr.name.toLowerCase() === coin.name.toLowerCase())
+      );
+    });
+  }, [headerCgResults, searchResults]);
+
   const handleSelectSearchResult = (reviewId: string) => {
     setSelectedReviewId(reviewId);
     setActiveTab('blog');
+    setIsSearchFocused(false);
+    setHeaderSearchQuery('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectLiveCoinGecko = useCallback(async (coin: CoinGeckoSearchResult) => {
+    const cleanId = coin.id.toLowerCase().replace(/^cg-/, '');
+    const targetReviewId = `cg-${cleanId}`;
+    fetchingCoinIdsRef.current.add(cleanId);
+    setActiveTab('blog');
+    setSelectedReviewId(targetReviewId);
+    setIsSearchFocused(false);
+    setHeaderSearchQuery('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const created = await createReviewFromCoinGecko(cleanId, coin);
+      setReportUnavailable(null);
+      setSavedReviews((prev) => {
+        const filtered = prev.filter(
+          (r) =>
+            r.id !== created.id &&
+            !(r.coingeckoId && r.coingeckoId.toLowerCase() === created.coingeckoId?.toLowerCase())
+        );
+        const updated = [created, ...filtered];
+        persistReviews(updated);
+        return updated;
+      });
+      setSelectedReviewId(created.id);
+    } catch (err) {
+      console.warn('Failed to hydrate live CoinGecko selection:', cleanId, err);
+    } finally {
+      fetchingCoinIdsRef.current.delete(cleanId);
+    }
+  }, []);
+
+  const handleSelectHeaderXStock = (stock: XStockRegistryItem) => {
+    setSelectedStockSymbol(stock.symbol);
+    setActiveTab('xstocks');
     setIsSearchFocused(false);
     setHeaderSearchQuery('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -763,6 +916,10 @@ export default function App() {
     e.preventDefault();
     if (searchResults.length > 0) {
       handleSelectSearchResult(searchResults[0].id);
+    } else if (headerLiveCgResults.length > 0) {
+      handleSelectLiveCoinGecko(headerLiveCgResults[0]);
+    } else if (headerXStockResults.length > 0) {
+      handleSelectHeaderXStock(headerXStockResults[0]);
     } else if (headerSearchQuery.trim()) {
       setActiveTab('blog');
       setIsSearchFocused(false);
@@ -1242,6 +1399,10 @@ export default function App() {
           return;
         }
 
+        if (fetchingCoinIdsRef.current.has(cleanCoinId)) {
+          return;
+        }
+        fetchingCoinIdsRef.current.add(cleanCoinId);
         createReviewFromCoinGecko(cleanCoinId)
           .then((newReview) => {
             if (newReview) {
@@ -1273,9 +1434,16 @@ export default function App() {
               id: targetId,
               isOrder: false
             });
+          })
+          .finally(() => {
+            fetchingCoinIdsRef.current.delete(cleanCoinId);
           });
       })
       .catch(() => {
+        if (fetchingCoinIdsRef.current.has(cleanCoinId)) {
+          return;
+        }
+        fetchingCoinIdsRef.current.add(cleanCoinId);
         createReviewFromCoinGecko(cleanCoinId)
           .then((newReview) => {
             if (newReview) {
@@ -1307,6 +1475,9 @@ export default function App() {
               id: targetId,
               isOrder: false
             });
+          })
+          .finally(() => {
+            fetchingCoinIdsRef.current.delete(cleanCoinId);
           });
       });
   }, [selectedReviewId, savedReviews]);
@@ -1764,43 +1935,18 @@ export default function App() {
 
                 {/* Real-time Autocomplete Dropdown */}
                 {isSearchFocused && headerSearchQuery.trim() !== '' && (
-                  <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:w-80 top-full mt-2 bg-slate-950/95 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-72 overflow-y-auto p-1.5 space-y-1 font-mono backdrop-blur-xl">
+                  <div className="absolute left-0 right-0 sm:left-auto sm:right-0 sm:w-96 top-full mt-2 bg-slate-950/95 border border-cyber-cyan/50 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto p-1.5 space-y-1 font-mono backdrop-blur-xl">
                     <div className="px-2.5 py-1 text-[9px] text-cyber-cyan/70 uppercase tracking-widest border-b border-cyber-cyan/15 flex items-center justify-between">
-                      <span>Pipeline Assets ({searchResults.length})</span>
-                      {isSearchingDb && <RefreshCw className="w-2.5 h-2.5 animate-spin text-cyber-cyan" />}
+                      <span>Tracked Crypto ({searchResults.length})</span>
+                      {(isSearchingDb || isSearchingCg) && <RefreshCw className="w-2.5 h-2.5 animate-spin text-cyber-cyan" />}
                     </div>
 
-                    {searchResults.length === 0 ? (
-                      <div className="p-3.5 text-center text-xs text-slate-400 space-y-1">
-                        {isSearchingDb ? (
-                          <div className="flex items-center justify-center gap-1.5 text-cyber-cyan animate-pulse">
-                            <RefreshCw className="w-3 h-3 animate-spin" />
-                            <span>Querying Crypto Pipeline...</span>
-                          </div>
-                        ) : isRobinhoodChain(headerSearchQuery.trim()) ? (
-                          <>
-                            <div className="font-bold text-emerald-300">{ROBINHOOD_CHAIN.name} (Chain ID {ROBINHOOD_CHAIN.chainId})</div>
-                            <div className="text-[10px] text-slate-400">No tracked crypto assets yet · Registered Arbitrum Orbit L2</div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="font-bold text-slate-300">No matching projects found</div>
-                            <div className="text-[10px] text-slate-500">Try searching ticker (e.g. XRP, SOL, BTC, ETH)</div>
-                          </>
-                        )}
-                      </div>
-                    ) : (
-                      searchResults.slice(0, 8).map(review => (
+                    {searchResults.length > 0 && (
+                      searchResults.slice(0, 6).map(review => (
                         <button
                           key={`${review.id}-${review.symbol}`}
                           type="button"
-                          onClick={() => {
-                            setActiveTab('blog');
-                            setSelectedReviewId(review.id);
-                            setHeaderSearchQuery('');
-                            setIsSearchFocused(false);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
+                          onClick={() => handleSelectSearchResult(review.id)}
                           className="w-full text-left p-2 rounded-lg hover:bg-cyber-cyan/15 border border-transparent hover:border-cyber-cyan/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
                         >
                           <div className="flex items-center gap-2 min-w-0">
@@ -1844,6 +1990,114 @@ export default function App() {
                           </div>
                         </button>
                       ))
+                    )}
+
+                    {/* xStocks & Tokenized Equities Matches */}
+                    {headerXStockResults.length > 0 && (
+                      <>
+                        <div className="px-2.5 py-1 text-[9px] text-purple-300/80 uppercase tracking-widest border-y border-purple-500/20 flex items-center justify-between mt-1">
+                          <span>xStocks &amp; Equities ({headerXStockResults.length})</span>
+                        </div>
+                        {headerXStockResults.slice(0, 5).map(stock => (
+                          <button
+                            key={`header-xstock-${stock.symbol}-${stock.chain}`}
+                            type="button"
+                            onClick={() => handleSelectHeaderXStock(stock)}
+                            className="w-full text-left p-2 rounded-lg hover:bg-purple-500/15 border border-transparent hover:border-purple-500/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              {stock.logoUrl ? (
+                                <img
+                                  src={stock.logoUrl}
+                                  alt={stock.symbol}
+                                  className="w-5 h-5 rounded-md object-contain bg-slate-900 border border-purple-500/30 shrink-0"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded bg-purple-500/20 text-purple-300 font-bold text-[9px] flex items-center justify-center shrink-0">
+                                  {stock.symbol.slice(0, 3)}
+                                </span>
+                              )}
+                              <div className="flex flex-col truncate min-w-0">
+                                <div className="flex items-center gap-1 truncate">
+                                  <span className="text-xs font-bold text-slate-200 group-hover:text-purple-300 truncate">{stock.name}</span>
+                                  <span className="text-[10px] text-purple-300 font-mono font-bold shrink-0">({stock.symbol})</span>
+                                </div>
+                                <span className="text-[9px] text-slate-400 truncate">{stock.underlyingTicker} · {stock.chain}</span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 shrink-0">
+                              xStock
+                            </span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Live CoinGecko Discovery */}
+                    {headerSearchQuery.trim().length >= 2 && (headerLiveCgResults.length > 0 || isSearchingCg) && (
+                      <>
+                        <div className="px-2.5 py-1 text-[9px] text-emerald-300/80 uppercase tracking-widest border-y border-emerald-500/20 flex items-center justify-between mt-1">
+                          <span>CoinGecko Live ({headerLiveCgResults.length})</span>
+                          {isSearchingCg && <RefreshCw className="w-2.5 h-2.5 animate-spin text-emerald-400" />}
+                        </div>
+                        {headerLiveCgResults.slice(0, 6).map(coin => (
+                          <button
+                            key={`header-cg-${coin.id}`}
+                            type="button"
+                            onClick={() => handleSelectLiveCoinGecko(coin)}
+                            className="w-full text-left p-2 rounded-lg hover:bg-emerald-500/15 border border-transparent hover:border-emerald-500/30 flex items-center justify-between gap-2 transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              {coin.thumb ? (
+                                <img
+                                  src={coin.thumb}
+                                  alt={coin.symbol}
+                                  className="w-5 h-5 rounded-full object-contain bg-slate-900 border border-emerald-500/30 shrink-0"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[9px] flex items-center justify-center shrink-0">
+                                  {coin.symbol.slice(0, 2)}
+                                </span>
+                              )}
+                              <div className="flex flex-col truncate min-w-0">
+                                <div className="flex items-center gap-1 truncate">
+                                  <span className="text-xs font-bold text-slate-200 group-hover:text-emerald-300 truncate">{coin.name}</span>
+                                  <span className="text-[10px] text-emerald-400 font-mono font-bold shrink-0">({coin.symbol})</span>
+                                </div>
+                                <span className="text-[9px] text-slate-400 truncate">
+                                  {coin.market_cap_rank ? `Rank #${coin.market_cap_rank} · Live CoinGecko` : 'Live CoinGecko'}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
+                              Open Live
+                            </span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {searchResults.length === 0 && headerXStockResults.length === 0 && headerLiveCgResults.length === 0 && (
+                      <div className="p-3.5 text-center text-xs text-slate-400 space-y-1">
+                        {(isSearchingDb || isSearchingCg) ? (
+                          <div className="flex items-center justify-center gap-1.5 text-cyber-cyan animate-pulse">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Searching Neon &amp; CoinGecko...</span>
+                          </div>
+                        ) : isRobinhoodChain(headerSearchQuery.trim()) ? (
+                          <>
+                            <div className="font-bold text-emerald-300">{ROBINHOOD_CHAIN.name} (Chain ID {ROBINHOOD_CHAIN.chainId})</div>
+                            <div className="text-[10px] text-slate-400">No tracked crypto assets yet · Registered Arbitrum Orbit L2</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-bold text-slate-300">No matching projects found</div>
+                            <div className="text-[10px] text-slate-500">Try searching ticker (e.g. BTC, ETH, SOL, NEAR, NVDAX)</div>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
@@ -2130,6 +2384,7 @@ export default function App() {
                       headerSearchQuery={headerSearchQuery}
                       setHeaderSearchQuery={setHeaderSearchQuery}
                       onOpenCoinGeckoModal={() => setIsCoinGeckoModalOpen(true)}
+                      onSelectCoinGeckoCoin={handleSelectLiveCoinGecko}
                       onSyncCoinGecko={syncCoinGeckoMarkets}
                       isSyncingCoinGecko={isSyncingCoinGecko}
                       onLaunchProEvaluation={handleLaunchProEvaluation}

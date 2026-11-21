@@ -97,21 +97,34 @@ export async function searchCoinGecko(query: string): Promise<CoinGeckoSearchRes
   if (!query || query.trim().length < 2) return [];
   const cleanQuery = query.trim().toLowerCase();
 
+  const mapCoins = (coins: any[]): CoinGeckoSearchResult[] =>
+    coins.slice(0, 15).map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      symbol: c.symbol?.toUpperCase() || '',
+      market_cap_rank: c.market_cap_rank || null,
+      thumb: c.thumb || c.large || '',
+      large: c.large || c.thumb || '',
+    }));
+
   try {
     const response = await fetch(`/api/coingecko/search?query=${encodeURIComponent(cleanQuery)}`);
     const data = await safeJsonParse(response);
-    if (data && Array.isArray(data.coins) && data.coins.length > 0) {
-      return data.coins.slice(0, 15).map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        symbol: c.symbol?.toUpperCase() || '',
-        market_cap_rank: c.market_cap_rank || null,
-        thumb: c.thumb || c.large || '',
-        large: c.large || c.thumb || '',
-      }));
+    if (data && !data.error && Array.isArray(data.coins)) {
+      return mapCoins(data.coins);
     }
   } catch (error) {
-    console.warn('CoinGecko search error:', error);
+    console.warn('CoinGecko proxy search error, trying direct fallback:', error);
+  }
+
+  try {
+    const directRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(cleanQuery)}`);
+    const directData = await safeJsonParse(directRes);
+    if (directData && Array.isArray(directData.coins)) {
+      return mapCoins(directData.coins);
+    }
+  } catch (directError) {
+    console.warn('Direct CoinGecko search error:', directError);
   }
 
   return [];
@@ -323,12 +336,30 @@ export async function createReviewFromCoinGecko(coinId: string, fallbackCoin?: C
   let coingeckoCategories: string[] = [];
 
   try {
-    let detailRes = await fetch(`/api/coingecko/coin/${encodeURIComponent(cleanId)}`);
-    if (!detailRes.ok) {
-      detailRes = await fetch(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(cleanId)}?localization=false&tickers=false&community_data=false&developer_data=false`);
+    let detail: any = null;
+    try {
+      const detailRes = await fetch(`/api/coingecko/coin/${encodeURIComponent(cleanId)}`);
+      const parsed = await safeJsonParse(detailRes);
+      if (parsed && !parsed.error && parsed.id) {
+        detail = parsed;
+      }
+    } catch {
+      detail = null;
     }
-    if (detailRes.ok) {
-      const detail = await detailRes.json();
+
+    if (!detail) {
+      try {
+        const directRes = await fetch(`https://api.coingecko.com/api/v3/coins/${encodeURIComponent(cleanId)}?localization=false&tickers=false&community_data=false&developer_data=false`);
+        const parsedDirect = await safeJsonParse(directRes);
+        if (parsedDirect && !parsedDirect.error && parsedDirect.id) {
+          detail = parsedDirect;
+        }
+      } catch {
+        detail = null;
+      }
+    }
+
+    if (detail) {
       name = detail.name || name;
       symbol = detail.symbol?.toUpperCase() || symbol;
       logoUrl = detail.image?.large || detail.image?.small || logoUrl;

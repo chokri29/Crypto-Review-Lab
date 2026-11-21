@@ -100,9 +100,12 @@ export interface CoinGeckoRwaIssuerDetail {
   updated_at?: string;
 }
 
+import { XStockRegistryItem, XSTOCKS_REGISTRY } from '../data/xstocksRegistry';
+
 // Client-side in-memory cache to prevent redundant HTTP requests and handle rapid tab switches
-let clientRwaListCache: { data: CoinGeckoRwaListItem[]; timestamp: number } | null = null;
+const clientRwaListCache = new Map<string, { data: CoinGeckoRwaListItem[]; timestamp: number }>();
 const clientRwaMarketsCache = new Map<string, { data: Record<string, CoinGeckoRwaMarketItem>; timestamp: number }>();
+let clientTopRwaMarketsCache: { data: Record<string, CoinGeckoRwaMarketItem>; list: CoinGeckoRwaMarketItem[]; timestamp: number } | null = null;
 const clientRwaDetailCache = new Map<string, { data: CoinGeckoRwaDetail; timestamp: number }>();
 const clientRwaIssuerCache = new Map<string, { data: CoinGeckoRwaIssuerDetail; timestamp: number }>();
 
@@ -122,8 +125,8 @@ async function fetchWithTimeout<T>(url: string, timeoutMs: number = DEFAULT_TIME
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timer);
     const parsed = await safeJsonParse<T>(res);
-    if (parsed === null) {
-      throw new Error(`Invalid non-JSON response from ${url}`);
+    if (parsed === null || (typeof parsed === 'object' && parsed !== null && (parsed as any).error)) {
+      throw new Error(`Invalid or error response from ${url}`);
     }
     return parsed;
   } catch (err: any) {
@@ -137,9 +140,11 @@ async function fetchWithTimeout<T>(url: string, timeoutMs: number = DEFAULT_TIME
  * Free/Demo CoinGecko endpoint.
  */
 export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGeckoRwaListItem[]> {
+  const cacheKey = assetType ? assetType.toLowerCase().trim() : 'all';
   const now = Date.now();
-  if (clientRwaListCache && (now - clientRwaListCache.timestamp < RWA_LIST_TTL_MS)) {
-    return clientRwaListCache.data;
+  const cached = clientRwaListCache.get(cacheKey);
+  if (cached && (now - cached.timestamp < RWA_LIST_TTL_MS)) {
+    return cached.data;
   }
 
   try {
@@ -156,7 +161,7 @@ export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGec
     }
 
     if (Array.isArray(data)) {
-      clientRwaListCache = { data, timestamp: Date.now() };
+      clientRwaListCache.set(cacheKey, { data, timestamp: Date.now() });
       return data;
     }
     return [];
@@ -164,6 +169,136 @@ export async function fetchCoinGeckoRwaList(assetType?: string): Promise<CoinGec
     console.warn('[CoinGecko RWA] Failed to fetch RWA list:', err);
     return [];
   }
+}
+
+/**
+ * Fetch top CoinGecko RWA markets in a single call (/rwas/markets?per_page=100)
+ * enabling full-universe discovery without URL length limits.
+ */
+export async function fetchTopCoinGeckoRwaMarkets(
+  perPage: number = 100,
+  page: number = 1
+): Promise<{ map: Record<string, CoinGeckoRwaMarketItem>; list: CoinGeckoRwaMarketItem[] }> {
+  if (page === 1 && clientTopRwaMarketsCache && (Date.now() - clientTopRwaMarketsCache.timestamp < RWA_MARKETS_TTL_MS)) {
+    return { map: clientTopRwaMarketsCache.data, list: clientTopRwaMarketsCache.list };
+  }
+
+  const query = `per_page=${encodeURIComponent(String(perPage))}&page=${encodeURIComponent(String(page))}`;
+  let rawList: CoinGeckoRwaMarketItem[] | null = null;
+
+  try {
+    rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`/api/coingecko/rwas/markets?${query}`, 8000);
+  } catch {
+    rawList = null;
+  }
+
+  if (!Array.isArray(rawList) || rawList.length === 0) {
+    try {
+      rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`https://api.coingecko.com/api/v3/rwas/markets?${query}`, 8000);
+    } catch (directErr) {
+      console.warn('[CoinGecko RWA] Direct public top markets fetch failed:', directErr);
+    }
+  }
+
+  const resultMap: Record<string, CoinGeckoRwaMarketItem> = {};
+  const list: CoinGeckoRwaMarketItem[] = Array.isArray(rawList) ? rawList : [];
+  for (const item of list) {
+    if (item && item.id) {
+      resultMap[item.id.toLowerCase()] = item;
+    }
+  }
+
+  if (page === 1 && list.length > 0) {
+    clientTopRwaMarketsCache = { data: resultMap, list, timestamp: Date.now() };
+  }
+
+  return { map: resultMap, list };
+}
+
+/**
+ * Converts live CoinGecko RWA directory + markets into XStockRegistryItem entries
+ * for any stock/ETF not already covered by the canonical XSTOCKS_REGISTRY.
+ */
+export async function fetchDynamicCoinGeckoXStocks(): Promise<{
+  items: XStockRegistryItem[];
+  marketsMap: Record<string, CoinGeckoRwaMarketItem>;
+}> {
+  const [rwaList, topMarkets] = await Promise.all([
+    fetchCoinGeckoRwaList().catch(() => [] as CoinGeckoRwaListItem[]),
+    fetchTopCoinGeckoRwaMarkets(100, 1).catch(() => ({ map: {} as Record<string, CoinGeckoRwaMarketItem>, list: [] as CoinGeckoRwaMarketItem[] }))
+  ]);
+
+  const canonicalIds = new Set(
+    XSTOCKS_REGISTRY.flatMap(s => [
+      s.coingeckoRwaId?.toLowerCase(),
+      s.symbol.toLowerCase(),
+      s.underlyingTicker.toLowerCase()
+    ]).filter(Boolean) as string[]
+  );
+
+  // Merge RWA list + top markets list so even if one endpoint fails, discovery still works
+  const candidateMap = new Map<string, { id: string; symbol: string; name: string; asset_type: string; image?: string }>();
+
+  for (const entry of rwaList) {
+    if (!entry || !entry.id) continue;
+    const type = (entry.asset_type || '').toLowerCase();
+    if (type && type !== 'stock' && type !== 'etf') continue;
+    candidateMap.set(entry.id.toLowerCase(), {
+      id: entry.id,
+      symbol: (entry.symbol || entry.id).toUpperCase(),
+      name: entry.name || entry.id,
+      asset_type: entry.asset_type || 'stock'
+    });
+  }
+
+  for (const mkt of topMarkets.list) {
+    if (!mkt || !mkt.id) continue;
+    const type = (mkt.asset_type || '').toLowerCase();
+    if (type && type !== 'stock' && type !== 'etf') continue;
+    const key = mkt.id.toLowerCase();
+    const existing = candidateMap.get(key);
+    candidateMap.set(key, {
+      id: mkt.id,
+      symbol: (mkt.symbol || existing?.symbol || mkt.id).toUpperCase(),
+      name: mkt.name || existing?.name || mkt.id,
+      asset_type: mkt.asset_type || existing?.asset_type || 'stock',
+      image: mkt.image || existing?.image
+    });
+  }
+
+  const items: XStockRegistryItem[] = [];
+  for (const cand of candidateMap.values()) {
+    const idLower = cand.id.toLowerCase();
+    const symUpper = cand.symbol.toUpperCase();
+    const symLower = symUpper.toLowerCase();
+    if (canonicalIds.has(idLower) || canonicalIds.has(symLower)) {
+      continue;
+    }
+
+    const isEtf = cand.asset_type.toLowerCase() === 'etf' || cand.name.toLowerCase().includes('etf') || cand.name.toLowerCase().includes('trust');
+    const cleanUnderlying = symUpper.replace(/XSTOCK$/i, '');
+    const marketItem = topMarkets.map[idLower];
+
+    items.push({
+      symbol: symUpper,
+      name: cand.name.toLowerCase().includes('xstock') ? cand.name : `${cand.name} (${symUpper})`,
+      underlyingTicker: cleanUnderlying,
+      underlyingName: cand.name,
+      exchange: 'NASDAQ / NYSE',
+      coingeckoRwaId: cand.id,
+      coingeckoId: cand.id,
+      cmcSymbol: symUpper,
+      issuer: 'CoinGecko RWA Directory',
+      issuerId: 'xstocks-ecosystem',
+      source: 'coingecko-rwa-discovery',
+      chain: 'Multi-Chain RWA',
+      category: isEtf ? 'Index ETF' : 'Tokenized Equity (RWA)',
+      description: `Live tokenized equity (${cand.name}) discovered via CoinGecko Real-World Assets (RWA) directory with multi-source underlying equity cross-verification.`,
+      logoUrl: cand.image || marketItem?.image || undefined
+    });
+  }
+
+  return { items, marketsMap: topMarkets.map };
 }
 
 /**
@@ -179,7 +314,8 @@ export async function fetchCoinGeckoRwaMarkets(
     return {};
   }
 
-  const cleanIds = Array.from(new Set(rwaIds.map(id => id.trim().toLowerCase())));
+  const cleanIds = Array.from(new Set(rwaIds.map(id => id.trim().toLowerCase()).filter(Boolean)));
+  if (cleanIds.length === 0) return {};
   const sortedKey = cleanIds.slice().sort().join(',');
 
   const cached = clientRwaMarketsCache.get(sortedKey);
@@ -188,29 +324,33 @@ export async function fetchCoinGeckoRwaMarkets(
   }
 
   try {
-    const query = `ids=${encodeURIComponent(cleanIds.join(','))}&per_page=100`;
-    let rawList: CoinGeckoRwaMarketItem[] | null = null;
-
-    try {
-      rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`/api/coingecko/rwas/markets?${query}`, 8000);
-    } catch {
-      rawList = null;
-    }
-
-    // Direct fallback if proxy is returning HTML (e.g. Cloudflare SPA catch-all) or unavailable
-    if (!Array.isArray(rawList) || rawList.length === 0) {
-      try {
-        rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`https://api.coingecko.com/api/v3/rwas/markets?${query}`, 8000);
-      } catch (directErr) {
-        console.warn('[CoinGecko RWA] Direct public markets fetch failed:', directErr);
-      }
-    }
-
     const resultMap: Record<string, CoinGeckoRwaMarketItem> = {};
-    if (Array.isArray(rawList)) {
-      for (const item of rawList) {
-        if (item && item.id) {
-          resultMap[item.id.toLowerCase()] = item;
+    const CHUNK_SIZE = 45;
+    for (let i = 0; i < cleanIds.length; i += CHUNK_SIZE) {
+      const chunk = cleanIds.slice(i, i + CHUNK_SIZE);
+      const query = `ids=${encodeURIComponent(chunk.join(','))}&per_page=100`;
+      let rawList: CoinGeckoRwaMarketItem[] | null = null;
+
+      try {
+        rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`/api/coingecko/rwas/markets?${query}`, 8000);
+      } catch {
+        rawList = null;
+      }
+
+      // Direct fallback if proxy is returning HTML or unavailable
+      if (!Array.isArray(rawList) || rawList.length === 0) {
+        try {
+          rawList = await fetchWithTimeout<CoinGeckoRwaMarketItem[]>(`https://api.coingecko.com/api/v3/rwas/markets?${query}`, 8000);
+        } catch (directErr) {
+          console.warn('[CoinGecko RWA] Direct public markets fetch failed:', directErr);
+        }
+      }
+
+      if (Array.isArray(rawList)) {
+        for (const item of rawList) {
+          if (item && item.id) {
+            resultMap[item.id.toLowerCase()] = item;
+          }
         }
       }
     }

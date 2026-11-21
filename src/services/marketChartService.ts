@@ -800,7 +800,8 @@ export async function fetchHistoricalMarketChart(
   name: string,
   currentPrice?: number,
   change24h: number = 0,
-  timeframe: '24H' | '7D' | '1M' | '1Y' = '24H'
+  timeframe: '24H' | '7D' | '1M' | '1Y' = '24H',
+  options?: { isStock?: boolean }
 ): Promise<ChartDataResult> {
   const cacheKey = `${coinId || symbol}-${timeframe}`.toLowerCase();
   const cached = chartCache.get(cacheKey);
@@ -814,7 +815,9 @@ export async function fetchHistoricalMarketChart(
   const effectiveCoinId = XSTOCK_COINGECKO_ID_MAP[rawCoinId] || XSTOCK_COINGECKO_ID_MAP[rawSymbol] || rawCoinId;
   const days = timeframeToDays(timeframe);
 
-  const isStock = isStockAsset(symbol, effectiveCoinId, name);
+  const isStock = options?.isStock !== undefined
+    ? options.isStock
+    : isStockAsset(symbol, effectiveCoinId, name);
 
   if (effectiveCoinId && effectiveCoinId !== 'n/a') {
     try {

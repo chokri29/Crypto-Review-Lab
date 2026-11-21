@@ -3299,9 +3299,20 @@ ${dualSyncContext}`;
   });
 
   // Reusable server-side helper for CoinGecko Markets (Proxy-only)
-  async function fetchCoinGeckoMarketsHelper(ids: string, vsCurrency = "usd"): Promise<any[]> {
+  async function fetchCoinGeckoMarketsHelper(
+    ids: string,
+    vsCurrency = "usd",
+    options?: { perPage?: string; page?: string; order?: string }
+  ): Promise<any[]> {
     // Proxy-only: never call api.coingecko.com from this process.
-    const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=markets&ids=${encodeURIComponent(ids)}&vs_currency=${encodeURIComponent(vsCurrency)}`);
+    const params = new URLSearchParams();
+    params.set("action", "markets");
+    params.set("vs_currency", vsCurrency);
+    if (ids) params.set("ids", ids);
+    if (options?.perPage) params.set("per_page", options.perPage);
+    if (options?.page) params.set("page", options.page);
+    if (options?.order) params.set("order", options.order);
+    const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?${params.toString()}`);
     const response = await fetch(gasUrl);
 
     if (!response.ok) {
@@ -3322,9 +3333,17 @@ ${dualSyncContext}`;
   // API endpoint: CoinGecko Proxy for Markets
   app.get("/api/coingecko/markets", async (req, res) => {
     try {
-      const ids = (req.query.ids as string) || "solana,ethereum,bitcoin,chainlink,render-token,arbitrum,sui,hyperliquid";
+      const hasPaginationOrOrder = Boolean(req.query.per_page || req.query.page || req.query.order);
+      const ids = typeof req.query.ids === "string"
+        ? req.query.ids
+        : hasPaginationOrOrder
+          ? ""
+          : "solana,ethereum,bitcoin,chainlink,render-token,arbitrum,sui,hyperliquid";
       const vsCurrency = (req.query.vs_currency as string) || "usd";
-      const data = await fetchCoinGeckoMarketsHelper(ids, vsCurrency);
+      const perPage = typeof req.query.per_page === "string" ? req.query.per_page : undefined;
+      const page = typeof req.query.page === "string" ? req.query.page : undefined;
+      const order = typeof req.query.order === "string" ? req.query.order : undefined;
+      const data = await fetchCoinGeckoMarketsHelper(ids, vsCurrency, { perPage, page, order });
       res.json(data);
     } catch (error: any) {
       console.error("CoinGecko markets proxy error:", error);
