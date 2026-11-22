@@ -1,5 +1,6 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App.tsx';
 import './index.css';
 import { CurrencyProvider } from './context/CurrencyContext';
@@ -64,6 +65,7 @@ createRoot(document.getElementById('root')!).render(
     <CurrencyProvider>
       <AuthProvider>
         <App />
+        <Analytics />
       </AuthProvider>
     </CurrencyProvider>
   </StrictMode>,
