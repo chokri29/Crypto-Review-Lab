@@ -47,7 +47,6 @@ import { CryptoReview } from './types';
 import { INITIAL_REVIEWS } from './data';
 import { getCoinLogoUrl } from './utils/coinLogos';
 import { createReviewFromCoinGecko, searchCoinGecko, CoinGeckoSearchResult, fetchVerifiedCoinGeckoMarkets, applyDualSyncArchitecture } from './services/coingecko';
-import ReviewLab from './components/ReviewLab';
 import MarketTicker from './components/MarketTicker';
 import CookieBanner from './components/CookieBanner';
 import FaqJsonLd from './components/FaqJsonLd';
@@ -56,15 +55,13 @@ import UserAuthButton from './components/UserAuthButton';
 import { fetchLiveCoinStatsMarkets } from './services/coinstats';
 import { enrichReviewWithDefiLlamaTvl } from './services/defillama';
 import { F3VerificationProvider } from './context/F3VerificationContext';
-import { isOrderReferencePattern, matchesStoredProOrder } from './services/proOrderService';
+import { isOrderReferencePattern, matchesStoredProOrder } from './utils/orderRef';
 import { getAssetKey } from './utils/assetKey';
 import { isXStockAsset } from './utils/xstockFilter';
 import { ROBINHOOD_CHAIN, isRobinhoodChain } from './constants/chains';
 import { XSTOCKS_REGISTRY, XStockRegistryItem } from './data/xstocksRegistry';
 import { fetchDynamicCoinGeckoXStocks } from './services/coingeckoRwa';
 import { fetchRobinhoodStockTokens } from './services/robinhoodStockTokens';
-
-import BlogPreviewer from './components/BlogPreviewer';
 
 // Retry helper for dynamic component imports to handle stale HMR/Vite dev server chunking
 const lazyWithRetry = (importFn: () => Promise<any>) =>
@@ -81,7 +78,9 @@ const lazyWithRetry = (importFn: () => Promise<any>) =>
     }
   });
 
-// Code-split secondary modules with auto-retry
+// Code-split primary and secondary modules with auto-retry to keep initial entry JS lean
+const ReviewLab = lazyWithRetry(() => import('./components/ReviewLab'));
+const BlogPreviewer = lazyWithRetry(() => import('./components/BlogPreviewer'));
 const AuditorChat = lazyWithRetry(() => import('./components/AuditorChat'));
 const XStocksPage = lazyWithRetry(() => import('./components/XStocksPage'));
 const AuditorReviewConsole = lazyWithRetry(() => import('./components/AuditorReviewConsole'));

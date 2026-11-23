@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { fileURLToPath } from "url";
 import { GoogleGenAI } from "@google/genai";
 import { createMetaChatCompletion } from "./src/services/metaModelApi.js";
 import dotenv from "dotenv";
@@ -69,6 +70,7 @@ import { getVerifiedRobinhoodStockTokens } from "./src/services/robinhoodStockTo
 import { isDbUnavailableError } from "./src/db/index.js";
 import { getAssetKey } from "./src/utils/assetKey.js";
 import { isXStockAsset } from "./src/utils/xstockFilter.js";
+import { XSTOCKS_REGISTRY } from "./src/data/xstocksRegistry.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -286,7 +288,135 @@ export function createServerApp() {
     next();
   });
 
-  app.use(express.json());
+  // Strict CORS Allowlist for /api/* (preserves zero wildcard ACAO for Observatory & blocks untrusted cross-origin mutations)
+  const staticAllowedOrigins = new Set<string>([
+    "https://www.cryptoreviewlab.com",
+    "https://cryptoreviewlab.com",
+    "https://cryptoreviewlab.vercel.app",
+    "https://www.crypto-academy.online",
+    "https://crypto-academy.online"
+  ]);
+  if (process.env.APP_URL && /^https?:\/\//i.test(process.env.APP_URL) && !process.env.APP_URL.includes("MY_APP_URL")) {
+    staticAllowedOrigins.add(process.env.APP_URL.replace(/\/$/, ""));
+  }
+  if (process.env.VERCEL_URL) {
+    staticAllowedOrigins.add(`https://${process.env.VERCEL_URL.replace(/^https?:\/\//i, "").replace(/\/$/, "")}`);
+  }
+
+  const isAllowedOrigin = (origin: string): boolean => {
+    if (staticAllowedOrigins.has(origin)) return true;
+    const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+    if (isDev) {
+      try {
+        const u = new URL(origin);
+        if (u.hostname === "localhost" || u.hostname === "127.0.0.1") return true;
+        if (u.protocol === "https:" && (u.hostname.endsWith(".ai.studio") || u.hostname.endsWith(".run.app") || u.hostname.endsWith(".usercontent.goog"))) {
+          return true;
+        }
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  };
+
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin) {
+      return next();
+    }
+
+    if (isAllowedOrigin(origin)) {
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Session, X-Session-Token, X-Sync-Secret");
+      if (req.method === "OPTIONS") {
+        return res.status(204).end();
+      }
+      return next();
+    }
+
+    // Untrusted browser Origin on API routes: reject preflights and state-mutating methods (exempt IPN webhook)
+    if (req.path.startsWith("/api/") && req.path !== "/api/payments/nowpayments-ipn") {
+      if (req.method === "OPTIONS" || req.method === "POST" || req.method === "PUT" || req.method === "PATCH" || req.method === "DELETE") {
+        return res.status(403).json({ error: "Cross-origin request blocked by CORS policy." });
+      }
+    }
+    return next();
+  });
+
+  app.use(express.json({ limit: "1mb" }));
+
+  // Public edge cache helper (Vercel CDN s-maxage + stale-while-revalidate)
+  function setPublicCache(res: express.Response, sMaxAgeSec: number, swrSec: number, maxAgeSec = Math.min(sMaxAgeSec, 15)) {
+    res.setHeader(
+      "Cache-Control",
+      `public, max-age=${maxAgeSec}, s-maxage=${sMaxAgeSec}, stale-while-revalidate=${swrSec}`
+    );
+  }
+
+  // Upstream GAS proxy fetch with explicit abort timeout to prevent serverless function hangs
+  async function fetchGasWithTimeout(url: string, timeoutMs = 9000): Promise<Response> {
+    return fetch(url, {
+      signal: AbortSignal.timeout(timeoutMs),
+      headers: { Accept: "application/json" }
+    });
+  }
+
+  // Lightweight in-memory sliding-window rate limiter for abuse-prone / costly API routes
+  const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+  const rateLimitCleanup = setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of rateLimitBuckets.entries()) {
+      if (now >= v.resetAt) rateLimitBuckets.delete(k);
+    }
+  }, 5 * 60 * 1000);
+  if (typeof rateLimitCleanup.unref === "function") {
+    rateLimitCleanup.unref();
+  }
+
+  function createRateLimiter(maxRequests: number, windowMs: number, keyPrefix: string): express.RequestHandler {
+    return (req, res, next) => {
+      const xff = req.headers["x-forwarded-for"];
+      const clientIp = (typeof xff === "string" ? xff.split(",")[0].trim() : req.ip || req.socket.remoteAddress || "unknown");
+      const key = `${keyPrefix}:${clientIp}`;
+      const now = Date.now();
+      const existing = rateLimitBuckets.get(key);
+
+      if (!existing || now >= existing.resetAt) {
+        rateLimitBuckets.set(key, { count: 1, resetAt: now + windowMs });
+        res.setHeader("X-RateLimit-Limit", String(maxRequests));
+        res.setHeader("X-RateLimit-Remaining", String(Math.max(0, maxRequests - 1)));
+        return next();
+      }
+
+      if (existing.count >= maxRequests) {
+        const retryAfterSec = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+        res.setHeader("Retry-After", String(retryAfterSec));
+        res.setHeader("X-RateLimit-Limit", String(maxRequests));
+        res.setHeader("X-RateLimit-Remaining", "0");
+        return res.status(429).json({
+          error: "Too many requests. Please wait before trying again.",
+          retryAfterSeconds: retryAfterSec
+        });
+      }
+
+      existing.count += 1;
+      res.setHeader("X-RateLimit-Limit", String(maxRequests));
+      res.setHeader("X-RateLimit-Remaining", String(Math.max(0, maxRequests - existing.count)));
+      return next();
+    };
+  }
+
+  app.post("/api/review/generate", createRateLimiter(12, 10 * 60 * 1000, "review-gen"));
+  app.post("/api/chat", createRateLimiter(25, 10 * 60 * 1000, "auditor-chat"));
+  app.get("/api/security/scan", createRateLimiter(30, 5 * 60 * 1000, "security-scan"));
+  app.post("/api/pro-order/create", createRateLimiter(10, 10 * 60 * 1000, "pro-order-create"));
+  app.post("/api/payments/nowpayments-create-invoice", createRateLimiter(10, 10 * 60 * 1000, "invoice-create"));
+  app.get("/api/pro-order/lookup", createRateLimiter(20, 10 * 60 * 1000, "pro-order-lookup"));
+  app.get("/api/pro-order/payment-status", createRateLimiter(20, 10 * 60 * 1000, "pro-order-status"));
 
 // Helper: Format exterior security scan and market snapshot evidence into compact facts for AI prompt grounding
 function formatExteriorEvidence(securityScan: any, marketSnapshot: any, contractAddress?: string): string {
@@ -1071,9 +1201,10 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
     }
   });
 
-  // API endpoint: Lookup Pro Order Status by Order ID and Email (Strict Dual Verification)
+  // API endpoint: Lookup Pro Order Status by Order ID and Email (Strict Dual Verification, no enumeration oracle)
   app.get("/api/pro-order/lookup", async (req, res) => {
     try {
+      res.setHeader("Cache-Control", "private, no-store");
       const orderId = String(req.query.orderId || '').trim();
       const email = String(req.query.email || '').trim();
 
@@ -1082,24 +1213,35 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
       }
 
       const results = await lookupOrderStrictAsync(orderId, email);
-      const all = await getAllOrdersAsync();
-      const idMatch = all.some(o => o.orderId.toLowerCase() === orderId.toLowerCase());
-      const mailMatch = all.some(o => o.clientEmail.toLowerCase() === email.toLowerCase());
+      const matched = results.length > 0;
 
-      return res.json({ orders: results, idMatch, mailMatch });
+      return res.json({ orders: results, idMatch: matched, mailMatch: matched });
     } catch (error: any) {
       console.error("Order lookup error:", error);
       res.status(500).json({ error: "Failed to perform order lookup." });
     }
   });
 
-  // API endpoint: Phase 2 Automated Re-Control / Regeneration for Pro Orders
+  // API endpoint: Phase 2 Automated Re-Control / Regeneration for Pro Orders (Admin or verified order owner)
   app.post("/api/pro-order/re-control", async (req, res) => {
     try {
-      const { orderId } = req.body;
+      const orderId = String(req.body?.orderId || '').trim();
+      const clientEmail = String(req.body?.clientEmail || req.body?.email || '').trim();
       if (!orderId) {
         return res.status(400).json({ error: "Order ID is required." });
       }
+
+      const isAdmin = isAuthorizedAdmin(req);
+      if (!isAdmin) {
+        if (!clientEmail) {
+          return res.status(401).json({ error: "Unauthorized: Admin session or matching order clientEmail is required." });
+        }
+        const matched = await lookupOrderStrictAsync(orderId, clientEmail);
+        if (matched.length === 0) {
+          return res.status(401).json({ error: "Unauthorized: Order ID and client email do not match." });
+        }
+      }
+
       const updatedOrder = await triggerPhaseTwoReControlForOrder(orderId);
       if (!updatedOrder) {
         return res.status(404).json({ error: `Order #${orderId} not found.` });
@@ -1132,10 +1274,12 @@ function validateContractAddressServer(address: string, chainId: string = '1'): 
 
       const isAdmin = isAuthorizedAdmin(req);
       if (isAdmin) {
+        res.setHeader("Cache-Control", "private, no-store");
         return res.json(reviews);
       }
       // Public route: Only return reviews that are approved for public publishing (or canonical reviews where publishApproved is not explicitly false)
       const publicReviews = reviews.filter((r: any) => r.publishApproved === true || r.publish_approved === true || (r.publishApproved === undefined && r.publish_approved === undefined));
+      setPublicCache(res, 60, 300, 30);
       res.json(publicReviews);
     } catch (error: any) {
       console.error("Failed to load reviews:", error);
@@ -2544,6 +2688,11 @@ export const INITIAL_REVIEWS: CryptoReview[] = RAW_REVIEWS.map(review => {
     try {
       const forceRefresh = req.query.refresh === "true" && isAuthorizedAdmin(req);
       const tokens = await getVerifiedRobinhoodStockTokens(forceRefresh);
+      if (forceRefresh) {
+        res.setHeader("Cache-Control", "private, no-store");
+      } else {
+        setPublicCache(res, 120, 600, 60);
+      }
       res.json(tokens);
     } catch (err: any) {
       console.error("Failed to fetch verified Robinhood stock tokens:", err);
@@ -3226,6 +3375,7 @@ ${dualSyncContext}`;
     try {
       const now = Date.now();
       if (fiatRatesCache && (now - fiatRatesCache.timestamp < FIAT_RATES_CACHE_TTL)) {
+        setPublicCache(res, 1800, 3600, 300);
         return res.json({
           source: "cache",
           base: "USD",
@@ -3300,6 +3450,9 @@ ${dualSyncContext}`;
         timestamp: now
       };
 
+      if (fetchedRates) {
+        setPublicCache(res, 1800, 3600, 300);
+      }
       res.json({
         source: fetchedRates ? "live" : "fallback",
         base: "USD",
@@ -3332,7 +3485,7 @@ ${dualSyncContext}`;
     if (options?.page) params.set("page", options.page);
     if (options?.order) params.set("order", options.order);
     const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?${params.toString()}`);
-    const response = await fetch(gasUrl);
+    const response = await fetchGasWithTimeout(gasUrl, 9000);
 
     if (!response.ok) {
       throw new Error(`CoinGecko proxy error HTTP ${response.status}`);
@@ -3363,10 +3516,11 @@ ${dualSyncContext}`;
       const page = typeof req.query.page === "string" ? req.query.page : undefined;
       const order = typeof req.query.order === "string" ? req.query.order : undefined;
       const data = await fetchCoinGeckoMarketsHelper(ids, vsCurrency, { perPage, page, order });
+      setPublicCache(res, 30, 120, 15);
       res.json(data);
     } catch (error: any) {
       console.error("CoinGecko markets proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch markets from CoinGecko proxy" });
+      res.status(502).json({ error: error.message || "Failed to fetch markets from CoinGecko proxy" });
     }
   });
 
@@ -3377,7 +3531,7 @@ ${dualSyncContext}`;
       if (!query) return res.json({ coins: [] });
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=search&query=${encodeURIComponent(query)}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
 
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
@@ -3386,10 +3540,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko search proxy non-JSON response", coins: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko search proxy error", coins: [] });
+      }
+      setPublicCache(res, 60, 300, 30);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko search proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to search CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to search CoinGecko", coins: [] });
     }
   });
 
@@ -3398,7 +3556,7 @@ ${dualSyncContext}`;
     try {
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=trending`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
 
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
@@ -3407,10 +3565,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko trending proxy non-JSON response", coins: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko trending proxy error", coins: [] });
+      }
+      setPublicCache(res, 120, 600, 60);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko trending proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch trending from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch trending from CoinGecko" });
     }
   });
 
@@ -3420,7 +3582,7 @@ ${dualSyncContext}`;
       const coinId = req.params.id;
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=coin&id=${encodeURIComponent(coinId)}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
 
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko proxy error HTTP ${response.status}` });
@@ -3429,10 +3591,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko coin details proxy non-JSON response" });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko coin details proxy error" });
+      }
+      setPublicCache(res, 60, 300, 30);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko coin detail proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch coin details from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch coin details from CoinGecko" });
     }
   });
 
@@ -3444,7 +3610,7 @@ ${dualSyncContext}`;
 
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=chart&id=${encodeURIComponent(coinId)}&days=${encodeURIComponent(days)}&vs_currency=${encodeURIComponent(vsCurrency)}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
 
       if (!response.ok) {
         return res.status(response.status).json({ error: `CoinGecko market chart proxy error HTTP ${response.status}` });
@@ -3453,10 +3619,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko market chart proxy non-JSON response", prices: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko market chart proxy error", prices: [] });
+      }
+      setPublicCache(res, 60, 300, 30);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko market chart proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch market chart from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch market chart from CoinGecko" });
     }
   });
 
@@ -3482,7 +3652,7 @@ ${dualSyncContext}`;
       }
       gasUrl = appendGasToken(gasUrl);
 
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
       if (!response.ok) {
         return res.status(response.status).json({
           error: `CoinGecko RWA list proxy error HTTP ${response.status}`
@@ -3492,10 +3662,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko RWA list proxy non-JSON response", data: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko RWA list proxy error", data: [] });
+      }
+      setPublicCache(res, 300, 1800, 60);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA list proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch RWA list from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch RWA list from CoinGecko" });
     }
   });
 
@@ -3515,7 +3689,7 @@ ${dualSyncContext}`;
 
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?${params.toString()}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
       if (!response.ok) {
         return res.status(response.status).json({
           error: `CoinGecko RWA markets proxy error HTTP ${response.status}`
@@ -3525,10 +3699,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko RWA markets proxy non-JSON response", data: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko RWA markets proxy error", data: [] });
+      }
+      setPublicCache(res, 60, 300, 30);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA markets proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch RWA markets from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch RWA markets from CoinGecko" });
     }
   });
 
@@ -3536,7 +3714,7 @@ ${dualSyncContext}`;
     try {
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwas_issuers_list`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
       if (!response.ok) {
         return res.status(response.status).json({
           error: `CoinGecko RWA issuers list proxy error HTTP ${response.status}`
@@ -3546,10 +3724,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko RWA issuers list proxy non-JSON response", data: [] });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko RWA issuers list proxy error", data: [] });
+      }
+      setPublicCache(res, 300, 1800, 60);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error("CoinGecko RWA issuers list proxy error:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch RWA issuers list from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch RWA issuers list from CoinGecko" });
     }
   });
 
@@ -3562,7 +3744,7 @@ ${dualSyncContext}`;
 
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwas_issuer&id=${encodeURIComponent(issuerId)}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
       if (!response.ok) {
         return res.status(response.status).json({
           error: `CoinGecko RWA issuer proxy error HTTP ${response.status}`
@@ -3572,10 +3754,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko RWA issuer proxy non-JSON response", data: null });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko RWA issuer proxy error", data: null });
+      }
+      setPublicCache(res, 300, 1800, 60);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error(`CoinGecko RWA issuer proxy error for ${req.params.id}:`, error);
-      res.status(500).json({ error: error.message || "Failed to fetch RWA issuer details" });
+      res.status(502).json({ error: error.message || "Failed to fetch RWA issuer details" });
     }
   });
 
@@ -3588,7 +3774,7 @@ ${dualSyncContext}`;
 
       // Proxy-only: never call api.coingecko.com from this process.
       const gasUrl = appendGasToken(`${COINGECKO_GAS_URL}?action=rwa_detail&id=${encodeURIComponent(rwaId)}`);
-      const response = await fetch(gasUrl);
+      const response = await fetchGasWithTimeout(gasUrl, 9000);
       if (!response.ok) {
         return res.status(response.status).json({
           error: `CoinGecko RWA detail proxy error HTTP ${response.status}`
@@ -3598,10 +3784,14 @@ ${dualSyncContext}`;
       if (!jsonResult.ok || !jsonResult.data) {
         return res.status(502).json({ error: "CoinGecko RWA detail proxy non-JSON response", data: null });
       }
+      if (jsonResult.data?.error) {
+        return res.status(502).json({ error: jsonResult.data.message || "CoinGecko RWA detail proxy error", data: null });
+      }
+      setPublicCache(res, 60, 300, 30);
       res.json(jsonResult.data);
     } catch (error: any) {
       console.error(`CoinGecko RWA detail proxy error for ${req.params.id}:`, error);
-      res.status(500).json({ error: error.message || "Failed to fetch RWA details from CoinGecko" });
+      res.status(502).json({ error: error.message || "Failed to fetch RWA details from CoinGecko" });
     }
   });
 
@@ -3636,10 +3826,18 @@ ${dualSyncContext}`;
   });
 
   // Dynamic XML Sitemap Generator Route for Search Engine Indexing & AI Crawlers
-  app.get(["/sitemap.xml", "/api/sitemap.xml"], (req, res) => {
+  app.get(["/sitemap.xml", "/api/sitemap.xml"], async (req, res) => {
     try {
       res.setHeader("Content-Type", "application/xml; charset=utf-8");
-      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=14400");
+      res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=14400, stale-while-revalidate=86400");
+
+      const escapeXml = (value: string): string =>
+        String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
 
       const baseUrl = "https://www.cryptoreviewlab.com";
       const today = new Date().toISOString().split("T")[0];
@@ -3649,23 +3847,63 @@ ${dualSyncContext}`;
         { url: `${baseUrl}/`, priority: "1.0", changefreq: "daily", lastmod: today },
         { url: `${baseUrl}/?tab=lab`, priority: "0.9", changefreq: "daily", lastmod: today },
         { url: `${baseUrl}/?tab=blog`, priority: "0.9", changefreq: "daily", lastmod: today },
-        { url: `${baseUrl}/?tab=academy`, priority: "0.8", changefreq: "weekly", lastmod: today },
+        { url: `${baseUrl}/?tab=xstocks`, priority: "0.9", changefreq: "daily", lastmod: today },
+        { url: `${baseUrl}/?tab=f3`, priority: "0.8", changefreq: "weekly", lastmod: today },
         { url: `${baseUrl}/?tab=chat`, priority: "0.7", changefreq: "weekly", lastmod: today },
       ];
 
-      // Individual Crypto Project Review pages
-      const projectPages = INITIAL_REVIEWS.map(rev => {
-        const lastmod = rev.createdAt || today;
+      // Merge public published Neon DB reviews + INITIAL_REVIEWS (deduplicated by review ID)
+      const reviewMap = new Map<string, any>();
+      for (const rev of INITIAL_REVIEWS) {
+        if (rev?.id) reviewMap.set(String(rev.id).toLowerCase(), rev);
+      }
+      try {
+        const dbReviews: any[] = await getDbReviews();
+        if (Array.isArray(dbReviews)) {
+          for (const rev of dbReviews) {
+            const isPublic =
+              rev.publishApproved === true ||
+              rev.publish_approved === true ||
+              (rev.publishApproved === undefined && rev.publish_approved === undefined);
+            const revId = String(rev.reviewId || rev.id || "").trim();
+            if (isPublic && revId) {
+              reviewMap.set(revId.toLowerCase(), { ...rev, id: revId });
+            }
+          }
+        }
+      } catch {
+        // Neon unavailable: fallback cleanly to INITIAL_REVIEWS
+      }
+
+      const projectPages = Array.from(reviewMap.values()).map((rev) => {
+        const rawDate =
+          rev.createdAt instanceof Date
+            ? rev.createdAt.toISOString().slice(0, 10)
+            : typeof rev.createdAt === "string"
+              ? rev.createdAt.slice(0, 10)
+              : today;
+        const lastmod = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : today;
         return {
           url: `${baseUrl}/?tab=blog&amp;review=${encodeURIComponent(rev.id)}`,
           priority: "0.85",
           changefreq: "weekly",
           lastmod,
-          name: rev.name,
-          symbol: rev.symbol,
-          logoUrl: rev.logoUrl
+          name: rev.name || rev.symbol || rev.id,
+          symbol: rev.symbol || "",
+          logoUrl: rev.logoUrl || ""
         };
       });
+
+      // Canonical xStocks / Tokenized Equity telemetry pages
+      const xstockPages = XSTOCKS_REGISTRY.map((stock) => ({
+        url: `${baseUrl}/?tab=xstocks&amp;stock=${encodeURIComponent(stock.symbol)}`,
+        priority: "0.8",
+        changefreq: "daily",
+        lastmod: today,
+        name: stock.name,
+        symbol: stock.symbol,
+        logoUrl: stock.logoUrl || ""
+      }));
 
       // Modals & Legal disclosures
       const modalPages = [
@@ -3700,9 +3938,26 @@ ${dualSyncContext}`;
         xml += `    <changefreq>${proj.changefreq}</changefreq>\n`;
         xml += `    <priority>${proj.priority}</priority>\n`;
         if (proj.logoUrl) {
-          const safeTitle = `${proj.name} (${proj.symbol}) Security Review &amp; Risk Rating`.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const safeTitle = escapeXml(`${proj.name} (${proj.symbol}) Security Review & Risk Rating`);
           xml += `    <image:image>\n`;
-          xml += `      <image:loc>${proj.logoUrl}</image:loc>\n`;
+          xml += `      <image:loc>${escapeXml(proj.logoUrl)}</image:loc>\n`;
+          xml += `      <image:title>${safeTitle}</image:title>\n`;
+          xml += `    </image:image>\n`;
+        }
+        xml += `  </url>\n`;
+      }
+
+      // Render tokenized equity / xStocks pages
+      for (const stock of xstockPages) {
+        xml += `  <url>\n`;
+        xml += `    <loc>${stock.url}</loc>\n`;
+        xml += `    <lastmod>${stock.lastmod}</lastmod>\n`;
+        xml += `    <changefreq>${stock.changefreq}</changefreq>\n`;
+        xml += `    <priority>${stock.priority}</priority>\n`;
+        if (stock.logoUrl) {
+          const safeTitle = escapeXml(`${stock.name} (${stock.symbol}) Tokenized Equity Telemetry & Verification`);
+          xml += `    <image:image>\n`;
+          xml += `      <image:loc>${escapeXml(stock.logoUrl)}</image:loc>\n`;
           xml += `      <image:title>${safeTitle}</image:title>\n`;
           xml += `    </image:image>\n`;
         }
@@ -3813,15 +4068,24 @@ ${dualSyncContext}`;
     }
   });
 
-  // 3. Database Reviews (PostgreSQL)
+  // 3. Database Reviews (PostgreSQL — filters unpublished drafts for non-admins)
   app.get("/api/db/reviews", async (req, res) => {
     try {
       const dbReviews = await getDbReviews();
-      res.json(dbReviews);
+      const list = Array.isArray(dbReviews) ? dbReviews : [];
+      if (isAuthorizedAdmin(req)) {
+        res.setHeader("Cache-Control", "private, no-store");
+        return res.json(list);
+      }
+      const publicReviews = list.filter((r: any) => r.publishApproved === true || r.publish_approved === true || (r.publishApproved === undefined && r.publish_approved === undefined));
+      setPublicCache(res, 60, 300, 30);
+      res.json(publicReviews);
     } catch (error: any) {
       if (isDbUnavailableError(error)) {
         console.warn("Reviews fetch falling back to local store (PostgreSQL unavailable).");
-        return res.json(loadReviewsFromFile());
+        const fallback = loadReviewsFromFile();
+        setPublicCache(res, 15, 60, 10);
+        return res.json(fallback);
       }
       console.error("Failed to fetch database reviews:", error);
       res.status(500).json({ error: "Failed to fetch reviews" });
@@ -3960,6 +4224,7 @@ ${dualSyncContext}`;
         getTelemetrySyncLogs(10)
       ]);
 
+      setPublicCache(res, 30, 120, 15);
       res.json({
         assets,
         total,
@@ -4011,6 +4276,7 @@ ${dualSyncContext}`;
         const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 1000) : 250;
         const safeOffset = Number.isFinite(offset) ? Math.max(offset, 0) : 0;
         const paged = fallbackAll.slice(safeOffset, safeOffset + safeLimit);
+        setPublicCache(res, 10, 30, 5);
         return res.json({
           assets: paged,
           total: fallbackAll.length,
@@ -4029,6 +4295,7 @@ ${dualSyncContext}`;
   app.get("/api/market-intelligence/networks", async (req, res) => {
     try {
       const networks = await getNetworkMetrics();
+      setPublicCache(res, 60, 300, 30);
       res.json(networks);
     } catch (error: any) {
       if (isDbUnavailableError(error)) {
@@ -4267,11 +4534,12 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
     const possibleDistPaths = [
       path.join(process.cwd(), 'dist'),
-      path.resolve(__dirname),
-      path.resolve(__dirname, '..', 'dist'),
-      path.resolve(__dirname, 'dist')
+      path.resolve(currentDir),
+      path.resolve(currentDir, '..', 'dist'),
+      path.resolve(currentDir, 'dist')
     ];
     const distPath = possibleDistPaths.find(p => fs.existsSync(path.join(p, 'index.html'))) || path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, {

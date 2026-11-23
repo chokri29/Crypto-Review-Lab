@@ -79,12 +79,19 @@ export const EmailViewerModal: React.FC<EmailViewerModalProps> = ({ email, onClo
             </div>
           </div>
 
-          {/* Render HTML Content */}
+          {/* Render HTML Content inside a strict zero-privilege sandboxed iframe */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0B0F19]">
             {email.fullHtmlContent ? (
-              <div 
-                className="email-rendered-container shadow-2xl rounded-xl overflow-hidden"
-                dangerouslySetInnerHTML={{ __html: email.fullHtmlContent }}
+              <iframe
+                title={`Email Preview: ${email.subject}`}
+                sandbox=""
+                referrerPolicy="no-referrer"
+                srcDoc={email.fullHtmlContent
+                  .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+                  .replace(/<(iframe|object|embed|base|form)[^>]*>/gi, '')
+                  .replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi, '')
+                  .replace(/javascript:/gi, '')}
+                className="w-full min-h-[420px] h-[52vh] border border-slate-800 rounded-xl shadow-2xl bg-[#0B0F19]"
               />
             ) : (
               <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 font-mono text-xs">

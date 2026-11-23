@@ -52,7 +52,7 @@ import { PhaseTwoReControlView } from './PhaseTwoReControlView';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from '../services/reControlEngine';
 import { runF3Verification, isF2GatePassed, projectToPublicCryptoReviewReport, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { useF3VerificationState } from '../context/F3VerificationContext';
-import { saveOrderToStorage } from '../services/proOrderService';
+import { saveOrderToStorage } from '../utils/orderRef';
 
 export const AuditorReviewConsole: React.FC<{
   onSelectReviewForMainApp?: (review: any) => void;
@@ -131,9 +131,16 @@ export const AuditorReviewConsole: React.FC<{
     }
 
     try {
+      const adminToken = typeof window !== 'undefined'
+        ? (localStorage.getItem('crl_admin_session_token') || sessionStorage.getItem('crl_admin_session_token') || '')
+        : '';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (adminToken) {
+        headers['x-admin-session'] = adminToken;
+      }
       const res = await fetch('/api/pro-order/re-control', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ orderId })
       });
       if (res.ok) {

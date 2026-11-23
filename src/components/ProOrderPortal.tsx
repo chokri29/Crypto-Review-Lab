@@ -34,7 +34,7 @@ import { EmailViewerModal } from './EmailViewerModal';
 import { PhaseTwoReControlView } from './PhaseTwoReControlView';
 import { getConfidenceLevel, projectToPublicCryptoReviewReport, isF2GatePassed, runF3Verification, regenerateNarrativeAfterVerification } from '../services/f3Engine';
 import { runPhaseTwoReControl, autoCalibrateAndRegenerateDraft } from '../services/reControlEngine';
-import { saveOrderToStorage } from '../services/proOrderService';
+import { saveOrderToStorage } from '../utils/orderRef';
 
 export const ProOrderPortal: React.FC<{
   initialOrderId?: string;
@@ -63,10 +63,12 @@ export const ProOrderPortal: React.FC<{
     }
 
     try {
+      const targetOrderForAuth = matchingOrders.find(o => o.orderId === orderId);
+      const clientEmail = (targetOrderForAuth?.clientEmail || searchEmail || '').trim();
       const res = await fetch('/api/pro-order/re-control', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId })
+        body: JSON.stringify({ orderId, clientEmail })
       });
       if (res.ok) {
         const updated: ProOrder = await res.json();

@@ -1,6 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /api/admin/
+Disallow: /api/pro-order/
+Disallow: /api/auth/
+Disallow: /api/user/
+Disallow: /api/payments/
 
 Sitemap: https://www.cryptoreviewlab.com/sitemap.xml
-# Generative AI Index
+# Generative AI & Answer Engine Context
 # LLMs: https://www.cryptoreviewlab.com/llms.txt
