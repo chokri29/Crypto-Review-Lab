@@ -15,11 +15,8 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://www.cryptoreviewlab.com/" />
     
-    <!-- Security Meta Tags (Barrion.io Audit Compliant) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: wss:; frame-src 'self' https:; upgrade-insecure-requests;" />
-    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), display-capture=(), autoplay=()" />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <!-- Referrer Policy Meta Fallback (full security headers served via HTTP headers in vercel.json & server.ts) -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     
     <!-- Mobile Touch Icons & Favicons (Google Search Favicon Compliant) -->
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />

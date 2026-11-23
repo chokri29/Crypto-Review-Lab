@@ -224,45 +224,64 @@ export function createServerApp() {
   // Disable X-Powered-By to prevent server information/software versions disclosure
   app.disable("x-powered-by");
 
-  // Custom Security Headers Middleware addressing Barrion security scan findings
+  // Security Headers Middleware (aligned with vercel.json & Mozilla Observatory A+ requirements)
   app.use((req, res, next) => {
-    // 1. Mask Server Information disclosure header (e.g. GSE or Node.js versions)
+    const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+
+    // 1. Mask Server Information disclosure header
     res.setHeader("Server", "CryptoReviewLab-Shield");
     res.removeHeader("X-Powered-By");
 
-    // 2. Content Security Policy (CSP) config: prevents XSS, data injections, and DOM vulnerabilities
-    const cspDirectives = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: blob:",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "connect-src 'self' https: wss:",
-      "frame-src 'self' https:",
-      "frame-ancestors 'self' https://*.cryptoreviewlab.com https://cryptoreviewlab.com https://*.cryptoacademy.online https://cryptoacademy.online https://*.crypto-academy.online https://crypto-academy.online https://*.academy.online https://academy.online https://*.blogspot.com https://*.google.com https://*.ai.studio",
-      "upgrade-insecure-requests"
-    ];
-    res.setHeader("Content-Security-Policy", cspDirectives.join("; "));
+    // 2. Content Security Policy (CSP): deny-by-default, no unsafe-inline/unsafe-eval/wildcards in production script-src
+    if (req.path === "/three-core.html") {
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'"
+      );
+    } else {
+      const scriptSrc = isDev
+        ? "script-src 'self' 'unsafe-inline' https://apis.google.com https://va.vercel-scripts.com"
+        : "script-src 'self' https://apis.google.com https://va.vercel-scripts.com";
+      const frameAncestors = isDev
+        ? "frame-ancestors 'self' https://cryptoreviewlab.com https://www.cryptoreviewlab.com https://crypto-academy.online https://*.crypto-academy.online https://*.blogspot.com https://*.google.com https://*.ai.studio"
+        : "frame-ancestors 'self' https://cryptoreviewlab.com https://www.cryptoreviewlab.com https://crypto-academy.online https://*.crypto-academy.online https://*.blogspot.com";
 
-    // 3. Frame Security Policy (Clickjacking defense)
+      const cspDirectives = [
+        "default-src 'none'",
+        scriptSrc,
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "img-src 'self' data: blob: https:",
+        "font-src 'self' data: https://fonts.gstatic.com",
+        "connect-src 'self' https: wss:",
+        "frame-src 'self' https://gen-lang-client-0405846314.firebaseapp.com https://accounts.google.com",
+        frameAncestors,
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "manifest-src 'self'",
+        "media-src 'self'",
+        "worker-src 'self' blob:",
+        "upgrade-insecure-requests"
+      ];
+      res.setHeader("Content-Security-Policy", cspDirectives.join("; "));
+    }
+
+    // 3. Frame Security Policy (Clickjacking defense; modern browsers use CSP frame-ancestors)
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
 
-    // 4. Strict-Transport-Security (HSTS) - forces HTTPS connections for 2 years
+    // 4. Strict-Transport-Security (HSTS) - 2 years with includeSubDomains & preload
     res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
-    // 5. Permissions Policy: restricts camera, microphone, geolocation, and payment APIs
-    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), display-capture=(), autoplay=()");
+    // 5. Permissions Policy
+    res.setHeader("Permissions-Policy", "camera=(), geolocation=(), payment=(), display-capture=(), autoplay=(), microphone=(self)");
 
-    // 6. Deprecated X-XSS-Protection header setting (disabled per modern W3C & Barrion recommendation in favor of CSP)
-    res.setHeader("X-XSS-Protection", "0");
-
-    // 7. Mitigate MIME type sniffing vulnerabilities
+    // 6. Mitigate MIME type sniffing
     res.setHeader("X-Content-Type-Options", "nosniff");
 
-    // 8. Referrer-Policy and Cross-Origin Isolation Headers
+    // 7. Referrer-Policy & Cross-Origin Policies
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    res.setHeader("Cross-Origin-Resource-Policy", req.path === "/og-banner.jpg" ? "cross-origin" : "same-site");
 
     next();
   });
